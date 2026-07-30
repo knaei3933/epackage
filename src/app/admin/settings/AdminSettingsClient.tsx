@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Settings2,
   RotateCcw,
+  RefreshCw,
   Plus,
   Mail,
   Trash2,
@@ -371,17 +372,36 @@ export default function AdminSettingsClient() {
   const modifiedCount = Array.from(modifiedSettings).filter(key => key.startsWith(`${activeTab}.`)).length;
 
   // Google Drive connection status
-  const [googleDriveStatus, setGoogleDriveStatus] = useState<{ connected: boolean; loading: boolean }>({ connected: false, loading: false });
+  // ページ表示時に取得し、ヘッダーへ常時表示（タブ選択なしで再認証できるようにする）
+  const [googleDriveStatus, setGoogleDriveStatus] = useState<{ connected: boolean; loading: boolean }>({ connected: false, loading: true });
+  const [connectingGoogle, setConnectingGoogle] = useState(false);
 
   useEffect(() => {
-    if (activeTab !== 'integrations') return;
     setGoogleDriveStatus(prev => ({ ...prev, loading: true }));
     fetchGoogleDriveStatusAPI()
       .then((data) => {
         setGoogleDriveStatus({ connected: data?.data?.tokenStatus?.hasTokenInDb ?? false, loading: false });
       })
       .catch(() => setGoogleDriveStatus({ connected: false, loading: false }));
-  }, [activeTab]);
+  }, []);
+
+  // Google Drive 再認証: authUrl を取得してリダイレクト
+  // （access_type=offline + prompt=consent で新しい refresh_token を再取得）
+  const handleGoogleReconnect = async () => {
+    setConnectingGoogle(true);
+    try {
+      const res = await fetch('/api/auth/google');
+      const result = await res.json();
+      if (result.success && result.data?.authUrl) {
+        window.location.href = result.data.authUrl;
+      } else {
+        setConnectingGoogle(false);
+      }
+    } catch (e) {
+      console.error('Google reconnect failed:', e);
+      setConnectingGoogle(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
@@ -395,6 +415,40 @@ export default function AdminSettingsClient() {
                 시스템 설정
               </h1>
               <p className="text-sm text-gray-500 mt-2">단가 및 설정값 관리</p>
+
+              {/* Google Drive クイック再認証（常時表示・1クリックで再認証） */}
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <span className={cn(
+                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border',
+                  googleDriveStatus.loading
+                    ? 'bg-gray-100 text-gray-600 border-gray-200'
+                    : googleDriveStatus.connected
+                      ? 'bg-green-50 text-green-700 border-green-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
+                )}>
+                  <Cloud className="w-3.5 h-3.5" />
+                  Google Drive: {googleDriveStatus.loading ? '확인 중...' : googleDriveStatus.connected ? '연결됨' : '미연결'}
+                </span>
+                <button
+                  onClick={handleGoogleReconnect}
+                  disabled={connectingGoogle}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                >
+                  {connectingGoogle ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  )}
+                  재인증
+                </button>
+                <Link
+                  href="/admin/settings/google-drive"
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  상세 설정
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
             </div>
             {hasTabModifications && (
               <motion.div
