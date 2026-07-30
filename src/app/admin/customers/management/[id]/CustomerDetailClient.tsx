@@ -52,6 +52,7 @@ import {
   adminEditProfileSchema,
 } from '@/lib/validations/profile-edit';
 import { BusinessType, ProductCategory } from '@/types/auth';
+import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryLabel } from '@/types/enums';
 import type { UserStatus } from '@/types/auth';
 import { ORDER_STATUS_LABELS } from '@/types/order-status';
 import type { OrderStatus } from '@/types/order-status';
@@ -76,19 +77,6 @@ const fullEditSchema = profileEditSchema.extend({
 });
 
 type FullEditFormData = z.infer<typeof fullEditSchema>;
-
-// =====================================================
-// 区分値オプション（RegistrationForm.tsx の定義と同一・デザイン統一）
-// =====================================================
-const PRODUCT_CATEGORY_OPTIONS = [
-  { value: ProductCategory.COSMETICS, label: '化粧品' },
-  { value: ProductCategory.CLOTHING, label: '衣類' },
-  { value: ProductCategory.ELECTRONICS, label: '家電製品' },
-  { value: ProductCategory.KITCHEN, label: '台所用品' },
-  { value: ProductCategory.FURNITURE, label: '家具' },
-  { value: ProductCategory.OTHER, label: 'その他' },
-];
-
 const ACQUISITION_CHANNEL_OPTIONS = [
   { value: 'web_search', label: '検索エンジン' },
   { value: 'social_media', label: 'SNS' },
@@ -1104,7 +1092,7 @@ function SelectField({
 }: {
   label: string;
   register: ReturnType<ReturnType<typeof useForm<FullEditFormData>>['register']>;
-  options: { value: string; label: string }[];
+  options: readonly { value: string; label: string }[];
   includeBlank?: boolean;
   error?: string;
 }) {

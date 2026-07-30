@@ -15,9 +15,9 @@ import { Input } from '@/components/ui/Input';
 import { Pencil } from 'lucide-react';
 import {
   BusinessType,
-  ProductCategory,
   type User,
 } from '@/types/auth';
+import { getProductCategoryLabel } from '@/types/enums';
 
 // =====================================================
 // Types
@@ -52,15 +52,6 @@ export interface ProfileClientProps {
 // =====================================================
 // Constants
 // =====================================================
-
-const PRODUCT_CATEGORY_OPTIONS: Record<string, string> = {
-  [ProductCategory.COSMETICS]: '化粧品',
-  [ProductCategory.CLOTHING]: '衣類',
-  [ProductCategory.ELECTRONICS]: '家電製品',
-  [ProductCategory.KITCHEN]: '台所用品',
-  [ProductCategory.FURNITURE]: '家具',
-  [ProductCategory.OTHER]: 'その他',
-};
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: '管理者',
@@ -406,7 +397,7 @@ export function ProfileClient({
           </h2>
 
           <div className="w-full px-3 py-2 border border-border-medium rounded-md bg-bg-muted text-text-muted">
-            {userProductCategory && PRODUCT_CATEGORY_OPTIONS[userProductCategory] ? PRODUCT_CATEGORY_OPTIONS[userProductCategory] : '未登録'}
+            {getProductCategoryLabel(userProductCategory) || '未登録'}
           </div>
         </Card>
 
