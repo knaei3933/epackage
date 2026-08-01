@@ -232,6 +232,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Bug5: 同一内容の直近見積（5分以内）があれば新規作成せず既存を返す（重複防止）。
+    // 主犯経路（flushGuestQuotes=連続DRAFT保存 / ResultStep handleDownloadPdf=PDFごとのSENT保存）
+    // の最終防壁。user_id + total_amount + status + 5分窓 の4条件一致で「同じ見積の再送」と判定。
+    // DB列追加なし（既存列で判定）→ 既存データには触らない。total_amount(numeric)は String で比較。
+    const DEDUP_WINDOW_MIN = 5;
+    const { data: existingQuotation } = await serviceClient
+      .from('quotations')
+      .select('id, quotation_number, status, total_amount, customer_name, customer_email, subtotal_amount, tax_amount, valid_until, created_at')
+      .eq('user_id', userId)
+      .eq('total_amount', String(finalTotalAmount))
+      .eq('status', status)
+      .gte('created_at', new Date(Date.now() - DEDUP_WINDOW_MIN * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingQuotation) {
+      const { data: existingItems } = await serviceClient
+        .from('quotation_items')
+        .select('product_id, product_name, quantity, unit_price, specifications')
+        .eq('quotation_id', existingQuotation.id);
+      return NextResponse.json(
+        {
+          success: true,
+          quotation: { ...existingQuotation, items: existingItems ?? [] },
+          message: '同一内容の見積が直近で作成済みのため、重複保存をスキップしました。',
+          messageEn: 'Skipped duplicate quotation (identical content within 5 min).',
+          deduplicated: true,
+        },
+        { status: 200 } // 201 ではなく 200（既存返却）
+      );
+    }
+
     // Insert quotation
     const { data: quotation, error: quotationError } = await serviceClient
       .from('quotations')

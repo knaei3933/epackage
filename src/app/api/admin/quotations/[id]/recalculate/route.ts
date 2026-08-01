@@ -57,8 +57,12 @@ export async function POST(
       postProcessingOptions: (specs.postProcessingOptions as string[]) || [],
       filmLayers,  // Include filmLayers for proper calculation
       useFilmCostCalculation: true,
-      markupRate: (specs.markupRate as number) || 0.5,
-      lossRate: (specs.lossRate as number) || 0.4,
+      // markupRate は「顧客別調整値」（0=変更なし・負=割引）。基準販売マージン0.25は
+      // エンジン内の salesMargin 計算で別途加算される（engine L809: 0.25 + markupRate）。
+      // 旧 `|| 0.5` は salesMargin=0.75（75%マージン）になる誤りだった。現状 specifications
+      // への保存がないためデフォルト0（調整なし）で再計算。保存対応は別途。
+      markupRate: (specs.markupRate as number) ?? 0,
+      lossRate: (specs.lossRate as number) || 0.4, // CONSTANTS.DEFAULT_LOSS_RATE=0.4 と一致
       // スパウトパウチ専用パラメータ（文字列から数値に変換）
       spoutSize: specs.spoutSize ? (parseInt(String(specs.spoutSize), 10) as 9 | 15 | 18 | 22 | 28) : undefined,
       spoutPosition: (specs.spoutPosition as 'top-left' | 'top-center' | 'top-right') || undefined,
@@ -132,13 +136,16 @@ export async function POST(
 
     // C-9 + H-16: cost_breakdown を専用カラムへ、unit_price/total_price も更新（再計算結果を反映）。
     // 旧: specifications のみ更新で cost_breakdown カラム・unit_price・total_price が未反映（[id]/route.ts の item.cost_breakdown/unit_price 読込と非対称）。
+    // total_price は generated column（式: quantity * unit_price・DB定義確認済）のため
+    // 明示 UPDATE は不可（428C9 "can only be updated to DEFAULT"）。unit_price を更新すれば
+    // total_price は自動再計算される。旧コードは total_price を含めたことで UPDATE 全体が
+    // 失敗し、unit_price/specifications/cost_breakdown が一切反映されない機能不全だった。
     const { error: updateError } = await serviceClient
       .from('quotation_items')
       .update({
         specifications: updatedSpecs,
         cost_breakdown: costBreakdown,  // C-9: 専用カラム（[id]/route.ts 読込先と対称）
-        unit_price: result.unitPrice,   // H-16: 再計算の単価（小数含む・100円丸め前）
-        total_price: result.totalPrice, // H-16: 再計算の行小計（100円丸め済）
+        unit_price: result.unitPrice,   // 再計算の単価（小数含む・100円丸め前）。total_price は自動追従
       })
       .eq('id', item.id);
 

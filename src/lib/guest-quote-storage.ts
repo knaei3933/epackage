@@ -33,6 +33,15 @@ export function saveGuestQuote(snapshot: GuestQuoteSnapshot): void {
   if (typeof window === 'undefined') return;
   try {
     const existing = getGuestQuotes();
+    // Bug5: 直近エントリ(existing[0])と同一内容（金額 + 明細数 + 各 数量:単価）なら
+    // unshift をスキップして重複蓄積を防ぐ。flushGuestQuotes が各エントリを別々の DRAFT 見積として
+    // 保存するため、ここで同一スナップショットの重複追加を止めないと同一内容の見積が量産される。
+    const fingerprint = (s: GuestQuoteSnapshot) =>
+      `${s.totalAmount}|${s.items.length}|${s.items.map(i => `${i.quantity}:${i.unit_price}`).join(',')}`;
+    if (existing.length > 0 && fingerprint(existing[0]) === fingerprint(snapshot)) {
+      console.log('[guest-quote-storage] Skip duplicate guest quote (identical to latest)');
+      return;
+    }
     existing.unshift(snapshot);
     // Evict oldest entries beyond the limit
     const trimmed = existing.slice(0, MAX_ENTRIES);

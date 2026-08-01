@@ -9,6 +9,13 @@ import type { UnifiedQuoteResult } from '@/lib/unified-pricing-engine';
 import type { QuoteState } from '@/contexts/QuoteContext';
 import type { MultiQuantityQuote } from './types';
 
+// Bug5: 会員経路の連続送信（PDFダウンロードごとに handleDownloadPdf/handleSave が呼ばれる等）で
+// 同一内容の見積が量産されるのを防ぐモジュールレベルの簡易ガード。
+// 最終防壁はサーバー側 idempotency（/api/member/quotations の5分窓）。ここは補助。
+let lastSaveFp: string | null = null;
+let lastSaveAt = 0;
+const SAVE_DEDUP_MS = 30_000;
+
 interface PersistenceStatus {
   status: 'idle' | 'success' | 'error';
   message: string;
@@ -428,6 +435,15 @@ export async function saveQuotationToDatabase({
         return { id: null, quotationNumber: null };
       }
 
+      // Bug5: 短時間（30秒以内）に同一内容を保存済みなら重複送信をスキップ。
+      // ResultStep の handleDownloadPdf が PDF生成前に毎回 saveQuotationToDatabase を呼ぶため、
+      // PDFを複数回ダウンロードするだけで同一内容の SENT 見積が量産される問題に対応。
+      const fp = `${user?.id ?? 'guest'}|${totalAmountFromItems}|${itemsToSave.length}`;
+      if (lastSaveFp === fp && Date.now() - lastSaveAt < SAVE_DEDUP_MS) {
+        setPersistenceStatus({ status: 'success', message: '見積は保存済みです。' });
+        return { id: null, quotationNumber: null };
+      }
+
       // ✅ /api/member/quotations を使用（認証必須）
       const response = await fetch('/api/member/quotations', {
         method: 'POST',
@@ -488,6 +504,9 @@ export async function saveQuotationToDatabase({
         message: qId ? '見積を保存しました。会員ページの見積一覧に反映されています。' : '見積を保存しました。',
         quotationNumber: qNumber,
       });
+      // Bug5: 成功した内容の指紋を記憶（短時間の同一内容再送をスキップするため）
+      lastSaveFp = `${user?.id ?? 'guest'}|${totalAmountFromItems}|${itemsToSave.length}`;
+      lastSaveAt = Date.now();
       return { id: qId, quotationNumber: qNumber };
     } catch (error) {
       console.error('[saveQuotationToDatabase] ========================================');

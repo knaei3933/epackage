@@ -10,6 +10,8 @@ import { createClient } from '@supabase/supabase-js';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { cancelDesignerTasksForOrder } from '@/lib/order-cancellation';
+import { mapStatusToCurrentStage, isValidStatusTransition } from '@/types/order-status';
+import type { OrderStatus } from '@/types/order-status';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -67,14 +69,53 @@ export async function PUT(request: NextRequest) {
     // Use service role client to bypass RLS
     const supabase = createServiceRoleClient();
 
-    // Update all orders
+    // Bug2修正: 各注文の現在ステータスを取得し isValidStatusTransition で検証してから更新。
+    // 旧コードは .update().in('id', order_ids) で一括更新し、遷移の妥当性を検証せず、
+    // current_stage も更新しなかった（単一 status API と保護レベルが異なる欠陥）。
+    const { data: currentOrders, error: fetchError } = await supabase
+      .from('orders')
+      .select('id, status')
+      .in('id', order_ids);
+
+    if (fetchError) {
+      console.error('[BulkStatusUpdate] fetch error:', fetchError);
+      throw fetchError;
+    }
+
+    const targetStatus = status as OrderStatus;
+    const validIds: string[] = [];
+    const skipped: Array<{ id: string; from: string; to: string }> = [];
+    for (const o of currentOrders || []) {
+      if (isValidStatusTransition(o.status as OrderStatus, targetStatus)) {
+        validIds.push(o.id);
+      } else {
+        skipped.push({ id: o.id, from: o.status ?? '(null)', to: status });
+      }
+    }
+
+    if (validIds.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: {
+          code: 'INVALID_TRANSITION',
+          message: `ステータス「${status}」へ遷移可能な注文がありません（${skipped.length}件すべて不正遷移）`,
+          skipped,
+        },
+      }, { status: 400 });
+    }
+
+    // 正当な注文のみ更新（current_stage を mapStatusToCurrentStage で同期）
+    // Bug3: SHIPPED 到達時に shipped_at を記録（正規 status API と対称）。
+    const now = new Date().toISOString();
     const { data, error } = await supabase
       .from('orders')
       .update({
         status,
-        updated_at: new Date().toISOString(),
+        current_stage: mapStatusToCurrentStage(targetStatus),
+        updated_at: now,
+        ...(targetStatus === 'SHIPPED' && { shipped_at: now }),
       })
-      .in('id', order_ids)
+      .in('id', validIds)
       .select();
 
     if (error) {
@@ -82,10 +123,10 @@ export async function PUT(request: NextRequest) {
       throw error;
     }
 
-    // [連動] CANCELLED に一括更新された場合、各注文の designer_task_assignments をキャンセル（Option A）
+    // [連動] CANCELLED に一括更新された場合、正当に更新された注文（validIds）の designer_task_assignments をキャンセル（Option A）
     // designer 側失敗は警告ログのみで一括更新は維持（緩い整合性）
     if (String(status).toUpperCase() === 'CANCELLED') {
-      for (const oid of order_ids) {
+      for (const oid of validIds) {
         try {
           // verifier Gap-1 対応: 第3引数に service role client（L68 生成済み）を注入。
           // verifyAdminAuth は Bearer token 優先（auth-helpers L86-112）で cookie に依存しないが、
@@ -120,6 +161,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       success: true,
       updated_count: data?.length || 0,
+      skipped_count: skipped.length,
+      skipped,
       orders: data,
     });
 

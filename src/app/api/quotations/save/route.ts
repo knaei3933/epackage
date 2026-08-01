@@ -244,6 +244,36 @@ export async function POST(request: NextRequest) {
         quotationInsertData.discount_type = body.appliedCoupon?.type || null;
       }
 
+      // Bug5: 同一内容の直近見積（5分以内）があれば新規作成せず既存を返す（重複防止）。
+      // この API は quotations.status を明示保存しない（DB デフォルト依存）のため status 条件は含めず、
+      // user_id + total_amount + 5分窓 で判定。total_amount(numeric)は String で比較。
+      const DEDUP_WINDOW_MIN = 5;
+      const { data: existingQuotation } = await supabaseService
+        .from('quotations')
+        .select('id, quotation_number, total_amount, customer_name, customer_email, valid_until, created_at')
+        .eq('user_id', userId)
+        .eq('total_amount', String(grandTotal))
+        .gte('created_at', new Date(Date.now() - DEDUP_WINDOW_MIN * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingQuotation) {
+        const { data: existingItems } = await supabaseService
+          .from('quotation_items')
+          .select('id, quotation_id, product_id, product_name, quantity, unit_price, specifications')
+          .eq('quotation_id', existingQuotation.id);
+        return NextResponse.json(
+          {
+            success: true,
+            message: '同一内容の見積が直近で作成済みのため、重複保存をスキップしました。',
+            quotation: { ...existingQuotation, items: existingItems ?? [] },
+            deduplicated: true,
+          },
+          { status: 200 }
+        );
+      }
+
       const { data: quotationData, error: insertError } = await supabaseService
         .from('quotations')
         .insert(quotationInsertData)
