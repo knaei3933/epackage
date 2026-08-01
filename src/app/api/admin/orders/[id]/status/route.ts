@@ -89,27 +89,11 @@ export async function PUT(
       );
     }
 
-    // ステータス更新
-    const { data: updatedOrder, error: updateError } = await supabase
-      .from('orders')
-      .update({
-        status: status,
-        current_stage: mapStatusToCurrentStage(status),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderId)
-      .select()
-      .single();
-
-    if (updateError || !updatedOrder) {
-      console.error('[Admin Order Status] Failed to update status:', updateError);
-      return NextResponse.json(
-        { error: 'ステータスの更新に失敗しました。' },
-        { status: 500 }
-      );
-    }
-
-    // C-5 + H-13: 監査ログを order_status_history（本番存在テーブル）に記録
+    // C-5 + H-13: 監査ログを order_status_history（本番存在テーブル）に記録。
+    // Bug4: 明示INSERT を UPDATE の【前】に実行し、DB トリガー（AFTER UPDATE OF status）
+    // による二重記録を防止する。トリガーは同一 from→to が過去10秒以内に既に記録されていれば
+    // スキップするよう改良済み（migration: fix_log_order_status_change_dedup）。
+    // 明示INSERT の changed_by は実際の操作者（auth.userId）で正確。
     // 旧 audit_logs は本番未存在・changed_by 'ADMIN' ハードコードで追跡不能だった。
     try {
       await supabase.from('order_status_history').insert({
@@ -121,6 +105,32 @@ export async function PUT(
       });
     } catch (auditError) {
       console.warn('[Admin Order Status] Failed to record status history:', auditError);
+    }
+
+    // ステータス更新
+    // Bug3: SHIPPED 到達時に shipped_at を記録。旧: update文に shipped_at を含まず、
+    // SHIPPED に遷移しても shipped_at が null のままだった（実機検証で確認）。
+    // SHIPPED は終端（VALID_STATUS_TRANSITIONS で遷移先なし）なので shipped_at は1回だけセットされる。
+    // ※OrderStatus に DELIVERED/COMPLETED は存在せず最終は SHIPPED のため delivered_at は対象外。
+    const now = new Date().toISOString();
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from('orders')
+      .update({
+        status: status,
+        current_stage: mapStatusToCurrentStage(status),
+        updated_at: now,
+        ...(status === 'SHIPPED' && { shipped_at: now }),
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (updateError || !updatedOrder) {
+      console.error('[Admin Order Status] Failed to update status:', updateError);
+      return NextResponse.json(
+        { error: 'ステータスの更新に失敗しました。' },
+        { status: 500 }
+      );
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3）
