@@ -1,9 +1,9 @@
 /**
  * Blog SEO Utilities
  *
- * JSON-LD 構造化データ生成（BlogPosting / BreadcrumbList）。
- * 未使用関数は整理済み（AC-7 デッドコード削除）。
- * 呼出元: src/app/blog/[slug]/page.tsx (seoUtils.generateBlogPostingSchema / seoUtils.generateBreadcrumbSchema)
+ * JSON-LD 構造化データ生成（BlogPosting）。
+ * ※ BreadcrumbList は <BreadcrumbJsonLd> コンポーネントで出力（重複・二重文字列化回避）。
+ * 呼出元: src/app/blog/[slug]/page.tsx (seoUtils.generateBlogPostingSchema)
  */
 
 const SITE_CONFIG = {
@@ -11,26 +11,6 @@ const SITE_CONFIG = {
   siteName: 'Epackage Lab',
   defaultOgImage: '/images/og-image.jpg',
 };
-
-/**
- * Generate breadcrumb structured data (JSON-LD)
- */
-export function generateBreadcrumbStructuredData(
-  items: Array<{ name: string; url: string }>
-): string {
-  const itemListElement = items.map((item, index) => ({
-    '@type': 'ListItem' as const,
-    position: index + 1,
-    name: item.name,
-    item: item.url,
-  }));
-
-  return JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement,
-  });
-}
 
 /**
  * Generate BlogPosting schema
@@ -100,5 +80,4 @@ export function generateBlogPostingSchema(params: {
  */
 export const seoUtils = {
   generateBlogPostingSchema,
-  generateBreadcrumbSchema: generateBreadcrumbStructuredData,
 };

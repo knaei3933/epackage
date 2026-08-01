@@ -154,26 +154,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     wordCount,
   });
 
-  const breadcrumbSchema = seoUtils.generateBreadcrumbSchema([
-    { name: 'ホーム', url: '/' },
-    { name: 'ブログ', url: '/blog' },
-    { name: post.title, url: `/blog/${post.slug}` },
-  ]);
-
   return (
     <>
       <BreadcrumbJsonLd pathname={`/blog/${slug}`} />
       <ScrollToAnchor />
       {/* スクロール深度計測（25/50/75/100% 到達で GA4 イベント発火） */}
       <ScrollDepthTracker articleId={post.id} />
-      {/* Structured Data */}
+      {/* Structured Data: BlogPosting（パンくずは <BreadcrumbJsonLd> が出力） */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       <div className="min-h-screen bg-[#F7F7FF]">
