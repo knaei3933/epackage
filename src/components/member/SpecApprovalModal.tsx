@@ -320,17 +320,17 @@ export default function SpecApprovalModal({
 }: SpecApprovalModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const items = (quotation.items || []) as any[];
-  // 注文済（order_id 紐付き）の item は選択不可
-  const selectableItems = items.filter((i) => !i.orderId);
+  // 有効期間内の再注文を許容: 注文済 item も選択可能（全 item を候補に）。
+  const selectableItems = items;
   const hasMultipleItems = items.length > 1;
 
   // ラジオ式単一選択（1回の注文 = 数量パターン1つ）。
-  // 初期値は最初の未注文 item。quotation が変わった時もリセットする。
+  // 初期値は最初の item。quotation が変わった時もリセットする。
   const [selectedItemId, setSelectedItemId] = useState<string | null>(
     () => selectableItems[0]?.id ?? null
   );
   useEffect(() => {
-    setSelectedItemId(items.find((i) => !i.orderId)?.id ?? null);
+    setSelectedItemId(items[0]?.id ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotation.items]);
 
@@ -369,6 +369,11 @@ export default function SpecApprovalModal({
     if (!selectedItemId) {
       alert('数量パターンを1つ選択してください。');
       return;
+    }
+    // 注文済パターンの再注文は確認ダイアログで意図を明示（誤操作防止）
+    if (selectedItem?.orderId) {
+      const ok = window.confirm('この数量パターンは既に注文済みです。再度注文しますか？');
+      if (!ok) return;
     }
     setIsProcessing(true);
     try {
@@ -434,25 +439,21 @@ export default function SpecApprovalModal({
                 const itemUnit = item.unitPrice || item.unit_price || 0;
                 const itemTotal = calcItemTotal(item);
                 const itemDisplayName = getItemDisplayName(item);
-                const handleClick = isOrdered ? undefined : () => selectItem(item.id);
+                const handleClick = () => selectItem(item.id);
                 return (
                   <div
                     key={item.id}
-                    role={isOrdered ? undefined : 'button'}
+                    role="button"
                     onClick={handleClick}
                     className={`group relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 ${
-                      isOrdered
-                        ? 'border-border-medium bg-bg-secondary/40 cursor-not-allowed opacity-70'
-                        : isSelected
+                      isSelected
                         ? 'border-primary bg-primary/5 shadow-sm cursor-pointer'
                         : 'border-border-medium bg-bg-primary hover:border-primary/40 hover:bg-bg-secondary/30 cursor-pointer'
                     }`}
                   >
                     {/* ラジオ（円形インジケータ） */}
                     <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                      isOrdered
-                        ? 'border-border-medium text-transparent'
-                        : isSelected
+                      isSelected
                         ? 'border-primary bg-primary text-white'
                         : 'border-border-medium text-transparent group-hover:border-primary/50'
                     }`}>
@@ -498,7 +499,7 @@ export default function SpecApprovalModal({
                     {/* 右側: 金額（sm以上で表示） */}
                     <div className="hidden sm:flex flex-col items-end flex-shrink-0">
                       <span className="text-xs text-text-muted">金額</span>
-                      <span className={`text-lg font-bold tabular-nums ${isSelected && !isOrdered ? 'text-primary' : 'text-text-primary'}`}>
+                      <span className={`text-lg font-bold tabular-nums ${isSelected ? 'text-primary' : 'text-text-primary'}`}>
                         ¥{itemTotal.toLocaleString()}
                       </span>
                     </div>

@@ -34,17 +34,14 @@ export function LineItems({ quotation, selectedItemId, setSelectedItemId, canCon
         </div>
         <div className="space-y-4">
           {quotation.items?.map((item: any, index: number) => {
-            // 注文済（order_id 紐付き）の item は選択不可。
-            // 1見積から複数注文を許容: 未注文パターンのみ選択できる。
+            // 有効期間内の再注文を許容: 注文済（order_id 紐付き）item も選択可能。
             const isOrdered = !!item.orderId;
-            const isSelectable = canConvert && !isOrdered;
+            const isSelectable = canConvert;
             const isSelected = selectedItemId === item.id;
             const rowBase = 'rounded-xl p-5 flex items-center justify-between transition-all duration-150 relative';
             const rowState = isSelected
               ? 'border-2 border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
-              : isOrdered
-                ? 'border border-gray-200 bg-gray-50 cursor-not-allowed opacity-70'
-                : isSelectable
+              : isSelectable
                 ? 'border-2 border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50/40 cursor-pointer'
                 : 'border border-border-secondary';
             return (

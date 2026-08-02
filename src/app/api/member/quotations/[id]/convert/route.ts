@@ -16,6 +16,7 @@ import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { sendEmail } from '@/lib/email';
 import { subject as poSubject, plainText as poPlainText, html as poHtml, type PurchaseOrderData, type PurchaseOrderItemData } from '@/lib/email/templates/purchase_order';
 import { MANUFACTURER_ORDER_EMAIL, PRICING_CONSTANTS } from '@/lib/pricing/core/constants';
+import { getEffectiveValidUntil } from '@/lib/quotation-utils';
 
 // ============================================================
 // Types
@@ -125,63 +126,46 @@ export async function POST(
       route: '/api/member/quotations/[id]/convert',
     });
 
-    // 数量パターン1つ = 注文1つ（1見積から複数注文を許容）。
-    // selectedItemIds が未指定の場合は「未注文 item 全部」に解決する。
+    // 数量パターン1つ = 注文1つ（1見積から複数注文を許容・有効期間内は同じパターン含め再注文可能）。
+    // selectedItemIds が未指定の場合は「未注文 item の最初の1件」、なければ「全 item の最初の1件」で再注文。
     let targetItemIds: string[] =
       selectedItemIds && Array.isArray(selectedItemIds) ? selectedItemIds : [];
 
     if (targetItemIds.length === 0) {
-      const { data: unorderedItems } = await supabaseAdmin
+      // 未注文 item を優先。1件だけ選択（1注文1パターンを保証）。
+      const { data: unorderedItem } = await supabaseAdmin
         .from('quotation_items')
-        .select('id, order_id')
+        .select('id')
         .eq('quotation_id', quotationId)
-        .is('order_id', null);
+        .is('order_id', null)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-      if (!unorderedItems || unorderedItems.length === 0) {
-        // 全パターン注文済 → 代表 order（最初の1件）を返す
-        const { data: firstOrder } = await supabaseAdmin
-          .from('orders')
-          .select('id, order_number')
+      if (unorderedItem) {
+        targetItemIds = [unorderedItem.id];
+      } else {
+        // 全パターン注文済 → 最初の item で再注文（有効期間内は同じパターンも再注文可能）
+        const { data: firstItem } = await supabaseAdmin
+          .from('quotation_items')
+          .select('id')
           .eq('quotation_id', quotationId)
           .order('created_at', { ascending: true })
           .limit(1)
           .maybeSingle();
-        return NextResponse.json(
-          {
-            success: true,
-            data: firstOrder,
-            message: 'すべての数量パターンは注文済みです。',
-            alreadyExists: true,
-          },
-          { status: 200 }
-        );
+
+        if (!firstItem) {
+          return NextResponse.json(
+            { success: false, error: '見積に数量パターンがありません。' },
+            { status: 400 }
+          );
+        }
+        targetItemIds = [firstItem.id];
       }
-      targetItemIds = unorderedItems.map((i: any) => i.id);
     }
 
-    // 選択した item に既に注文（order_id）が紐付いていないか検査。
-    // 1 item = 最大1 order（unique partial index idx_quotation_items_unique_order が保証）。
-    const { data: selectedItemsCheck } = await supabaseAdmin
-      .from('quotation_items')
-      .select('id, order_id')
-      .in('id', targetItemIds);
-    const alreadyOrdered = (selectedItemsCheck || []).find((i: any) => i.order_id);
-    if (alreadyOrdered) {
-      const { data: linkedOrder } = await supabaseAdmin
-        .from('orders')
-        .select('id, order_number')
-        .eq('id', alreadyOrdered.order_id)
-        .maybeSingle();
-      return NextResponse.json(
-        {
-          success: true,
-          data: linkedOrder,
-          message: '選択した数量パターンは既に注文済みです。',
-          alreadyExists: true,
-        },
-        { status: 200 }
-      );
-    }
+    // 同じパターン（order_id 済み item 含む）の再注文を許可するため、alreadyOrdered チェックは行わない。
+    // order_id は後段で「最新の order」に上書き更新する（過去 order は orders.quotation_id で追跡可能）。
 
     // Approval gate removed: all quotations are orderable regardless of status.
     // Only block terminal statuses that make conversion meaningless.
@@ -199,8 +183,8 @@ export async function POST(
       );
     }
 
-    // Check if expired
-    if (quotation.valid_until && new Date(quotation.valid_until) < new Date()) {
+    // Check if expired（valid_until NULL は created_at + 30日 でフォールバック）
+    if (getEffectiveValidUntil(quotation) < new Date()) {
       return NextResponse.json(
         { success: false, error: '有効期限切れの見積です。' },
         { status: 400 }
@@ -393,25 +377,17 @@ export async function POST(
       );
     }
 
-    // 数量パターンをこの注文に紐付け（1パターン = 1注文）。
-    // unique partial index と WHERE order_id IS NULL で並行リクエストの二重紐付けを DB レベルで防止。
-    const { data: linkedItems, error: linkError } = await supabaseAdmin
+    // 数量パターンをこの注文に紐付け（1パターン = 1注文・最新 order に上書き）。
+    // 有効期間内の再注文を許容するため、既存 order_id を上書きする。
+    // 過去の order は orders.quotation_id（非UNIQUE）で「この見積の全注文」として追跡可能。
+    const { error: linkError } = await supabaseAdmin
       .from('quotation_items')
       .update({ order_id: order.id })
-      .in('id', targetItemIds)
-      .is('order_id', null)
-      .select('id');
+      .in('id', targetItemIds);
 
     if (linkError) {
       console.error('[Convert to Order] Failed to link quotation_items to order:', linkError);
       // 注文は作成済みなので継続（リンク失敗はログのみ）
-    } else if (linkedItems && linkedItems.length < targetItemIds.length) {
-      // 並行リクエスト競合: 一部 item が既に別 order に紐付いた。
-      console.warn('[Convert to Order] Concurrent race: some items already linked', {
-        expected: targetItemIds.length,
-        actual: linkedItems.length,
-        orderId: order.id,
-      });
     }
 
     // Create initial status history entry
@@ -481,23 +457,20 @@ export async function POST(
       }
     }
 
-    // quotations.status は全パターン注文済（未注文 item 0件）の時のみ CONVERTED。
-    // マルチパターン見積は最後のパターンを注文した時点で初めて CONVERTED になる。
+    // quotations.status は order が1件でも作られたら CONVERTED（有効期間内の再注文を許容）。
+    // 全パターン注文済かは問わない（canConvert には影響しない・期限内なら同じパターン含め再注文可能）。
     // H-17: quotations.status = quotation_status enum は大文字（小文字 'converted' は DB 汚染の根因）。
-    const { count: remainingUnordered } = await supabaseAdmin
-      .from('quotation_items')
-      .select('id', { count: 'exact', head: true })
-      .eq('quotation_id', quotationId)
-      .is('order_id', null);
-
-    if (remainingUnordered === 0) {
-      await supabaseAdmin
+    const currentStatusUpper = ((quotation.status as string) || '').toUpperCase();
+    if (currentStatusUpper !== 'CONVERTED') {
+      const { error: statusError } = await supabaseAdmin
         .from('quotations')
         .update({ status: 'CONVERTED' })
         .eq('id', quotationId);
-      console.log('[Convert to Order] All patterns ordered; quotation marked CONVERTED');
-    } else {
-      console.log(`[Convert to Order] ${remainingUnordered} pattern(s) still unordered; quotation status unchanged`);
+      if (statusError) {
+        console.error('[Convert to Order] Failed to mark quotation CONVERTED:', statusError);
+      } else {
+        console.log('[Convert to Order] Quotation marked CONVERTED (reorder enabled within validity)');
+      }
     }
 
     // Notify admins about new order
@@ -782,7 +755,8 @@ export async function GET(
       route: '/api/member/quotations/[id]/convert',
     });
 
-    // 1見積から複数注文を許容: 未注文 item 数で変換可否を判定する。
+    // 有効期間内の再注文を許容: canConvert は「キャンセルされていない・期限内」のみで判定。
+    // 未注文 item 数（unorderedCount）は参考値（すべて注文済でも再注文可能）。
     const { count: unorderedCount } = await supabaseAdmin
       .from('quotation_items')
       .select('id', { count: 'exact', head: true })
@@ -801,10 +775,9 @@ export async function GET(
     // Check conversion eligibility
     const quotationStatus = quotation.status as unknown as string;
     const isCancelled = quotationStatus === 'cancelled' || quotationStatus === 'CANCELLED';
-    const isExpired =
-      quotation.valid_until && new Date(quotation.valid_until) < new Date();
-    const hasOrder = (unorderedCount ?? 0) === 0; // 全パターン注文済
-    const canConvert = !isCancelled && !isExpired && (unorderedCount ?? 0) > 0;
+    const isExpired = getEffectiveValidUntil(quotation) < new Date();
+    const hasOrder = (unorderedCount ?? 0) === 0; // 全パターン注文済（参考値・canConvert には影響しない）
+    const canConvert = !isCancelled && !isExpired; // 有効期間内なら同じパターン含め再注文可能
 
     return NextResponse.json({
       success: true,
@@ -824,8 +797,6 @@ export async function GET(
           unorderedCount: unorderedCount ?? 0,
           reason: isCancelled
             ? 'この見積はキャンセルされています。'
-            : hasOrder
-            ? 'すべての数量パターンは注文済みです。'
             : isExpired
             ? '有効期限が切れています。'
             : null,
