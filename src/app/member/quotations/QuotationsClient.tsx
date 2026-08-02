@@ -263,6 +263,8 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
               <div className="space-y-4">
                 {quotations.map((quotation) => {
                   const isExpanded = expandedCards.has(quotation.id);
+                  // 1見積から複数注文を許容: quote全体の CONVERTED = 全パターン注文済。
+                  const isQuoteConverted = (quotation.status || '').toUpperCase() === 'CONVERTED';
                   return (
                   <Card key={quotation.id} className="overflow-hidden hover:shadow-md transition-shadow">
                     {/* ── ヘッダー行: クリックで折り畳み/展開 ── */}
@@ -440,10 +442,11 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                             setQuotationForSpec(quotation);
                             setShowSpecModal(true);
                           }}
+                          disabled={isQuoteConverted}
                           className="group/btn shadow-sm hover:shadow"
                         >
                           <FileText className="w-3.5 h-3.5 mr-1 transition-transform group-hover/btn:scale-110" />
-                          注文する
+                          {isQuoteConverted ? '注文済み' : '注文する'}
                         </Button>
 
                         {['draft', 'quotation_pending', 'sent'].includes(quotation.status.toLowerCase()) && (

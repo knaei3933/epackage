@@ -82,6 +82,17 @@ export async function POST(
     const body: ConvertToOrderRequest = await request.json();
     const { notes, deliveryAddress, selectedItemIds } = body;
 
+    // 仕様: 数量パターン1つ = 注文1つ。複数 item を1注文に集約する旧挙動は拒否（フェイルファスト）。
+    if (selectedItemIds && Array.isArray(selectedItemIds) && selectedItemIds.length > 1) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '1回の注文につき数量パターンは1つだけ選択できます。他のパターンは注文完了後に再度ご操作ください。',
+        },
+        { status: 400 }
+      );
+    }
+
     // Use normal SSR client with cookie auth
     const { client: supabase } = await createSupabaseSSRClient(request);
 
@@ -114,20 +125,58 @@ export async function POST(
       route: '/api/member/quotations/[id]/convert',
     });
 
-    // Check if order already exists (check FIRST before status validation)
-    // This allows returning existing order even if quotation was already converted
-    const { data: existingOrder } = await supabaseAdmin
-      .from('orders')
-      .select('id, order_number')
-      .eq('quotation_id', quotationId)
-      .maybeSingle();
+    // 数量パターン1つ = 注文1つ（1見積から複数注文を許容）。
+    // selectedItemIds が未指定の場合は「未注文 item 全部」に解決する。
+    let targetItemIds: string[] =
+      selectedItemIds && Array.isArray(selectedItemIds) ? selectedItemIds : [];
 
-    if (existingOrder) {
+    if (targetItemIds.length === 0) {
+      const { data: unorderedItems } = await supabaseAdmin
+        .from('quotation_items')
+        .select('id, order_id')
+        .eq('quotation_id', quotationId)
+        .is('order_id', null);
+
+      if (!unorderedItems || unorderedItems.length === 0) {
+        // 全パターン注文済 → 代表 order（最初の1件）を返す
+        const { data: firstOrder } = await supabaseAdmin
+          .from('orders')
+          .select('id, order_number')
+          .eq('quotation_id', quotationId)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        return NextResponse.json(
+          {
+            success: true,
+            data: firstOrder,
+            message: 'すべての数量パターンは注文済みです。',
+            alreadyExists: true,
+          },
+          { status: 200 }
+        );
+      }
+      targetItemIds = unorderedItems.map((i: any) => i.id);
+    }
+
+    // 選択した item に既に注文（order_id）が紐付いていないか検査。
+    // 1 item = 最大1 order（unique partial index idx_quotation_items_unique_order が保証）。
+    const { data: selectedItemsCheck } = await supabaseAdmin
+      .from('quotation_items')
+      .select('id, order_id')
+      .in('id', targetItemIds);
+    const alreadyOrdered = (selectedItemsCheck || []).find((i: any) => i.order_id);
+    if (alreadyOrdered) {
+      const { data: linkedOrder } = await supabaseAdmin
+        .from('orders')
+        .select('id, order_number')
+        .eq('id', alreadyOrdered.order_id)
+        .maybeSingle();
       return NextResponse.json(
         {
           success: true,
-          data: existingOrder,
-          message: '既に注文が生成されています。',
+          data: linkedOrder,
+          message: '選択した数量パターンは既に注文済みです。',
           alreadyExists: true,
         },
         { status: 200 }
@@ -285,18 +334,11 @@ export async function POST(
       }
     }
 
-    // Get quotation items to copy to order
-    let quotationItemsQuery = supabaseAdmin
+    // Get quotation items to copy to order (targetItemIds は常に1件以上に解決済み)
+    const { data: quotationItems, error: itemsError } = await supabaseAdmin
       .from('quotation_items')
       .select('*')
-      .eq('quotation_id', quotationId);
-
-    // Filter by selected item IDs if provided (partial pattern order)
-    if (selectedItemIds && Array.isArray(selectedItemIds) && selectedItemIds.length > 0) {
-      quotationItemsQuery = quotationItemsQuery.in('id', selectedItemIds);
-    }
-
-    const { data: quotationItems, error: itemsError } = await quotationItemsQuery;
+      .in('id', targetItemIds);
 
     if (itemsError) {
       console.error('[Convert to Order] Failed to fetch quotation items:', itemsError);
@@ -316,32 +358,23 @@ export async function POST(
         order_number: orderNumber,
         status: 'DATA_UPLOAD_PENDING',  // 새 워크플로우: 데이터 입고 대기
         current_stage: 'AWAITING_DATA',  // 데이터 입고 대기
-        // 財務スナップショット: 선택된 패턴만 주문하는 경우 항목에서 재계산,
-        // 전체 주문인 경우 견적 헤더 값을 그대로 사용.
-        ...(selectedItemIds && selectedItemIds.length > 0
-          ? (() => {
-              const itemSubtotal = Math.ceil(
-                (quotationItems || []).reduce((sum: number, item: any) => sum + (item.total_price || item.quantity * item.unit_price || 0), 0) / 100
-              ) * 100;
-              const itemTax = Math.ceil(itemSubtotal * 0.1);
-              const itemTotal = Math.ceil((itemSubtotal + itemTax) / 100) * 100;
-              return {
-                total_amount: itemTotal as number,
-                subtotal: itemSubtotal as number,
-                tax_amount: itemTax as number,
-                coupon_id: null as string | null,
-                discount_amount: 0 as number,
-                discount_type: null as string | null,
-              };
-            })()
-          : {
-              total_amount: quotation.total_amount as number,
-              subtotal: quotation.subtotal_amount as number,
-              tax_amount: quotation.tax_amount as number,
-              coupon_id: (quotation.coupon_id ?? null) as string | null,
-              discount_amount: (quotation.discount_amount ?? 0) as number,
-              discount_type: (quotation.discount_type ?? null) as string | null,
-            }),
+        // 財務スナップショット: 選択された数量パターン1つから再計算（数量パターン1つ = 注文1つ）。
+        // targetItemIds は常に1件以上（未指定時は「未注文 item 全部」に解決済み）。
+        ...(() => {
+            const itemSubtotal = Math.ceil(
+              (quotationItems || []).reduce((sum: number, item: any) => sum + (item.total_price || item.quantity * item.unit_price || 0), 0) / 100
+            ) * 100;
+            const itemTax = Math.ceil(itemSubtotal * 0.1);
+            const itemTotal = Math.ceil((itemSubtotal + itemTax) / 100) * 100;
+            return {
+              total_amount: itemTotal as number,
+              subtotal: itemSubtotal as number,
+              tax_amount: itemTax as number,
+              coupon_id: null as string | null,
+              discount_amount: 0 as number,
+              discount_type: null as string | null,
+            };
+          })(),
         customer_name: quotation.customer_name,
         customer_email: quotation.customer_email,
         customer_phone: quotation.customer_phone,
@@ -358,6 +391,27 @@ export async function POST(
         { success: false, error: '注文作成中にエラーが発生しました。', details: createError?.message },
         { status: 500 }
       );
+    }
+
+    // 数量パターンをこの注文に紐付け（1パターン = 1注文）。
+    // unique partial index と WHERE order_id IS NULL で並行リクエストの二重紐付けを DB レベルで防止。
+    const { data: linkedItems, error: linkError } = await supabaseAdmin
+      .from('quotation_items')
+      .update({ order_id: order.id })
+      .in('id', targetItemIds)
+      .is('order_id', null)
+      .select('id');
+
+    if (linkError) {
+      console.error('[Convert to Order] Failed to link quotation_items to order:', linkError);
+      // 注文は作成済みなので継続（リンク失敗はログのみ）
+    } else if (linkedItems && linkedItems.length < targetItemIds.length) {
+      // 並行リクエスト競合: 一部 item が既に別 order に紐付いた。
+      console.warn('[Convert to Order] Concurrent race: some items already linked', {
+        expected: targetItemIds.length,
+        actual: linkedItems.length,
+        orderId: order.id,
+      });
     }
 
     // Create initial status history entry
@@ -427,13 +481,24 @@ export async function POST(
       }
     }
 
-    // Update quotation status to converted
-    // H-17: quotations.status = quotation_status enum は大文字（database.ts L272 / judgment6 SQL 前提）
-    //   小文字 'converted' は DB 汚染の根因。大文字 'CONVERTED' へ修正（判断6 SQL と同時適用で再汚染防止）。
-    await supabaseAdmin
-      .from('quotations')
-      .update({ status: 'CONVERTED' })
-      .eq('id', quotationId);
+    // quotations.status は全パターン注文済（未注文 item 0件）の時のみ CONVERTED。
+    // マルチパターン見積は最後のパターンを注文した時点で初めて CONVERTED になる。
+    // H-17: quotations.status = quotation_status enum は大文字（小文字 'converted' は DB 汚染の根因）。
+    const { count: remainingUnordered } = await supabaseAdmin
+      .from('quotation_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('quotation_id', quotationId)
+      .is('order_id', null);
+
+    if (remainingUnordered === 0) {
+      await supabaseAdmin
+        .from('quotations')
+        .update({ status: 'CONVERTED' })
+        .eq('id', quotationId);
+      console.log('[Convert to Order] All patterns ordered; quotation marked CONVERTED');
+    } else {
+      console.log(`[Convert to Order] ${remainingUnordered} pattern(s) still unordered; quotation status unchanged`);
+    }
 
     // Notify admins about new order
     const { data: admins } = await supabaseAdmin
@@ -717,20 +782,29 @@ export async function GET(
       route: '/api/member/quotations/[id]/convert',
     });
 
-    const { data: existingOrder } = await supabaseAdmin
+    // 1見積から複数注文を許容: 未注文 item 数で変換可否を判定する。
+    const { count: unorderedCount } = await supabaseAdmin
+      .from('quotation_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('quotation_id', quotationId)
+      .is('order_id', null);
+
+    // 代表 order（最初の1件）。全パターン注文済の場合の遷移先として使用。
+    const { data: firstOrder } = await supabaseAdmin
       .from('orders')
       .select('id, order_number, created_at')
       .eq('quotation_id', quotationId)
+      .order('created_at', { ascending: true })
+      .limit(1)
       .maybeSingle();
 
     // Check conversion eligibility
-    // Approval gate removed: all non-cancelled quotations are orderable.
     const quotationStatus = quotation.status as unknown as string;
     const isCancelled = quotationStatus === 'cancelled' || quotationStatus === 'CANCELLED';
-    const canConvert = !isCancelled;
     const isExpired =
       quotation.valid_until && new Date(quotation.valid_until) < new Date();
-    const hasOrder = !!existingOrder;
+    const hasOrder = (unorderedCount ?? 0) === 0; // 全パターン注文済
+    const canConvert = !isCancelled && !isExpired && (unorderedCount ?? 0) > 0;
 
     return NextResponse.json({
       success: true,
@@ -743,14 +817,15 @@ export async function GET(
           valid_until: quotation.valid_until,
         },
         conversionStatus: {
-          canConvert: canConvert && !hasOrder && !isExpired,
+          canConvert,
           isExpired,
           hasOrder,
-          existingOrder,
-          reason: !canConvert
+          existingOrder: firstOrder,
+          unorderedCount: unorderedCount ?? 0,
+          reason: isCancelled
             ? 'この見積はキャンセルされています。'
             : hasOrder
-            ? '既に注文が生成されています。'
+            ? 'すべての数量パターンは注文済みです。'
             : isExpired
             ? '有効期限が切れています。'
             : null,

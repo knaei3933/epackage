@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { CheckCircle, X, Check, Package } from 'lucide-react';
 import type { Quotation, QuotationItem } from '@/types/dashboard';
@@ -319,44 +319,39 @@ export default function SpecApprovalModal({
   onApprove,
 }: SpecApprovalModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const hasMultipleItems = (quotation.items?.length || 0) > 1;
+  const items = (quotation.items || []) as any[];
+  // 注文済（order_id 紐付き）の item は選択不可
+  const selectableItems = items.filter((i) => !i.orderId);
+  const hasMultipleItems = items.length > 1;
 
-  // 全選択（デフォルト）からスタート
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    new Set(quotation.items?.map((i: any) => i.id) || [])
+  // ラジオ式単一選択（1回の注文 = 数量パターン1つ）。
+  // 初期値は最初の未注文 item。quotation が変わった時もリセットする。
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(
+    () => selectableItems[0]?.id ?? null
   );
-
-  // 選択されたアイテムから金額を再計算（フックは早期リターン前に配置）
-  const selectedItems = useMemo(
-    () => (quotation.items || []).filter((i: any) => selectedIds.has(i.id)),
-    [quotation.items, selectedIds]
-  );
+  useEffect(() => {
+    setSelectedItemId(items.find((i) => !i.orderId)?.id ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quotation.items]);
 
   if (!isOpen) return null;
 
-  const toggleItem = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const selectItem = (id: string) => {
+    setSelectedItemId(id);
   };
-
-  const selectAll = () => setSelectedIds(new Set(quotation.items?.map((i: any) => i.id) || []));
-  const selectNone = () => setSelectedIds(new Set());
 
   const calcItemTotal = (item: any) =>
     item.totalPrice || item.total_price || (item.unitPrice || item.unit_price || 0) * (item.quantity || 0);
 
-  // 100円切り上げで再計算（quotation API と同じロジック）
-  const rawSubtotal = selectedItems.reduce((sum: number, item: any) => sum + calcItemTotal(item), 0);
+  // 選択中の単一 item から金額を再計算（100円切り上げ・quotation API と同ロジック）
+  const selectedItem = items.find((i) => i.id === selectedItemId) || null;
+  const rawSubtotal = selectedItem ? calcItemTotal(selectedItem) : 0;
   const subtotal = Math.ceil(rawSubtotal / 100) * 100;
   const tax = Math.ceil(subtotal * 0.1);
   const total = Math.ceil((subtotal + tax) / 100) * 100;
 
   // 最初のアイテムの仕様を取得（表示用）
-  const firstItem = quotation.items?.[0];
+  const firstItem = items[0];
   const specs = firstItem?.specifications ? parseSpecifications(firstItem.specifications) : null;
 
   // 各アイテムごとの統一製品表示名（仕様から生成）
@@ -371,16 +366,14 @@ export default function SpecApprovalModal({
   };
 
   const handleApprove = async () => {
-    if (selectedIds.size === 0) {
-      alert('少なくとも1つのパターンを選択してください。');
+    if (!selectedItemId) {
+      alert('数量パターンを1つ選択してください。');
       return;
     }
     setIsProcessing(true);
     try {
-      const itemIds = hasMultipleItems && selectedIds.size < (quotation.items?.length || 0)
-        ? Array.from(selectedIds)
-        : undefined;
-      await onApprove(itemIds);
+      // 常に1件送信（数量パターン1つ = 注文1つ）
+      await onApprove([selectedItemId]);
       onClose();
     } catch (error) {
       console.error('Spec approval error:', error);
@@ -423,52 +416,48 @@ export default function SpecApprovalModal({
           <section>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-text-primary">
-                注文するパターンを選択
+                注文する数量パターンを選択
               </h3>
-              {hasMultipleItems && (
-                <div className="flex items-center gap-3 text-sm">
-                  <button onClick={selectAll} className="text-primary hover:underline">全選択</button>
-                  <span className="text-text-muted">|</span>
-                  <button onClick={selectNone} className="text-text-muted hover:underline">全解除</button>
-                </div>
-              )}
             </div>
             {hasMultipleItems && (
               <p className="text-sm text-text-muted mb-3">
-                見積には {quotation.items?.length} つの数量パターンがあります。注文するパターンを選択してください。
+                数量パターンから1つを選択してください（1回の注文につき1パターン）。他のパターンは注文完了後に再度操作できます。
               </p>
             )}
 
-            {/* パターン一覧（カード型選択UI） */}
+            {/* パターン一覧（ラジオ式単一選択） */}
             <div className="space-y-2.5">
-              {(quotation.items || []).map((item: any, idx: number) => {
-                const isSelected = selectedIds.has(item.id);
+              {items.map((item: any, idx: number) => {
+                const isOrdered = !!item.orderId;
+                const isSelected = selectedItemId === item.id;
                 const itemQty = item.quantity || 0;
                 const itemUnit = item.unitPrice || item.unit_price || 0;
                 const itemTotal = calcItemTotal(item);
                 const itemDisplayName = getItemDisplayName(item);
-                const isRowClickable = hasMultipleItems;
+                const handleClick = isOrdered ? undefined : () => selectItem(item.id);
                 return (
                   <div
                     key={item.id}
-                    role={isRowClickable ? 'button' : undefined}
-                    onClick={isRowClickable ? () => toggleItem(item.id) : undefined}
+                    role={isOrdered ? undefined : 'button'}
+                    onClick={handleClick}
                     className={`group relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 ${
-                      isSelected
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-border-medium bg-bg-primary hover:border-primary/40 hover:bg-bg-secondary/30'
-                    } ${isRowClickable ? 'cursor-pointer' : 'cursor-default'}`}
+                      isOrdered
+                        ? 'border-border-medium bg-bg-secondary/40 cursor-not-allowed opacity-70'
+                        : isSelected
+                        ? 'border-primary bg-primary/5 shadow-sm cursor-pointer'
+                        : 'border-border-medium bg-bg-primary hover:border-primary/40 hover:bg-bg-secondary/30 cursor-pointer'
+                    }`}
                   >
-                    {/* 選択チェック（カスタム円形） */}
-                    {hasMultipleItems && (
-                      <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                        isSelected
-                          ? 'border-primary bg-primary text-white'
-                          : 'border-border-medium text-transparent group-hover:border-primary/50'
-                      }`}>
-                        {isSelected && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-                      </div>
-                    )}
+                    {/* ラジオ（円形インジケータ） */}
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                      isOrdered
+                        ? 'border-border-medium text-transparent'
+                        : isSelected
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-border-medium text-transparent group-hover:border-primary/50'
+                    }`}>
+                      {isSelected && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                    </div>
 
                     {/* パターン番号バッジ + 製品名 */}
                     <div className="flex-1 min-w-0">
@@ -486,6 +475,11 @@ export default function SpecApprovalModal({
                             {itemDisplayName}
                           </span>
                         </div>
+                        {isOrdered && (
+                          <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            注文済
+                          </span>
+                        )}
                       </div>
                       {/* 価格情報 */}
                       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 pl-8 text-xs">
@@ -504,7 +498,7 @@ export default function SpecApprovalModal({
                     {/* 右側: 金額（sm以上で表示） */}
                     <div className="hidden sm:flex flex-col items-end flex-shrink-0">
                       <span className="text-xs text-text-muted">金額</span>
-                      <span className={`text-lg font-bold tabular-nums ${isSelected ? 'text-primary' : 'text-text-primary'}`}>
+                      <span className={`text-lg font-bold tabular-nums ${isSelected && !isOrdered ? 'text-primary' : 'text-text-primary'}`}>
                         ¥{itemTotal.toLocaleString()}
                       </span>
                     </div>
@@ -517,10 +511,10 @@ export default function SpecApprovalModal({
             {hasMultipleItems && (
               <div className="mt-3 flex items-center justify-between text-sm">
                 <span className="text-text-muted">
-                  選択中: <span className="text-text-primary font-medium">{selectedIds.size}</span> / {quotation.items?.length} パターン
+                  選択中のパターン: <span className="text-text-primary font-medium">1</span> つ（1注文につき1パターン）
                 </span>
                 <span className="text-text-muted">
-                  選択金額合計: <span className="text-text-primary font-semibold">¥{subtotal.toLocaleString()}</span>
+                  注文金額: <span className="text-text-primary font-semibold">¥{subtotal.toLocaleString()}</span>
                 </span>
               </div>
             )}
@@ -656,7 +650,7 @@ export default function SpecApprovalModal({
           {hasMultipleItems && (
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
               <p className="text-sm text-blue-800">
-                選択した {selectedIds.size} パターンの合計金額で注文を作成します。
+                選択した数量パターンで1つの注文を作成します。複数パターンを注文する場合は、注文完了後に再度ご操作ください。
               </p>
             </div>
           )}

@@ -281,13 +281,14 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   // 合計: DB保存値の total_amount を優先（100円切り上げ済みの正確な合計）
   // フォールバック: 小計 + 消費税（レガシーデータ対応）
   const displayTotalAmount = quotation?.totalAmount || quotation?.total_amount || (subtotal + taxAmount);
-  // 注文変換可能か: convert API と同じ !isTerminal ロジックに統一。
-  // キャンセル済み・既に注文変換済み以外はすべて注文可能（承認ゲートは API 側で除去済み）。
+  // 注文変換可能か: 1見積から複数注文を許容。未注文 item が1つでもあれば注文可能。
+  // キャンセル済み、または全パターン注文済以外は注文可能（承認ゲートは API 側で除去済み）。
   const rawStatus = (quotation?.status as string) || '';
   const statusUpper = rawStatus.toUpperCase();
   const isTerminal = statusUpper === 'CANCELLED';
-  const isConverted = statusUpper === 'CONVERTED';
-  const canConvert = !isTerminal && !isConverted;
+  const hasUnorderedItem = (quotation?.items || []).some((i: any) => !(i as any).orderId);
+  const canConvert = !isTerminal && hasUnorderedItem;
+  const isAllOrdered = !isTerminal && !hasUnorderedItem;
 
   return (
     <div className="space-y-6">
@@ -456,14 +457,14 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 </Button>
                 <InvoiceDownloadButton quotationId={quotation.id} variant="outline" />
               </>
-            ) : isConverted ? (
+            ) : isAllOrdered ? (
               <Button
                 variant="outline"
                 size="md"
                 onClick={() => router.push('/member/orders')}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                注文を確認
+                すべての数量パターンは注文済みです（注文を確認）
               </Button>
             ) : null}
           </div>

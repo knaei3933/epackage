@@ -34,15 +34,17 @@ export function LineItems({ quotation, selectedItemId, setSelectedItemId, canCon
         </div>
         <div className="space-y-4">
           {quotation.items?.map((item: any, index: number) => {
-            // Phase 2 fix: selectable pattern row. When the quotation is orderable (APPROVED),
-            // the user must pick exactly one quantity pattern. Visual feedback is unmistakable:
-            // selected = blue border + filled blue radio + check badge; unselected = neutral + outline radio.
-            const isSelectable = canConvert;
+            // 注文済（order_id 紐付き）の item は選択不可。
+            // 1見積から複数注文を許容: 未注文パターンのみ選択できる。
+            const isOrdered = !!item.orderId;
+            const isSelectable = canConvert && !isOrdered;
             const isSelected = selectedItemId === item.id;
             const rowBase = 'rounded-xl p-5 flex items-center justify-between transition-all duration-150 relative';
             const rowState = isSelected
               ? 'border-2 border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
-              : isSelectable
+              : isOrdered
+                ? 'border border-gray-200 bg-gray-50 cursor-not-allowed opacity-70'
+                : isSelectable
                 ? 'border-2 border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50/40 cursor-pointer'
                 : 'border border-border-secondary';
             return (
@@ -68,6 +70,14 @@ export function LineItems({ quotation, selectedItemId, setSelectedItemId, canCon
                   <div className="absolute top-2 right-2 z-10">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-600 text-white shadow-sm">
                       選択中
+                    </span>
+                  </div>
+                )}
+                {/* Ordered badge - top right */}
+                {isOrdered && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-600 text-white shadow-sm">
+                      注文済
                     </span>
                   </div>
                 )}

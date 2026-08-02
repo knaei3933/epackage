@@ -549,7 +549,7 @@ export async function GET(request: NextRequest) {
 
         return {
           ...quotation,
-          items: items || [],
+          items: (items || []).map((i: any) => ({ ...i, orderId: i.order_id ?? null })),
         };
       })
     );
