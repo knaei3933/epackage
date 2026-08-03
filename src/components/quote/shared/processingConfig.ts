@@ -131,8 +131,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 2-1. Glossy (光沢)
   {
     id: 'glossy',
-    name: '光沢紙',
-    nameJa: '光沢紙',
+    name: '光沢仕上げ',
+    nameJa: '光沢仕上げ',
     description: '光沢のある表面処理',
     descriptionJa: '光沢のある表面処理',
     beforeImage: '/images/post-processing/2.マット.png',
@@ -158,8 +158,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 2-2. Matte (マット)
   {
     id: 'matte',
-    name: 'マット紙',
-    nameJa: 'マット紙',
+    name: 'マット仕上げ',
+    nameJa: 'マット仕上げ',
     description: 'マット表面処理',
     descriptionJa: 'マット表面処理',
     beforeImage: '/images/post-processing/2.光沢.png',
@@ -188,8 +188,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   // 3-1. Notch Yes (ノッチ付き)
   {
     id: 'notch-yes',
-    name: 'ノッチ付き',
-    nameJa: 'ノッチ付き',
+    name: 'Vノッチ',
+    nameJa: 'Vノッチ',
     description: '簡単な開封のためのVノッチ',
     descriptionJa: '簡単な開封のためのVノッチ',
     beforeImage: '/images/post-processing/3.ノッチなし.png',
@@ -425,8 +425,8 @@ export const processingOptionsConfig: ProcessingOptionConfig[] = [
   },
   {
     id: 'valve-yes',
-    name: 'バルブ付き',
-    nameJa: 'バルブ付き',
+    name: 'ガス抜きバルブ',
+    nameJa: 'ガス抜きバルブ',
     description: 'ガス排出バルブ機能',
     descriptionJa: 'ガス排出バルブ機能',
     beforeImage: '/images/post-processing/バルブなし.png',
