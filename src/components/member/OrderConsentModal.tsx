@@ -68,6 +68,19 @@ export function OrderConsentModal({
   const allAgreed = agreedIds.size === CONSENT_ITEM_IDS.length;
   const canConfirm = allAgreed && fullName.trim().length > 0 && !isProcessing;
 
+  // UX改善: ボタンが disabled の理由を動的表示。
+  // 従来は5項目未チェックでも理由が表示されず、署名だけ入力したユーザーが
+  // 「次が押せない・進行できない」と手詰まりになる問題を解消する。
+  // isProcessing 中は理由を非表示（「注文を確定中...」がボタンに表示されるため）。
+  const remainingConsents = CONSENT_ITEM_IDS.length - agreedIds.size;
+  const disableReason = isProcessing
+    ? null
+    : remainingConsents > 0
+      ? `残り${remainingConsents}項目にご同意ください（5項目すべての同意が必要です）`
+      : fullName.trim().length === 0
+        ? 'ご署名（ご氏名）をご入力ください'
+        : null;
+
   const toggleAgree = (id: string) => {
     setAgreedIds((prev) => {
       const next = new Set(prev);
@@ -118,6 +131,17 @@ export function OrderConsentModal({
 
           {/* 5同意項目（個別必須・一括同意なし: AC-UI-3） */}
           <div className="space-y-2">
+            {/* 進捗と必須性を明示（UX改善: チェックが必須であることを伝える） */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-gray-900">
+                同意事項 <span className="text-red-600">（必須・5項目すべてにご同意ください）</span>
+              </p>
+              <span
+                className={`text-xs font-medium ${allAgreed ? 'text-green-700' : 'text-gray-500'}`}
+              >
+                {agreedIds.size}/{CONSENT_ITEM_IDS.length} 同意済み
+              </span>
+            </div>
             {CONSENT_ITEMS.map((item, idx) => {
               const agreed = agreedIds.has(item.id);
               const expanded = expandedId === item.id;
@@ -135,7 +159,10 @@ export function OrderConsentModal({
                       onChange={() => toggleAgree(item.id)}
                       id={`consent-${item.id}`}
                       disabled={isProcessing}
-                      className="mt-0.5 w-5 h-5 rounded border-gray-400 text-primary focus:ring-primary cursor-pointer flex-shrink-0"
+                      // globals.css の `input { appearance: none }`（autofill 対策）が
+                      // チェックボックスのネイティブ描画まで消去し「透明で見えない」状態になるため、
+                      // appearance-auto でネイティブ見たきを復元。accent-brixa-600 でチェック色をブランド緑に。
+                      className="mt-0.5 w-5 h-5 rounded appearance-auto accent-brixa-600 focus:ring-2 focus:ring-brixa-500 cursor-pointer flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <label htmlFor={`consent-${item.id}`} className="cursor-pointer block">
@@ -188,6 +215,14 @@ export function OrderConsentModal({
             />
           </div>
         </div>
+
+        {/* disabled 理由の動的表示（UX改善: なぜ進めないかを即座に伝える） */}
+        {disableReason && (
+          <div className="flex items-center justify-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{disableReason}</span>
+          </div>
+        )}
 
         <DialogFooter className="gap-2">
           <Button

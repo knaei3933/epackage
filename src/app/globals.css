@@ -404,8 +404,12 @@
    * Handles autofill, dark mode, and cross-browser compatibility
    * ============================================================ */
 
-  /* Base styles for all form elements */
-  input,
+  /* Base styles for form elements (autofill・クロスブラウザ対応) */
+  /* checkbox/radio は除外: appearance: none を適用するとネイティブの枠線・チェック印が
+     完全に消去され、背景色（!important で白固定）と同化して「透明で見えない・チェック
+     できない」状態になる（OrderConsentModal で実際に発生）。autofill 対策は text/textarea/
+     select だけで十分なため、チェックボックス・ラジオはネイティブ描画を維持する。 */
+  input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
     background-color: var(--bg-primary) !important;
