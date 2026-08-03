@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
-import { auth, type Profile } from '@/lib/supabase'
+import type { Profile } from '@/lib/supabase'
 import type { User, Session, RegistrationFormData } from '@/types/auth'
 import type { User as SupabaseUser, Session as SupabaseSession } from '@supabase/supabase-js'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
@@ -505,7 +505,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (updates.city !== undefined) profileUpdates.city = updates.city
     if (updates.street !== undefined) profileUpdates.street = updates.street
 
-    const updatedProfile = await auth.updateProfile(user.id, profileUpdates)
+    const response = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(profileUpdates),
+    })
+
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}))
+      throw new Error(errBody.error || 'プロフィールの更新に失敗しました')
+    }
+
+    const json = await response.json()
+    const updatedProfile = json.data as Profile
 
     // Update local state
     setProfile(updatedProfile)

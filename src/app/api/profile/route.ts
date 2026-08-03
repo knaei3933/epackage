@@ -14,7 +14,6 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { cookies } from 'next/headers';
 
@@ -26,6 +25,7 @@ const profileUpdateSchema = z.object({
   // 電話番号
   corporate_phone: z.string().optional(),
   personal_phone: z.string().optional(),
+  fax: z.string().optional(),
 
   // 会社情報
   company_name: z.string().max(200).optional(),
@@ -67,25 +67,12 @@ export async function GET(request: NextRequest) {
     }
 
     const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrl as string, supabaseAnonKey as string, {
-      auth: {
-        storage: {
-          getItem: (key: string) => {
-            const cookie = cookieStore.get(key);
-            return cookie?.value ?? null;
-          },
-          setItem: (key: string, value: string) => {
-            cookieStore.set(key, value, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
-            });
-          },
-          removeItem: (key: string) => {
-            cookieStore.delete(key);
-          },
-        },
+    const { createServerClient } = await import('@supabase/ssr');
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: () => {},
+        remove: () => {},
       },
     });
 
@@ -149,6 +136,7 @@ export async function GET(request: NextRequest) {
         kana_first_name: profile.kana_first_name,
         corporate_phone: profile.corporate_phone,
         personal_phone: profile.personal_phone,
+        fax: profile.fax,
         business_type: profile.business_type,
         user_type: profile.user_type,
         company_name: profile.company_name,
@@ -214,25 +202,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     const cookieStore = await cookies();
-    const supabase = createClient(supabaseUrl as string, supabaseAnonKey as string, {
-      auth: {
-        storage: {
-          getItem: (key: string) => {
-            const cookie = cookieStore.get(key);
-            return cookie?.value ?? null;
-          },
-          setItem: (key: string, value: string) => {
-            cookieStore.set(key, value, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
-            });
-          },
-          removeItem: (key: string) => {
-            cookieStore.delete(key);
-          },
-        },
+    const { createServerClient } = await import('@supabase/ssr');
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: () => {},
+        remove: () => {},
       },
     });
 
@@ -273,6 +248,8 @@ export async function PATCH(request: NextRequest) {
       updateData.corporate_phone = data.corporate_phone || null;
     if (data.personal_phone !== undefined)
       updateData.personal_phone = data.personal_phone || null;
+    if (data.fax !== undefined)
+      updateData.fax = data.fax || null;
     if (data.company_name !== undefined)
       updateData.company_name = data.company_name || null;
     if (data.position !== undefined)
@@ -316,6 +293,7 @@ export async function PATCH(request: NextRequest) {
       kana_first_name: updatedProfile.kana_first_name,
       corporate_phone: updatedProfile.corporate_phone,
       personal_phone: updatedProfile.personal_phone,
+      fax: updatedProfile.fax,
       business_type: updatedProfile.business_type,
       user_type: updatedProfile.user_type,
       company_name: updatedProfile.company_name,
