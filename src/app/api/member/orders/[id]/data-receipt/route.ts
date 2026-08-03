@@ -24,7 +24,6 @@ import {
   getUploadFolderId
 } from '@/lib/google-drive';
 import { generateUploadToken } from '@/lib/designer-tokens';
-import { buildSkuName } from '@/lib/sku-name';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 
 export const dynamic = 'force-dynamic';
@@ -69,6 +68,7 @@ interface DataReceiptUploadResponse {
     file_url: string;
     uploaded_at: string;
     validation_status: string;
+    extraction_job_id?: string;
   };
   error?: string;
   errorEn?: string;
@@ -82,8 +82,7 @@ interface DataReceiptUploadResponse {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Admin roles that can access any order
-// ※ACCOUNTING は実DB user_role enum に存在しない値（実DB 5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
-const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES'];
+const ADMIN_ROLES = ['ADMIN', 'OPERATOR', 'SALES', 'ACCOUNTING'];
 
 // =====================================================
 // Helper Functions
@@ -251,17 +250,8 @@ export async function POST(
       );
     }
 
-    // 製品名は必須（無条件で入力し、ファイル名に反映）
-    if (!productName || !productName.trim()) {
-      return NextResponse.json(
-        {
-          error: '製品名を入力してください。',
-          errorEn: 'Product name is required',
-          code: 'NO_PRODUCT_NAME',
-        },
-        { status: 400 }
-      );
-    }
+    // 製品名 (productName) は未入力でも後続（ファイル名生成 316-360行・メール通知 726行）で
+    // order_items から自動補完されるため、必須チェックは廃止（Issue 1 fix の残滓を解消）。
 
     // 5. Validate file security using security-validator
     const validationResult = await quickValidateFile(file, MAX_FILE_SIZE);
@@ -292,8 +282,6 @@ export async function POST(
     // Declare variables outside try block for proper scope
     let driveFileName: string;
     let googleDriveFile: { id: string; webViewLink: string; webContentLink: string; name: string };
-    // order_items.product_name 更新対象の order_item.id（try 内の driveOrderItem から受け渡し）
-    let driveOrderItemId: string | null = null;
 
     try {
       // Get admin's access token for Google Drive
@@ -318,21 +306,15 @@ export async function POST(
       // 製品名 (productName form input) が未入力でも order_items.specifications から自動生成。
       let driveOrderItem: { id: string; product_name: string | null; quantity: number; specifications: unknown } | null = null;
       try {
-        // 選択SKU（order_item_id）があればそれを使い、なければ最初の1件
-        let orderItemQuery = adminClient
+        const orderItemResult = await adminClient
           .from('order_items')
           .select('id, product_name, quantity, specifications')
-          .eq('order_id', orderId);
-        if (orderItemId) {
-          orderItemQuery = orderItemQuery.eq('id', orderItemId);
-        } else {
-          orderItemQuery = orderItemQuery.limit(1);
-        }
-        const orderItemResult = await orderItemQuery.single();
+          .eq('order_id', orderId)
+          .limit(1)
+          .single();
         // .single() はエラー時に throw せず { data: null, error } を返す
         if (!orderItemResult.error) {
           driveOrderItem = orderItemResult.data;
-          driveOrderItemId = driveOrderItem?.id ?? null;
         }
       } catch {
         // ネットワークエラー等の例外的失敗時も null にフォールバック
@@ -352,9 +334,8 @@ export async function POST(
         'lap_seal': '合掌袋',
       };
       const oiBagTypeId = oiSpecs.bagTypeId;
-      // 優先順位: 手動入力の製品名 → 袋タイプ名 → DB の製品名
-      const oiProductLabel = (productName || '').trim()
-        || (oiBagTypeId && oiBagTypeJa[oiBagTypeId])
+      const oiProductLabel = (oiBagTypeId && oiBagTypeJa[oiBagTypeId])
+        || (productName || '').trim()
         || (driveOrderItem?.product_name || '製品').split(/\s+-|\s+[(（]SKU/i)[0].trim();
       const oiQty = driveOrderItem?.quantity ?? 0;
       const oiWidth = oiSpecs.width ?? '';
@@ -399,66 +380,6 @@ export async function POST(
         },
         { status: 500 }
       );
-    }
-
-    // ============================================================
-    // 6.5 order_items.product_name を顧客入力値で更新
-    // （service_role で実行。unit_price / quantity / specifications は触らない。
-    //   失敗時はログ出力のみでアップロードは継続＝ファイル入稿を止めない）
-    // ============================================================
-    if (driveOrderItemId && productName) {
-      const trimmedName = (productName as string).trim();
-      try {
-        const { error: itemNameError } = await adminClient
-          .from('order_items')
-          .update({ product_name: trimmedName })
-          .eq('id', driveOrderItemId)
-          .eq('order_id', orderId); // 二重防御: 別注文の item は絶対に更新しない
-        if (itemNameError) {
-          console.error('[Data Receipt Upload] order_items.product_name update error:', itemNameError);
-        } else {
-          console.log('[Data Receipt Upload] order_items.product_name updated:', { itemId: driveOrderItemId, name: trimmedName });
-        }
-      } catch (e) {
-        console.error('[Data Receipt Upload] product_name update exception:', e);
-      }
-    }
-
-    // ============================================================
-    // 6.6 order_items.sku_name を計算・保存（trigger 伝播の源）
-    //   動的計算した sku_name を order_items.sku_name に保存すると、直後の files 挿入で
-    //   trigger（BEFORE INSERT OF order_item_id）が files.sku_name snapshot へ伝播する。
-    //   失敗時はログのみでアップロード継続（6.5 product_name 更新と同じ方針）。
-    // ============================================================
-    if (driveOrderItemId) {
-      try {
-        // 6.5 の product_name 更新後の最新値を再取得して計算（driveOrderItem はスコープ外のため再 SELECT）
-        const { data: skuItem } = await adminClient
-          .from('order_items')
-          .select('id, product_name, quantity, specifications')
-          .eq('id', driveOrderItemId)
-          .eq('order_id', orderId) // 二重防御: 別注文の item は絶対に取得しない
-          .maybeSingle();
-        if (skuItem) {
-          const computedSku = buildSkuName({
-            product_name: skuItem.product_name,
-            quantity: skuItem.quantity,
-            specifications: (skuItem.specifications ?? {}) as Record<string, unknown>,
-          });
-          const { error: skuNameError } = await adminClient
-            .from('order_items')
-            .update({ sku_name: computedSku })
-            .eq('id', driveOrderItemId)
-            .eq('order_id', orderId); // 二重防御: 別注文の item は絶対に更新しない
-          if (skuNameError) {
-            console.error('[Data Receipt Upload] order_items.sku_name update error:', skuNameError);
-          } else {
-            console.log('[Data Receipt Upload] order_items.sku_name persisted:', { itemId: driveOrderItemId, sku: computedSku });
-          }
-        }
-      } catch (e) {
-        console.error('[Data Receipt Upload] sku_name persist exception:', e);
-      }
     }
 
     // ============================================================
@@ -522,6 +443,42 @@ export async function POST(
     } catch (logError) {
       console.error('[Data Receipt Upload] Failed to log file upload:', logError);
       // Don't fail the upload if logging fails
+    }
+
+    // ============================================================
+    // 9. Trigger AI extraction for eligible file types
+    // ============================================================
+    let extractionJobId: string | null = null;
+    const eligibleFileTypes = ['AI', 'PDF', 'PSD'];
+
+    if (eligibleFileTypes.includes(fileType)) {
+      try {
+        console.log('[Data Receipt Upload] Triggering AI extraction for file:', fileRecord.id);
+
+        const dataType = fileType === 'AI' ? 'design_file' : 'production_data';
+
+        // Call AI extraction API internally
+        const extractionApiUrl = new URL('/api/ai-parser/extract', request.url);
+        const extractionFormData = new FormData();
+        extractionFormData.append('file', file);
+        extractionFormData.append('order_id', orderId);
+        extractionFormData.append('data_type', dataType);
+
+        const extractionResponse = await fetch(extractionApiUrl.toString(), {
+          method: 'POST',
+          body: extractionFormData,
+        });
+
+        if (extractionResponse.ok) {
+          const extractionResult = await extractionResponse.json();
+          extractionJobId = extractionResult.data?.file_id || fileRecord.id;
+          console.log('[Data Receipt Upload] AI extraction started successfully:', extractionJobId);
+        } else {
+          console.error('[Data Receipt Upload] AI extraction API returned error:', extractionResponse.status);
+        }
+      } catch (extractionError) {
+        console.error('[Data Receipt Upload] Failed to trigger AI extraction:', extractionError);
+      }
     }
 
     // ============================================================
@@ -934,6 +891,10 @@ export async function POST(
       },
     };
 
+    if (extractionJobId) {
+      response.data.extraction_job_id = extractionJobId;
+    }
+
     return NextResponse.json(response, { status: 200 });
 
   } catch (error) {
@@ -1056,8 +1017,37 @@ export async function GET(
       if (file.order_item_id) {
         const item = orderItemsMap.get(file.order_item_id);
         if (item) {
-          // sku_name 構築は buildSkuName ヘルパーに一元化（POST 保存と同一ロジック・形式: SKU番号_製品名_数量_サイズ）
-          skuName = buildSkuName(item);
+          // Issue 1 fix: format = SKU番号_製品名_数量_サイズ
+          // 例: SKU1_三方シール平袋_5000枚_100×120
+          const skuMatch = (item.product_name || '').match(/SKU\s*(\d+)/i);
+          const skuNumber = skuMatch ? skuMatch[1] : '1';
+          // 製品名: bagTypeId -> 日本語の袋タイプ。フォールバックは product_name の先頭語。
+          const bagTypeId = item.specifications?.bagTypeId;
+          const bagTypeJa: Record<string, string> = {
+            'flat_3_side': '三方シール平袋',
+            'three_side_seal': '三方シール平袋',
+            'stand_up': 'スタンドパウチ',
+            'standup_pouch': 'スタンドパウチ',
+            'gusset_pouch': 'ガゼットパウチ',
+            'zipper_pouch': 'ジッパーパウチ',
+            'spout_pouch': 'スパウトパウチ',
+            'roll_film': 'ロールフィルム',
+            'lap_seal': '合掌袋',
+          };
+          const productLabel = (bagTypeId && bagTypeJa[bagTypeId]) || (item.product_name || '製品').split(/\s+-|\s+[(（]SKU/i)[0].trim();
+          // サイズ: width×height（depth/sideWidth があれば追加）
+          const specs = item.specifications || {};
+          const width = specs.width ?? '';
+          const height = specs.height ?? '';
+          const depth = specs.depth;
+          const sideWidth = specs.sideWidth;
+          let sizeLabel = '';
+          if (width && height) {
+            sizeLabel = `${width}×${height}`;
+            if (depth && Number(depth) > 0) sizeLabel += `×${depth}`;
+            if (sideWidth) sizeLabel += `×側面${sideWidth}`;
+          }
+          skuName = `SKU${skuNumber}_${productLabel}_${item.quantity.toLocaleString()}枚${sizeLabel ? `_${sizeLabel}` : ''}`;
         }
       }
 
