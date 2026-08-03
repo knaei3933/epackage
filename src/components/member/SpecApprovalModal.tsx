@@ -8,10 +8,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui';
-import { CheckCircle, X, Check, Package } from 'lucide-react';
-import type { Quotation, QuotationItem } from '@/types/dashboard';
+import { CheckCircle, X, Check, Package, Ruler, Layers, Printer, Wrench, Receipt } from 'lucide-react';
+import type { Quotation } from '@/types/dashboard';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { formatProductDisplayName } from '@/lib/product-display-name';
+import { translatePostProcessing } from '@/constants/enToJa';
+import { OrderConsentModal } from '@/components/member/OrderConsentModal';
+import type { OrderAgreementInput } from '@/lib/order-consent-terms';
 
 // =====================================================
 // Types
@@ -22,7 +25,7 @@ interface SpecApprovalModalProps {
   onClose: () => void;
   quotationId: string;
   quotation: Quotation;
-  onApprove: (selectedItemIds?: string[]) => Promise<void>;
+  onApprove: (selectedItemIds?: string[], agreement?: OrderAgreementInput) => Promise<void>;
 }
 
 // =====================================================
@@ -203,93 +206,69 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
     shippingJa = shipping;
   }
 
-  // 後加工オプションの詳細解析 - post_processing を優先
-  const postProcessing: string[] = [];
+  // 後加工オプション - 正系マップ（translatePostProcessing / POST_PROCESSING_JA）で日本語化。
+  // 「なし」系（zipper-no 等）も日本語で明示表示（ユーザー要望）。
+  // ローカル optionMap は廃止（正系マップに一本化・二重カウント解消）。
+  // 未知キーは fallbackMap で補完し、それでも不明ならスキップ（英語を画面に吐かない = 恒久的な英語表示防止）。
+  const finishOptions: string[] = (pattern.post_processing || pattern.postProcessingOptions || []) as string[];
 
-  // post_processing（スネークケース）または postProcessingOptions を取得
-  const finishOptions = pattern.post_processing || pattern.postProcessingOptions || [];
-
-  // 仕上げ
-  const hasMatte = pattern.printing?.matteFinish ||
-                   finishOptions.includes('matte') ||
-                   finishOptions.includes('matte_finish');
-  const hasGlossy = pattern.printing?.glossy ||
-                    finishOptions.includes('glossy') ||
-                    finishOptions.includes('glossy_finish');
-
-  if (hasGlossy) {
-    postProcessing.push('光沢仕上げ');
-  } else if (hasMatte) {
-    postProcessing.push('マット仕上げ');
-  }
-
-  // 窓付き
-  if (pattern.features?.window || finishOptions.includes('window')) {
-    postProcessing.push('窓付き');
-  }
-
-  // バリア機能
-  if (pattern.features?.barrier?.oxygen || pattern.features?.barrier?.moisture) {
-    postProcessing.push('バリア機能');
-  }
-
-  // 後加工オプションの詳細マッピング
-  const optionMap: Record<string, string> = {
-    // ジッパー
-    'zipper': 'ジッパー付き',
-    'zipper-yes': 'ジッパー付き',
-    'slider': 'スライダー',
-
-    // 仕上げ
-    'glossy': '光沢紙',
-    'glossy_finish': '光沢紙',
-    'matte': 'マット紙',
-    'matte_finish': 'マット紙',
-
-    // 機能
-    'window': '窓付き',
+  // POST_PROCESSING_JA にないキーの補完マップ（実機ログで出現を確認したら都度追加）
+  const fallbackMap: Record<string, string> = {
+    'notch-straight': '直線ノッチ',
+    'top-sealed': '上部密封',
     'hole_punching': '穴あけ',
-
-    // その他オプション（英語キーを日本語に変換）
-    'corner-round': '角丸',
-    'corner_rounding': '角丸',
-    'corner-rounding': '角丸',
-    'hang_hole': '吊り下げ穴',
-    'hang-hole': '吊り下げ穴',
-    'hang-hole-6mm': '吊り下げ穴 (6mm)',
-    'hang-hole-8mm': '吊り下げ穴 (8mm)',
-    'notch': 'ノッチ付き',
-    'notch-yes': 'ノッチ付き',
-    'top_open': '上端開封',
-    'top-open': '上端開封',
-    'bottom-open': '下端開封',
     'spout': 'スパウト',
-    'valve': 'バルブ付き',
-    'valve-yes': 'バルブ付き',
-    'valve-no': 'バルブなし',
     'easy_tear': 'イージーティア',
-    'machi-printing-yes': 'マチ印刷あり',
-    'machi-printing-no': 'マチ印刷なし',
+    'slider': 'スライダー',
   };
 
-  // ジッパー（個別処理）
-  if (zipper && zipper !== 'none') {
-    postProcessing.push(zipperJa);
-  }
+  // sealing-width-* → 「シール幅 Xmm」
+  const toSealWidthLabel = (opt: string): string | null => {
+    const m = opt.match(/^sealing-width-(.+)$/);
+    return m ? `シール幅 ${m[1].replace('-', '.')}mm` : null;
+  };
 
-  // その他の後加工オプションを処理
-  finishOptions.forEach((opt: string) => {
-    // ハイフン区切りのオプションも処理
-    const baseKey = opt.replace(/-/g, '_');
-    const mapped = optionMap[opt] || optionMap[baseKey];
-
-    if (mapped && !postProcessing.includes(mapped)) {
-      postProcessing.push(mapped);
-    } else if (!mapped && !postProcessing.includes(opt)) {
-      // マッピングされていない場合はそのまま追加（英語キーの場合）
-      postProcessing.push(opt);
+  const seen = new Set<string>();
+  const postProcessing: string[] = [];
+  const addUnique = (label: string) => {
+    if (!seen.has(label)) {
+      seen.add(label);
+      postProcessing.push(label);
     }
+  };
+
+  finishOptions.forEach((opt: string) => {
+    if (typeof opt !== 'string' || !opt) return;
+
+    // sealing-width-* は専用変換
+    const sealLabel = toSealWidthLabel(opt);
+    if (sealLabel) {
+      addUnique(sealLabel);
+      return;
+    }
+
+    // 正系マップで変換（zipper-no→「ジッパーなし」・valve-no→「バルブなし」等）
+    const standard = translatePostProcessing(opt);
+    if (standard !== opt) {
+      addUnique(standard);
+      return;
+    }
+
+    // 標準定義にないキーは fallbackMap で補完
+    const fallback = fallbackMap[opt];
+    if (fallback) {
+      addUnique(fallback);
+    }
+    // それでも不明ならスキップ（英語を吐かない）
   });
+
+  // features 系（post_processing 配列に無い場合の補完）
+  if (pattern.features?.window) {
+    addUnique('窓付き');
+  }
+  if (pattern.features?.barrier?.oxygen || pattern.features?.barrier?.moisture) {
+    addUnique('バリア機能');
+  }
 
   return {
     size: { width, height, depth },
@@ -319,6 +298,8 @@ export default function SpecApprovalModal({
   onApprove,
 }: SpecApprovalModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  // Phase C: 注文同意モーダル（2画面遷移・仕様確認→同意）
+  const [showConsent, setShowConsent] = useState(false);
   const items = (quotation.items || []) as any[];
   // 有効期間内の再注文を許容: 注文済 item も選択可能（全 item を候補に）。
   const selectableItems = items;
@@ -365,7 +346,7 @@ export default function SpecApprovalModal({
            (item as any)?.name || 'カスタム製品';
   };
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
     if (!selectedItemId) {
       alert('数量パターンを1つ選択してください。');
       return;
@@ -375,24 +356,33 @@ export default function SpecApprovalModal({
       const ok = window.confirm('この数量パターンは既に注文済みです。再度注文しますか？');
       if (!ok) return;
     }
+    // Phase C: 同意モーダルへ遷移（2画面遷移・仕様確認→同意）。
+    // 実際の変換 API 呼び出しは同意確定時（handleConsentConfirm）。
+    setShowConsent(true);
+  };
+
+  // Phase C: 同意モーダル確定時の変換呼び出し。agreement を付加して親へ渡す。
+  const handleConsentConfirm = async (agreement: OrderAgreementInput) => {
+    if (!selectedItemId) return;
     setIsProcessing(true);
     try {
       // 常に1件送信（数量パターン1つ = 注文1つ）
-      await onApprove([selectedItemId]);
+      await onApprove([selectedItemId], agreement);
       onClose();
     } catch (error) {
       console.error('Spec approval error:', error);
       alert('注文の作成に失敗しました。もう一度お試しください。');
     } finally {
       setIsProcessing(false);
+      setShowConsent(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-border-secondary px-6 py-4 flex items-center justify-between rounded-t-lg">
+        <div className="flex-shrink-0 bg-white border-b border-border-secondary px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-6 h-6 text-primary" />
             <h2 className="text-xl font-semibold text-text-primary">
@@ -409,7 +399,7 @@ export default function SpecApprovalModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           {/* 説明文 */}
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
             <p className="text-sm text-blue-800">
@@ -531,18 +521,19 @@ export default function SpecApprovalModal({
           {/* サイズ・袋タイプ */}
           {specs && (
             <section>
-              <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+                <Ruler className="w-5 h-5 text-primary" />
                 サイズ・袋タイプ
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">サイズ</p>
                   <p className="font-medium text-text-primary">
                     {specs.size.width !== '-' ? specs.size.width : '?'} x {specs.size.height !== '-' ? specs.size.height : '?'}
                     {specs.size.depth && specs.size.depth !== '-' && specs.size.depth !== '0' ? ` x ${specs.size.depth}` : ''} mm
                   </p>
                 </div>
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">袋タイプ</p>
                   <p className="font-medium text-text-primary">{specs.bagType}</p>
                 </div>
@@ -553,15 +544,16 @@ export default function SpecApprovalModal({
           {/* 素材・厚さ */}
           {specs && (
             <section>
-              <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+                <Layers className="w-5 h-5 text-primary" />
                 素材・厚さ
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">素材</p>
                   <p className="font-medium text-text-primary">{specs.material}</p>
                 </div>
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">厚さ</p>
                   <p className="font-medium text-text-primary">{specs.thickness}</p>
                 </div>
@@ -572,15 +564,16 @@ export default function SpecApprovalModal({
           {/* 印刷 */}
           {specs && specs.printing.type !== '-' && (
             <section>
-              <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+                <Printer className="w-5 h-5 text-primary" />
                 印刷
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">印刷方式</p>
                   <p className="font-medium text-text-primary">{specs.printing.type}</p>
                 </div>
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">色数</p>
                   <p className="font-medium text-text-primary">{specs.printing.colors}</p>
                 </div>
@@ -595,11 +588,11 @@ export default function SpecApprovalModal({
                 納期・配送先
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">納期</p>
                   <p className="font-medium text-text-primary">{specs.delivery}</p>
                 </div>
-                <div className="bg-bg-secondary p-3 rounded-lg">
+                <div className="bg-bg-secondary p-3 rounded-lg border border-border-secondary">
                   <p className="text-xs text-text-muted mb-1">配送先</p>
                   <p className="font-medium text-text-primary">{specs.shipping}</p>
                 </div>
@@ -610,7 +603,8 @@ export default function SpecApprovalModal({
           {/* 後加工 */}
           {specs && specs.postProcessing.length > 0 && (
             <section>
-              <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+                <Wrench className="w-5 h-5 text-primary" />
                 後加工
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -628,7 +622,8 @@ export default function SpecApprovalModal({
 
           {/* 合計 */}
           <section>
-            <h3 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-secondary">
+              <Receipt className="w-5 h-5 text-primary" />
               合計
             </h3>
             <div className="space-y-2">
@@ -658,7 +653,7 @@ export default function SpecApprovalModal({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-border-secondary px-6 py-4 flex justify-end gap-3 rounded-b-lg">
+        <div className="flex-shrink-0 bg-white border-t border-border-secondary px-6 py-4 flex justify-end gap-3">
           <Button
             variant="outline"
             onClick={onClose}
@@ -675,6 +670,16 @@ export default function SpecApprovalModal({
             {isProcessing ? '処理中...' : '確認して注文に変換'}
           </Button>
         </div>
+
+        {/* Phase C: 注文同意モーダル（2画面遷移・仕様確認→同意） */}
+        <OrderConsentModal
+          open={showConsent}
+          onOpenChange={(o) => {
+            if (!isProcessing) setShowConsent(o);
+          }}
+          onConfirm={handleConsentConfirm}
+          isProcessing={isProcessing}
+        />
       </div>
     </div>
   );

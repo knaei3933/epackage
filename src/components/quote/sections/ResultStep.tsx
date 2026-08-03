@@ -39,6 +39,9 @@ import {
 import { arrayBufferToBase64 } from './parts/arrayBufferToBase64';
 import { PersistenceStatusBanner } from './parts/PersistenceStatusBanner';
 import { ActionButtons } from './parts/ActionButtons';
+import { OrderConsentModal } from '@/components/member/OrderConsentModal';
+import { convertQuotationToOrder } from '@/lib/api/member/quotations';
+import type { OrderAgreementInput } from '@/lib/order-consent-terms';
 import { PrintingRecommendation } from './parts/PrintingRecommendation';
 import { SpecificationsCard } from './parts/SpecificationsCard';
 import { PriceComparisonSection } from './parts/PriceComparisonSection';
@@ -87,6 +90,10 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfStatus, setPdfStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Phase C0: 注文同意モーダル（ActionButtons 第3経路の state ownership・親が所有）
+  const [showConsent, setShowConsent] = useState(false);
+  const [isOrdering, setIsOrdering] = useState(false);
 
   // Phase 1 fix: surface persistence errors to the user (no more silent fail).
   // persistenceStatus tracks the auto-save outcome so the result page can show a banner.
@@ -758,6 +765,37 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
     }
   };
 
+  // Phase C0: ActionButtons「この内容で注文」→同意モーダル→convertQuotationToOrder。
+  // 第3経路（見積シミュレータ結果画面）は selectedItemIds=undefined（全 item 対象）で agreement のみ渡す。
+  const onRequestOrder = () => {
+    if (!quotationId) {
+      alert('見積もりの保存が完了していません。PDFダウンロード後に再度お試しください。');
+      return;
+    }
+    setShowConsent(true);
+  };
+
+  const handleOrderConfirm = async (agreement: OrderAgreementInput) => {
+    if (!quotationId) return;
+    setIsOrdering(true);
+    try {
+      const result = await convertQuotationToOrder(quotationId, undefined, agreement);
+      if (result.success && result.data?.id) {
+        alert('注文を確定しました。注文履歴からご確認ください。');
+        window.location.href = '/member/orders';
+      } else {
+        alert(result.error || '注文の確定に失敗しました。もう一度お試しください。');
+        setShowConsent(false);
+      }
+    } catch (e) {
+      console.error('[ResultStep] order confirm error:', e);
+      alert('通信エラーが発生しました。');
+      setShowConsent(false);
+    } finally {
+      setIsOrdering(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <PersistenceStatusBanner
@@ -863,6 +901,16 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         pdfStatus={pdfStatus}
         showPatternComparison={showPatternComparison}
         multiQuantityQuotesLength={multiQuantityQuotes.length}
+        onRequestOrder={onRequestOrder}
+        isOrdering={isOrdering}
+      />
+
+      {/* Phase C0: 注文同意モーダル（親 ResultStep が所有） */}
+      <OrderConsentModal
+        open={showConsent}
+        onOpenChange={setShowConsent}
+        onConfirm={handleOrderConfirm}
+        isProcessing={isOrdering}
       />
     </div>
   );

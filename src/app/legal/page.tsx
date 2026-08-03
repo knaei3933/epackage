@@ -300,24 +300,31 @@ export default function LegalPage() {
                   <Package className="h-5 w-5 text-brixa-620" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">7. 返品・交換</h2>
+                  <h2 className="text-2xl font-bold text-text-primary mb-4">7. 返品・交換・キャンセル</h2>
                   <div className="space-y-3 text-text-secondary leading-relaxed">
 
-                    <h3 className="font-semibold text-text-primary mb-2">返品・交換の条件：</h3>
+                    <h3 className="font-semibold text-text-primary mb-2">キャンセルについて：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>当社の責任による不良品の場合：無期限で全額返品・交換</li>
-                      <li>お客様都合による返品：商品到着後8日以内</li>
-                      <li>未開封・未使用の場合：全額返品</li>
-                      <li>開封後の返品：商品状態により別途協議</li>
+                      <li>データ入稿前（データ入稿待ち状態）：いつでも無料でキャンセル・変更いただけます。</li>
+                      <li>データ入稿後：当社デザイナーの製造作業が開始されるため、キャンセル・仕様変更には<strong>15,000円（税抜）</strong>のキャンセル料が発生します。</li>
                     </ul>
 
-                    <h3 className="font-semibold text-text-primary mb-2 mt-4">返品・交換できない場合：</h3>
+                    <h3 className="font-semibold text-text-primary mb-2 mt-4">返品・交換について：</h3>
+                    <p className="ml-4">本サービスはご注文の仕様に基づく受託製造（オーダーメイド）のため、お客様都合による返品・交換は受け付けておりません。以下の場合、当社は代替品の納入または無償での再製造を行います。</p>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>お客様の責任による破損・汚損</li>
-                      <li>お客様の仕様通りに製造された商品</li>
-                      <li>時期経過による品質の自然な変化</li>
-                      <li>イメージ違いによる返品（仕様通りの場合）</li>
+                      <li>商品が受入検査に合格しなかった場合</li>
+                      <li>受入検査から3ヶ月以内に隠れた瑕疵が判明した場合</li>
                     </ul>
+
+                    <h3 className="font-semibold text-text-primary mb-2 mt-4">返品・交換対象外となる場合：</h3>
+                    <ul className="list-disc list-inside space-y-2 ml-4">
+                      <li>お客様の指示内容に起因する場合</li>
+                      <li>指定されたデザイン・材料・製造方法等に起因する場合</li>
+                      <li>当社がその不適当を通知したにもかかわらず、指示変更が行われなかった場合</li>
+                      <li>その他、お客様に起因する理由または当社の責めに帰すべき事由がない場合</li>
+                    </ul>
+
+                    <p className="text-xs text-text-muted mt-4">※2026年8月3日以降のご注文に適用します。</p>
                   </div>
                 </div>
               </div>

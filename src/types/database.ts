@@ -695,6 +695,26 @@ export type Database = {
                 Relationships: []
             }
 
+            // order_agreements table - 注文同意証憠（見積→注文変換時の同意記録・電子消費者契約法・電子署名法2条 準拠）
+            // skip_contract 移行後の契約フロー代替。5項目同意 + フルネーム入力 + IP/UA/timestamp を保存。
+            order_agreements: {
+                Row: {
+                    id: string
+                    order_id: string  // FK to orders
+                    user_id: string  // FK to auth.users
+                    full_name: string  // 同意時のフルネーム入力（電子署名法2条 広義署名）
+                    agreed_terms: Json  // {itemIds: string[], texts: {...}, version: 'v1'}
+                    ip_address: string | null  // 同意時のIP（参考証憑・本人確認は認証cookieが主）
+                    user_agent: string | null  // 同意時のUser-Agent
+                    terms_version: string  // 'v1'（将来改定で v2 等）
+                    agreed_at: string  // 同意日時（ISO 文字列）
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['order_agreements']['Row'], 'id' | 'created_at'>
+                Update: Partial<Omit<Database['public']['Tables']['order_agreements']['Row'], 'id' | 'created_at'>>
+                Relationships: []
+            }
+
             // Contracts table - 契約書管理 (Enhanced for Japan e-Signature Law)
             contracts: {
                 Row: {
