@@ -75,13 +75,13 @@ export async function GET(
     }
 
     // Fetch customer's orders — CustomerOrder 必要フィールドのみ明示 select
-    // （quotation_id 含む・Step 8 の注文明細→見積紐付け表示に使用・created_at 降順・直近10件）
+    // （quotation_id 含む・Step 8 の注文明細→見積紐付け表示に使用・created_at 降順）
+    // limit 解除・全件取得（クライアント側ページネーションのため）
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('id, order_number, status, total_amount, created_at, quotation_id')
       .eq('user_id', id)
-      .order('created_at', { ascending: false })
-      .limit(10);
+      .order('created_at', { ascending: false });
 
     if (ordersError) {
       console.error('[Customer Detail API] Orders query error:', ordersError);
@@ -91,6 +91,7 @@ export async function GET(
     // 注意: quotation_items.notes 列は実DBに存在しない。select に含めると PostgREST が
     // 42703 (undefined_column) を返し HTTP 400 になり、quotations 全体が取得できなくなる
     // （一覧APIはこの列を参照しないため正常に取得でき、一覧/詳細の乖離が起きていた）。
+    // limit 解除・全件取得（クライアント側ページネーションのため）
     const { data: quotations, error: quotationsError } = await supabase
       .from('quotations')
       .select(`
@@ -121,8 +122,7 @@ export async function GET(
         )
       `)
       .eq('user_id', id)
-      .order('created_at', { ascending: false })
-      .limit(20);
+      .order('created_at', { ascending: false });
 
     if (quotationsError) {
       console.error('[Customer Detail API] Quotations query error:', quotationsError);

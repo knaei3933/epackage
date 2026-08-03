@@ -34,6 +34,13 @@ interface CustomerWithStats extends Profile {
     total_amount: number;
     created_at: string;
   };
+  latestOrder?: {
+    id: string;
+    order_number: string;
+    status: string;
+    total_amount: number;
+    created_at: string;
+  };
   totalQuotations?: number;
   pendingQuotations?: number;
 }
@@ -150,7 +157,7 @@ export async function GET(request: NextRequest) {
     // 統計取得の error を可視化（サイレント失敗予防）
     const { data: orderStats, error: orderStatsError } = await supabase
       .from('orders')
-      .select('user_id, total_amount, created_at')
+      .select('user_id, id, order_number, status, total_amount, created_at')
       .in('user_id', customerIds);
     if (orderStatsError) {
       console.error('[Customer Management API] Order stats query error:', orderStatsError);
@@ -173,6 +180,7 @@ export async function GET(request: NextRequest) {
       totalSpent: number;
       lastOrderDate: string | null;
       latestQuotation: { id: string; quotation_number: string; status: string; total_amount: number; created_at: string } | null;
+      latestOrder: { id: string; order_number: string; status: string; total_amount: number; created_at: string } | null;
       totalQuotations: number;
       pendingQuotations: number;
     }>();
@@ -184,6 +192,7 @@ export async function GET(request: NextRequest) {
           totalSpent: 0,
           lastOrderDate: null,
           latestQuotation: null,
+          latestOrder: null,
           totalQuotations: 0,
           pendingQuotations: 0,
         });
@@ -193,6 +202,13 @@ export async function GET(request: NextRequest) {
       stats.totalSpent += order.total_amount || 0;
       if (!stats.lastOrderDate || new Date(order.created_at) > new Date(stats.lastOrderDate)) {
         stats.lastOrderDate = order.created_at;
+        stats.latestOrder = {
+          id: order.id,
+          order_number: order.order_number,
+          status: order.status,
+          total_amount: order.total_amount || 0,
+          created_at: order.created_at,
+        };
       }
     });
 
@@ -204,6 +220,7 @@ export async function GET(request: NextRequest) {
           totalSpent: 0,
           lastOrderDate: null,
           latestQuotation: null,
+          latestOrder: null,
           totalQuotations: 0,
           pendingQuotations: 0,
         });
@@ -237,6 +254,7 @@ export async function GET(request: NextRequest) {
         totalSpent: stats?.totalSpent || 0,
         lastOrderDate: stats?.lastOrderDate || null,
         latestQuotation: stats?.latestQuotation || undefined,
+        latestOrder: stats?.latestOrder || undefined,
         totalQuotations: stats?.totalQuotations || 0,
         pendingQuotations: stats?.pendingQuotations || 0,
       };

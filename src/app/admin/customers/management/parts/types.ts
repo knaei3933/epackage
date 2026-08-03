@@ -15,6 +15,7 @@ export interface Profile {
   kana_first_name: string;
   corporate_phone: string | null;
   personal_phone: string | null;
+  fax: string | null;
   business_type: BusinessType;
   company_name: string | null;
   legal_entity_number: string | null;
@@ -42,6 +43,13 @@ export interface Profile {
   latestQuotation?: {
     id: string;
     quotation_number: string;
+    status: string;
+    total_amount: number;
+    created_at: string;
+  };
+  latestOrder?: {
+    id: string;
+    order_number: string;
     status: string;
     total_amount: number;
     created_at: string;

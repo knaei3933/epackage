@@ -64,6 +64,8 @@ import type {
   CustomerQuotation,
 } from '../parts/types';
 import { getStatusBadge, getQuotationStatusBadge } from '../parts/badges';
+// クライアント側ページネーション用のページネーションUI（一覧テーブルと共通コンポーネント）
+import { DesktopPagination } from '../parts/Pagination';
 
 // =====================================================
 // フォームスキーマ（基本情報 + 運用項目 を統合）
@@ -124,6 +126,11 @@ type TabId = 'basic' | 'quotations' | 'orders';
 
 type SortKey = 'date' | 'amount' | 'status';
 type SortDir = 'asc' | 'desc';
+
+// クライアント側ページネーション・1ページあたりの表示件数
+// （APIは全件返却・クライアントで slice して表示する仕様）
+const QUOTATIONS_PAGE_SIZE = 5;
+const ORDERS_PAGE_SIZE = 5;
 
 // =====================================================
 // メインコンポーネント
@@ -717,6 +724,8 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // クライアント側ページネーション用 state
+  const [currentPage, setCurrentPage] = useState(1);
 
   const sorted = useMemo(() => {
     let list = quotations;
@@ -734,6 +743,17 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
     return arr;
   }, [quotations, sortKey, sortDir, statusFilter]);
 
+  // ページネーション計算: フィルタ・ソート後の sorted 配列をページサイズで分割
+  const totalPages = Math.max(1, Math.ceil(sorted.length / QUOTATIONS_PAGE_SIZE));
+  const paginated = sorted.slice((currentPage - 1) * QUOTATIONS_PAGE_SIZE, currentPage * QUOTATIONS_PAGE_SIZE);
+
+  // フィルタ・ソート変更で sorted 件数が変わり currentPage が totalPages を超えたら1ページ目へ戻す
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -741,6 +761,14 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
       setSortKey(key);
       setSortDir('desc');
     }
+    // ソート変更時に1ページ目へリセット
+    setCurrentPage(1);
+  };
+
+  // ステータスフィルタ変更時に1ページ目へリセット
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
   };
 
   const toggleExpand = (id: string) => {
@@ -763,7 +791,7 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
         <label className="text-sm text-gray-600">ステータス絞り込み:</label>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => handleStatusFilterChange(e.target.value)}
           className="h-10 px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
         >
           {QUOTATION_STATUS_FILTER_OPTIONS.map((o) => (
@@ -787,7 +815,7 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {sorted.map((q) => (
+            {paginated.map((q) => (
               <QuotationRow
                 key={q.id}
                 quotation={q}
@@ -797,11 +825,21 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
             ))}
           </tbody>
         </table>
+        {/* クライアント側ページネーション（テーブル直下・全件対象） */}
+        {sorted.length > QUOTATIONS_PAGE_SIZE && (
+          <DesktopPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={sorted.length}
+            itemsPerPage={QUOTATIONS_PAGE_SIZE}
+            setCurrentPage={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* モバイル: カード */}
       <div className="md:hidden space-y-3">
-        {sorted.map((q) => (
+        {paginated.map((q) => (
           <div key={q.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0">
@@ -826,6 +864,18 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
             </div>
           </div>
         ))}
+        {/* クライアント側ページネーション（モバイル・カード直下） */}
+        {sorted.length > QUOTATIONS_PAGE_SIZE && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-3">
+            <DesktopPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={sorted.length}
+              itemsPerPage={QUOTATIONS_PAGE_SIZE}
+              setCurrentPage={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -908,6 +958,8 @@ function OrdersTab({
 }) {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  // クライアント側ページネーション用 state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // quotation_id → quotation_number の参照マップ（元見積紐付け表示用）
   const quotationMap = useMemo(() => {
@@ -928,6 +980,18 @@ function OrdersTab({
     return arr;
   }, [orders, sortKey, sortDir]);
 
+  // ページネーション計算: ソート後の sorted 配列をページサイズで分割
+  const totalPages = Math.max(1, Math.ceil(sorted.length / ORDERS_PAGE_SIZE));
+  const paginated = sorted.slice((currentPage - 1) * ORDERS_PAGE_SIZE, currentPage * ORDERS_PAGE_SIZE);
+
+  // ソート変更で sorted 件数は変わらないが、表示位置をリセットするため1ページ目へ戻す
+  // （orders にフィルタは無いが totalPages > currentPage になり得ないよう念のためクランプ）
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -935,6 +999,8 @@ function OrdersTab({
       setSortKey(key);
       setSortDir('desc');
     }
+    // ソート変更時に1ページ目へリセット
+    setCurrentPage(1);
   };
 
   if (orders.length === 0) {
@@ -956,7 +1022,7 @@ function OrdersTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {sorted.map((o) => (
+            {paginated.map((o) => (
               <tr key={o.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">{o.order_number}</td>
                 <td className="px-4 py-3 text-gray-600">{formatDate(o.created_at, 'ja')}</td>
@@ -986,11 +1052,21 @@ function OrdersTab({
             ))}
           </tbody>
         </table>
+        {/* クライアント側ページネーション（テーブル直下・全件対象） */}
+        {sorted.length > ORDERS_PAGE_SIZE && (
+          <DesktopPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={sorted.length}
+            itemsPerPage={ORDERS_PAGE_SIZE}
+            setCurrentPage={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* モバイル: カード */}
       <div className="md:hidden space-y-3">
-        {sorted.map((o) => (
+        {paginated.map((o) => (
           <div key={o.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-start justify-between gap-2 mb-2">
               <p className="font-medium text-gray-900">{o.order_number}</p>
@@ -1017,6 +1093,18 @@ function OrdersTab({
             )}
           </div>
         ))}
+        {/* クライアント側ページネーション（モバイル・カード直下） */}
+        {sorted.length > ORDERS_PAGE_SIZE && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-3">
+            <DesktopPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={sorted.length}
+              itemsPerPage={ORDERS_PAGE_SIZE}
+              setCurrentPage={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
