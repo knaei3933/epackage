@@ -40,12 +40,12 @@ const postProcessingOptions: PostProcessingOption[] = [
   { id: 'zipper-yes', name: 'With Zipper', nameJa: 'ジッパー付き', imageName: '1.ジッパーあり.png', category: 'opening-sealing' },
 
   // Finish options -> surface-treatment
-  { id: 'matte', name: 'Matte Finish', nameJa: 'マット紙', imageName: '2.マット.png', category: 'surface-treatment' },
-  { id: 'glossy', name: 'Glossy Finish', nameJa: '光沢紙', imageName: '2.光沢.png', category: 'surface-treatment' },
+  { id: 'matte', name: 'Matte Finish', nameJa: 'マット仕上げ', imageName: '2.マット.png', category: 'surface-treatment' },
+  { id: 'glossy', name: 'Glossy Finish', nameJa: '光沢仕上げ', imageName: '2.光沢.png', category: 'surface-treatment' },
 
   // Notch options -> opening-sealing
   { id: 'notch-no', name: 'No Notch', nameJa: 'ノッチなし', imageName: '3.ノッチなし.png', category: 'opening-sealing' },
-  { id: 'notch-yes', name: 'With Notch', nameJa: 'ノッチ付き', imageName: '3.ノッチあり.png', category: 'opening-sealing' },
+  { id: 'notch-yes', name: 'With Notch', nameJa: 'Vノッチ', imageName: '3.ノッチあり.png', category: 'opening-sealing' },
 
   // Hole punching options -> shape-structure
   { id: 'punching-no', name: 'No Hole Punching', nameJa: '穴あけなし', imageName: '4.吊り穴なし.png', category: 'shape-structure' },
@@ -61,7 +61,7 @@ const postProcessingOptions: PostProcessingOption[] = [
 
   // Valve options -> opening-sealing
   { id: 'valve-no', name: 'No Valve', nameJa: 'バルブなし', imageName: 'バルブなし.png', category: 'opening-sealing' },
-  { id: 'valve-yes', name: 'With Valve', nameJa: 'バルブ付き', imageName: 'バルブあり.png', category: 'opening-sealing' },
+  { id: 'valve-yes', name: 'With Valve', nameJa: 'ガス抜きバルブ', imageName: 'バルブあり.png', category: 'opening-sealing' },
 ]
 
 export function PostProcessingPreview({ selectedOptions, onPreviewToggle, defaultExpanded = false, className, inline = false }: PostProcessingPreviewProps) {
