@@ -4,7 +4,9 @@
  * 列表示カスタマイズ（Step 9）:
  * - 表示/非表示をトグルで切り替え可能。
  * - 設定は localStorage (key: admin.customer.columns) に保存・復元される。
- * - デフォルト表示列: 担当者名・会社名・法人/個人・ステータス・直近見積。
+ * - デフォルト表示列: 担当者名・会社名・住所・電話番号・FAX番号・メールアドレス・直近見積・最新注文。
+ * - カスタマイズ可能（非デフォルト）: 法人/個人・ステータス・登録日。
+ * - バージョン管理: COLUMN_CONFIG の defaultVisible を変更したら COLUMN_CONFIG_VERSION を +1 する。
  */
 
 'use client';
@@ -16,7 +18,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Eye, Building2, Building, Phone, MoreVertical, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/types/portal';
+import { ORDER_STATUS_LABELS, isOrderStatus } from '@/types/order-status';
 import type { Profile } from './types';
 import { getStatusBadge, getQuotationStatusBadge } from './badges';
 import { DesktopPagination } from './Pagination';
@@ -30,7 +34,9 @@ type ColumnKey =
   | 'email'
   | 'phone'
   | 'registeredDate'
-  | 'orders';
+  | 'address'
+  | 'fax'
+  | 'latestOrder';
 
 interface ColumnConfig {
   key: ColumnKey;
@@ -41,16 +47,23 @@ interface ColumnConfig {
 const COLUMN_CONFIG: ColumnConfig[] = [
   { key: 'contact', label: '担当者名', defaultVisible: true },
   { key: 'company', label: '会社名', defaultVisible: true },
-  { key: 'businessType', label: '法人/個人', defaultVisible: true },
-  { key: 'status', label: 'ステータス', defaultVisible: true },
+  { key: 'address', label: '住所', defaultVisible: true },
+  { key: 'phone', label: '電話番号', defaultVisible: true },
+  { key: 'fax', label: 'FAX番号', defaultVisible: true },
+  { key: 'email', label: 'メールアドレス', defaultVisible: true },
   { key: 'quotation', label: '直近見積', defaultVisible: true },
-  { key: 'email', label: 'メールアドレス', defaultVisible: false },
-  { key: 'phone', label: '電話番号', defaultVisible: false },
+  { key: 'latestOrder', label: '最新注文', defaultVisible: true },
+  { key: 'businessType', label: '法人/個人', defaultVisible: false },
+  { key: 'status', label: 'ステータス', defaultVisible: false },
   { key: 'registeredDate', label: '登録日', defaultVisible: false },
-  { key: 'orders', label: '注文数', defaultVisible: false },
 ];
 
 const STORAGE_KEY = 'admin.customer.columns';
+// COLUMN_CONFIG の defaultVisible を変更したら VERSION を +1 する。
+// localStorage の version が一致するときだけカスタマイズを反映し、
+// 不一致・旧構造・不正の場合は DEFAULT_VISIBLE を使うことで、
+// 新しいデフォルト列が既存ユーザーへ確実に反映される。
+const COLUMN_CONFIG_VERSION = 2;
 
 const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = COLUMN_CONFIG.reduce(
   (acc, col) => {
@@ -59,6 +72,26 @@ const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = COLUMN_CONFIG.reduce(
   },
   {} as Record<ColumnKey, boolean>
 );
+
+// 注文ステータス用の簡易 badge（badges.tsx の getStatusBadge は UserStatus 専用のため）
+function getOrderStatusBadge(status: string) {
+  if (!isOrderStatus(status)) {
+    return <Badge variant="secondary" size="sm">{status}</Badge>;
+  }
+  const statusConfig = ORDER_STATUS_LABELS[status];
+  if (!statusConfig) {
+    return <Badge variant="secondary" size="sm">{status}</Badge>;
+  }
+  const variantMap: Record<string, 'success' | 'warning' | 'error' | 'secondary' | 'info'> = {
+    initial: 'secondary',
+    active: 'info',
+    production: 'warning',
+    final: 'success',
+    terminated: 'error',
+  };
+  const variant = variantMap[statusConfig.category] ?? 'secondary';
+  return <Badge variant={variant} size="sm">{statusConfig.ja}</Badge>;
+}
 
 interface DesktopCustomerTableProps {
   customers: Profile[];
@@ -92,18 +125,33 @@ export function DesktopCustomerTable({
   const [showColumnToggle, setShowColumnToggle] = useState(false);
 
   // localStorage から表示設定を復元（SSR 安全のため初回効果で読み込み）
+  // バージョン管理: storedVersion が COLUMN_CONFIG_VERSION と一致するときだけ
+  // カスタマイズを反映。不一致・旧構造（boolean 直マップ・version フィールドなし）・
+  // JSON 不正の場合は DEFAULT_VISIBLE をそのまま使用（setVisibleColumns しない）。
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved) as Partial<Record<ColumnKey, boolean>>;
-        const merged = { ...DEFAULT_VISIBLE };
-        (Object.keys(merged) as ColumnKey[]).forEach((key) => {
-          if (parsed[key] !== undefined) {
-            merged[key] = Boolean(parsed[key]);
-          }
-        });
-        setVisibleColumns(merged);
+        const parsed = JSON.parse(saved) as unknown;
+        // 正常構造の検証: { version, columns } 形式 + columns は object
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          !Array.isArray(parsed) &&
+          (parsed as { version?: unknown }).version === COLUMN_CONFIG_VERSION &&
+          (parsed as { columns?: unknown }).columns &&
+          typeof (parsed as { columns?: unknown }).columns === 'object'
+        ) {
+          const storedColumns = (parsed as { columns: Partial<Record<ColumnKey, boolean>> }).columns;
+          const merged = { ...DEFAULT_VISIBLE };
+          (Object.keys(merged) as ColumnKey[]).forEach((key) => {
+            if (storedColumns[key] !== undefined) {
+              merged[key] = Boolean(storedColumns[key]);
+            }
+          });
+          setVisibleColumns(merged);
+        }
+        // version 不一致・旧構造・不正の場合は DEFAULT_VISIBLE をそのまま使用
       }
     } catch {
       // 不正な JSON はデフォルト設定を使用
@@ -115,7 +163,10 @@ export function DesktopCustomerTable({
   useEffect(() => {
     if (hydrated) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(visibleColumns));
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ version: COLUMN_CONFIG_VERSION, columns: visibleColumns })
+        );
       } catch {
         // ストレージ書き込み失敗（プライベートモード等）は無視
       }
@@ -193,14 +244,9 @@ export function DesktopCustomerTable({
                   会社名
                 </th>
               )}
-              {visibleColumns.businessType && (
+              {visibleColumns.address && (
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  法人/個人
-                </th>
-              )}
-              {visibleColumns.email && (
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  メールアドレス
+                  住所
                 </th>
               )}
               {visibleColumns.phone && (
@@ -208,14 +254,14 @@ export function DesktopCustomerTable({
                   電話番号
                 </th>
               )}
-              {visibleColumns.registeredDate && (
+              {visibleColumns.fax && (
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  登録日
+                  FAX番号
                 </th>
               )}
-              {visibleColumns.orders && (
+              {visibleColumns.email && (
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  注文数
+                  メールアドレス
                 </th>
               )}
               {visibleColumns.quotation && (
@@ -223,9 +269,24 @@ export function DesktopCustomerTable({
                   見積情報
                 </th>
               )}
+              {visibleColumns.latestOrder && (
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  最新注文
+                </th>
+              )}
+              {visibleColumns.businessType && (
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  法人/個人
+                </th>
+              )}
               {visibleColumns.status && (
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ステータス
+                </th>
+              )}
+              {visibleColumns.registeredDate && (
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  登録日
                 </th>
               )}
               <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -292,17 +353,20 @@ export function DesktopCustomerTable({
                       )}
                     </td>
                   )}
-                  {visibleColumns.businessType && (
+                  {visibleColumns.address && (
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-900">
-                        <Building className="w-4 h-4 text-gray-400" />
-                        {customer.business_type === 'CORPORATION' ? '法人' : '個人'}
+                      <div className="text-sm text-gray-900">
+                        {customer.postal_code || customer.prefecture || customer.city || customer.street ? (
+                          <span>
+                            {customer.postal_code && `〒${customer.postal_code} `}
+                            {customer.prefecture}
+                            {customer.city}
+                            {customer.street}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </div>
-                    </td>
-                  )}
-                  {visibleColumns.email && (
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{customer.email}</div>
                     </td>
                   )}
                   {visibleColumns.phone && (
@@ -313,24 +377,16 @@ export function DesktopCustomerTable({
                       </div>
                     </td>
                   )}
-                  {visibleColumns.registeredDate && (
+                  {visibleColumns.fax && (
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {formatDate(customer.created_at, 'ja')}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {Math.floor((Date.now() - new Date(customer.created_at).getTime()) / (1000 * 60 * 60 * 24))}日前
+                        {customer.fax || <span className="text-gray-400">-</span>}
                       </div>
                     </td>
                   )}
-                  {visibleColumns.orders && (
+                  {visibleColumns.email && (
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 font-medium">
-                        {customer.totalOrders || 0}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        ¥{(((customer.totalSpent || 0) / 10000).toFixed(1))}万
-                      </div>
+                      <div className="text-sm text-gray-900">{customer.email}</div>
                     </td>
                   )}
                   {visibleColumns.quotation && (
@@ -374,9 +430,52 @@ export function DesktopCustomerTable({
                       )}
                     </td>
                   )}
+                  {visibleColumns.latestOrder && (
+                    <td className="px-6 py-4">
+                      {customer.latestOrder ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`/admin/orders?id=${customer.latestOrder.id}`}
+                              className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              {customer.latestOrder.order_number}
+                            </a>
+                            {getOrderStatusBadge(customer.latestOrder.status)}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {formatDate(customer.latestOrder.created_at, 'ja')}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            ¥{(customer.latestOrder.total_amount || 0).toLocaleString()}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-400">-</div>
+                      )}
+                    </td>
+                  )}
+                  {visibleColumns.businessType && (
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5 text-sm text-gray-900">
+                        <Building className="w-4 h-4 text-gray-400" />
+                        {customer.business_type === 'CORPORATION' ? '法人' : '個人'}
+                      </div>
+                    </td>
+                  )}
                   {visibleColumns.status && (
                     <td className="px-6 py-4">
                       {getStatusBadge(customer.status)}
+                    </td>
+                  )}
+                  {visibleColumns.registeredDate && (
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(customer.created_at, 'ja')}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {Math.floor((Date.now() - new Date(customer.created_at).getTime()) / (1000 * 60 * 60 * 24))}日前
+                      </div>
                     </td>
                   )}
                   <td className="px-6 py-4">
