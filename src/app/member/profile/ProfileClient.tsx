@@ -37,6 +37,7 @@ export interface ProfileClientProps {
   userCompanyUrl?: string;
   userCorporatePhone?: string;
   userPersonalPhone?: string;
+  userFax?: string;
   userPostalCode?: string;
   userPrefecture?: string;
   userCity?: string;
@@ -88,6 +89,7 @@ export function ProfileClient({
   userCompanyUrl,
   userCorporatePhone,
   userPersonalPhone,
+  userFax,
   userPostalCode,
   userPrefecture,
   userCity,
@@ -264,7 +266,7 @@ export function ProfileClient({
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
                 label="会社電話番号"
                 type="tel"
@@ -276,6 +278,13 @@ export function ProfileClient({
                 label="携帯電話"
                 type="tel"
                 value={userPersonalPhone || ''}
+                disabled
+                placeholder="未登録"
+              />
+              <Input
+                label="FAX番号"
+                type="tel"
+                value={userFax || ''}
                 disabled
                 placeholder="未登録"
               />

@@ -134,6 +134,7 @@ export function createMockProfile(overrides: Partial<Profile> = {}): Profile {
     kana_first_name: 'タロウ',
     corporate_phone: '03-1234-5678',
     personal_phone: '090-1234-5678',
+    fax: null,
     business_type: 'CORPORATION',
     user_type: 'B2B',
     company_name: '開発株式会社',

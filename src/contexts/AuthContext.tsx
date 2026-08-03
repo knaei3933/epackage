@@ -89,6 +89,7 @@ function convertSupabaseUser(
     kanaFirstName: profile.kana_first_name,
     corporatePhone: profile.corporate_phone,
     personalPhone: profile.personal_phone,
+    fax: profile.fax,
     businessType: profile.business_type as User['businessType'],
     companyName: profile.company_name,
     legalEntityNumber: profile.legal_entity_number,
@@ -493,6 +494,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (updates.corporatePhone !== undefined) profileUpdates.corporate_phone = updates.corporatePhone
     if (updates.personalPhone !== undefined) profileUpdates.personal_phone = updates.personalPhone
+    if (updates.fax !== undefined) profileUpdates.fax = updates.fax
     if (updates.companyName !== undefined) profileUpdates.company_name = updates.companyName
     if (updates.position !== undefined) profileUpdates.position = updates.position
     if (updates.department !== undefined) profileUpdates.department = updates.department

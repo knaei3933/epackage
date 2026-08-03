@@ -52,6 +52,7 @@ async function EditContent() {
   // Contact info
   const userCorporatePhone = userMetadata.corporate_phone || '';
   const userPersonalPhone = userMetadata.personal_phone || '';
+  const userFax = userMetadata.fax || '';
 
   return (
     <EditSignOutProvider
@@ -59,6 +60,7 @@ async function EditContent() {
       userEmail={userEmail}
       userCorporatePhone={userCorporatePhone}
       userPersonalPhone={userPersonalPhone}
+      userFax={userFax}
     />
   );
 }

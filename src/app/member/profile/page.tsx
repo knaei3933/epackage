@@ -46,6 +46,7 @@ async function ProfileContent() {
   // Contact info
   const userCorporatePhone = userMetadata.corporate_phone || '';
   const userPersonalPhone = userMetadata.personal_phone || '';
+  const userFax = userMetadata.fax || '';
 
   // Address info
   const userPostalCode = userMetadata.postal_code || '';
@@ -84,6 +85,7 @@ async function ProfileContent() {
       userCompanyUrl={userCompanyUrl}
       userCorporatePhone={userCorporatePhone}
       userPersonalPhone={userPersonalPhone}
+      userFax={userFax}
       userPostalCode={userPostalCode}
       userPrefecture={userPrefecture}
       userCity={userCity}

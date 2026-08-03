@@ -425,6 +425,13 @@ export default function RegistrationForm({
               error={errors.personalPhone?.message}
               {...register('personalPhone')}
             />
+            <Input
+              label="FAX番号（任意）"
+              type="tel"
+              placeholder="03-1234-5678"
+              error={errors.fax?.message}
+              {...register('fax')}
+            />
           </div>
         </div>
 
