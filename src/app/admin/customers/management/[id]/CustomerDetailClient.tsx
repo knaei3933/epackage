@@ -1131,7 +1131,7 @@ function getOrderStatusBadge(status: OrderStatus) {
     const cat = conf?.category;
     if (cat === 'terminated') return 'error' as const;
     if (cat === 'final') return 'success' as const;
-    if (cat === 'production') return 'info' as const;
+    if (cat === 'production' || cat === 'active') return 'info' as const;
     if (cat === 'initial') return 'warning' as const;
     return 'secondary' as const;
   })();

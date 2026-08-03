@@ -16,6 +16,7 @@ export interface EditSignOutProviderProps {
   userEmail: string;
   userCorporatePhone?: string;
   userPersonalPhone?: string;
+  userFax?: string;
 }
 
 export function EditSignOutProvider({
@@ -23,6 +24,7 @@ export function EditSignOutProvider({
   userEmail,
   userCorporatePhone,
   userPersonalPhone,
+  userFax,
 }: EditSignOutProviderProps) {
   const { updateProfile, updatePassword, signOut } = useAuth();
 
@@ -32,6 +34,7 @@ export function EditSignOutProvider({
       userEmail={userEmail}
       userCorporatePhone={userCorporatePhone}
       userPersonalPhone={userPersonalPhone}
+      userFax={userFax}
       updateProfile={updateProfile}
       updatePassword={updatePassword}
       signOut={signOut}

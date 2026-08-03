@@ -107,6 +107,11 @@ export const registrationSchema = z
       z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
     ]).optional(),
+    // FAX番号 - オプション（personalPhone と同一の正規表現）
+    fax: z.union([
+      z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効なFAX番号の形式ではありません。'),
+      z.literal('')
+    ]).optional(),
 
     // 事業者種別 - オプション化
     businessType: z.nativeEnum(BusinessType).optional(),
@@ -201,6 +206,7 @@ export interface User {
   kanaFirstName?: string | null;
   corporatePhone?: string | null;
   personalPhone?: string | null;
+  fax?: string | null;
   businessType?: BusinessType | null;
   companyName?: string | null;
   legalEntityNumber?: string | null;

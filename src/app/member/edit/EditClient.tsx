@@ -26,6 +26,7 @@ export interface EditClientProps {
   userEmail: string;
   userCorporatePhone?: string;
   userPersonalPhone?: string;
+  userFax?: string;
   updateProfile: (data: any) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -45,6 +46,7 @@ interface DeletionSummary {
 interface ProfileFormData {
   corporatePhone: string;
   personalPhone: string;
+  fax: string;
 }
 
 interface PasswordFormData {
@@ -62,6 +64,7 @@ export function EditClient({
   userEmail,
   userCorporatePhone,
   userPersonalPhone,
+  userFax,
   updateProfile,
   updatePassword,
   signOut,
@@ -79,10 +82,11 @@ export function EditClient({
   const [deletionSummary, setDeletionSummary] = useState<DeletionSummary | null>(null);
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
 
-  // プロフィールフォーム（電話番号のみ編集可能）
+  // プロフィールフォーム（電話番号・FAXのみ編集可能）
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     corporatePhone: userCorporatePhone || '',
     personalPhone: userPersonalPhone || '',
+    fax: userFax || '',
   });
 
   // パスワードフォーム
@@ -95,10 +99,21 @@ export function EditClient({
   const [profileErrors, setProfileErrors] = useState<Partial<Record<keyof ProfileFormData, string>>>({});
   const [passwordErrors, setPasswordErrors] = useState<Partial<Record<keyof PasswordFormData, string>>>({});
 
-  // プロフィールバリデーション（電話番号のみ）
+  // プロフィールバリデーション（電話番号・FAX番号の形式チェック）
   const validateProfile = (): boolean => {
-    // 電話番号は必須ではないので、バリデーション不要
-    return true;
+    const phoneRe = /^\d{2,4}-?\d{2,4}-?\d{3,4}$/;
+    const errors: Partial<Record<keyof ProfileFormData, string>> = {};
+    if (profileForm.corporatePhone && !phoneRe.test(profileForm.corporatePhone)) {
+      errors.corporatePhone = '有効な電話番号の形式ではありません。';
+    }
+    if (profileForm.personalPhone && !phoneRe.test(profileForm.personalPhone)) {
+      errors.personalPhone = '有効な電話番号の形式ではありません。';
+    }
+    if (profileForm.fax && !phoneRe.test(profileForm.fax)) {
+      errors.fax = '有効なFAX番号の形式ではありません。';
+    }
+    setProfileErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // パスワードバリデーション
@@ -132,6 +147,7 @@ export function EditClient({
       await updateProfile({
         corporatePhone: profileForm.corporatePhone || undefined,
         personalPhone: profileForm.personalPhone || undefined,
+        fax: profileForm.fax || undefined,
       });
 
       setSuccessMessage('連絡先を更新しました');
@@ -309,7 +325,7 @@ export function EditClient({
             <p className="text-sm font-medium text-text-primary mb-3">
               連絡先
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">
                   会社電話番号
@@ -320,6 +336,7 @@ export function EditClient({
                   value={profileForm.corporatePhone || ''}
                   onChange={(e) => setProfileForm({ ...profileForm, corporatePhone: e.target.value })}
                   placeholder="例: 03-1234-5678"
+                  error={profileErrors.corporatePhone}
                 />
               </div>
               <div>
@@ -332,6 +349,20 @@ export function EditClient({
                   value={profileForm.personalPhone || ''}
                   onChange={(e) => setProfileForm({ ...profileForm, personalPhone: e.target.value })}
                   placeholder="例: 090-1234-5678"
+                  error={profileErrors.personalPhone}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1">
+                  FAX番号
+                </label>
+                <Input
+                  type="tel"
+                  data-testid="fax-input"
+                  value={profileForm.fax || ''}
+                  onChange={(e) => setProfileForm({ ...profileForm, fax: e.target.value })}
+                  placeholder="例: 03-1234-4567"
+                  error={profileErrors.fax}
                 />
               </div>
             </div>

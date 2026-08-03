@@ -211,6 +211,7 @@ export interface Profile {
     kana_first_name: string;
     corporate_phone?: string | null;
     personal_phone?: string | null;
+    fax?: string | null;
     business_type: BusinessType;
     company_name?: string | null;
     legal_entity_number?: string | null;
@@ -288,6 +289,7 @@ export const auth = {
         type ProfileUpdate = {
             corporate_phone?: string | null;
             personal_phone?: string | null;
+            fax?: string | null;
             company_name?: string | null;
             position?: string | null;
             department?: string | null;
@@ -301,6 +303,7 @@ export const auth = {
         const dbUpdates: ProfileUpdate = {};
         if (updates.corporate_phone !== undefined) dbUpdates.corporate_phone = updates.corporate_phone;
         if (updates.personal_phone !== undefined) dbUpdates.personal_phone = updates.personal_phone;
+        if (updates.fax !== undefined) dbUpdates.fax = updates.fax;
         if (updates.company_name !== undefined) dbUpdates.company_name = updates.company_name;
         if (updates.position !== undefined) dbUpdates.position = updates.position;
         if (updates.department !== undefined) dbUpdates.department = updates.department;

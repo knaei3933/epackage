@@ -354,6 +354,7 @@ export type Database = {
                     kana_first_name: string
                     corporate_phone: string | null
                     personal_phone: string | null
+                    fax: string | null  // FAX番号（任意・全員nullable）
                     business_type: 'INDIVIDUAL' | 'CORPORATION'
                     user_type: 'B2C' | 'B2B' | null  // B2C: 一般消費者, B2B: 企業顧客
                     company_name: string | null

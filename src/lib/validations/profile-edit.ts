@@ -71,6 +71,13 @@ export const profileEditSchema = z.object({
       .regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
     z.literal(''),
   ]).optional(),
+  // FAX番号（任意・personalPhone と同一の正規表現）
+  fax: z.union([
+    z
+      .string()
+      .regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効なFAX番号の形式ではありません。'),
+    z.literal(''),
+  ]).optional(),
 
   // 事業者種別
   businessType: z.nativeEnum(BusinessType).optional(),
@@ -146,6 +153,7 @@ export function mapProfileEditToSnakeCase(
   kana_first_name: string | null;
   corporate_phone: string | null;
   personal_phone: string | null;
+  fax: string | null;
   business_type: BusinessType | null;
   company_name: string | null;
   legal_entity_number: string | null;
@@ -170,6 +178,7 @@ export function mapProfileEditToSnakeCase(
     kana_first_name: toNullable(data.kanaFirstName),
     corporate_phone: toNullable(data.corporatePhone),
     personal_phone: toNullable(data.personalPhone),
+    fax: toNullable(data.fax),
     business_type: data.businessType ?? null,
     company_name: toNullable(data.companyName),
     legal_entity_number: toNullable(data.legalEntityNumber),

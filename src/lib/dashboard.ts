@@ -276,6 +276,8 @@ export async function requireAuth(): Promise<{
     kanji_first_name?: string;
     name_kanji?: string;
     name_kana?: string;
+    // マイページ表示・編集に必要な全フィールドを許容（インデックスシグネチャ）
+    [key: string]: string | null | undefined;
   };
 }> {
   try {
@@ -301,7 +303,7 @@ export async function requireAuth(): Promise<{
     try {
       const result = await serviceClient
         .from('profiles')
-        .select('kanji_last_name, kanji_first_name, kana_last_name, email')
+        .select('*')
         .eq('id', context.userId)
         .maybeSingle();
       profile = result.data;
@@ -317,10 +319,31 @@ export async function requireAuth(): Promise<{
       id: context.userId,
       email: profileAny?.email || '',
       user_metadata: {
+        // 互換用の従来フィールド（name_kanji / name_kana は残す）
         kanji_last_name: profileAny?.kanji_last_name || '',
         kanji_first_name: profileAny?.kanji_first_name || '',
         name_kanji: profileAny?.kanji_last_name || '',
         name_kana: profileAny?.kana_last_name || '',
+        // マイページ表示・編集で参照する全フィールド
+        kana_last_name: profileAny?.kana_last_name || '',
+        kana_first_name: profileAny?.kana_first_name || '',
+        corporate_phone: profileAny?.corporate_phone || '',
+        personal_phone: profileAny?.personal_phone || '',
+        fax: profileAny?.fax || '',
+        company_name: profileAny?.company_name || '',
+        position: profileAny?.position || '',
+        department: profileAny?.department || '',
+        company_url: profileAny?.company_url || '',
+        postal_code: profileAny?.postal_code || '',
+        prefecture: profileAny?.prefecture || '',
+        city: profileAny?.city || '',
+        street: profileAny?.street || '',
+        product_category: profileAny?.product_category || '',
+        business_type: profileAny?.business_type || '',
+        role: profileAny?.role || '',
+        status: profileAny?.status || '',
+        created_at: profileAny?.created_at || '',
+        last_login_at: profileAny?.last_login_at || undefined,
       },
     };
   } catch (error) {

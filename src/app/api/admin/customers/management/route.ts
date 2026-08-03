@@ -322,6 +322,7 @@ export async function POST(request: NextRequest) {
         product_category: customerData.product_category || 'OTHER',
         corporate_phone: customerData.corporate_phone || null,
         personal_phone: customerData.personal_phone || null,
+        fax: customerData.fax || null,
         company_name: customerData.company_name || null,
         legal_entity_number: customerData.legal_entity_number || null,
         position: customerData.position || null,

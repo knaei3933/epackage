@@ -148,6 +148,7 @@ async function handleRegisterPost(request: NextRequest) {
           kana_first_name: validatedData.kanaFirstName,
           corporate_phone: validatedData.corporatePhone || null,
           personal_phone: validatedData.personalPhone || null,
+          fax: validatedData.fax || null,
           business_type: validatedData.businessType,
           company_name: validatedData.companyName || null,
           legal_entity_number: validatedData.legalEntityNumber || null,

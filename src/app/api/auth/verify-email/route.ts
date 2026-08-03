@@ -325,6 +325,7 @@ async function createProfileFromAuthUser(
         kana_first_name: metadata.kana_first_name || '',
         corporate_phone: metadata.corporate_phone || null,
         personal_phone: metadata.personal_phone || null,
+        fax: metadata.fax || null,
         business_type: businessType,
         user_type: userType,
         company_name: metadata.company_name || null,
