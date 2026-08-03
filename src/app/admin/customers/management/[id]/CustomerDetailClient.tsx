@@ -190,6 +190,7 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
       kanaFirstName: c.kana_first_name || '',
       corporatePhone: c.corporate_phone || '',
       personalPhone: c.personal_phone || '',
+      fax: c.fax || '',
       // Profile.business_type は string リテラル型、フォームは enum BusinessType を期待するためキャスト
       businessType: c.business_type as BusinessType,
       companyName: c.company_name || '',
@@ -508,6 +509,7 @@ function BasicInfoTab({
             />
             <DataRow label="会社電話" value={customer.corporate_phone || '-'} icon={<Phone className="w-3.5 h-3.5" />} />
             <DataRow label="携帯電話" value={customer.personal_phone || '-'} icon={<Phone className="w-3.5 h-3.5" />} />
+            <DataRow label="FAX" value={customer.fax || '-'} icon={<Phone className="w-3.5 h-3.5" />} />
             <DataRow label="会社名" value={customer.company_name || '-'} icon={<Building2 className="w-3.5 h-3.5" />} />
             <DataRow label="法人番号" value={customer.legal_entity_number || '-'} />
             <DataRow label="役職" value={customer.position || '-'} />
@@ -593,6 +595,7 @@ function BasicInfoTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input label="会社電話番号" type="tel" placeholder="03-1234-5678" error={errors.corporatePhone?.message} {...register('corporatePhone')} />
           <Input label="携帯電話" type="tel" placeholder="090-1234-5678" error={errors.personalPhone?.message} {...register('personalPhone')} />
+          <Input label="FAX番号" type="tel" placeholder="03-1234-5678" error={errors.fax?.message} {...register('fax')} />
         </div>
       </div>
 
