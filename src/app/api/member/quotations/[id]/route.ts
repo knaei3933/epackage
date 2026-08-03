@@ -61,7 +61,8 @@ export async function GET(
           quantity,
           unit_price,
           total_price,
-          specifications
+          specifications,
+          order_id
         )
       `)
       .eq('id', quotationId)
@@ -117,6 +118,7 @@ export async function GET(
         unitPrice: item.unit_price,
         totalPrice: item.total_price,
         specifications: item.specifications,
+        orderId: item.order_id ?? null,
       })),
     };
 

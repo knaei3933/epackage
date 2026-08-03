@@ -35,6 +35,7 @@ import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 import { formatContentsDisplay } from '@/constants/contentsData';
 import { getPrintingLabelJa } from '@/lib/product-display-name';
+import { getEffectiveValidUntil } from '@/lib/quotation-utils';
 import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
@@ -281,13 +282,15 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   // 合計: DB保存値の total_amount を優先（100円切り上げ済みの正確な合計）
   // フォールバック: 小計 + 消費税（レガシーデータ対応）
   const displayTotalAmount = quotation?.totalAmount || quotation?.total_amount || (subtotal + taxAmount);
-  // 注文変換可能か: convert API と同じ !isTerminal ロジックに統一。
-  // キャンセル済み・既に注文変換済み以外はすべて注文可能（承認ゲートは API 側で除去済み）。
+  // 注文変換可能か: 有効期間内の再注文を許容。canConvert は「キャンセルされていない・期限内」のみで判定。
+  // 全パターン注文済（isAllOrdered）でも期限内なら再注文可能（補助メッセージで案内）。
   const rawStatus = (quotation?.status as string) || '';
   const statusUpper = rawStatus.toUpperCase();
-  const isTerminal = statusUpper === 'CANCELLED';
-  const isConverted = statusUpper === 'CONVERTED';
-  const canConvert = !isTerminal && !isConverted;
+  const isCancelled = statusUpper === 'CANCELLED';
+  const isExpired = getEffectiveValidUntil(quotation) < new Date();
+  const hasUnorderedItem = (quotation?.items || []).some((i: any) => !(i as any).orderId);
+  const canConvert = !isCancelled && !isExpired;
+  const isAllOrdered = !hasUnorderedItem;
 
   return (
     <div className="space-y-6">
@@ -436,10 +439,16 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
             {/* 注文変換 - 状態に応じて表示を変える */}
             {canConvert ? (
               <>
-                {/* Phase 2 fix: require a pattern selection before allowing order conversion */}
+                {/* 数量パターン選択の催促（複数パターン時・未選択） */}
                 {quotation.items && quotation.items.length > 1 && !selectedItemId && (
                   <div className="text-sm text-amber-700 font-medium mr-2 self-center">
                     数量パターンを選択してください
+                  </div>
+                )}
+                {/* 全パターン注文済でも有効期間内は再注文可能な旨を案内 */}
+                {isAllOrdered && (
+                  <div className="text-sm text-blue-700 font-medium mr-2 self-center">
+                    すべての数量パターンは注文済みですが、有効期間内は再注文できます
                   </div>
                 )}
                 <Button
@@ -456,14 +465,15 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                 </Button>
                 <InvoiceDownloadButton quotationId={quotation.id} variant="outline" />
               </>
-            ) : isConverted ? (
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() => router.push('/member/orders')}
-              >
+            ) : isCancelled ? (
+              <Button variant="outline" size="md" disabled>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                注文を確認
+                この見積はキャンセルされています
+              </Button>
+            ) : isExpired ? (
+              <Button variant="outline" size="md" disabled>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                有効期限が切れています
               </Button>
             ) : null}
           </div>

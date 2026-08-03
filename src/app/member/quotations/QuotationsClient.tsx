@@ -26,6 +26,7 @@ import {
 } from '@/components/member/quotations';
 import { formatPrice, formatDate } from '@/utils/formatters';
 import { formatProductDisplayName } from '@/lib/product-display-name';
+import { getEffectiveValidUntil } from '@/lib/quotation-utils';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { useToastContext } from '@/components/ui/Toast';
@@ -263,6 +264,11 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
               <div className="space-y-4">
                 {quotations.map((quotation) => {
                   const isExpanded = expandedCards.has(quotation.id);
+                  // 有効期間内の再注文を許容: 注文可否は「キャンセルされていない・期限内」のみで判定。
+                  // CONVERTED は注文可否に影響しない（1回以上注文済でも期限内なら再注文可能）。
+                  const quoteStatus = (quotation.status || '').toLowerCase();
+                  const isQuoteExpired = getEffectiveValidUntil(quotation) < new Date();
+                  const isActionDisabled = quoteStatus === 'cancelled' || isQuoteExpired;
                   return (
                   <Card key={quotation.id} className="overflow-hidden hover:shadow-md transition-shadow">
                     {/* ── ヘッダー行: クリックで折り畳み/展開 ── */}
@@ -359,8 +365,6 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                           </thead>
                           <tbody>
                             {safeMap(quotation.items, (item) => {
-                              const isConverted = (quotation.status || '').toUpperCase() === 'CONVERTED';
-
                               return (
                                 <tr key={item.id} className="border-b border-border-secondary/50 last:border-0">
                                   <td className="py-1.5 pr-2 text-right text-text-muted tabular-nums">
@@ -373,21 +377,17 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                                     ¥{formatPrice(item.unitPrice * item.quantity)}
                                   </td>
                                   <td className="py-1.5 pl-2 text-center">
-                                    {isConverted ? (
-                                      item.orderId ? (
-                                        <a
-                                          href={`/member/orders/${item.orderId}`}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            router.push(`/member/orders/${item.orderId}`);
-                                          }}
-                                          className="text-xs text-primary hover:underline cursor-pointer"
-                                        >
-                                          注文確認
-                                        </a>
-                                      ) : (
-                                        <span className="text-xs text-text-muted">注文済</span>
-                                      )
+                                    {item.orderId ? (
+                                      <a
+                                        href={`/member/orders/${item.orderId}`}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          router.push(`/member/orders/${item.orderId}`);
+                                        }}
+                                        className="text-xs text-primary hover:underline cursor-pointer"
+                                      >
+                                        注文確認
+                                      </a>
                                     ) : (
                                       <Badge variant="secondary" size="sm">未注文</Badge>
                                     )}
@@ -440,10 +440,11 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                             setQuotationForSpec(quotation);
                             setShowSpecModal(true);
                           }}
+                          disabled={isActionDisabled}
                           className="group/btn shadow-sm hover:shadow"
                         >
                           <FileText className="w-3.5 h-3.5 mr-1 transition-transform group-hover/btn:scale-110" />
-                          注文する
+                          {quoteStatus === 'cancelled' ? 'キャンセル済み' : isQuoteExpired ? '期限切れ' : '注文する'}
                         </Button>
 
                         {['draft', 'quotation_pending', 'sent'].includes(quotation.status.toLowerCase()) && (

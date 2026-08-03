@@ -34,9 +34,8 @@ export function LineItems({ quotation, selectedItemId, setSelectedItemId, canCon
         </div>
         <div className="space-y-4">
           {quotation.items?.map((item: any, index: number) => {
-            // Phase 2 fix: selectable pattern row. When the quotation is orderable (APPROVED),
-            // the user must pick exactly one quantity pattern. Visual feedback is unmistakable:
-            // selected = blue border + filled blue radio + check badge; unselected = neutral + outline radio.
+            // 有効期間内の再注文を許容: 注文済（order_id 紐付き）item も選択可能。
+            const isOrdered = !!item.orderId;
             const isSelectable = canConvert;
             const isSelected = selectedItemId === item.id;
             const rowBase = 'rounded-xl p-5 flex items-center justify-between transition-all duration-150 relative';
@@ -68,6 +67,14 @@ export function LineItems({ quotation, selectedItemId, setSelectedItemId, canCon
                   <div className="absolute top-2 right-2 z-10">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-600 text-white shadow-sm">
                       選択中
+                    </span>
+                  </div>
+                )}
+                {/* Ordered badge - top right */}
+                {isOrdered && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-600 text-white shadow-sm">
+                      注文済
                     </span>
                   </div>
                 )}

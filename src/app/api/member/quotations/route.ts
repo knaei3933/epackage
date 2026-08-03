@@ -281,7 +281,9 @@ export async function POST(request: NextRequest) {
         discount_amount: discountAmount > 0 ? discountAmount : 0,  // NOT NULL制約に対応
         discount_type: discountType,
         notes: body.notes || null,
-        valid_until: body.valid_until || null,
+        // B2B フォーム経由でも確実に有効期限をセット（発行日から30日）。
+        // 未指定の場合は NULL にならず、フォールバック不要になる。
+        valid_until: body.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         status,
         // 【追加】見積全体の原価内訳
         total_cost_breakdown: body.total_cost_breakdown || {},
@@ -549,7 +551,7 @@ export async function GET(request: NextRequest) {
 
         return {
           ...quotation,
-          items: items || [],
+          items: (items || []).map((i: any) => ({ ...i, orderId: i.order_id ?? null })),
         };
       })
     );
