@@ -5,6 +5,7 @@
  */
 
 import { MATERIAL_TYPE_LABELS_JA } from '@/constants/materialTypes';
+import { translatePostProcessing } from '@/constants/enToJa';
 
 export function getMaterialDescriptionJa(materialId: string): string {
   const descriptions: Record<string, string> = {
@@ -42,42 +43,9 @@ export function getBagTypeLabel(bagTypeId: string): string {
   return labels[bagTypeId] || bagTypeId;
 }
 
-export function getPostProcessingLabel(optionId: string): string {
-  const labels: Record<string, string> = {
-    'zipper-yes': 'ジッパー付き',
-    'zipper-no': 'ジッパーなし',
-    'hanging_hole-6mm': '吊り下げ穴 (6mm)',
-    'hanging_hole-8mm': '吊り下げ穴 (8mm)',
-    'zipper-position-delegate': 'ジッパー位置 (お任せ)',
-    'zipper-position-specify': 'ジッパー位置 (指定)',
-    'zipper-position-any': 'ジッパー位置 (お任せ)',
-    'zipper-position-specified': 'ジッパー位置 (指定)',
-    'glossy': '光沢仕上げ',
-    'matte': 'マット仕上げ',
-    'notch-yes': 'Vノッチ',
-    'notch-straight': '直線ノッチ',
-    'notch-no': 'ノッチなし',
-    'hang-hole-6mm': '吊り下げ穴 (6mm)',
-    'hang-hole-8mm': '吊り下げ穴 (8mm)',
-    'hang-hole-no': '吊り穴なし',
-    'corner-round': '角丸',
-    'corner-square': '角直角',
-    'valve-yes': 'ガス抜きバルブ',
-    'valve-no': 'バルブなし',
-    'top-open': '上端開封',
-    'bottom-open': '下端開封',
-    'sealing-width-5mm': 'シール幅 5mm',
-    'sealing-width-7.5mm': 'シール幅 7.5mm',
-    'sealing-width-7-5mm': 'シール幅 7.5mm',
-    'sealing-width-10mm': 'シール幅 10mm',
-    'sealing width 5mm': 'シール幅 5mm',
-    'sealing width 7.5mm': 'シール幅 7.5mm',
-    'sealing width 10mm': 'シール幅 10mm',
-    'machi-printing-yes': 'マチ印刷あり',
-    'machi-printing-no': 'マチ印刷なし'
-  };
-  return labels[optionId] || optionId.replace(/[-_]/g, ' ');
-}
+// 後加工ラベルは正系ソース（enToJa.ts）へ一元化。
+// translatePostProcessing が全キー（バリエーション・sealing-width-* 動的処理含む）をカバー。
+export const getPostProcessingLabel = translatePostProcessing;
 
 export function translateSpoutPosition(position: string): string {
   const translations: Record<string, string> = {

@@ -14,7 +14,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, Badge, Button } from '@/components/ui';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui';
+import { OrderConsentModal } from '@/components/member/OrderConsentModal';
+import type { OrderAgreementInput } from '@/lib/order-consent-terms';
 import type { User } from '@/types/auth';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -123,7 +124,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   // Issue 4: order confirmation modal state. Before converting to an order,
   // the user must review a specs checklist + terms and check an agreement box.
   const [showOrderConfirm, setShowOrderConfirm] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Fetch quotation details
   const fetchQuotation = async () => {
@@ -456,7 +456,6 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
                   size="md"
                   onClick={() => {
                     setShowOrderConfirm(true);
-                    setAgreedToTerms(false);
                   }}
                   disabled={isConverting || (!!quotation.items && quotation.items.length > 1 && !selectedItemId)}
                 >
@@ -491,122 +490,69 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
       {/* Issue 4: Order Confirmation Modal
           Before converting to an order, the user reviews a specs checklist + terms
           and must check an agreement box. Only then does the convert API fire. */}
-      <Dialog open={showOrderConfirm} onOpenChange={setShowOrderConfirm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>ご注文内容の確認</DialogTitle>
-            <DialogDescription>
-              発注前に以下の内容をご確認ください。ご同意いただいた上で注文を確定してください。
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            {/* Specs Checklist */}
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <h4 className="font-semibold text-gray-900 text-sm">ご注文内容</h4>
-              {(() => {
-                const selectedItem = quotation.items?.find(i => i.id === selectedItemId) || quotation.items?.[0];
-                if (!selectedItem) return null;
-                const specs = selectedItem.specifications || {};
-                const pType = specs.printingType;
-                const printingLabel = getPrintingLabelJa(pType as string | undefined, specs.cost_breakdown as Record<string, unknown> | null | undefined).replace('（フルカラー）', '');
-                const ppOpts = (specs.postProcessingOptions || []) as string[];
-                const nonePatterns = ['zipper-no','valve-no','machi-printing-no','notch-no','hang-hole-no','corner-square'];
-                const isNone = (o: string) => nonePatterns.includes(o) || /-no$/.test(o);
-                const activePP = ppOpts.filter(o => !o.startsWith('sealing-width-') && !isNone(o));
-                const ppLabel = activePP.length === 0 ? 'なし' : activePP.map(o => translatePostProcessing(o)).join('、');
-                return (
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                    <dt className="text-gray-500">商品</dt>
-                    <dd className="text-gray-900">{selectedItem.productName || '-'}</dd>
-                    <dt className="text-gray-500">数量</dt>
-                    <dd className="text-gray-900">{(selectedItem.quantity || 0).toLocaleString()}個</dd>
-                    <dt className="text-gray-500">単価</dt>
-                    <dd className="text-gray-900">¥{formatPrice(selectedItem.unitPrice || 0)}</dd>
-                    <dt className="text-gray-500">金額</dt>
-                    <dd className="text-gray-900 font-semibold">¥{formatPrice(selectedItem.totalPrice || (selectedItem.unitPrice * selectedItem.quantity) || 0)}</dd>
-                    <dt className="text-gray-500">印刷方式</dt>
-                    <dd className="text-gray-900">{printingLabel}</dd>
-                    <dt className="text-gray-500">後加工</dt>
-                    <dd className="text-gray-900">{ppLabel}</dd>
-                  </dl>
-                );
-              })()}
-            </div>
-
-            {/* Terms */}
-            <div className="border border-gray-200 rounded-lg p-4 space-y-3 text-xs text-gray-700 max-h-60 overflow-y-auto">
-              <div>
-                <p className="font-semibold text-gray-900 mb-1">キャンセル</p>
-                <p>商品発注後の仕様変更、キャンセル等は受け付けておりません。契約成立日以降、仕様の変更が生じた場合には当社及びお客様はその都度協議し、書面をもって仕様の変更をすることが可能となります。</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900 mb-1">返品・交換</p>
-                <p>以下の場合、当社は代替品の納品または無償での再製造を行います。<br />・商品が受入検査に合格しなかった場合<br />・受入検査から3ヶ月以内に隠れた瑕疵が判明した場合（ただし以下の場合を除く）</p>
-                <p className="mt-1">【受入検査不合格の場合及び瑕疵が判明した場合でも返品・交換対象外となる場合】<br />①お客様の指示内容に起因する場合<br />②指定されたデザイン・材料・製造方法等に起因する場合<br />③上記①②の場合に、当社がその適当でないことを通知したにもかかわらず、指示変更が行われなかった場合<br />④その他、お客様に起因する理由による場合や当社の責めに帰すべき事由がない場合</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900 mb-1">返金</p>
-                <p>当社からお客様に返金する場合、当社が適当と認める方法（原則として銀行振込）により返金いたします。返金額には、遅滞利息、法定利息、その他の利息を付さないものとします。配送商品の返金の際には、返金額から送料を差し引かせていただくことがございます。</p>
-              </div>
-            </div>
-
-            {/* Agreement Checkbox */}
-            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-gray-300 hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={agreedToTerms}
-                onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="mt-0.5 w-5 h-5 rounded border-gray-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <span className="text-sm text-gray-800">
-                上記の仕様内容・特約条件（キャンセル・返品・交換・返金）をすべて確認・同意の上、注文を確定します。
-              </span>
-            </label>
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              variant="ghost"
-              size="md"
-              onClick={() => { setShowOrderConfirm(false); setAgreedToTerms(false); }}
-              disabled={isConverting}
-            >
-              キャンセル
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              disabled={!agreedToTerms || isConverting}
-              onClick={async () => {
-                setIsConverting(true);
-                setConvertError(null);
-                try {
-                  const itemsToSend = quotation.items && quotation.items.length > 1
-                    ? (selectedItemId ? { selectedItemIds: [selectedItemId] } : {})
-                    : {};
-                  const result = await convertQuotationToOrderWithNotesAPI(quotationId, { notes: quotation?.notes, ...itemsToSend });
-                  if (result.success) {
-                    router.push(`/member/orders/${result.data.id}`);
-                  } else if (result.alreadyExists) {
-                    router.push(`/member/orders/${result.data.id}`);
-                  } else {
-                    setConvertError(result.error || '注文作成に失敗しました');
-                  }
-                } catch (error) {
-                  console.error('注文作成エラー:', error);
-                  setConvertError('注文作成中にエラーが発生しました');
-                } finally {
-                  setIsConverting(false);
-                }
-              }}
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              {isConverting ? '変換中...' : '同意して注文を確定する'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Phase D: 既存同意 Dialog を共通 OrderConsentModal に置換
+          （5同意チェック + フルネーム入力 + サーバー証憠保存）。
+          仕様サマリーは specSummary に渡し、onConfirm で agreement を付加して変換 API を呼ぶ。 */}
+      <OrderConsentModal
+        open={showOrderConfirm}
+        onOpenChange={(o) => { if (!isConverting) setShowOrderConfirm(o); }}
+        isProcessing={isConverting}
+        specSummary={(() => {
+          const selectedItem = quotation.items?.find(i => i.id === selectedItemId) || quotation.items?.[0];
+          if (!selectedItem) return null;
+          const specs = selectedItem.specifications || {};
+          const pType = specs.printingType;
+          const printingLabel = getPrintingLabelJa(pType as string | undefined, specs.cost_breakdown as Record<string, unknown> | null | undefined).replace('（フルカラー）', '');
+          const ppOpts = (specs.postProcessingOptions || []) as string[];
+          const nonePatterns = ['zipper-no','valve-no','machi-printing-no','notch-no','hang-hole-no','corner-square'];
+          const isNone = (o: string) => nonePatterns.includes(o) || /-no$/.test(o);
+          const activePP = ppOpts.filter(o => !o.startsWith('sealing-width-') && !isNone(o));
+          const ppLabel = activePP.length === 0 ? 'なし' : activePP.map(o => translatePostProcessing(o)).join('、');
+          return (
+            <>
+              <h4 className="font-semibold text-gray-900 text-sm mb-2">ご注文内容</h4>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <dt className="text-gray-500">商品</dt>
+                <dd className="text-gray-900">{selectedItem.productName || '-'}</dd>
+                <dt className="text-gray-500">数量</dt>
+                <dd className="text-gray-900">{(selectedItem.quantity || 0).toLocaleString()}個</dd>
+                <dt className="text-gray-500">単価</dt>
+                <dd className="text-gray-900">¥{formatPrice(selectedItem.unitPrice || 0)}</dd>
+                <dt className="text-gray-500">金額</dt>
+                <dd className="text-gray-900 font-semibold">¥{formatPrice(selectedItem.totalPrice || (selectedItem.unitPrice * selectedItem.quantity) || 0)}</dd>
+                <dt className="text-gray-500">印刷方式</dt>
+                <dd className="text-gray-900">{printingLabel}</dd>
+                <dt className="text-gray-500">後加工</dt>
+                <dd className="text-gray-900">{ppLabel}</dd>
+              </dl>
+            </>
+          );
+        })()}
+        onConfirm={async (agreement: OrderAgreementInput) => {
+          setIsConverting(true);
+          setConvertError(null);
+          try {
+            const itemsToSend = quotation.items && quotation.items.length > 1
+              ? (selectedItemId ? { selectedItemIds: [selectedItemId] } : {})
+              : {};
+            const result = await convertQuotationToOrderWithNotesAPI(quotationId, { notes: quotation?.notes, ...itemsToSend, agreement });
+            if (result.success) {
+              router.push(`/member/orders/${result.data.id}`);
+            } else if (result.alreadyExists) {
+              router.push(`/member/orders/${result.data.id}`);
+            } else {
+              setConvertError(result.error || '注文作成に失敗しました');
+              setShowOrderConfirm(false);
+            }
+          } catch (error) {
+            console.error('注文作成エラー:', error);
+            setConvertError('注文作成中にエラーが発生しました');
+            setShowOrderConfirm(false);
+          } finally {
+            setIsConverting(false);
+          }
+        }}
+      />
     </div>
   );
 }

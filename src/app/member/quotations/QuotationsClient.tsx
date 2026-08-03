@@ -31,6 +31,7 @@ import { MemberSpecificationDisplay } from '@/components/member/quotations/Membe
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { useToastContext } from '@/components/ui/Toast';
 import { fetchDocumentHistory as fetchDocumentHistoryAPI, logDocumentAction as logDocumentActionAPI, deleteQuotation as deleteQuotationAPI, convertQuotationToOrder as convertQuotationToOrderAPI, downloadPdfBlob as downloadPdfBlobAPI } from '@/lib/api/member/quotations';
+import type { OrderAgreementInput } from '@/lib/order-consent-terms';
 
 function safeMap<T, U>(array: T[] | null | undefined, fn: (item: T, index: number) => U): U[] {
   if (!array) return [];
@@ -489,9 +490,9 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
                 }}
                 quotationId={quotationForSpec.id}
                 quotation={quotationForSpec}
-                onApprove={async (selectedItemIds?: string[]) => {
+                onApprove={async (selectedItemIds?: string[], agreement?: OrderAgreementInput) => {
                   try {
-                    const result = await convertQuotationToOrderAPI(quotationForSpec.id, selectedItemIds);
+                    const result = await convertQuotationToOrderAPI(quotationForSpec.id, selectedItemIds, agreement);
 
                     if (result.success) {
                       if (result.data?.id) {

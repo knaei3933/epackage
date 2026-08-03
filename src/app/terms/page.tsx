@@ -331,7 +331,7 @@ export default function TermsOfService() {
                       本規約に関する合意は、利用者が本サービスにアクセスし、本規約に同意する操作を行った時点で成立するものとします。
                     </p>
                     <p>
-                      本契約は電子消費者契約法及び電子署名法に基づく電子契約として有効に成立します。
+                      本契約は電子消費者契約法及び電子署名法（同法第2条に定める電子署名を含みます。お客様の氏名入力によるご同意もこれに該当します）に基づく電子契約として有効に成立します。
                     </p>
                   </div>
                 </div>
@@ -349,17 +349,19 @@ export default function TermsOfService() {
                   <div className="space-y-3 text-text-secondary leading-relaxed">
                     <h3 className="font-semibold text-text-primary">基本方針：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>デジタルコンテンツの性質上、原則として返金・交換はできません。</li>
-                      <li>有料サービスの場合、ご購入後8日以内のご理由による返金に応じます。</li>
-                      <li>当社の責任による不具合の場合、全額返金いたします。</li>
+                      <li>本サービスは受託製造（オーダーメイド）のため、お客様都合による返金・交換は原則として行えません。</li>
+                      <li>データ入稿後のキャンセル・仕様変更には15,000円（税抜）のキャンセル料が発生します（データ入稿前は無料でキャンセル・変更可能）。</li>
+                      <li>当社の責任による不具合（受入検査不合格・隠れた瑕疵）の場合、代替品の納入または無償での再製造を行います。</li>
                     </ul>
 
                     <h3 className="font-semibold text-text-primary mt-4">返金手続き：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
                       <li>返金をご希望の場合、 info@package-lab.com までご連絡ください。</li>
+                      <li>返金は当社が適当と認める方法（原則として銀行振込）により行い、遅滞利息・法定利息・その他の利息は付しません。</li>
                       <li>返金処理には、ご連絡後10営業日程度かかる場合があります。</li>
-                      <li>返金方法は、原則としてお支払いいただいた方法と同様の方法で行います。</li>
                     </ul>
+
+                    <p className="text-xs text-text-muted mt-4">※2026年8月3日以降のご注文に適用します。</p>
                   </div>
                 </div>
               </div>

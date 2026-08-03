@@ -17,6 +17,11 @@ import { sendEmail } from '@/lib/email';
 import { subject as poSubject, plainText as poPlainText, html as poHtml, type PurchaseOrderData, type PurchaseOrderItemData } from '@/lib/email/templates/purchase_order';
 import { MANUFACTURER_ORDER_EMAIL, PRICING_CONSTANTS } from '@/lib/pricing/core/constants';
 import { getEffectiveValidUntil } from '@/lib/quotation-utils';
+import {
+  isValidAgreement,
+  CONSENT_TEXTS_SNAPSHOT,
+  type OrderAgreementInput,
+} from '@/lib/order-consent-terms';
 
 // ============================================================
 // Types
@@ -26,6 +31,8 @@ interface ConvertToOrderRequest {
   quotationId: string;
   notes?: string;
   selectedItemIds?: string[];
+  /** 注文確定時の同意データ（AC-API-1: サーバー検証必須・バイパス防止） */
+  agreement?: OrderAgreementInput;
   deliveryAddress?: {
     postalCode: string;
     prefecture: string;
@@ -35,6 +42,21 @@ interface ConvertToOrderRequest {
     contactPerson?: string;
     contactPhone?: string;
   };
+}
+
+/**
+ * Helper: クライアント IP を取得（AC-API-2）
+ * 優先順位: x-vercel-forwarded-for → x-real-ip → x-forwarded-for → null
+ * IP はあくまで参考証憠・本人確認は認証 cookie が主（R1: IP 偽装リスク）。
+ */
+function getClientIp(request: NextRequest): string | null {
+  const vff = request.headers.get('x-vercel-forwarded-for');
+  if (vff && vff.trim()) return vff.split(',')[0].trim();
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp && realIp.trim()) return realIp.trim();
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff && xff.trim()) return xff.split(',')[0].trim();
+  return null;
 }
 
 /**
@@ -82,6 +104,15 @@ export async function POST(
     // Parse request body
     const body: ConvertToOrderRequest = await request.json();
     const { notes, deliveryAddress, selectedItemIds } = body;
+
+    // AC-API-1: agreement 検証を selectedItemIds フェイルファストより先に実施（セキュリティ gate）。
+    // 同意データは 5項目同意 + フルネーム入力。不正時は即 400 拒否（バイパス防止）。
+    if (!isValidAgreement(body.agreement)) {
+      return NextResponse.json(
+        { success: false, error: '同意情報が不足しています。もう一度ご確認ください。' },
+        { status: 400 }
+      );
+    }
 
     // 仕様: 数量パターン1つ = 注文1つ。複数 item を1注文に集約する旧挙動は拒否（フェイルファスト）。
     if (selectedItemIds && Array.isArray(selectedItemIds) && selectedItemIds.length > 1) {
@@ -377,6 +408,40 @@ export async function POST(
       );
     }
 
+    // ========================================
+    // Phase E4: order_agreements に同意証憑を保存（法的証憠・AC-DB-1/2）
+    // ========================================
+    // service client で INSERT（RLS バイパス）。user_id は認証済み user.id を厳密に渡す
+    // （R4: service client は任意値可能だが、認証ユーザーを正確に使用・E2 検証済み）。
+    // agreed_terms jsonb に条文テキスト本体を保存（R2: 過去同意の遡及解釈防止）。
+    // 証憠保存は変換の不可欠な一部 → 失敗時は 500 で変換失敗として扱う。
+    const agreement = body.agreement!; // E2 で isValidAgreement 検証済み
+    const { error: agreementError } = await supabaseAdmin
+      .from('order_agreements')
+      .insert({
+        order_id: order.id,
+        user_id: userId, // 認証済み user.id（行371 order INSERT と同一ソース）
+        full_name: agreement.fullName,
+        agreed_terms: {
+          itemIds: agreement.agreedItemIds,
+          texts: CONSENT_TEXTS_SNAPSHOT,
+          version: agreement.termsVersion,
+        },
+        ip_address: getClientIp(request),
+        user_agent: request.headers.get('user-agent'),
+        terms_version: agreement.termsVersion,
+        agreed_at: new Date().toISOString(),
+      });
+
+    if (agreementError) {
+      console.error('[Convert to Order] Failed to save order_agreements:', agreementError);
+      return NextResponse.json(
+        { success: false, error: '同意記録の保存に失敗しました。サポートにお問い合わせください。', details: agreementError.message },
+        { status: 500 }
+      );
+    }
+    console.log('[Convert to Order] order_agreements saved for order:', order.id);
+
     // 数量パターンをこの注文に紐付け（1パターン = 1注文・最新 order に上書き）。
     // 有効期間内の再注文を許容するため、既存 order_id を上書きする。
     // 過去の order は orders.quotation_id（非UNIQUE）で「この見積の全注文」として追跡可能。
@@ -652,6 +717,10 @@ export async function POST(
               <p style="margin: 0; font-size: 14px;"><strong>お問い合わせ時のご案内</strong></p>
               <p style="margin: 8px 0 0; font-size: 13px;">お電話やメールでのお問い合わせの際、<strong>ご注文番号</strong>をお伝えください。<br />番号が分からない場合は<strong>「末尾7桁」</strong>（${order.order_number.split('-').pop()}）だけでも検索可能です。</p>
             </div>
+            <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 14px;"><strong>データ入稿後のキャンセルについて</strong></p>
+              <p style="margin: 8px 0 0; font-size: 13px;">製造作業の都合上、データ入稿後のキャンセル・仕様変更には15,000円（税抜）のキャンセル料が発生いたします。データ入稿前であれば無料でキャンセル・変更いただけますので、ご変更がある場合はお早めにご連絡ください。</p>
+            </div>
             <p style="font-size: 13px; color: #666;">今後の進捗は注文詳細ページからご確認いただけます。</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
             <p style="font-size: 12px; color: #999;">EPAC PACKAGE LAB</p>
@@ -672,6 +741,10 @@ export async function POST(
           `【お問い合わせ時のご案内】`,
           `お電話やメールでのお問い合わせの際、ご注文番号をお伝えください。`,
           `番号が分からない場合は「末尾7桁」（${order.order_number.split('-').pop()}）だけでも検索可能です。`,
+          ``,
+          `【データ入稿後のキャンセルについて】`,
+          `製造作業の都合上、データ入稿後のキャンセル・仕様変更には15,000円（税抜）のキャンセル料が発生いたします。`,
+          `データ入稿前であれば無料でキャンセル・変更いただけますので、ご変更がある場合はお早めにご連絡ください。`,
           ``,
           `今後の進捗は注文詳細ページからご確認いただけます。`,
           ``,

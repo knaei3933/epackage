@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Maximize2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
+import { translatePostProcessing } from '@/constants/enToJa';
 
 // 素材ラベルマッピング
 const MATERIAL_TYPE_LABELS_JA: Record<string, string> = {
@@ -359,7 +360,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
             displayItems.push({ key: 'seal-width', label: sealWidthDisplay });
           }
           visibleOptions.forEach(option => {
-            displayItems.push({ key: option, label: optionLabels[option] || option });
+            displayItems.push({ key: option, label: optionLabels[option] || translatePostProcessing(option) });
           });
 
           if (displayItems.length === 0) return null;

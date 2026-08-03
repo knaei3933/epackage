@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import type { Quotation, QuotationItem } from '@/types/database'
-import { POST_PROCESSING_JA, BAG_TYPE_JA, translateMaterialType } from '@/constants/enToJa'
+import { translatePostProcessing, BAG_TYPE_JA, translateMaterialType } from '@/constants/enToJa'
 
 // ============================================================
 // Types
@@ -707,7 +707,7 @@ function formatSpecifications(spec: Record<string, unknown>): string {
 
     // 日本語に変換
     const translatedOptions = displayOptions
-      .map((opt: string) => POST_PROCESSING_JA[opt as keyof typeof POST_PROCESSING_JA] || opt)
+      .map((opt: string) => translatePostProcessing(opt))
       .filter(Boolean)
 
     if (translatedOptions.length > 0) {

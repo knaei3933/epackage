@@ -15,6 +15,10 @@ interface ActionButtonsProps {
   pdfStatus: 'idle' | 'success' | 'error';
   showPatternComparison: boolean;
   multiQuantityQuotesLength: number;
+  /** 注文ボタン押下時のコールバック（親 ResultStep が同意モーダルを開く）。直接 fetch は廃止。 */
+  onRequestOrder: () => void;
+  /** 注文確定処理中フラグ（同意モーダルの送信中）。ボタン disabled 制御に使用。 */
+  isOrdering?: boolean;
 }
 
 export function ActionButtons({
@@ -26,33 +30,21 @@ export function ActionButtons({
   pdfStatus,
   showPatternComparison,
   multiQuantityQuotesLength,
+  onRequestOrder,
+  isOrdering = false,
 }: ActionButtonsProps) {
   return (
     <div className="flex flex-wrap justify-center gap-3">
       {/* 注文ボタン（会員限定） */}
+      {/* Phase C0: 直接 fetch を廃止。親 ResultStep 所有の OrderConsentModal を開く。 */}
       {userId && quotationId && (
         <button
-          onClick={async () => {
-            try {
-              const res = await fetch(`/api/member/quotations/${quotationId}/convert`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-              });
-              if (res.ok) {
-                const data = await res.json();
-                alert('注文を確定しました。注文履歴からご確認ください。');
-                window.location.href = '/member/orders';
-              } else {
-                alert('注文の確定に失敗しました。もう一度お試しください。');
-              }
-            } catch (e) {
-              alert('通信エラーが発生しました。');
-            }
-          }}
-          className="px-6 py-3 bg-brixa-600 text-white rounded-lg font-medium hover:bg-brixa-700 transition-colors flex items-center"
+          onClick={onRequestOrder}
+          disabled={isOrdering}
+          className="px-6 py-3 bg-brixa-600 text-white rounded-lg font-medium hover:bg-brixa-700 transition-colors flex items-center disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
-          この内容で注文
+          {isOrdering ? '処理中...' : 'この内容で注文'}
         </button>
       )}
 

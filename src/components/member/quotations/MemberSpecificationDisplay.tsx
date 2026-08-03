@@ -1,7 +1,7 @@
 'use client';
 
 import { BAG_TYPE_IMAGES } from '@/constants/product-type-config';
-import { BAG_TYPE_JA, POST_PROCESSING_JA, translateMaterialType } from '@/constants/enToJa';
+import { BAG_TYPE_JA, translatePostProcessing, translateMaterialType } from '@/constants/enToJa';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getFilmStructureLabel } from '@/constants/materialTypes';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
@@ -106,7 +106,7 @@ export function MemberSpecificationDisplay({ item }: { item: any }) {
     : filteredOptions;
 
   const postProcessingList = filteredPostProcessingOptions
-    .map((opt: string) => POST_PROCESSING_JA[opt as keyof typeof POST_PROCESSING_JA] || opt)
+    .map((opt: string) => translatePostProcessing(opt))
     .filter(Boolean);
 
   // シール幅処理

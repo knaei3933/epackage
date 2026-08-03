@@ -6,6 +6,7 @@
 
 import type { Quotation, QuotationCreateInput } from '@/types/dashboard';
 import { getJson, postJson, apiDelete } from '@/lib/api-fetch';
+import type { OrderAgreementInput } from '@/lib/order-consent-terms';
 
 // =====================================================
 // API Client Functions
@@ -107,9 +108,19 @@ export async function deleteQuotation(quotationId: string): Promise<void> {
 
 /**
  * Convert a quotation to an order
+ *
+ * agreement: 注文確定時の同意データ（5項目同意 + フルネーム）。サーバーで検証され、
+ * 不正時は 400 拒否される。シミュレータ経路は selectedItemIds=undefined で agreement のみ渡す。
  */
-export async function convertQuotationToOrder(quotationId: string, selectedItemIds?: string[]): Promise<{ success: boolean; data?: { id: string }; alreadyExists?: boolean; error?: string }> {
-  return postJson(`/api/member/quotations/${quotationId}/convert`, selectedItemIds && selectedItemIds.length > 0 ? { selectedItemIds } : {});
+export async function convertQuotationToOrder(
+  quotationId: string,
+  selectedItemIds?: string[],
+  agreement?: OrderAgreementInput
+): Promise<{ success: boolean; data?: { id: string }; alreadyExists?: boolean; error?: string }> {
+  const body: Record<string, unknown> = {};
+  if (selectedItemIds && selectedItemIds.length > 0) body.selectedItemIds = selectedItemIds;
+  if (agreement) body.agreement = agreement;
+  return postJson(`/api/member/quotations/${quotationId}/convert`, body);
 }
 
 /**
@@ -135,10 +146,13 @@ export async function deleteQuotationById(id: string): Promise<void> {
 
 /**
  * Convert a quotation to an order with notes
+ *
+ * agreement: 注文確定時の同意データ（5項目同意 + フルネーム）。詳細経路（QuotationDetailClient）で使用。
+ * サーバーで検証され、不正時は 400 拒否される。
  */
 export async function convertQuotationToOrderWithNotes(
   quotationId: string,
-  data: { notes?: string; selectedItemIds?: string[] }
+  data: { notes?: string; selectedItemIds?: string[]; agreement?: OrderAgreementInput }
 ): Promise<{ success: boolean; data?: { id: string }; alreadyExists?: boolean; error?: string }> {
   return postJson(`/api/member/quotations/${quotationId}/convert`, data);
 }
