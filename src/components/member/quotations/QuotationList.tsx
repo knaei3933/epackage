@@ -27,7 +27,7 @@ import {
   MEMBER_STATUS_VARIANTS,
   convertToPreviewOptions
 } from '@/constants/product-type-config';
-import { translateBagType, translateMaterialType, BAG_TYPE_JA, POST_PROCESSING_JA } from '@/constants/enToJa';
+import { translateBagType, translateMaterialType, BAG_TYPE_JA, translatePostProcessing } from '@/constants/enToJa';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
 import { getPrintingLabelJa } from '@/lib/product-display-name';
 import type { Quotation, QuotationStatus } from '@/types/entities';
@@ -304,9 +304,9 @@ export function QuotationList({
                     ? filteredOptions.filter((opt: string) => opt === 'glossy' || opt === 'matte')
                     : filteredOptions;
 
-                  const postProcessingList = filteredPostProcessingOptions.map((opt: string) => {
-                    return POST_PROCESSING_JA[opt as keyof typeof POST_PROCESSING_JA] || opt;
-                  }).filter(Boolean);
+                  const postProcessingList = filteredPostProcessingOptions
+                    .map((opt: string) => translatePostProcessing(opt))
+                    .filter(Boolean);
 
                   let sealWidthDisplay: string | null = null;
                   if (enrichedSpecs.sealWidth) {

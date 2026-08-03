@@ -221,22 +221,9 @@ export function CommonSpecifications({ quotation }: CommonSpecificationsProps) {
                         );
                       }
 
-                      // 標準定義を使用（POST_PROCESSING_JA）
+                      // 正系マップ（enToJa.ts）で一元化
                       const opt = item.label;
-                      const standardTranslation = translatePostProcessing(opt);
-                      // 標準定義にない項目のみフォールバック
-                      const fallbackMap: Record<string, string> = {
-                        'notch-straight': '直線ノッチ',
-                        'top-open': '上部解放',
-                        'bottom-open': '下端解放',
-                        'top-sealed': '上部密封',
-                        'sealing-width-5mm': 'シール幅 5mm',
-                        'sealing-width-7.5mm': 'シール幅 7.5mm',
-                        'sealing-width-10mm': 'シール幅 10mm',
-                        'machi-printing-yes': 'マチ印刷あり',
-                        'machi-printing-no': 'マチ印刷なし',
-                      };
-                      const label = standardTranslation !== opt ? standardTranslation : fallbackMap[opt] || opt;
+                      const label = translatePostProcessing(opt);
                       return (
                         <span
                           key={opt}

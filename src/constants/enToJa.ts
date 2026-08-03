@@ -73,27 +73,55 @@ export const LABEL_JA = {
   'Total:': '合計:'
 } as const;
 
-// 後加工オプションマッピング
+// 後加工オプションマッピング（全ページ一元化の正系ソース）
+// 表記は多数派（光沢仕上げ/Vノッチ/ガス抜きバルブ 等）に統一
 export const POST_PROCESSING_JA = {
+  // ジッパー
   'zipper-yes': 'ジッパー付き',
   'zipper-no': 'ジッパーなし',
   'zipper-position-any': 'ジッパー位置: お任せ',
   'zipper-position-specified': 'ジッパー位置: 指定',
-  'glossy': '光沢紙',
-  'matte': 'マット紙',
-  'notch-yes': 'ノッチ付き',
+  // 印刷仕上げ
+  'glossy': '光沢仕上げ',
+  'matte': 'マット仕上げ',
+  // ノッチ
+  'notch-yes': 'Vノッチ',
+  'notch-straight': '直線ノッチ',
   'notch-no': 'ノッチなし',
+  // 吊り下げ穴
+  'hang-hole-4mm': '吊り下げ穴 (4mm)',
   'hang-hole-6mm': '吊り下げ穴 (6mm)',
   'hang-hole-8mm': '吊り下げ穴 (8mm)',
+  'hang-hole-10mm': '吊り下げ穴 (10mm)',
   'hang-hole-no': '吊り穴なし',
+  // 角
   'corner-round': '角丸',
   'corner-square': '角直角',
-  'valve-yes': 'バルブ付き',
+  // バルブ・開封
+  'valve-yes': 'ガス抜きバルブ',
   'valve-no': 'バルブなし',
   'top-open': '上端開封',
   'bottom-open': '下端開封',
+  'top-sealed': '上部密封',
+  // マチ印刷
   'machi-printing-yes': 'マチ印刷あり',
-  'machi-printing-no': 'マチ印刷なし'
+  'machi-printing-no': 'マチ印刷なし',
+  // その他
+  'spout': 'スパウト',
+  'easy_tear': 'イージーティア',
+  'slider': 'スライダー',
+  'hole_punching': '穴あけ',
+  // バリエーションキー（アンダースコア表記・古い命名・レガシー対応）
+  'hanging_hole-4mm': '吊り下げ穴 (4mm)',
+  'hanging_hole-6mm': '吊り下げ穴 (6mm)',
+  'hanging_hole-8mm': '吊り下げ穴 (8mm)',
+  'hanging_hole-10mm': '吊り下げ穴 (10mm)',
+  'zipper-position-delegate': 'ジッパー位置: お任せ',
+  'zipper-position-specify': 'ジッパー位置: 指定',
+  // API レスポンス用バリエーション（spout-yes/no・top-closed）
+  'spout-yes': 'スパウト付き',
+  'spout-no': 'スパウトなし',
+  'top-closed': 'トップクローズ'
 } as const;
 
 // ユーティリティ関数
@@ -112,5 +140,13 @@ export const translateMaterialType = (material: string): string => {
 };
 
 export const translatePostProcessing = (option: string): string => {
+  // sealing-width-* / sealing width * / sealing_width * は動的に「シール幅 Xmm」へ変換
+  // 例: sealing-width-5mm, sealing width 7.5mm, sealing-width-7-5mm → シール幅 Xmm
+  const sealingMatch = option.match(/^sealing[\s_-]width[\s_-](.+?)mm$/i);
+  if (sealingMatch) {
+    // 7-5 → 7.5 のようなハイフン/スペース区切り小数を正規化
+    const mm = sealingMatch[1].replace(/(\d)[\s_-]+(\d)/, '$1.$2').trim();
+    return `シール幅 ${mm}mm`;
+  }
   return POST_PROCESSING_JA[option as keyof typeof POST_PROCESSING_JA] || option;
 };

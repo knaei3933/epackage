@@ -5,6 +5,7 @@ import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessi
 import { BAG_TYPE_IMAGES, convertToPreviewOptions } from './quotation-utils';
 import type { QuotationItem } from '@/types/quotation';
 import { formatPrice } from '@/utils/formatters';
+import { translatePostProcessing } from '@/constants/enToJa';
 
 interface AdminQuotationItemDetailProps {
   item: QuotationItem;
@@ -121,29 +122,7 @@ export function AdminQuotationItemDetail({ item, showFormula }: AdminQuotationIt
         // 後加工オプションを準備
         const filteredOptions = (specs.post_processing || [])
           .filter((opt: string) => !opt.startsWith('sealing-width-') && !opt.startsWith('seal-width-'));
-        const postProcessingList = filteredOptions.map((opt: string) => {
-          const labelMap: Record<string, string> = {
-            'corner-round': '角丸',
-            'corner-square': '角直角',
-            'glossy': '光沢仕上げ',
-            'matte': 'マット仕上げ',
-            'notch-yes': 'ノッチ付き',
-            'notch-straight': '直線ノッチ',
-            'notch-no': 'ノッチなし',
-            'hang-hole-6mm': '吊り下げ穴 (6mm)',
-            'hang-hole-8mm': '吊り下げ穴 (8mm)',
-            'hang-hole-no': '吊り穴なし',
-            'valve-yes': 'バルブ付き',
-            'valve-no': 'バルブなし',
-            'zipper-yes': 'ジッパー付き',
-            'zipper-no': 'ジッパーなし',
-            'top-open': '上端開封',
-            'bottom-open': '下端開封',
-            'machi-printing-yes': 'マチ印刷あり',
-            'machi-printing-no': 'マチ印刷なし',
-          };
-          return labelMap[opt] || opt;
-        });
+        const postProcessingList = filteredOptions.map((opt: string) => translatePostProcessing(opt));
 
         // シール幅を追加
         const finalList = [...postProcessingList];

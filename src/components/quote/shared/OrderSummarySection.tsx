@@ -8,6 +8,7 @@ import { QuoteState } from '@/contexts/QuoteContext'
 import { UnifiedQuoteResult } from '@/lib/unified-pricing-engine'
 import { safeMap } from '@/lib/array-helpers'
 import { MATERIAL_TYPE_LABELS_JA, getMaterialDescription, getFilmStructureLabel } from '@/constants/materialTypes'
+import { translatePostProcessing } from '@/constants/enToJa'
 
 interface OrderSummarySectionProps {
   state: QuoteState
@@ -37,41 +38,6 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
       'pouch': 'パウチ'
     }
     return labels[bagTypeId] || bagTypeId
-  }
-
-  // 후加工 라벨
-  const getPostProcessingLabel = (optionId: string): string => {
-    const labels: Record<string, string> = {
-      'zipper-yes': 'ジッパー付き',
-      'zipper-no': 'ジッパーなし',
-      'zipper-position-any': 'ジッパー位置 (お任せ)',
-      'zipper-position-specified': 'ジッパー位置 (指定)',
-      'glossy': '光沢仕上げ',
-      'matte': 'マット仕上げ',
-      'notch-yes': 'Vノッチ',
-      'notch-straight': '直線ノッチ',
-      'notch-no': 'ノッチなし',
-      'hang-hole-6mm': '吊り下げ穴 (6mm)',
-      'hang-hole-8mm': '吊り下げ穴 (8mm)',
-      'hang-hole-no': '吊り穴なし',
-      'corner-round': '角丸',
-      'corner-square': '角直角',
-      'valve-yes': 'ガス抜きバルブ',
-      'valve-no': 'バルブなし',
-      'top-open': '上端開封',
-      'bottom-open': '下端開封',
-      // シール幅関連（フィルター除外用）
-      'sealing width 5mm': 'シール幅 5mm',
-      'sealing width 7.5mm': 'シール幅 7.5mm',
-      'sealing width 10mm': 'シール幅 10mm',
-      'sealing-width-5mm': 'シール幅 5mm',
-      'sealing-width-7.5mm': 'シール幅 7.5mm',
-      'sealing-width-10mm': 'シール幅 10mm',
-      // マチ印刷関連
-      'machi-printing-yes': 'マチ印刷あり',
-      'machi-printing-no': 'マチ印刷なし'
-    }
-    return labels[optionId] || optionId.replace(/-/g, ' ')
   }
 
   // シール幅ラベル
@@ -337,7 +303,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
                   key={option}
                   className="inline-flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full"
                 >
-                  {getPostProcessingLabel(option)}
+                  {translatePostProcessing(option)}
                 </span>
               ))}
             </div>

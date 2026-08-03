@@ -149,29 +149,6 @@ function mapAdminOrderToDashboardOrder(adminOrder: Order): DashboardOrder {
   }) as any;
 }
 
-// 後加工オプションの日本語マッピング (標準定義: src/constants/enToJa.ts より)
-const POST_PROCESSING_LABELS: Record<string, string> = {
-  'corner-round': '角丸',
-  'corner-square': '角直角',
-  'glossy': '光沢仕上げ',
-  'matte': 'マット仕上げ',
-  'hang-hole-6mm': '吊り下げ穴 (6mm)',
-  'hang-hole-8mm': '吊り下げ穴 (8mm)',
-  'hang-hole-10mm': '吊り穴(10mm)',
-  'hang-hole-no': '吊り穴なし',
-  'notch-yes': 'ノッチ付き',
-  'notch-no': 'ノッチなし',
-  'top-open': '上端開封',
-  'side-open': '横開放',
-  'bottom-open': '下端開封',
-  'valve-yes': 'バルブ付き',
-  'valve-no': 'バルブなし',
-  'zipper-yes': 'ジッパー付き',
-  'zipper-no': 'ジッパーなし',
-  'zipper-position-any': 'ジッパー位置: お任せ',
-  'zipper-position-specified': 'ジッパー位置: 指定',
-};
-
 // 素材の日本語マッピング
 const MATERIAL_LABELS: Record<string, string> = {
   'pet_al': 'PET/AL (アルミ箔ラミネート)',

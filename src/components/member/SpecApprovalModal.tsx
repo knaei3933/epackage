@@ -206,27 +206,11 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
     shippingJa = shipping;
   }
 
-  // 後加工オプション - 正系マップ（translatePostProcessing / POST_PROCESSING_JA）で日本語化。
+  // 後加工オプション - 正系マップ（translatePostProcessing）で一元化。
   // 「なし」系（zipper-no 等）も日本語で明示表示（ユーザー要望）。
-  // ローカル optionMap は廃止（正系マップに一本化・二重カウント解消）。
-  // 未知キーは fallbackMap で補完し、それでも不明ならスキップ（英語を画面に吐かない = 恒久的な英語表示防止）。
+  // translatePostProcessing が sealing-width-* 動的処理含む全キーをカバー。
+  // 未知キーはスキップ（英語を画面に吐かない = 恒久的な英語表示防止）。
   const finishOptions: string[] = (pattern.post_processing || pattern.postProcessingOptions || []) as string[];
-
-  // POST_PROCESSING_JA にないキーの補完マップ（実機ログで出現を確認したら都度追加）
-  const fallbackMap: Record<string, string> = {
-    'notch-straight': '直線ノッチ',
-    'top-sealed': '上部密封',
-    'hole_punching': '穴あけ',
-    'spout': 'スパウト',
-    'easy_tear': 'イージーティア',
-    'slider': 'スライダー',
-  };
-
-  // sealing-width-* → 「シール幅 Xmm」
-  const toSealWidthLabel = (opt: string): string | null => {
-    const m = opt.match(/^sealing-width-(.+)$/);
-    return m ? `シール幅 ${m[1].replace('-', '.')}mm` : null;
-  };
 
   const seen = new Set<string>();
   const postProcessing: string[] = [];
@@ -239,27 +223,12 @@ function parseSpecifications(specs: Record<string, unknown> | null | undefined) 
 
   finishOptions.forEach((opt: string) => {
     if (typeof opt !== 'string' || !opt) return;
-
-    // sealing-width-* は専用変換
-    const sealLabel = toSealWidthLabel(opt);
-    if (sealLabel) {
-      addUnique(sealLabel);
-      return;
+    // 正系マップで変換（zipper-no→「ジッパーなし」・valve-no→「バルブなし」・sealing-width-*→「シール幅 Xmm」等）
+    const label = translatePostProcessing(opt);
+    // 変換できた（opt と違う値）場合のみ追加。未知キーはスキップ（英語を吐かない）。
+    if (label !== opt) {
+      addUnique(label);
     }
-
-    // 正系マップで変換（zipper-no→「ジッパーなし」・valve-no→「バルブなし」等）
-    const standard = translatePostProcessing(opt);
-    if (standard !== opt) {
-      addUnique(standard);
-      return;
-    }
-
-    // 標準定義にないキーは fallbackMap で補完
-    const fallback = fallbackMap[opt];
-    if (fallback) {
-      addUnique(fallback);
-    }
-    // それでも不明ならスキップ（英語を吐かない）
   });
 
   // features 系（post_processing 配列に無い場合の補完）

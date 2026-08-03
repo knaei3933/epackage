@@ -9,7 +9,7 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { createServiceClient } from '@/lib/supabase';
 import { getMaterialSpecification, MATERIAL_THICKNESS_OPTIONS } from '@/lib/unified-pricing-engine';
 import type { FilmCostResult } from '@/lib/film-cost-calculator';
-import { POST_PROCESSING_JA } from '@/constants/enToJa';
+import { translatePostProcessing } from '@/constants/enToJa';
 import { calcDuty } from '@/lib/duty-calculator';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 
@@ -236,35 +236,8 @@ function getThicknessName(thickness: string): string {
 }
 
 function getPostProcessingDisplay(options: string[]): string[] {
-  // 標準定義を使用
-  const displayNames: Record<string, string> = {
-    // POST_PROCESSING_JAから標準定義を使用
-    'zipper-yes': POST_PROCESSING_JA['zipper-yes'],
-    'zipper-no': POST_PROCESSING_JA['zipper-no'],
-    'glossy': POST_PROCESSING_JA['glossy'],
-    'matte': POST_PROCESSING_JA['matte'],
-    'notch-yes': POST_PROCESSING_JA['notch-yes'],
-    'notch-no': POST_PROCESSING_JA['notch-no'],
-    'hang-hole-6mm': POST_PROCESSING_JA['hang-hole-6mm'],
-    'hang-hole-8mm': POST_PROCESSING_JA['hang-hole-8mm'],
-    'hang-hole-no': POST_PROCESSING_JA['hang-hole-no'],
-    'corner-round': POST_PROCESSING_JA['corner-round'],
-    'corner-square': POST_PROCESSING_JA['corner-square'],
-    'valve-yes': POST_PROCESSING_JA['valve-yes'],
-    'valve-no': POST_PROCESSING_JA['valve-no'],
-    'top-open': POST_PROCESSING_JA['top-open'],
-    'bottom-open': POST_PROCESSING_JA['bottom-open'],
-    // その他のオプション（標準定義にないもの）
-    'spout-yes': 'スパウト付き',
-    'spout-no': 'スパウトなし',
-    'sealing-width-5mm': 'シール幅5mm',
-    'sealing-width-8mm': 'シール幅8mm',
-    'sealing-width-10mm': 'シール幅10mm',
-    'top-closed': 'トップクローズ',
-    'machi-printing-yes': 'マチ印刷あり',
-    'machi-printing-no': 'マチ印刷なし',
-  };
-  return options.map(opt => displayNames[opt] || opt);
+  // 正系マップ（enToJa.ts）で一元化。translatePostProcessing が全キーをカバー。
+  return options.map(opt => translatePostProcessing(opt));
 }
 
 function getPrintingTypeName(printingType: string): string {
