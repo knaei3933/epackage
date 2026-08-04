@@ -20,35 +20,20 @@ import { cookies } from 'next/headers';
 // =====================================================
 // Zod Schema for Profile Update
 // =====================================================
+// ユーザーが自分で編集できる項目＝連絡先3項目のみ（SoT・単一信頼源）。
+// 住所・会社情報は「管理者承認・お問い合わせ経由」が正のためサーバーでは不許可。
+// .strict() により許可3項目以外を含むリクエストは 400 拒否（strip ではなく）。
+// defense in depth + 移行漏れ早期検出 + API 契約の明確化。
+// 将来 B2B 自己編集要件が再拡張された場合は adminApprovedProfileSchema を別途定義すること。
 
-const profileUpdateSchema = z.object({
-  // 電話番号
+const userEditableProfileSchema = z.object({
+  // 電話番号（ユーザー編集可能・連絡先3項目のみ）
   corporate_phone: z.string().optional(),
   personal_phone: z.string().optional(),
   fax: z.string().optional(),
+}).strict();
 
-  // 会社情報
-  company_name: z.string().max(200).optional(),
-  position: z.string().max(100).optional(),
-  department: z.string().max(100).optional(),
-  company_url: z.string().url('有効なURLを入力してください。').optional().or(z.literal('')),
-
-  // 流入経路
-  acquisition_channel: z.string().max(100).optional(),
-
-  // 住所情報
-  postal_code: z
-    .string()
-    .regex(/^\d{3}-?\d{4}$/, '有効な郵便番号形式ではありません（例：123-4567）')
-    .optional()
-    .or(z.literal('')),
-  prefecture: z.string().optional(),
-  city: z.string().optional(),
-  street: z.string().optional(),
-  building: z.string().optional(),
-});
-
-type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
+type UserEditableProfileData = z.infer<typeof userEditableProfileSchema>;
 
 // =====================================================
 // GET: 現在のユーザープロフィール取得
@@ -225,8 +210,8 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json();
 
-    // スキーマ検証
-    const validationResult = profileUpdateSchema.safeParse(body);
+    // スキーマ検証（.strict() により許可3項目以外を含むリクエストは 400 拒否）
+    const validationResult = userEditableProfileSchema.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -241,7 +226,7 @@ export async function PATCH(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Supabaseで更新
+    // Supabaseで更新（連絡先3項目のみ・SoT）
     const updateData: Record<string, any> = {};
 
     if (data.corporate_phone !== undefined)
@@ -250,23 +235,6 @@ export async function PATCH(request: NextRequest) {
       updateData.personal_phone = data.personal_phone || null;
     if (data.fax !== undefined)
       updateData.fax = data.fax || null;
-    if (data.company_name !== undefined)
-      updateData.company_name = data.company_name || null;
-    if (data.position !== undefined)
-      updateData.position = data.position || null;
-    if (data.department !== undefined)
-      updateData.department = data.department || null;
-    if (data.company_url !== undefined)
-      updateData.company_url = data.company_url || null;
-    if (data.acquisition_channel !== undefined)
-      updateData.acquisition_channel = data.acquisition_channel || null;
-    if (data.postal_code !== undefined)
-      updateData.postal_code = data.postal_code || null;
-    if (data.prefecture !== undefined)
-      updateData.prefecture = data.prefecture || null;
-    if (data.city !== undefined) updateData.city = data.city || null;
-    if (data.street !== undefined) updateData.street = data.street || null;
-    if (data.building !== undefined) updateData.building = data.building || null;
 
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')

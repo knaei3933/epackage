@@ -1,86 +1,32 @@
 /**
- * Member Edit Page
+ * Member Edit Page (廃止・リダイレクト)
  *
- * 会員情報編集ページ（サーバーコンポーネント）
- * - requireAuth()でサーバーサイド認証
- * - ユーザーデータをクライアントコンポーネントに渡す
- * - 日本語UI
+ * 編集機能は SettingsClient（パスワード・削除）と ProfileClient（連絡先インライン編集）に統合済み。
+ * このルートは後方互換のため `/member/profile` へリダイレクトする。
  */
 
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { EditSignOutProvider } from './EditSignOutProvider';
 
-// =====================================================
-// Helper Functions
-// =====================================================
-
-/**
- * 安全な日付フォーマット関数
- */
-function formatDateToISO(date: string | Date | null | undefined): string {
-  if (!date) return new Date().toISOString();
+export default async function EditPage() {
+  // サーバーサイド認証（未認証なら signin へ）
   try {
-    return new Date(date).toISOString();
-  } catch {
-    return new Date().toISOString();
-  }
-}
-
-// =====================================================
-// Server Component Content
-// =====================================================
-
-async function EditContent() {
-  // Use requireAuth helper - works in both Dev Mode and Production
-  let user;
-  try {
-    user = await requireAuth();
+    await requireAuth();
   } catch (error) {
-    console.error('[EditContent] requireAuth FAILED:', error);
     if (error instanceof AuthRequiredError) {
       redirect('/auth/signin?redirect=/member/edit');
     }
     throw error;
   }
 
-  // Extract user metadata with fallbacks
-  const userMetadata = (user.user_metadata || {}) as Record<string, string | null | undefined>;
-  const userEmail = user.email || '';
-  const userId = user.id || '';
-
-  // Contact info
-  const userCorporatePhone = userMetadata.corporate_phone || '';
-  const userPersonalPhone = userMetadata.personal_phone || '';
-  const userFax = userMetadata.fax || '';
-
-  return (
-    <EditSignOutProvider
-      userId={userId}
-      userEmail={userEmail}
-      userCorporatePhone={userCorporatePhone}
-      userPersonalPhone={userPersonalPhone}
-      userFax={userFax}
-    />
-  );
+  // 認証済みならプロフィールページへ
+  redirect('/member/profile');
 }
-
-// =====================================================
-// Page Component (Server Component)
-// =====================================================
-
-export default async function EditPage() {
-  return <EditContent />;
-}
-
-// =====================================================
-// Server Component Metadata
-// =====================================================
 
 export const metadata = {
   title: '会員情報編集 | Epackage Lab',
   description: 'Epackage Lab会員情報編集ページ',
 };
 
-// Force dynamic rendering for this authenticated page
+// 認証状態に依存するため動的レンダリング
 export const dynamic = 'force-dynamic';

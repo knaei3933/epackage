@@ -197,16 +197,16 @@ export function DashboardHeader({ user, notifications }: DashboardHeaderProps) {
               {/* メニューアイテム */}
               <div className="py-1">
                 <a
-                  href="/member/edit"
+                  href="/member/profile"
                   onClick={(e) => {
                     e.preventDefault();
                     setIsDropdownOpen(false);
-                    router.push('/member/edit');
+                    router.push('/member/profile');
                   }}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
                 >
                   <User className="w-4 h-4" />
-                  会員情報編集
+                  プロフィール
                 </a>
                 <a
                   href="/member/settings"

@@ -110,12 +110,6 @@ export const menuItems: MenuItem[] = [
     href: '/member/profile',
   },
   {
-    id: 'edit',
-    label: '会員情報編集',
-    icon: User,
-    href: '/member/edit',
-  },
-  {
     id: 'settings',
     label: '設定',
     icon: Settings,
