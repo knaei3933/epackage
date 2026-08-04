@@ -36,6 +36,16 @@ const userEditableProfileSchema = z.object({
 type UserEditableProfileData = z.infer<typeof userEditableProfileSchema>;
 
 // =====================================================
+// Select Columns に関するメモ（GET/PATCH 共通）
+// =====================================================
+// select('*') を廃止して明示列にすることで、実DBとのスキーマ乖離を 42703 エラーで
+// 早期検出する（db-schema-drift のサイレント失敗を防ぐ）。
+// ※ email_confirmed_at は profiles に存在しない（auth.users の列）。
+//    emailVerified は user.email_confirmed_at から取得すること。
+// ※ Supabase の型推論のため select にはリテラル文字列を直接渡す（変数だと推論できない）。
+//    列追加時は GET/PATCH 両方の select リテラルを更新すること。
+
+// =====================================================
 // GET: 現在のユーザープロフィール取得
 // =====================================================
 
@@ -73,10 +83,10 @@ export async function GET(request: NextRequest) {
 
     const userId = user.id;
 
-    // Get user profile
+    // Get user profile（select 明示・過剰取得防止 + スキーマ乖離早期検出）
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, email, kanji_last_name, kanji_first_name, kana_last_name, kana_first_name, corporate_phone, personal_phone, fax, business_type, user_type, company_name, legal_entity_number, position, department, company_url, product_category, acquisition_channel, postal_code, prefecture, city, street, building, role, status, created_at, updated_at, last_login_at')
       .eq('id', userId)
       .single();
 
@@ -114,7 +124,8 @@ export async function GET(request: NextRequest) {
       user: {
         id: profile.id,
         email: profile.email,
-        emailVerified: profile.email_confirmed_at,
+        // email_confirmed_at は profiles に存在しない（auth.users の列）。正しいソースから取得。
+        emailVerified: user.email_confirmed_at,
         kanji_last_name: profile.kanji_last_name,
         kanji_first_name: profile.kanji_first_name,
         kana_last_name: profile.kana_last_name,
@@ -244,11 +255,20 @@ export async function PATCH(request: NextRequest) {
     if (data.fax !== undefined)
       updateData.fax = data.fax || null;
 
+    // 3項目いずれも未指定（空 UPDATE）は拒否
+    // （無意味な更新・updated_at だけ書き換わる副作用を防ぐ・API 契約の明確化・idempotent でない空操作の排除）
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { error: '更新する項目がありません。', error_code: 'EMPTY_UPDATE' },
+        { status: 400 }
+      );
+    }
+
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
       .update(updateData)
       .eq('id', userId)
-      .select()
+      .select('id, email, kanji_last_name, kanji_first_name, kana_last_name, kana_first_name, corporate_phone, personal_phone, fax, business_type, user_type, company_name, legal_entity_number, position, department, company_url, product_category, acquisition_channel, postal_code, prefecture, city, street, building, role, status, created_at, updated_at, last_login_at')
       .single();
 
     if (updateError) {
