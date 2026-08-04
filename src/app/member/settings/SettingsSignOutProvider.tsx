@@ -30,7 +30,7 @@ export function SettingsSignOutProvider({
   userCreatedAt,
   userStatus,
 }: SettingsSignOutProviderProps) {
-  const { signOut } = useAuth();
+  const { signOut, updatePassword } = useAuth();
 
   return (
     <SettingsClient
@@ -41,6 +41,7 @@ export function SettingsSignOutProvider({
       userFirstName={userFirstName}
       userCreatedAt={userCreatedAt}
       userStatus={userStatus}
+      updatePassword={updatePassword}
       signOut={signOut}
     />
   );

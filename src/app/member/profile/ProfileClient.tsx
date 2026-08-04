@@ -9,13 +9,15 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, Badge } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
-import { Pencil } from 'lucide-react';
+import { useToastContext } from '@/components/ui/Toast';
 import {
   BusinessType,
   type User,
+  type UserEditableFields,
 } from '@/types/auth';
 import { getProductCategoryLabel } from '@/types/enums';
 
@@ -48,6 +50,15 @@ export interface ProfileClientProps {
   userStatus: string;
   userCreatedAt: string;
   userLastLoginAt?: string;
+  // AuthContext の updateProfile を wrapper 経由で注入
+  updateProfile: (updates: Partial<UserEditableFields>) => Promise<void>;
+}
+
+// 連絡先フォーム（電話番号・FAX のみ編集可能・EditClient と同一構造）
+interface ProfileFormData {
+  corporatePhone: string;
+  personalPhone: string;
+  fax: string;
 }
 
 // =====================================================
@@ -100,11 +111,75 @@ export function ProfileClient({
   userStatus,
   userCreatedAt,
   userLastLoginAt,
+  updateProfile,
 }: ProfileClientProps) {
   const router = useRouter();
+  const { showSuccess, showError } = useToastContext();
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 連絡先フォーム（電話番号・FAX のみ編集可能・EditClient から移管）
+  const [profileForm, setProfileForm] = useState<ProfileFormData>({
+    corporatePhone: userCorporatePhone || '',
+    personalPhone: userPersonalPhone || '',
+    fax: userFax || '',
+  });
+  const [profileErrors, setProfileErrors] = useState<Partial<Record<keyof ProfileFormData, string>>>({});
+
+  // props 変更時にフォーム状態へ同期
+  useEffect(() => {
+    setProfileForm({
+      corporatePhone: userCorporatePhone || '',
+      personalPhone: userPersonalPhone || '',
+      fax: userFax || '',
+    });
+  }, [userCorporatePhone, userPersonalPhone, userFax]);
 
   // Display name helper
   const displayName = `${userLastName || ''} ${userFirstName || ''}`.trim() || userEmail;
+
+  // プロフィールバリデーション（電話番号・FAX番号の形式チェック・EditClient と同一ロジック）
+  const validateProfile = (): boolean => {
+    const phoneRe = /^\d{2,4}-?\d{2,4}-?\d{3,4}$/;
+    const errors: Partial<Record<keyof ProfileFormData, string>> = {};
+    if (profileForm.corporatePhone && !phoneRe.test(profileForm.corporatePhone)) {
+      errors.corporatePhone = '有効な電話番号の形式ではありません。';
+    }
+    if (profileForm.personalPhone && !phoneRe.test(profileForm.personalPhone)) {
+      errors.personalPhone = '有効な電話番号の形式ではありません。';
+    }
+    if (profileForm.fax && !phoneRe.test(profileForm.fax)) {
+      errors.fax = '有効なFAX番号の形式ではありません。';
+    }
+    setProfileErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // 連絡先更新（電話番号・FAX のみ）
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateProfile()) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // 連絡先3項目をそのまま送信（空文字 = 削除・SoT: route.ts の `|| null` と整合）
+      await updateProfile({
+        corporatePhone: profileForm.corporatePhone,
+        personalPhone: profileForm.personalPhone,
+        fax: profileForm.fax,
+      });
+
+      showSuccess('連絡先を更新しました');
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      showError('連絡先の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
@@ -119,20 +194,6 @@ export function ProfileClient({
               会員情報を確認できます。
             </p>
           </div>
-          <a
-            href="/member/edit"
-            onClick={(e) => {
-              e.preventDefault();
-              router.push('/member/edit');
-            }}
-          >
-            <Button
-              type="button"
-              variant="primary"
-            >
-              編集
-            </Button>
-          </a>
         </div>
 
         {/* Profile Overview Card */}
@@ -244,52 +305,56 @@ export function ProfileClient({
         </Card>
 
         {/* =====================================================
-            SECTION 2: 連絡先 (読み取り専用・編集可能)
+            SECTION 2: 連絡先 (編集可能)
             ===================================================== */}
         <Card className="p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-primary">
-              連絡先（編集可能）
-            </h2>
-            <a
-              href="/member/edit"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push('/member/edit');
-              }}
-            >
-              <Button variant="outline" size="sm">
-                <Pencil className="w-3 h-3 mr-1" />
-                編集
+          <form onSubmit={handleProfileUpdate}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-text-primary">
+                連絡先（編集可能）
+              </h2>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={isSaving}
+              >
+                {isSaving ? '保存中...' : '変更を保存'}
               </Button>
-            </a>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                label="会社電話番号"
-                type="tel"
-                value={userCorporatePhone || ''}
-                disabled
-                placeholder="未登録"
-              />
-              <Input
-                label="携帯電話"
-                type="tel"
-                value={userPersonalPhone || ''}
-                disabled
-                placeholder="未登録"
-              />
-              <Input
-                label="FAX番号"
-                type="tel"
-                value={userFax || ''}
-                disabled
-                placeholder="未登録"
-              />
             </div>
-          </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  label="会社電話番号"
+                  type="tel"
+                  data-testid="company-phone-input"
+                  value={profileForm.corporatePhone}
+                  onChange={(e) => setProfileForm({ ...profileForm, corporatePhone: e.target.value })}
+                  placeholder="例: 03-1234-5678"
+                  error={profileErrors.corporatePhone}
+                />
+                <Input
+                  label="携帯電話"
+                  type="tel"
+                  data-testid="personal-phone-input"
+                  value={profileForm.personalPhone}
+                  onChange={(e) => setProfileForm({ ...profileForm, personalPhone: e.target.value })}
+                  placeholder="例: 090-1234-5678"
+                  error={profileErrors.personalPhone}
+                />
+                <Input
+                  label="FAX番号"
+                  type="tel"
+                  data-testid="fax-input"
+                  value={profileForm.fax}
+                  onChange={(e) => setProfileForm({ ...profileForm, fax: e.target.value })}
+                  placeholder="例: 03-1234-4567"
+                  error={profileErrors.fax}
+                />
+              </div>
+            </div>
+          </form>
         </Card>
 
         {/* =====================================================
@@ -423,15 +488,7 @@ export function ProfileClient({
               type="button"
               variant="secondary"
               className="w-full sm:w-auto"
-              onClick={() => router.push('/member/edit')}
-            >
-              会員情報を編集
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full sm:w-auto ml-2"
-              onClick={() => router.push('/auth/reset-password')}
+              onClick={() => router.push('/member/settings#security')}
             >
               パスワード変更
             </Button>

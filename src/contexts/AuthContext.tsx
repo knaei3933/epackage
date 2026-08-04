@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import type { Profile } from '@/lib/supabase'
-import type { User, Session, RegistrationFormData } from '@/types/auth'
+import type { User, UserEditableFields, Session, RegistrationFormData } from '@/types/auth'
 import type { User as SupabaseUser, Session as SupabaseSession } from '@supabase/supabase-js'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
 
@@ -24,10 +24,10 @@ interface AuthContextType {
   signOut: () => Promise<void>
   signUp: (data: RegistrationFormData) => Promise<{ success: boolean; message: string }>
   refreshSession: () => Promise<void>
-  updateProfile: (updates: Partial<User>) => Promise<void>
+  updateProfile: (updates: Partial<UserEditableFields>) => Promise<void>
   // Password reset
   resetPassword: (email: string) => Promise<void>
-  updatePassword: (newPassword: string) => Promise<void>
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>
   // Inactivity tracking
   showInactivityWarning: boolean
   dismissInactivityWarning: () => void
@@ -486,24 +486,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Update user profile
    */
-  const updateProfile = useCallback(async (updates: Partial<User>) => {
+  const updateProfile = useCallback(async (updates: Partial<UserEditableFields>) => {
     if (!user?.id) throw new Error('User not authenticated')
 
     // Convert User fields to Profile fields
+    // ユーザー編集可能項目＝連絡先3項目のみ（サーバー /api/profile の userEditableProfileSchema と一致・SoT）
+    // 住所・会社情報は「管理者承認・お問い合わせ経由」のため AuthContext からは送信しない
     const profileUpdates: Partial<Omit<Profile, 'id' | 'email' | 'created_at' | 'updated_at'>> = {}
 
     if (updates.corporatePhone !== undefined) profileUpdates.corporate_phone = updates.corporatePhone
     if (updates.personalPhone !== undefined) profileUpdates.personal_phone = updates.personalPhone
     if (updates.fax !== undefined) profileUpdates.fax = updates.fax
-    if (updates.companyName !== undefined) profileUpdates.company_name = updates.companyName
-    if (updates.position !== undefined) profileUpdates.position = updates.position
-    if (updates.department !== undefined) profileUpdates.department = updates.department
-    if (updates.companyUrl !== undefined) profileUpdates.company_url = updates.companyUrl
-    if (updates.acquisitionChannel !== undefined) profileUpdates.acquisition_channel = updates.acquisitionChannel
-    if (updates.postalCode !== undefined) profileUpdates.postal_code = updates.postalCode
-    if (updates.prefecture !== undefined) profileUpdates.prefecture = updates.prefecture
-    if (updates.city !== undefined) profileUpdates.city = updates.city
-    if (updates.street !== undefined) profileUpdates.street = updates.street
 
     const response = await fetch('/api/profile', {
       method: 'PATCH',
@@ -556,15 +549,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Update password (for authenticated user)
-   * Uses server-side API to avoid client-side auth state
+   * Uses server-side API to avoid client-side auth state.
+   * currentPassword で再認証し、newPassword に更新する。
    */
-  const updatePassword = useCallback(async (newPassword: string) => {
+  const updatePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     // Use server-side API for password update
     const response = await fetch('/api/auth/update-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ newPassword }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     })
 
     if (!response.ok) {

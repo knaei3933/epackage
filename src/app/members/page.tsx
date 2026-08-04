@@ -40,10 +40,10 @@ function MemberDashboardContent() {
 
   const quickActions = [
     {
-      title: 'プロフィール編集',
-      description: '会員情報を更新',
+      title: 'プロフィール',
+      description: '連絡先の確認・変更',
       icon: User,
-      href: '/profile',
+      href: '/member/profile',
     },
     {
       title: '見積もり作成',
@@ -186,7 +186,7 @@ function MemberDashboardContent() {
             </div>
           </div>
           <div className="mt-4">
-            <Link href="/profile">
+            <Link href="/member/profile">
               <Button variant="outline" size="sm">
                 プロフィールを編集
               </Button>

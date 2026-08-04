@@ -9,7 +9,7 @@
 
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { ProfileClient } from './ProfileClient';
+import { ProfileSignOutProvider } from './ProfileSignOutProvider';
 
 // =====================================================
 // Server Component Content
@@ -71,7 +71,7 @@ async function ProfileContent() {
   const userName = fullName || userEmail || 'テスト';
 
   return (
-    <ProfileClient
+    <ProfileSignOutProvider
       userId={userId}
       userEmail={userEmail}
       userName={userName}

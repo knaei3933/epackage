@@ -13,8 +13,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Button, Badge } from '@/components/ui';
+import { Card, Button, Badge, Input } from '@/components/ui';
 import { PageLoadingState } from '@/components/ui';
+import { useToastContext } from '@/components/ui/Toast';
 import { fetchSettings as fetchSettingsAPI, updateSettings as updateSettingsAPI, deleteAccount as deleteAccountAPI } from '@/lib/api/member/settings';
 import { getJson } from '@/lib/api-fetch';
 
@@ -39,6 +40,25 @@ interface UserSettings {
   timezone: string;
 }
 
+// EditClient から移管: アカウント削除サマリー（any 廃止・明示的型）
+interface DeletionSummary {
+  sampleRequests: number;
+  notifications: number;
+  contracts: number;
+  quotations: number;
+  orders: number;
+  activeOrders: number;
+  canDelete: boolean;
+  warning?: string;
+}
+
+// EditClient から移管: パスワード変更フォーム
+interface PasswordFormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface SettingsClientProps {
   userId: string;
   userEmail: string;
@@ -47,6 +67,7 @@ export interface SettingsClientProps {
   userFirstName: string;
   userCreatedAt: string;
   userStatus: string;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -62,17 +83,33 @@ export function SettingsClient({
   userFirstName,
   userCreatedAt,
   userStatus,
+  updatePassword,
   signOut,
 }: SettingsClientProps) {
   const router = useRouter();
+  const { showError } = useToastContext();
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+
+  // Account deletion states（EditClient 2段階確認フローから移管・旧 state 完全置換）
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showDoubleConfirmation, setShowDoubleConfirmation] = useState(false);
+  const [deletionSummary, setDeletionSummary] = useState<DeletionSummary | null>(null);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deletionSummary, setDeletionSummary] = useState<any>(null);
+
+  // パスワードフォーム（EditClient から移管）
+  const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordErrors, setPasswordErrors] = useState<Partial<Record<keyof PasswordFormData, string>>>({});
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   // Settings state
   const [settings, setSettings] = useState<UserSettings>({
@@ -135,34 +172,101 @@ export function SettingsClient({
     }
   };
 
-  // Handle logout
-  const handleLogout = async () => {
-    await signOut();
-    router.push('/');
+  // =====================================================
+  // Password Handlers（EditClient から移管）
+  // =====================================================
+
+  // パスワードバリデーション（現在パスワード必須・8文字以上・一致チェック）
+  const validatePassword = (): boolean => {
+    const errors: Partial<Record<keyof PasswordFormData, string>> = {};
+
+    if (!passwordForm.currentPassword) {
+      errors.currentPassword = '現在のパスワードを入力してください。';
+    }
+    if (passwordForm.newPassword && passwordForm.newPassword.length < 8) {
+      errors.newPassword = 'パスワードは8文字以上で入力してください';
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.confirmPassword = 'パスワードが一致しません';
+    }
+
+    setPasswordErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  // Fetch deletion summary before showing confirmation
-  const handleDeleteAccountClick = async () => {
-    setIsDeleting(true);
-    setDeleteError(null);
+  // パスワード更新
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validatePassword()) {
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    setPasswordMessage(null);
 
     try {
-      const summary = await getJson<any>('/api/member/delete-account');
-      setDeletionSummary(summary);
-      setShowDeleteConfirm(true);
-    } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : 'エラーが発生しました'
-      );
+      await updatePassword(passwordForm.currentPassword, passwordForm.newPassword);
+
+      setPasswordMessage({ type: 'success', text: 'パスワードを更新しました' });
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (err) {
+      console.error('Failed to update password:', err);
+      setPasswordMessage({ type: 'error', text: 'パスワードの更新に失敗しました' });
     } finally {
-      setIsDeleting(false);
+      setIsUpdatingPassword(false);
     }
   };
 
-  // Confirm account deletion
-  const handleConfirmDelete = async () => {
-    if (!deletionSummary?.canDelete) {
-      setDeleteError(deletionSummary?.warning || 'アカウントを削除できません');
+  // =====================================================
+  // Account Deletion Handlers（EditClient 2段階確認フローから移管）
+  // =====================================================
+
+  /**
+   * 削除サマリーを取得して確認画面を表示
+   */
+  const fetchDeletionSummary = async () => {
+    try {
+      const summary = await getJson<DeletionSummary>('/api/member/delete-account');
+      setDeletionSummary(summary);
+
+      if (!summary.canDelete) {
+        // canDelete === false（有効な契約あり）の場合は警告表示でブロック
+        showError(summary.warning || 'アカウントを削除できません');
+        return;
+      }
+
+      setShowDeleteConfirmation(true);
+    } catch (err) {
+      console.error('Failed to fetch deletion summary:', err);
+      showError('削除サマリーの取得に失敗しました。時間をおいて再度お試しください。');
+    }
+  };
+
+  /**
+   * 第1段階: サマリー取得
+   */
+  const handleDeleteAccountFirstStep = async () => {
+    await fetchDeletionSummary();
+  };
+
+  /**
+   * 第2段階: 「DELETE」入力画面へ遷移
+   */
+  const handleDeleteAccountSecondStep = () => {
+    setShowDoubleConfirmation(true);
+  };
+
+  /**
+   * 最終確認: 削除実行
+   */
+  const handleDeleteAccountFinal = async () => {
+    if (deleteConfirmationText !== 'DELETE') {
+      showError('「DELETE」と入力してください');
       return;
     }
 
@@ -170,30 +274,39 @@ export function SettingsClient({
     setDeleteError(null);
 
     try {
-      await deleteAccountAPI({});
+      await deleteAccountAPI({ confirmation: 'DELETE' });
 
-      // Show success message before redirecting
       setSaveMessage({
         type: 'success',
-        text: 'アカウントを削除しました。まもなくリダイレクトします...'
+        text: 'アカウントを削除しました。削除確認メールを送信いたしました。',
       });
 
-      // Sign out and redirect after a short delay
-      setTimeout(async () => {
-        await signOut();
-        router.push('/');
-      }, 2000);
-    } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : 'エラーが発生しました'
-      );
+      // 成功メッセージを2秒間表示してからサインアウト・遷移（旧 EditClient のパターンを踏襲）
+      // 即座に signOut するとメッセージが見えなくなるため待機。
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // サインアウトしてホームへ遷移
+      await signOut();
+      router.push('/?accountDeleted=true');
+    } catch (err) {
+      console.error('Account deletion error:', err);
+      setDeleteError(err instanceof Error ? err.message : 'アカウント削除に失敗しました');
+      showError('アカウント削除に失敗しました。しばらくしてから再度お試しいただくか、管理者にお問い合わせください。');
+    } finally {
       setIsDeleting(false);
+      setShowDeleteConfirmation(false);
+      setShowDoubleConfirmation(false);
+      setDeleteConfirmationText('');
     }
   };
 
-  // Cancel deletion
-  const handleCancelDelete = () => {
-    setShowDeleteConfirm(false);
+  /**
+   * 削除フローをキャンセル
+   */
+  const handleCancelDeletion = () => {
+    setShowDeleteConfirmation(false);
+    setShowDoubleConfirmation(false);
+    setDeleteConfirmationText('');
     setDeletionSummary(null);
     setDeleteError(null);
   };
@@ -364,9 +477,9 @@ export function SettingsClient({
             </Card>
 
             {/* =====================================================
-                SECTION 3: セキュリティ設定
+                SECTION 3: セキュリティ設定（パスワード変更を含む）
                 ===================================================== */}
-            <Card className="p-6 mb-6">
+            <Card id="security" className="p-6 mb-6 scroll-mt-8">
               <h2 className="text-lg font-semibold text-text-primary mb-4">
                 セキュリティ設定
               </h2>
@@ -421,14 +534,73 @@ export function SettingsClient({
                 </div>
               </div>
 
+              {/* パスワード変更フォーム（EditClient から移管） */}
               <div className="mt-6 pt-6 border-t border-border-medium">
-                <Button
-                  variant="secondary"
-                  onClick={() => router.push('/auth/reset-password')}
-                  className="w-full sm:w-auto"
-                >
+                <h3 className="text-base font-semibold text-text-primary mb-4">
                   パスワード変更
-                </Button>
+                </h3>
+
+                {passwordMessage && (
+                  <div
+                    className={`mb-4 p-3 rounded-md text-sm ${
+                      passwordMessage.type === 'success'
+                        ? 'bg-success-50 text-success-700 border border-success-200'
+                        : 'bg-error-50 text-error-700 border border-error-200'
+                    }`}
+                  >
+                    {passwordMessage.text}
+                  </div>
+                )}
+
+                <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-1">
+                      現在のパスワード<span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="password"
+                      data-testid="current-password-input"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      placeholder="現在のパスワードを入力"
+                      error={passwordErrors.currentPassword}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-1">
+                      新しいパスワード<span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="password"
+                      data-testid="new-password-input"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      placeholder="8文字以上"
+                      error={passwordErrors.newPassword}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-1">
+                      パスワード確認<span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="password"
+                      data-testid="confirm-password-input"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      placeholder="同じパスワードを入力"
+                      error={passwordErrors.confirmPassword}
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button type="submit" variant="primary" disabled={isUpdatingPassword || !passwordForm.currentPassword || !passwordForm.newPassword}>
+                      {isUpdatingPassword ? '更新中...' : 'パスワードを更新'}
+                    </Button>
+                  </div>
+                </form>
               </div>
             </Card>
 
@@ -447,14 +619,14 @@ export function SettingsClient({
             </div>
 
             {/* =====================================================
-                SECTION 4: 危険なゾーン
+                SECTION 4: アカウント削除（EditClient 2段階確認フローから移管）
                 ===================================================== */}
-            <Card className="p-6 border-error-200">
-              <h2 className="text-lg font-semibold text-error-600 mb-2">
+            <Card className="p-6 border-red-200 bg-red-50">
+              <h2 className="text-lg font-semibold text-red-700 mb-2">
                 アカウント削除
               </h2>
               <p className="text-sm text-text-muted mb-4">
-                アカウントを削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。
+                アカウントを削除すると、全てのデータが完全に削除されます。この操作は取り消せません。
               </p>
 
               {deleteError && (
@@ -463,119 +635,120 @@ export function SettingsClient({
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  variant="secondary"
-                  onClick={handleLogout}
-                  className="border-error-300 text-error-600 hover:bg-error-50"
-                >
-                  ログアウト
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDeleteAccountClick}
-                  loading={isDeleting}
-                  loadingText="確認中..."
-                  disabled={isDeleting}
-                >
-                  アカウントを削除
-                </Button>
-              </div>
-            </Card>
-
-            {/* =====================================================
-                削除確認モーダル
-                ===================================================== */}
-            {showDeleteConfirm && deletionSummary && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-xl">
-                  <h3 className="text-xl font-bold text-text-primary mb-4">
-                    アカウント削除の確認
-                  </h3>
-
-                  {!deletionSummary.canDelete ? (
-                    <>
-                      <p className="text-error-600 mb-4">
-                        {deletionSummary.warning}
-                      </p>
-                      <div className="flex justify-end">
-                        <Button
-                          variant="secondary"
-                          onClick={handleCancelDelete}
-                        >
-                          閉じる
-                        </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-text-primary mb-4">
-                        本当にアカウントを削除しますか？以下のデータが削除されます：
-                      </p>
-
-                      <div className="bg-bg-secondary rounded-md p-4 mb-4 space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">サンプルリクエスト</span>
-                          <span className="font-medium">{deletionSummary.sampleRequests} 件</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">通知</span>
-                          <span className="font-medium">{deletionSummary.notifications} 件</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">契約書（下書き/却下）</span>
-                          <span className="font-medium">{deletionSummary.contracts} 件</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">見積書</span>
-                          <span className="font-medium">{deletionSummary.quotations} 件</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">注文（完了/キャンセル）</span>
-                          <span className="font-medium">{deletionSummary.orders} 件</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-text-muted">プロフィール</span>
-                          <span className="font-medium">1 件</span>
-                        </div>
-                      </div>
-
-                      {deletionSummary.activeOrders > 0 && (
-                        <div className="bg-warning-50 text-warning-700 border border-warning-200 rounded-md p-3 mb-4 text-sm">
-                          <p className="font-medium mb-1">⚠️ 進行中の注文があります</p>
-                          <p>
-                            {deletionSummary.activeOrders} 件の進行中の注文は削除されず、維持されます。
-                          </p>
-                        </div>
-                      )}
-
-                      <p className="text-sm text-text-muted mb-6">
-                        この操作は取り消すことができません。
-                      </p>
-
-                      <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                        <Button
-                          variant="secondary"
-                          onClick={handleCancelDelete}
-                          disabled={isDeleting}
-                        >
-                          キャンセル
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={handleConfirmDelete}
-                          loading={isDeleting}
-                          loadingText="削除中..."
-                          disabled={isDeleting}
-                        >
-                          アカウントを削除する
-                        </Button>
-                      </div>
-                    </>
-                  )}
+              {/* canDelete === false の場合の警告表示（有効な契約あり） */}
+              {!showDeleteConfirmation && !showDoubleConfirmation && deletionSummary && !deletionSummary.canDelete && (
+                <div className="mb-4 p-3 bg-warning-50 text-warning-700 border border-warning-200 rounded-md text-sm">
+                  {deletionSummary.warning}
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* 初期状態 */}
+              {!showDeleteConfirmation && !showDoubleConfirmation && (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button
+                    variant="secondary"
+                    onClick={async () => { await signOut(); router.push('/'); }}
+                    className="border-error-300 text-error-600 hover:bg-error-50"
+                  >
+                    ログアウト
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                    onClick={handleDeleteAccountFirstStep}
+                    disabled={isDeleting}
+                  >
+                    アカウントを削除
+                  </Button>
+                </div>
+              )}
+
+              {/* 第1段階: サマリー表示 */}
+              {showDeleteConfirmation && !showDoubleConfirmation && (
+                <div className="space-y-4">
+                  <div className="bg-white border border-red-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-red-700 mb-2">削除されるデータ</h3>
+                    {deletionSummary && (
+                      <ul className="text-sm space-y-1">
+                        <li>• サンプル要求: {deletionSummary.sampleRequests}件</li>
+                        <li>• 通知: {deletionSummary.notifications}件</li>
+                        <li>• 契約（下書き・拒否）: {deletionSummary.contracts}件</li>
+                        <li>• 見積もり（未承認）: {deletionSummary.quotations}件</li>
+                        <li>• 注文（キャンセル・完了）: {deletionSummary.orders}件</li>
+                      </ul>
+                    )}
+                    {deletionSummary && deletionSummary.activeOrders > 0 && (
+                      <p className="text-sm text-amber-600 mt-2">
+                        ⚠️ 進行中の注文 {deletionSummary.activeOrders}件 は維持されます
+                      </p>
+                    )}
+                    <p className="text-xs text-text-muted mt-3">
+                      ※有効な契約がある場合は削除できません
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                      onClick={handleDeleteAccountSecondStep}
+                      disabled={isDeleting}
+                    >
+                      削除を確認
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelDeletion}
+                      disabled={isDeleting}
+                    >
+                      キャンセル
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 第2段階: 「DELETE」入力による最終確認 */}
+              {showDoubleConfirmation && (
+                <div className="space-y-4">
+                  <div className="bg-white border border-red-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-red-700 mb-2">最終確認</h3>
+                    <p className="text-sm mb-3">
+                      本当にアカウントを削除しますか？<br />
+                      この操作は取り消すことができません。
+                    </p>
+                    <p className="text-sm font-medium mb-2">
+                      確認のため、「DELETE」と入力してください：
+                    </p>
+                    <Input
+                      type="text"
+                      value={deleteConfirmationText}
+                      onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                      placeholder="DELETE と入力"
+                      className="max-w-xs"
+                      disabled={isDeleting}
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                      onClick={handleDeleteAccountFinal}
+                      disabled={isDeleting || deleteConfirmationText !== 'DELETE'}
+                    >
+                      {isDeleting ? '削除中...' : 'アカウントを削除する'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelDeletion}
+                      disabled={isDeleting}
+                    >
+                      キャンセル
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
 
             {/* Navigation links */}
             <div className="mt-8">
