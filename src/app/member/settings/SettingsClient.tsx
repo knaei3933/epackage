@@ -100,6 +100,7 @@ export function SettingsClient({
   const [deletionSummary, setDeletionSummary] = useState<DeletionSummary | null>(null);
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
 
   // パスワードフォーム（EditClient から移管）
   const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
@@ -269,12 +270,17 @@ export function SettingsClient({
       showError('「DELETE」と入力してください');
       return;
     }
+    if (!deletePassword) {
+      showError('確認のため、現在のパスワードを入力してください');
+      return;
+    }
 
     setIsDeleting(true);
     setDeleteError(null);
 
     try {
-      await deleteAccountAPI({ confirmation: 'DELETE' });
+      // サーバーで currentPassword 再認証（パスワード変更と対称・なりすまし/CSRF 防衛）
+      await deleteAccountAPI({ confirmation: 'DELETE', currentPassword: deletePassword });
 
       setSaveMessage({
         type: 'success',
@@ -290,13 +296,17 @@ export function SettingsClient({
       router.push('/?accountDeleted=true');
     } catch (err) {
       console.error('Account deletion error:', err);
-      setDeleteError(err instanceof Error ? err.message : 'アカウント削除に失敗しました');
-      showError('アカウント削除に失敗しました。しばらくしてから再度お試しいただくか、管理者にお問い合わせください。');
+      // deleteAccountAPI は error_code ごとにユーザーフレンドリーなメッセージへ変換済み
+      // （パスワード誤り＝「現在のパスワードが正しくありません。」など）
+      const msg = err instanceof Error ? err.message : 'アカウント削除に失敗しました';
+      setDeleteError(msg);
+      showError(msg);
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirmation(false);
       setShowDoubleConfirmation(false);
       setDeleteConfirmationText('');
+      setDeletePassword('');
     }
   };
 
@@ -307,6 +317,7 @@ export function SettingsClient({
     setShowDeleteConfirmation(false);
     setShowDoubleConfirmation(false);
     setDeleteConfirmationText('');
+    setDeletePassword('');
     setDeletionSummary(null);
     setDeleteError(null);
   };
@@ -707,7 +718,7 @@ export function SettingsClient({
                 </div>
               )}
 
-              {/* 第2段階: 「DELETE」入力による最終確認 */}
+              {/* 第2段階: 「DELETE」入力 + 現在パスワード再入力による最終確認 */}
               {showDoubleConfirmation && (
                 <div className="space-y-4">
                   <div className="bg-white border border-red-200 rounded-lg p-4">
@@ -727,6 +738,18 @@ export function SettingsClient({
                       className="max-w-xs"
                       disabled={isDeleting}
                     />
+                    <p className="text-sm font-medium mb-2 mt-4">
+                      本人確認のため、現在のパスワードを入力してください：
+                    </p>
+                    <Input
+                      type="password"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      placeholder="現在のパスワード"
+                      className="max-w-xs"
+                      disabled={isDeleting}
+                      autoComplete="current-password"
+                    />
                   </div>
 
                   <div className="flex gap-2">
@@ -734,7 +757,7 @@ export function SettingsClient({
                       variant="secondary"
                       className="bg-red-600 hover:bg-red-700 text-white border-red-600"
                       onClick={handleDeleteAccountFinal}
-                      disabled={isDeleting || deleteConfirmationText !== 'DELETE'}
+                      disabled={isDeleting || deleteConfirmationText !== 'DELETE' || !deletePassword}
                     >
                       {isDeleting ? '削除中...' : 'アカウントを削除する'}
                     </Button>
