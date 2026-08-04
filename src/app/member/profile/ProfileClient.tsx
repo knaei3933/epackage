@@ -17,6 +17,7 @@ import { useToastContext } from '@/components/ui/Toast';
 import {
   BusinessType,
   type User,
+  type UserEditableFields,
 } from '@/types/auth';
 import { getProductCategoryLabel } from '@/types/enums';
 
@@ -50,7 +51,7 @@ export interface ProfileClientProps {
   userCreatedAt: string;
   userLastLoginAt?: string;
   // AuthContext の updateProfile を wrapper 経由で注入
-  updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateProfile: (updates: Partial<UserEditableFields>) => Promise<void>;
 }
 
 // 連絡先フォーム（電話番号・FAX のみ編集可能・EditClient と同一構造）

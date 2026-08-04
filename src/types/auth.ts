@@ -226,6 +226,9 @@ export interface User {
   lastLoginAt?: Date | null;
 }
 
+// ユーザーが自分で編集可能な項目（連絡先3項目のみ・サーバー SoT: api/profile/route.ts の userEditableProfileSchema と整合）
+export type UserEditableFields = Pick<User, 'corporatePhone' | 'personalPhone' | 'fax'>;
+
 // =====================================================
 // API Response Types
 // =====================================================

@@ -73,11 +73,19 @@ export async function POST(request: NextRequest) {
     const validationResult = updatePasswordSchema.safeParse(body);
 
     if (!validationResult.success) {
+      // .strict() の unrecognized keys（許可外の項目）は flatten().fieldErrors に入らず
+      // formErrors に分類されるため空になってしまう。issues から全件を項目別に組み立て、
+      // クライアントに「どの項目が問題か」を正確に伝える。
+      const details: Record<string, string[]> = {};
+      for (const issue of validationResult.error.issues) {
+        const key = issue.path.length > 0 ? issue.path.join('.') : '_form';
+        (details[key] ??= []).push(issue.message);
+      }
       return NextResponse.json(
         {
           error: '入力値が正しくありません。',
           error_code: 'VALIDATION_ERROR',
-          details: validationResult.error.flatten().fieldErrors,
+          details,
         },
         { status: 400 }
       );

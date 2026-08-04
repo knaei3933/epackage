@@ -23,7 +23,7 @@ const MEMBER_PAGES = [
   // Core pages (1-4)
   { path: '/member/dashboard', name: 'Dashboard', priority: 'critical' },
   { path: '/member/profile', name: 'Profile View', priority: 'critical' },
-  { path: '/member/edit', name: 'Profile Edit', priority: 'high' },
+  { path: '/member/edit', name: 'Profile Edit (→redirect to /profile)', priority: 'high' },
   { path: '/member/settings', name: 'Settings', priority: 'high' },
 
   // Order pages (5-11)

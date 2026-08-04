@@ -13,7 +13,7 @@ member/
 ├── contracts/            # Contract management (signed contracts)
 ├── dashboard/            # Member dashboard home (stats, overview)
 ├── deliveries/           # Delivery address management
-├── edit/                 # Member profile editing
+├── edit/                 # 廃止（/profile へリダイレクト・後方互換）
 ├── inquiries/            # Customer inquiries/messages
 ├── invoices/             # Invoice management
 ├── layout.tsx            # Member portal layout (with sidebar)
@@ -23,7 +23,7 @@ member/
 │   ├── history/         # Order history
 │   ├── new/             # New order creation
 │   └── reorder/         # Reorder from history
-├── profile/              # Profile viewing
+├── profile/              # プロフィール表示 + 連絡先インライン編集
 ├── quotations/           # Quotation management
 │   └── [id]/            # Quotation detail pages
 ├── samples/              # Sample requests
@@ -212,7 +212,6 @@ Defined in `@/components/dashboard/menuItems.ts`:
 | invoices | 請求書 | FileText | /member/invoices |
 | contracts | 契約管理 | FileCheck | /member/contracts |
 | profile | プロフィール | User | /member/profile |
-| edit | 会員情報編集 | User | /member/edit |
 | settings | 設定 | Settings | /member/settings |
 
 ## For AI Agents

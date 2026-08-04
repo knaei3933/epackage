@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import type { Profile } from '@/lib/supabase'
-import type { User, Session, RegistrationFormData } from '@/types/auth'
+import type { User, UserEditableFields, Session, RegistrationFormData } from '@/types/auth'
 import type { User as SupabaseUser, Session as SupabaseSession } from '@supabase/supabase-js'
 import { useActivityTracker } from '@/hooks/useActivityTracker'
 
@@ -24,7 +24,7 @@ interface AuthContextType {
   signOut: () => Promise<void>
   signUp: (data: RegistrationFormData) => Promise<{ success: boolean; message: string }>
   refreshSession: () => Promise<void>
-  updateProfile: (updates: Partial<User>) => Promise<void>
+  updateProfile: (updates: Partial<UserEditableFields>) => Promise<void>
   // Password reset
   resetPassword: (email: string) => Promise<void>
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>
@@ -486,7 +486,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Update user profile
    */
-  const updateProfile = useCallback(async (updates: Partial<User>) => {
+  const updateProfile = useCallback(async (updates: Partial<UserEditableFields>) => {
     if (!user?.id) throw new Error('User not authenticated')
 
     // Convert User fields to Profile fields
