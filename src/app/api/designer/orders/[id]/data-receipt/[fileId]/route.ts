@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import * as crypto from 'crypto';
 
 export async function DELETE(
@@ -35,7 +35,6 @@ export async function DELETE(
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
@@ -55,10 +54,12 @@ export async function DELETE(
       },
     });
 
-    // Create service role client for admin operations (bypasses RLS)
-    const supabaseAdmin = supabaseServiceKey
-      ? createClient(supabaseUrl, supabaseServiceKey)
-      : null;
+    // Create authenticated service role client for admin operations (bypasses RLS, with audit log)
+    // Token-based designer auth: userId not available, operation/route are required
+    const supabaseAdmin = createAuthenticatedServiceClient({
+      operation: 'delete_designer_upload_file',
+      route: '/api/designer/orders/[id]/data-receipt/[fileId]',
+    });
 
     // Verify designer token and get assignment
     // Use service role client to bypass RLS for token verification

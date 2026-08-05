@@ -7,7 +7,7 @@
  * @module file-validator/file-ingestion
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { ValidationResult } from './ai-validator';
@@ -118,19 +118,11 @@ export interface StoredFileRecord {
  * Get Supabase client
  */
 function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     throw new Error('Supabase credentials not configured');
   }
 
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  return createServiceClient();
 }
 
 /**

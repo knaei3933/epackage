@@ -5,7 +5,7 @@
  */
 
 import { Metadata } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
 import { BlogPostList } from '@/components/admin/blog/BlogPostList';
 import type { BlogPostListItem } from '@/lib/types/blog';
 
@@ -19,14 +19,11 @@ export const metadata: Metadata = {
 // ============================================================
 
 async function getBlogPosts(): Promise<{ posts: BlogPostListItem[]; total: number }> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { posts: [], total: 0 };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createServiceClient();
 
   const { data: posts, count } = await supabase
     .from('blog_posts')
@@ -37,7 +34,7 @@ async function getBlogPosts(): Promise<{ posts: BlogPostListItem[]; total: numbe
   // Fetch author profiles
   let postsWithAuthors: BlogPostListItem[] = [];
   if (posts && posts.length > 0) {
-    const authorIds = Array.from(new Set(posts.map((p) => p.author_id).filter(Boolean)));
+    const authorIds = Array.from(new Set(posts.map((p: any) => p.author_id).filter(Boolean)));
 
     let profileMap: Record<string, any> = {};
     if (authorIds.length > 0) {
@@ -47,14 +44,14 @@ async function getBlogPosts(): Promise<{ posts: BlogPostListItem[]; total: numbe
         .in('id', authorIds);
 
       if (profiles) {
-        profileMap = profiles.reduce((acc, profile) => {
+        profileMap = profiles.reduce((acc: any, profile: any) => {
           acc[profile.id] = profile;
           return acc;
         }, {} as Record<string, any>);
       }
     }
 
-    postsWithAuthors = posts.map((post) => {
+    postsWithAuthors = posts.map((post: any) => {
       const author = profileMap[post.author_id];
       const authorName = author
         ? author.company_name || `${author.kanji_last_name || ''} ${author.kanji_first_name || ''}`.trim()

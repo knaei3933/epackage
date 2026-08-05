@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 export async function DELETE(
   request: NextRequest,
@@ -16,7 +16,6 @@ export async function DELETE(
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
@@ -41,11 +40,6 @@ export async function DELETE(
       },
     });
 
-    // Create service role client for admin operations (bypasses RLS)
-    const supabaseAdmin = supabaseServiceKey
-      ? createClient(supabaseUrl, supabaseServiceKey)
-      : null;
-
     // Get user ID from middleware header or authenticate
     const userIdFromMiddleware = request.headers.get('x-user-id');
     const isFromMiddleware = request.headers.get('x-auth-from') === 'middleware';
@@ -63,6 +57,13 @@ export async function DELETE(
       }
       userId = user.id;
     }
+
+    // Create authenticated service role client for state-changing operations (bypasses RLS, with audit log)
+    const supabaseAdmin = createAuthenticatedServiceClient({
+      operation: 'delete_upload_file',
+      userId: userId,
+      route: '/api/member/orders/[id]/data-receipt/[fileId]',
+    });
 
     // Verify the file belongs to this order (from files table)
     const { data: fileRecord, error: fileError } = await supabase

@@ -13,7 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { sendTemplatedEmail } from '@/lib/email';
 import {
   getAdminAccessTokenForUpload,
@@ -23,18 +24,7 @@ import {
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { withAdminAuth } from '@/lib/api-auth';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
 export const dynamic = 'force-dynamic';
-
-// サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 // =====================================================
 // Types
@@ -100,7 +90,7 @@ export const GET = withAdminAuth<any>(async (
   context
 ) => {
   try {
-    const supabase = getServiceClient();
+    const supabase = createServiceClient();
 
     console.log('[Correction GET] Fetching revisions...');
 
@@ -141,8 +131,8 @@ export const GET = withAdminAuth<any>(async (
     console.log('[Correction GET] Success:', revisions?.length || 0, 'revisions');
 
     // Create a map of order items for quick lookup
-    const orderItemsMap = new Map(
-      (orderItemsResult.data || []).map(item => [item.id, item])
+    const orderItemsMap = new Map<string, any>(
+      (orderItemsResult.data || []).map((item: any) => [item.id, item])
     );
 
     // Add sku_name to each revision
@@ -192,9 +182,13 @@ export const POST = withAdminAuth<any>(async (
   context
 ) => {
   try {
-    // Service client for database and storage operations
+    // Service client for database and storage operations (state-changing: revision INSERT + status transition + email)
     // 認可は withAdminAuth で検証済み（auth.userId, auth.role が利用可能）
-    const supabase = getServiceClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_upload_correction',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/correction',
+    });
     console.log('[Correction POST] Starting upload...');
 
     // context.params は Promise<Record<string, string | string[]>> で提供される

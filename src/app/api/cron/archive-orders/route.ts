@@ -11,19 +11,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-
-// Helper function to create service role client (moved inside handler to avoid build-time env check)
-function createServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  const { createClient } = require('@supabase/supabase-js');
-  return createClient(supabaseUrl, supabaseServiceKey);
-}
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 interface ArchiveResponse {
   success: boolean;
@@ -43,16 +31,7 @@ export async function POST(request: NextRequest) {
     // =====================================================
     // Environment Variables & Cron Secret Verification
     // =====================================================
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const CRON_SECRET = process.env.CRON_SECRET;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json(
-        { success: false, error: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
 
     // =====================================================
     // Cron Secret Verification
@@ -89,8 +68,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Use service role client for cron jobs (no user context)
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'archive_orders',
+      route: '/api/cron/archive-orders',
+    });
 
     // Calculate date 3 months ago
     const threeMonthsAgo = new Date();

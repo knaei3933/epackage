@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import * as crypto from 'crypto';
-
-// Create Supabase client lazily to avoid build-time environment variable check
-function getSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 /**
  * GET /api/upload/[token]/validate
@@ -32,7 +24,10 @@ export async function GET(
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     // Query the designer_upload_tokens table
-    const supabase = getSupabaseClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'validate_upload_token',
+      route: '/api/upload/[token]/validate',
+    });
     const { data: tokenData, error: tokenError } = await supabase
       .from('designer_upload_tokens')
       .select(`

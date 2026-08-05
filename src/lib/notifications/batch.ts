@@ -7,7 +7,7 @@
  * @module lib/notifications/batch
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 import type {
   BatchNotificationJob,
   BatchNotification,
@@ -24,10 +24,11 @@ import { recordNotificationSent, recordDelivery, recordFailure } from './history
 // Configuration
 // ============================================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Lazy getter: createServiceClient reads env at call time (not module load).
+// This defers client construction until first use, aligning with the factory's
+// lazy design and avoiding side effects at import time (e.g. jest.mock hoisting).
+// The factory caches the singleton internally, so repeated calls are cheap.
+const getSupabase = () => createServiceClient()
 
 const BATCH_JOBS_TABLE = 'batch_notification_jobs'
 const BATCH_NOTIFICATIONS_TABLE = 'batch_notifications'
@@ -55,7 +56,7 @@ export async function createBatchJob(
   try {
     const jobId = `batch-${Date.now()}-${Math.random().toString(36).substring(7)}`
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .insert({
         id: jobId,
@@ -85,7 +86,7 @@ export async function startBatchJob(
   jobId: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .update({
         status: 'processing',
@@ -109,7 +110,7 @@ export async function completeBatchJob(
   status: 'completed' | 'failed'
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .update({
         status,
@@ -135,7 +136,7 @@ export async function updateBatchJobProgress(
   failed: number
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .update({
         processed_recipients: processed,
@@ -189,7 +190,7 @@ export async function processBatchNotifications<T extends { user_id: string; [ke
 
           // バッチ通知レコードを作成
           const batchNotifId = `bn-${Date.now()}-${Math.random().toString(36).substring(7)}`
-          await supabase.from(BATCH_NOTIFICATIONS_TABLE).insert({
+          await getSupabase().from(BATCH_NOTIFICATIONS_TABLE).insert({
             id: batchNotifId,
             job_id: jobId,
             recipient_id: recipient.user_id,
@@ -327,7 +328,7 @@ export async function retryFailedNotifications(
 ): Promise<number> {
   try {
     // 失敗した通知を取得
-    const { data: failed, error } = await supabase
+    const { data: failed, error } = await getSupabase()
       .from(BATCH_NOTIFICATIONS_TABLE)
       .select('*')
       .eq('job_id', jobId)
@@ -345,7 +346,7 @@ export async function retryFailedNotifications(
       // 再試行ロジック（実際には通知タイプに応じた再送処理）
       const success = await retryNotification(notification)
 
-      await supabase
+      await getSupabase()
         .from(BATCH_NOTIFICATIONS_TABLE)
         .update({
           status: success ? 'sent' : 'failed',
@@ -382,7 +383,7 @@ async function retryNotification(notification: BatchNotification): Promise<boole
  */
 export async function getBatchJobStatus(jobId: string): Promise<BatchNotificationJob | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .select('*')
       .eq('id', jobId)
@@ -401,7 +402,7 @@ export async function getBatchJobStatus(jobId: string): Promise<BatchNotificatio
  */
 export async function getActiveBatchJobs(): Promise<BatchNotificationJob[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .select('*')
       .in('status', ['pending', 'processing'])
@@ -424,8 +425,8 @@ export async function getBatchJobDetails(jobId: string): Promise<{
 }> {
   try {
     const [jobResult, notificationsResult] = await Promise.all([
-      supabase.from(BATCH_JOBS_TABLE).select('*').eq('id', jobId).single(),
-      supabase.from(BATCH_NOTIFICATIONS_TABLE).select('*').eq('job_id', jobId).limit(1000),
+      getSupabase().from(BATCH_JOBS_TABLE).select('*').eq('id', jobId).single(),
+      getSupabase().from(BATCH_NOTIFICATIONS_TABLE).select('*').eq('job_id', jobId).limit(1000),
     ])
 
     return {
@@ -454,7 +455,7 @@ function sleep(ms: number): Promise<void> {
  */
 export async function cancelBatchJob(jobId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .update({
         status: 'cancelled',
@@ -477,7 +478,7 @@ export async function cleanupOldJobs(daysToKeep: number = 30): Promise<number> {
   try {
     const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000)
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(BATCH_JOBS_TABLE)
       .delete()
       .lt('created_at', cutoffDate.toISOString())

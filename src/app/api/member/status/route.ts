@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 
 /**
  * GET /api/member/status
@@ -11,20 +11,6 @@ import { createClient } from '@supabase/supabase-js'
  * - 管理者承認待ちかどうか
  * - 承認完了かどうか
  */
-
-// Service role client for admin operations
-async function createServiceRoleClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  )
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     console.log('[STATUS API] Checking status for:', email)
 
-    const serviceRole = await createServiceRoleClient()
+    const serviceRole = createServiceClient()
 
     // =====================================================
     // Step 1: auth.users でメール認証状態を確認

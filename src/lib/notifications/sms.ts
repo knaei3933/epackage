@@ -7,7 +7,7 @@
  * @module lib/notifications/sms
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 import type {
   SMSNotification,
   SMSOptions,
@@ -19,10 +19,8 @@ import type {
 // Configuration
 // ============================================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Lazy getter: defers client construction until first use (see batch.ts rationale).
+const getSupabase = () => createServiceClient()
 
 // Twilio設定
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID
@@ -416,7 +414,7 @@ export async function canSendSMS(userId: string): Promise<boolean> {
       };
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('notification_preferences')
       .select('channels')
       .eq('user_id', userId)

@@ -8,25 +8,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { translateKoreanToJapanese } from '@/lib/translation';
 
 // Env vars checked at runtime in handler function
 const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
-
-// サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl(), supabaseServiceKey(), {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 // =====================================================
 // POST Handler - Retry Translation
@@ -61,7 +52,11 @@ export async function POST(
       );
     }
 
-    const supabase = getServiceClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'retry_translation',
+      userId: user.id,
+      route: '/api/member/orders/[id]/design-revisions/[revisionId]/retry-translation',
+    });
     const { id: orderId, revisionId } = await params;
 
     // Verify order belongs to user

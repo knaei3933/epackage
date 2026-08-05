@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedDesignerOrToken } from '@/lib/designer-auth';
 
 export const dynamic = 'force-dynamic';
@@ -71,17 +72,7 @@ export async function GET(
     );
 
     // サービスロールクライアントではRLSをバイパス
-    const supabaseAdmin = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    );
+    const supabaseAdmin = createServiceClient();
 
     // Get revisions AND order items in parallel
     const [revisionsResult, orderItemsResult] = await Promise.all([
@@ -107,8 +98,8 @@ export async function GET(
     }
 
     // Create a map of order items for quick lookup
-    const orderItemsMap = new Map(
-      (orderItemsResult.data || []).map(item => [item.id, item])
+    const orderItemsMap = new Map<string, any>(
+      (orderItemsResult.data || []).map((item: any) => [item.id, item])
     );
 
     // Add sku_name to each revision

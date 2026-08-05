@@ -6,32 +6,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { cancelDesignerTasksForOrder } from '@/lib/order-cancellation';
 import { mapStatusToCurrentStage, isValidStatusTransition } from '@/types/order-status';
 import type { OrderStatus } from '@/types/order-status';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Helper function to create service role client
-function createServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-  });
-}
 
 export async function PUT(request: NextRequest) {
   // SECURITY: ADMIN厳格認可（MAJOR-3・他 admin API route と統一・verifyAdminAuth は ADMIN+ACTIVE のみ許可）
@@ -66,8 +49,12 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Use service role client to bypass RLS
-    const supabase = createServiceRoleClient();
+    // Use authenticated service role client to bypass RLS (audit log あり)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_bulk_status_update',
+      userId: auth.userId,
+      route: '/api/admin/orders/bulk-status',
+    });
 
     // Bug2修正: 各注文の現在ステータスを取得し isValidStatusTransition で検証してから更新。
     // 旧コードは .update().in('id', order_ids) で一括更新し、遷移の妥当性を検証せず、

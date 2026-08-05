@@ -11,29 +11,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { withMemberAuth } from '@/lib/api-auth';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { SHIPMENTS_ALLOWED_ROLES } from '@/lib/shipments-constants';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Helper function to create service role client
-function createServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-  });
-}
 
 interface UpdateShipmentRequest {
   tracking_number?: string;
@@ -60,8 +44,11 @@ export const PUT = withMemberAuth<any>(
       // Parse request body
       const body: UpdateShipmentRequest = await request.json();
 
-      // Use service role client to bypass RLS
-      const supabase = createServiceRoleClient();
+      // Use service role client to bypass RLS (state-changing: update shipment)
+      const supabase = createAuthenticatedServiceClient({
+        operation: 'update_shipment',
+        route: '/api/shipments/[id]',
+      });
 
       // Build update object with only provided fields
       const updateData: any = {
@@ -141,7 +128,7 @@ export const GET = withMemberAuth<any>(
         );
       }
       const { id: shipmentId } = (await context.params) as { id: string };
-      const supabase = createServiceRoleClient();
+      const supabase = createServiceClient();
 
       // まず shipments データを取得
       const { data: shipmentData, error: shipmentError } = await supabase

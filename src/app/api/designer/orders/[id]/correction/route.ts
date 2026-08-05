@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { sendTemplatedEmail } from '@/lib/email';
 import { translateKoreanToJapanese } from '@/lib/translation';
 import {
@@ -20,8 +20,6 @@ import {
 } from '@/lib/google-drive';
 import { getAuthenticatedDesignerOrToken } from '@/lib/designer-auth';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
 
 export const dynamic = 'force-dynamic';
@@ -95,11 +93,10 @@ export async function POST(
     }
 
     // Service client for database and storage operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'upload_correction_data',
+      userId: authResult.designerId,
+      route: '/api/designer/orders/[id]/correction',
     });
 
     // Verify order exists
