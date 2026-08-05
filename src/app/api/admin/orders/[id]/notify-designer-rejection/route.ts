@@ -11,11 +11,10 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { sendCustomEmail } from '@/lib/email/epack-mailer';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // ============================================================
 // Type Definitions
@@ -47,11 +46,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+    // C-15: 認証を verifyAdminAuth に統一（旧: 認証なしで service client 使用・本番脆弱性）
+    const auth = await verifyAdminAuth(request);
+    if (!auth) return unauthorizedResponse();
+
+    // Service client for database operations (state-changing: designer notification email + revision_notifications insert)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'notify_designer_rejection',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/notify-designer-rejection',
     });
 
     console.log('[Designer Notification] Starting notification process...');
@@ -304,12 +307,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    // C-15: 認証を verifyAdminAuth に統一（revision_notifications は管理者向け機密情報）
+    if (!(await verifyAdminAuth(request))) return unauthorizedResponse();
+
+    const supabase = createServiceClient();
 
     const { id: orderId } = await params;
     const { searchParams } = new URL(request.url);
