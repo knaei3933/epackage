@@ -6,7 +6,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { shipmentTrackingService } from '@/lib/shipment-tracking-service';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
@@ -70,17 +70,18 @@ export async function POST(
     const { force } = body;
 
     // Check if shipment exists and has tracking number
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Database configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createServiceClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'refresh_shipment_tracking',
+      userId: auth.userId,
+      route: '/api/admin/shipments/[id]/tracking',
+    });
     const { data: shipment, error } = await supabase
       .from('shipments')
       .select('id, tracking_number, carrier_code, last_tracking_update')
@@ -157,17 +158,18 @@ export async function PUT(
       case 'update_estimated_delivery': {
         const { estimatedDelivery } = body;
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
           return NextResponse.json(
             { error: 'Database configuration error' },
             { status: 500 }
           );
         }
 
-        const supabase = createServiceClient();
+        const supabase = createAuthenticatedServiceClient({
+          operation: 'update_shipment_estimated_delivery',
+          userId: auth.userId,
+          route: '/api/admin/shipments/[id]/tracking',
+        });
 
         const { error } = await supabase
           .from('shipments')
@@ -188,17 +190,18 @@ export async function PUT(
       case 'update_status': {
         const { status, notes } = body;
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
           return NextResponse.json(
             { error: 'Database configuration error' },
             { status: 500 }
           );
         }
 
-        const supabase = createServiceClient();
+        const supabase = createAuthenticatedServiceClient({
+          operation: 'update_shipment_status',
+          userId: auth.userId,
+          route: '/api/admin/shipments/[id]/tracking',
+        });
 
         // Update status
         const { error } = await supabase
@@ -229,17 +232,18 @@ export async function PUT(
       case 'add_tracking_number': {
         const { trackingNumber } = body;
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
           return NextResponse.json(
             { error: 'Database configuration error' },
             { status: 500 }
           );
         }
 
-        const supabase = createServiceClient();
+        const supabase = createAuthenticatedServiceClient({
+          operation: 'add_shipment_tracking_number',
+          userId: auth.userId,
+          route: '/api/admin/shipments/[id]/tracking',
+        });
 
         const { error } = await supabase
           .from('shipments')
