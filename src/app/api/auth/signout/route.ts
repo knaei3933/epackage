@@ -10,8 +10,6 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
 
 // =====================================================
 // POST /api/auth/signout
@@ -39,40 +37,17 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // PRODUCTION: Invalidate session and delete cookies
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    // PRODUCTION: Delete cookies to end the session locally.
+    // Cookie deletion is the effective logout mechanism. Supabase access tokens
+    // expire naturally (typically ~1h). The previous service-role admin logout
+    // call targeted a non-standard endpoint and did not function; removing it
+    // eliminates SERVICE_ROLE_KEY exposure from this route.
 
     // Get all Supabase cookies from the request to know what to delete
     const requestCookies = request.cookies.getAll();
     const supabaseCookies = requestCookies.filter(c => c.name.startsWith('sb-'));
 
     console.log('[Signout] Found Supabase cookies:', supabaseCookies.map(c => c.name));
-
-    // Invalidate the session using service role key
-    if (SUPABASE_SERVICE_ROLE_KEY && supabaseCookies.length > 0) {
-      try {
-        // Get the access token from cookies
-        const accessTokenCookie = supabaseCookies.find(c => c.name.includes('access-token'));
-        if (accessTokenCookie) {
-          // Invalidate the session using Supabase admin API
-          await fetch(`${SUPABASE_URL}/rest/v1/auth/admin/logout`, {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_SERVICE_ROLE_KEY,
-              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token: accessTokenCookie.value }),
-          });
-          console.log('[Signout] Session invalidated via service role');
-        }
-      } catch (error) {
-        console.error('[Signout] Failed to invalidate session:', error);
-        // Continue anyway - cookie deletion is more important
-      }
-    }
 
     // Create response with cookie deletion headers
     const cookieDeletionHeaders = [];

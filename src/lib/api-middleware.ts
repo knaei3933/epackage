@@ -22,7 +22,7 @@
  */
 
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
 import { headers, cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -280,25 +280,11 @@ export function withAuth<T = NextResponse>(
     let supabase: any;
 
     if (options.useServiceRole) {
-      // Use service role client (after authentication!)
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-      if (!supabaseUrl || !supabaseServiceRoleKey) {
-        return createErrorResponse(
-          'サーバー設定エラー: Supabase設定が見つかりません。',
-          500
-        );
-      }
-
-      supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      });
+      // Service role client via factory (singleton + audit-ready).
+      // createServiceClient handles env validation internally (mock fallback on missing creds).
+      supabase = createServiceClient();
     } else {
-      // Use regular route handler client
+      // Use regular route handler client (cookie-based)
       const routeCookieStore = await cookies();
       supabase = createRouteHandlerClient<Database>({ cookies: async () => routeCookieStore });
     }
@@ -319,28 +305,6 @@ export function withAuth<T = NextResponse>(
 // ============================================================
 // Utility Functions
 // ============================================================
-
-/**
- * Create a service role client (use after authentication!)
- *
- * ⚠️ WARNING: Only use this AFTER verifying authentication!
- * This client bypasses RLS, so must be protected by auth checks.
- */
-export function createServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
 
 /**
  * Check if user has specific role
@@ -375,17 +339,9 @@ export async function getAdminUserId(request: NextRequest): Promise<string | nul
     if (!userId) return null;
 
     // Verify user is admin
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-      return null;
-    }
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    // Service role client via factory (singleton + audit-ready).
+    // createServiceClient handles env validation internally (mock fallback on missing creds).
+    const supabase = createServiceClient();
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -551,8 +507,8 @@ export function withAdminAuth<T = NextResponse>(
       );
     }
 
-    // Create service role client for database operations
-    const supabase = createServiceRoleClient();
+    // Service role client via factory (singleton + audit-ready).
+    const supabase = createServiceClient();
 
     // Create session object for handler
     const session = {
