@@ -1,7 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 // ============================================================
 // Type Definitions
@@ -22,11 +20,7 @@ export interface UploadedFile {
  * 사용자별 refresh 토큰 반환
  */
 export async function getRefreshToken(userId: string): Promise<string> {
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase credentials not configured');
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createServiceClient();
 
   const { data, error } = await supabase
     .from('user_google_tokens')
@@ -275,11 +269,11 @@ export async function exchangeCodeForToken(code: string): Promise<{
  * @param refreshToken - 리프레시 토큰
  */
 export async function saveRefreshToken(userId: string, refreshToken: string): Promise<void> {
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase credentials not configured');
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createAuthenticatedServiceClient({
+    operation: 'save_google_refresh_token',
+    userId,
+    route: '/lib/google-drive',
+  });
 
   const { error } = await supabase
     .from('user_google_tokens')

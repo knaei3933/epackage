@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import * as crypto from 'crypto';
 import { generateCorrectionFilename } from '@/lib/file-naming';
-
-// Create Supabase client lazily to avoid build-time environment variable check
-function getSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 /**
  * Translate Korean text to Japanese
@@ -139,7 +131,10 @@ export async function POST(
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     // Get Supabase client
-    const supabase = getSupabaseClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'upload_correction_via_token',
+      route: '/api/upload/[token]',
+    });
 
     // Validate token first
     const { data: tokenData, error: tokenError } = await supabase

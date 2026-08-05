@@ -9,10 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { createServiceClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +25,7 @@ export async function GET(
     const { id: orderId, revisionId } = await params;
 
     // Service client for database operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabase = createServiceClient();
 
     // Fetch revision record
     const { data: revision, error: revisionError } = await supabase

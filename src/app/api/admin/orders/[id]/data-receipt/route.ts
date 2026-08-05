@@ -10,10 +10,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { createServiceClient } from '@/lib/supabase';
 
 interface OrderFile {
   id: string;
@@ -39,12 +36,7 @@ export async function GET(
     const { id: orderId } = await params;
 
     // Create service client to bypass RLS
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabase = createServiceClient();
 
     // Get files for this order - using actual database column names
     const { data: files, error: filesError } = await supabase

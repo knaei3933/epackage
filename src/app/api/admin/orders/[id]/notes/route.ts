@@ -9,25 +9,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import nodemailer from 'nodemailer';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { logger, maskEmail } from '@/lib/logger';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
 const KOREA_EMAIL = 'info@kanei-trade.co.jp';
 
 export const dynamic = 'force-dynamic';
-
-// サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 // XServer SMTP transporter
 const getTransporter = () => {
@@ -58,7 +48,7 @@ export async function GET(
     if (!auth) return unauthorizedResponse();
 
     const { id: orderId } = await params;
-    const supabase = getServiceClient();
+    const supabase = createServiceClient();
 
     // Get latest admin note
     const { data: note, error } = await supabase
@@ -112,8 +102,12 @@ export async function POST(
     const auth = await verifyAdminAuth(request);
     if (!auth) return unauthorizedResponse();
 
-    // Service client for database operations
-    const supabase = getServiceClient();
+    // Service client for database operations (state-changing: admin notes update/insert)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'update_admin_notes',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/notes',
+    });
 
     // Check if note exists
     const { data: existingNote } = await supabase
@@ -178,8 +172,12 @@ export async function PUT(
     const auth = await verifyAdminAuth(request);
     if (!auth) return unauthorizedResponse();
 
-    // Service client for database operations
-    const supabase = getServiceClient();
+    // Service client for database operations (state-changing: send-to-korea + notes update/insert)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'send_to_korea_partner',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/notes',
+    });
 
     // Get order information
     const { data: order, error: orderError } = await supabase

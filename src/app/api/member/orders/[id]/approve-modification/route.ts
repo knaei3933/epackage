@@ -12,17 +12,9 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { notifyModificationApproved, notifyModificationRejected } from '@/lib/admin-notifications';
-
-// ============================================================
-// Environment Variables
-// ============================================================
-
-// Env vars checked at runtime in handler function
-const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // ============================================================
 // Types
@@ -61,7 +53,11 @@ export async function PUT(
     }
 
     // Use service client (RLS bypass) - we already validated via middleware
-    const supabase = createClient(supabaseUrl(), supabaseServiceKey());
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'approve_modification',
+      userId: userId,
+      route: '/api/member/orders/[id]/approve-modification',
+    });
     console.log('[Modification Approval API] User ID:', userId);
     console.log('[Modification Approval API] Order ID:', orderId);
 

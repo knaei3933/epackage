@@ -7,7 +7,7 @@
  * @module lib/notifications/history
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 import type {
   NotificationHistoryEntry,
   NotificationStatistics,
@@ -20,10 +20,8 @@ import type {
 // Configuration
 // ============================================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Lazy getter: defers client construction until first use (see batch.ts rationale).
+const getSupabase = () => createServiceClient()
 
 const HISTORY_TABLE = 'notification_history'
 
@@ -36,7 +34,7 @@ const HISTORY_TABLE = 'notification_history'
  */
 export async function recordNotificationHistory(entry: Omit<NotificationHistoryEntry, 'id'>): Promise<string | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .insert({
         ...entry,
@@ -88,7 +86,7 @@ export async function recordDelivery(
   deliveredAt?: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(HISTORY_TABLE)
       .update({
         status: 'delivered',
@@ -111,7 +109,7 @@ export async function recordOpen(
   openedAt?: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(HISTORY_TABLE)
       .update({
         status: 'opened',
@@ -134,7 +132,7 @@ export async function recordClick(
   clickedAt?: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(HISTORY_TABLE)
       .update({
         status: 'clicked',
@@ -157,7 +155,7 @@ export async function recordFailure(
   errorMessage: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(HISTORY_TABLE)
       .update({
         status: 'failed',
@@ -185,7 +183,7 @@ export async function getUserNotificationHistory(
   offset: number = 0
 ): Promise<NotificationHistoryEntry[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('*')
       .eq('user_id', userId)
@@ -207,7 +205,7 @@ export async function getNotificationHistory(
   notificationId: string
 ): Promise<NotificationHistoryEntry[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('*')
       .eq('notification_id', notificationId)
@@ -229,7 +227,7 @@ export async function getHistoryByCategory(
   category: NotificationCategory
 ): Promise<NotificationHistoryEntry[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('*')
       .eq('user_id', userId)
@@ -253,7 +251,7 @@ export async function getHistoryByChannel(
   channel: NotificationChannel
 ): Promise<NotificationHistoryEntry[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('*')
       .eq('user_id', userId)
@@ -285,7 +283,7 @@ export async function getNotificationStatistics(
     const start = startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // デフォルト30日
     const end = endDate || new Date()
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('*')
       .eq('user_id', userId)
@@ -449,7 +447,7 @@ export async function cleanupOldHistory(daysToKeep: number = 90): Promise<number
   try {
     const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000)
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .delete()
       .lt('sent_at', cutoffDate.toISOString())
@@ -469,14 +467,14 @@ export async function cleanupOldHistory(daysToKeep: number = 90): Promise<number
 export async function removeDuplicates(): Promise<number> {
   try {
     // 同一notification_idとchannelの組み合わせで重複を検出
-    const { data: duplicates } = await supabase.rpc('find_duplicate_notifications')
+    const { data: duplicates } = await getSupabase().rpc('find_duplicate_notifications')
 
     if (!duplicates || duplicates.length === 0) return 0
 
     // 重複を削除（最新のものを残す）
     let removed = 0
     for (const dup of duplicates) {
-      await supabase
+      await getSupabase()
         .from(HISTORY_TABLE)
         .delete()
         .eq('notification_id', dup.notification_id)
@@ -504,7 +502,7 @@ export async function getMostOpenedTypes(
   limit: number = 5
 ): Promise<Array<{ type: string; count: number }>> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('type')
       .eq('user_id', userId)
@@ -537,7 +535,7 @@ export async function getMostClickedCategories(
   limit: number = 5
 ): Promise<Array<{ category: string; count: number }>> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(HISTORY_TABLE)
       .select('category')
       .eq('user_id', userId)

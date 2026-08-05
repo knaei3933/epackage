@@ -7,7 +7,7 @@
  * @module lib/notifications/preferences
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 import type {
   NotificationPreferences,
   NotificationChannel,
@@ -19,10 +19,8 @@ import type {
 // Configuration
 // ============================================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Lazy getter: defers client construction until first use (see batch.ts rationale).
+const getSupabase = () => createServiceClient()
 
 const TABLE_NAME = 'notification_preferences'
 
@@ -80,7 +78,7 @@ export const defaultCategoryChannels: Record<NotificationCategory, NotificationC
  */
 export async function getUserPreferences(userId: string): Promise<NotificationPreferences | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(TABLE_NAME)
       .select('*')
       .eq('user_id', userId)
@@ -120,7 +118,7 @@ export async function updateUserPreferences(
         updated_at: new Date().toISOString(),
       } as NotificationPreferences
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from(TABLE_NAME)
         .insert(newPreferences)
         .select()
@@ -131,7 +129,7 @@ export async function updateUserPreferences(
     }
 
     // 更新
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(TABLE_NAME)
       .update({
         ...existing,
@@ -161,7 +159,7 @@ export async function createDefaultPreferences(userId: string): Promise<Notifica
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from(TABLE_NAME)
       .insert(preferences)
       .select()
@@ -463,7 +461,7 @@ export function normalizePhoneNumber(phoneNumber: string): string {
 export async function createDefaultPreferencesForExistingUsers(): Promise<number> {
   try {
     // profilesテーブルからすべてのユーザーを取得
-    const { data: users, error } = await supabase
+    const { data: users, error } = await getSupabase()
       .from('profiles')
       .select('id')
 
@@ -491,7 +489,7 @@ export async function createDefaultPreferencesForExistingUsers(): Promise<number
  */
 export async function resetPreferences(userId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(TABLE_NAME)
       .delete()
       .eq('user_id', userId)

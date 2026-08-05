@@ -7,7 +7,7 @@
  * @module lib/notifications/optimization
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 import type {
   DeliveryOptimization,
   DeliveryTimeRecommendation,
@@ -20,10 +20,8 @@ import { isInQuietHours } from './preferences'
 // Configuration
 // ============================================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Lazy getter: defers client construction until first use (see batch.ts rationale).
+const getSupabase = () => createServiceClient()
 
 const OPTIMIZATION_TABLE = 'delivery_optimization'
 
@@ -97,7 +95,7 @@ export async function calculateOptimalSendTime(
  */
 async function getUserTimezone(userId: string): Promise<string> {
   try {
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from('notification_preferences')
       .select('quiet_hours')
       .eq('user_id', userId)
@@ -114,7 +112,7 @@ async function getUserTimezone(userId: string): Promise<string> {
  */
 async function getQuietHours(userId: string): Promise<{ start: string; end: string }> {
   try {
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from('notification_preferences')
       .select('quiet_hours')
       .eq('user_id', userId)
@@ -142,7 +140,7 @@ export async function getDeliveryTimeRecommendations(
 ): Promise<DeliveryTimeRecommendation> {
   try {
     // ユーザーの過去の開封データを分析
-    const { data: history } = await supabase
+    const { data: history } = await getSupabase()
       .from('notification_history')
       .select('sent_at, opened_at, channel')
       .eq('user_id', userId)
@@ -222,7 +220,7 @@ export async function calculateDeliveryScore(
 ): Promise<DeliveryScore> {
   try {
     // 過去30日間の配信データを取得
-    const { data: history } = await supabase
+    const { data: history } = await getSupabase()
       .from('notification_history')
       .select('status, sent_at')
       .eq('user_id', userId)
@@ -245,15 +243,15 @@ export async function calculateDeliveryScore(
     }
 
     // 配信成功率
-    const successCount = history.filter(h => h.status === 'delivered' || h.status === 'opened' || h.status === 'clicked').length
+    const successCount = history.filter((h: any) => h.status === 'delivered' || h.status === 'opened' || h.status === 'clicked').length
     const deliverySuccessRate = successCount / history.length
 
     // エンゲージメント率（開封+クリック）
-    const engagementCount = history.filter(h => h.status === 'opened' || h.status === 'clicked').length
+    const engagementCount = history.filter((h: any) => h.status === 'opened' || h.status === 'clicked').length
     const engagementRate = engagementCount / history.length
 
     // 最近のアクティビティ（過去7日間の通知数）
-    const recentCount = history.filter(h => {
+    const recentCount = history.filter((h: any) => {
       const sentDate = new Date(h.sent_at)
       const daysSince = (Date.now() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
       return daysSince <= 7
@@ -393,7 +391,7 @@ export async function checkRateLimit(
     // 過去1時間の送信数を確認
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('notification_history')
       .select('id')
       .eq('user_id', userId)
@@ -435,7 +433,7 @@ export async function checkRateLimit(
  */
 export async function getOptimizationSettings(): Promise<DeliveryOptimization> {
   try {
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from(OPTIMIZATION_TABLE)
       .select('*')
       .single()
@@ -455,7 +453,7 @@ export async function updateOptimizationSettings(
   try {
     const existing = await getOptimizationSettings()
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from(OPTIMIZATION_TABLE)
       .upsert({
         ...existing,

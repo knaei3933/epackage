@@ -7,7 +7,7 @@
  * @module lib/email/email-settings
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
 import type {
   EmailSettings,
   SmtpConfig,
@@ -44,20 +44,12 @@ const CACHE_VERSION = '1.0.0';
 // ============================================================
 
 function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     console.warn('[EmailSettings] Supabase credentials not configured');
     return null;
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  return createServiceClient();
 }
 
 // ============================================================

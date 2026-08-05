@@ -11,7 +11,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import type { UpdatePostRequest } from '@/lib/types/blog';
 import { generateSlug, calculateReadingTime } from '@/lib/types/blog';
 
@@ -30,17 +31,14 @@ export async function GET(
       return unauthorizedResponse();
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServiceClient();
     const { id: postId } = await params;
 
     // Fetch post
@@ -86,17 +84,19 @@ export async function PUT(
       return unauthorizedResponse();
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create authenticated service client (audit log あり・ブログ記事更新は state-changing)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_update_blog_post',
+      userId: auth.userId,
+      route: '/api/admin/blog/[id]',
+    });
     const { id: postId } = await params;
 
     // Check if post exists
@@ -235,17 +235,19 @@ export async function DELETE(
       return unauthorizedResponse();
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create authenticated service client (audit log あり・ブログ記事削除は state-changing)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_delete_blog_post',
+      userId: auth.userId,
+      route: '/api/admin/blog/[id]',
+    });
     const { id: postId } = await params;
 
     // Check if post exists

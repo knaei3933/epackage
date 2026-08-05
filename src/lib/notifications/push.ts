@@ -7,7 +7,7 @@
  * @module lib/notifications/push
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase'
 import type {
   PushNotification,
   DeviceToken,
@@ -19,10 +19,8 @@ import type {
 // Configuration
 // ============================================================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+// Lazy getter: defers client construction until first use (see batch.ts rationale).
+const getSupabase = () => createServiceClient()
 
 // Firebase設定
 const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY
@@ -319,7 +317,7 @@ export async function registerDeviceToken(
 ): Promise<boolean> {
   try {
     // 既存のトークンをチェック
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabase()
       .from('device_tokens')
       .select('id')
       .eq('token', token)
@@ -327,7 +325,7 @@ export async function registerDeviceToken(
 
     if (existing) {
       // 既存トークンを更新
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('device_tokens')
         .update({
           user_id: userId,
@@ -343,7 +341,7 @@ export async function registerDeviceToken(
     }
 
     // 新規トークンを登録
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('device_tokens')
       .insert({
         id: `dt-${Date.now()}-${Math.random().toString(36).substring(7)}`,
@@ -369,7 +367,7 @@ export async function registerDeviceToken(
  */
 export async function unregisterDeviceToken(token: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('device_tokens')
       .update({
         is_active: false,
@@ -389,7 +387,7 @@ export async function unregisterDeviceToken(token: string): Promise<boolean> {
  */
 export async function getUserDeviceTokens(userId: string): Promise<DeviceToken[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('device_tokens')
       .select('*')
       .eq('user_id', userId)
@@ -411,7 +409,7 @@ export async function removeInvalidTokens(tokens: string[]): Promise<number> {
     let removed = 0
 
     for (const token of tokens) {
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('device_tokens')
         .update({ is_active: false })
         .eq('token', token)

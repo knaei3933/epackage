@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -35,10 +35,10 @@ export async function GET(request: Request) {
   }
 
   // Create Supabase client with service role key
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createAuthenticatedServiceClient({
+    operation: 'publish_scheduled_posts',
+    route: '/api/cron/publish-scheduled-posts',
+  });
 
   // Query scheduled posts that should be published
   const { data: posts, error } = await supabase

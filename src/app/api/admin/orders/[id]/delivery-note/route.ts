@@ -8,22 +8,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { sendTemplatedEmail } from '@/lib/email';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
 export const dynamic = 'force-dynamic';
-
-// サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 interface DeliveryNoteResponse {
   success: boolean;
@@ -45,7 +34,11 @@ export async function POST(
 
     // C-21: service client（RLSバイパス）で他人の注文も参照可能。
     // 旧: createServerClient(anon + cookie・RLS有効) で管理者が他人の注文を参照できず常に404。
-    const supabase = getServiceClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'send_delivery_note',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/delivery-note',
+    });
 
     // Get order details
     const { data: order, error: orderError } = await supabase

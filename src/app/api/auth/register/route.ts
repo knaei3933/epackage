@@ -6,6 +6,7 @@ import { cookies } from 'next/headers'
 import { registrationSchema } from '@/types/auth'
 import { z } from 'zod'
 import { withRateLimit, createAuthRateLimiter } from '@/lib/rate-limiter'
+import { createServiceClient } from '@/lib/supabase'
 
 // =====================================================
 // Rate Limiter
@@ -47,20 +48,6 @@ async function createSupabaseClient() {
             cookieStore.delete(key)
           },
         },
-      },
-    }
-  )
-}
-
-// Service role client for admin operations (bypasses RLS)
-async function createServiceRoleClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
       },
     }
   )
@@ -116,7 +103,7 @@ async function handleRegisterPost(request: NextRequest) {
     // =====================================================
 
     // Step 0: 이메일 중복 확인 (profiles 테이블)
-    const serviceRoleCheck = await createServiceRoleClient()
+    const serviceRoleCheck = createServiceClient()
     const { data: existingProfile } = await serviceRoleCheck
       .from('profiles')
       .select('id, email, status')

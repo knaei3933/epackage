@@ -14,11 +14,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { withAdminAuth } from '@/lib/api-auth';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 // =====================================================
 // DELETE Handler - Delete Correction (with Admin Authorization)
@@ -30,13 +27,12 @@ export const DELETE = withAdminAuth<any>(async (
   context
 ) => {
   try {
-    // service_role クライアントで RLS バイパス（DB/Storage 操作用）
+    // service_role クライアントで RLS バイパス（DB/Storage 操作用・audit log あり）
     // 認可は withAdminAuth で検証済み（auth.userId, auth.role が利用可能）
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_delete_correction',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/correction/[revisionId]',
     });
 
     // context.params は Promise<Record<string, string | string[]>> で提供される

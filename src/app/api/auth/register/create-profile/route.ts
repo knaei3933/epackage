@@ -1,28 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// =====================================================
-// Service Client for Profile Creation
-// =====================================================
-
-function createServiceClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Supabase service credentials not configured')
-  }
-
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  )
-}
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated'
 
 // =====================================================
 // Request Validation
@@ -77,7 +56,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Create service client
-    const serviceClient = createServiceClient()
+    const serviceClient = createAuthenticatedServiceClient({
+      operation: 'create_profile',
+      userId: userId,
+      route: '/api/auth/register/create-profile',
+    })
 
     // =====================================================
     // Check if profile already exists

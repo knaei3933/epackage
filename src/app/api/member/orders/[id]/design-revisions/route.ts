@@ -9,25 +9,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { DESIGN_REVISION_ERRORS, createErrorResponse } from '@/lib/api-error-codes';
 
 // Env vars checked at runtime in handler function
 const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
-
-// サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl(), supabaseServiceKey(), {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 // =====================================================
 // GET Handler - List Design Revisions
@@ -62,7 +54,7 @@ export async function GET(
       );
     }
 
-    const supabase = getServiceClient();
+    const supabase = createServiceClient();
     const { id: orderId } = await params;
 
     // Verify order belongs to user
@@ -110,12 +102,12 @@ export async function GET(
     }
 
     // Create a map of order items for quick lookup
-    const orderItemsMap = new Map(
-      (orderItemsResult.data || []).map(item => [item.id, item])
+    const orderItemsMap = new Map<string, any>(
+      (orderItemsResult.data || []).map((item: any) => [item.id, item])
     );
 
     // Add sku_name to each revision
-    const revisionsWithSkuNames = (revisions || []).map(revision => {
+    const revisionsWithSkuNames = (revisions || []).map((revision: any) => {
       let skuName = null;
       if (revision.order_item_id) {
         const item = orderItemsMap.get(revision.order_item_id);
@@ -183,7 +175,11 @@ export async function PATCH(
       );
     }
 
-    const supabase = getServiceClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'update_design_revision_approval',
+      userId: user.id,
+      route: '/api/member/orders/[id]/design-revisions',
+    });
     const { id: orderId } = await params;
 
     // Verify order belongs to user

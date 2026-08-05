@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createServiceClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,17 +103,7 @@ export async function GET(request: NextRequest) {
     );
 
     // サービスロールクライアントではRLSをバイパス
-    const supabaseAdmin = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          get: (name) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    );
+    const supabaseAdmin = createServiceClient();
 
     // CORRECTION_IN_PROGRESSまたはCUSTOMER_APPROVAL_PENDINGステータスの注文を取得
     let query = supabaseAdmin

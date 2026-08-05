@@ -12,13 +12,10 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { UnifiedNotificationService } from '@/lib/unified-notifications';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 interface Specification {
   width: number;
@@ -53,8 +50,12 @@ export async function POST(
     const { id: orderId } = await params;
     const body = await request.json() as SpecChangeRequest;
 
-    // Supabaseクライアント作成（サービスロール）
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    // Supabaseクライアント作成（サービスロール・audit log あり）
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_specification_change',
+      userId: auth.userId,
+      route: '/api/admin/orders/[id]/specification-change',
+    });
 
     // 注文の詳細を取得
     const { data: order, error: orderError } = await supabase

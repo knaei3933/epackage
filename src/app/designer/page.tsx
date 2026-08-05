@@ -12,6 +12,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
+import { createServiceClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import {
@@ -125,17 +126,7 @@ async function fetchDesignerOrders(
   );
 
   // サービスロールクライアントではRLSをバイパス
-  const supabaseAdmin = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
+  const supabaseAdmin = createServiceClient();
 
   // 1. CORRECTION_IN_PROGRESSステータスの注文を取得
   let query = supabaseAdmin

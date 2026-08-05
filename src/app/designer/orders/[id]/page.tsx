@@ -14,7 +14,7 @@
 import { Suspense } from 'react';
 import { redirect, notFound } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { ArrowLeft, FileText, User, Calendar, Package, AlertCircle } from 'lucide-react';
@@ -153,16 +153,7 @@ async function fetchOrderDetail(orderId: string, isAdmin: boolean = false): Prom
 
   if (isAdmin) {
     // 管理者の場合はサービスロールキーを使用（RLSバイパス）
-    supabase = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    supabase = createServiceClient();
   } else {
     // デザイナーの場合はanonキーを使用
     const cookieStore = await cookies();

@@ -11,12 +11,9 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
 import { getAdminAccessTokenForUpload } from '@/lib/google-drive';
 import { extractPathFromUrl } from '@/lib/storage-path';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // =====================================================
 // GET Handler - Download File (Google Drive or Supabase Storage)
@@ -27,12 +24,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string; fileId: string }> }
 ) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    // 注: このルートは admin 認証ヘッダー検証がないため userId 取得不可。createServiceClient で統一。
+    const supabase = createServiceClient();
 
     console.log('[File Download] Starting download...');
 
@@ -169,12 +162,7 @@ async function downloadFromSupabaseStorage(file: any): Promise<NextResponse> {
     storagePath = filePath.replace('production-files/', '');
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  const supabase = createServiceClient();
 
   // Download directly from Supabase Storage using the SDK
   const { data: fileData, error: downloadError } = await supabase.storage

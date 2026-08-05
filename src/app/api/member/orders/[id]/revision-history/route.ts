@@ -8,24 +8,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createServiceClient } from '@/lib/supabase';
 
 // Env vars checked at runtime in handler function
 const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export const dynamic = 'force-dynamic';
-
-// サービスクライアント (RLSバイパス用)
-const getServiceClient = () => createClient(supabaseUrl(), supabaseServiceKey(), {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 // =====================================================
 // Types
@@ -101,7 +92,7 @@ export async function GET(
       );
     }
 
-    const supabase = getServiceClient();
+    const supabase = createServiceClient();
     const { id: orderId } = await params;
 
     // Verify order belongs to user
@@ -175,14 +166,14 @@ export async function GET(
     }
 
     // Create submissions map for lookup
-    const submissionsMap = new Map(
-      (allSubmissions || []).map(s => [s.id, s])
+    const submissionsMap = new Map<string, any>(
+      (allSubmissions || []).map((s: any) => [s.id, s])
     );
 
     // Get user names for rejection and approval
     const userIds = [
-      ...(revisions || []).map(r => r.rejected_by).filter(Boolean),
-      ...(revisions || []).map(r => r.approved_by).filter(Boolean),
+      ...(revisions || []).map((r: any) => r.rejected_by).filter(Boolean),
+      ...(revisions || []).map((r: any) => r.approved_by).filter(Boolean),
     ] as string[];
 
     let userNamesMap = new Map<string, string>();
@@ -200,7 +191,7 @@ export async function GET(
     // Track which submissions are linked to revisions
     const linkedSubmissionIds = new Set(
       (revisions || [])
-        .map(r => r.customer_submission_id)
+        .map((r: any) => r.customer_submission_id)
         .filter(Boolean) as string[]
     );
 

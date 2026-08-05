@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import type {
   BlogListParams,
   BlogListResponse,
@@ -45,17 +46,14 @@ export async function GET(request: NextRequest) {
       return unauthorizedResponse();
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createServiceClient();
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -114,7 +112,7 @@ export async function GET(request: NextRequest) {
           .in('id', authorIds);
 
         if (profiles) {
-          profileMap = profiles.reduce((acc, profile) => {
+          profileMap = profiles.reduce((acc: Record<string, AuthorProfile>, profile: any) => {
             acc[profile.id] = profile;
             return acc;
           }, {} as Record<string, AuthorProfile>);
@@ -173,17 +171,19 @@ export async function POST(request: NextRequest) {
       return unauthorizedResponse();
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create authenticated service client (audit log あり・ブログ記事作成は state-changing)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_create_blog_post',
+      userId: auth.userId,
+      route: '/api/admin/blog',
+    });
 
     // Get authenticated user
     const userId = auth.userId;

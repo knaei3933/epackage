@@ -7,19 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
-
-// Helper function to create service role client (env check moved to runtime)
-function getServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseServiceKey);
-}
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +50,10 @@ const guestQuotationSchema = z.object({
 // POST: 新しい見積を作成（ゲスト用）
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getServiceRoleClient();
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'guest_save_quotation',
+      route: '/api/quotations/guest-save',
+    });
     const body = await request.json();
 
     // スキーマ検証

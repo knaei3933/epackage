@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 // Helper: Create Supabase client with cookie support (env check moved to runtime)
 async function createSupabaseClient() {
@@ -81,18 +82,6 @@ interface SaveRequestBody {
   adjustedTotal?: number;
 }
 
-// Helper: Get service role client (env check moved to runtime)
-function getServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseServiceKey);
-}
-
 export const dynamic = 'force-dynamic';
 
 // POST: 新しい見積を作成
@@ -100,7 +89,6 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseClient();
-    const supabaseService = getServiceRoleClient();
 
     // セッション確認
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -120,6 +108,13 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = user.id;
+
+    // Authenticated service role client (state-changing: insert quotation + items)
+    const supabaseService = createAuthenticatedServiceClient({
+      operation: 'save_quotation',
+      userId: userId,
+      route: '/api/quotations/save',
+    });
 
     // プロフィールからユーザー情報取得（company_nameを含む）
     const { data: profile, error: profileError } = await supabase

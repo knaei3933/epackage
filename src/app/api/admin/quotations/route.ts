@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { Database } from '@/types/database';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceClient } from '@/lib/supabase';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { notifyQuoteApproved } from '@/lib/email/order-status-emails';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
 import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
@@ -83,19 +84,15 @@ export async function GET(request: NextRequest) {
       return unauthorizedResponse();
     }
 
-    // Get environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    // Create service client (bypasses RLS)
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create service client (bypasses RLS・read-only なので audit log なし singleton)
+    const supabase = createServiceClient();
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -153,7 +150,7 @@ export async function GET(request: NextRequest) {
     let quotationsWithProfiles: any[] = [];
     if (quotations && quotations.length > 0) {
       // Get unique user IDs
-      const userIds = Array.from(new Set(quotations.map(q => q.user_id).filter(Boolean)));
+      const userIds = Array.from(new Set(quotations.map((q: any) => q.user_id).filter(Boolean)));
 
       // Fetch profiles in batch
       let profileMap: Record<string, UserProfile> = {};
@@ -164,7 +161,7 @@ export async function GET(request: NextRequest) {
           .in('id', userIds);
 
         if (profiles) {
-          profileMap = profiles.reduce((acc, profile) => {
+          profileMap = profiles.reduce((acc: Record<string, UserProfile>, profile: any) => {
             acc[profile.id] = profile;
             return acc;
           }, {} as Record<string, UserProfile>);
@@ -172,7 +169,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Merge quotations with profile data and process items
-      quotationsWithProfiles = quotations.map(quotation => {
+      quotationsWithProfiles = quotations.map((quotation: any) => {
         const quotationItems = (quotation as any).quotation_items || [];
         // Process items to include breakdown with sku_info
         const processedItems = quotationItems.map((item: any) => {
@@ -247,19 +244,19 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Get environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    // Create service client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create authenticated service client (audit log あり・見積更新は state-changing)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_update_quotation',
+      userId: auth.userId,
+      route: '/api/admin/quotations',
+    });
 
     // Get current quotation to check previous status
     const { data: currentQuotation, error: fetchError } = await supabase
@@ -374,19 +371,19 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Get environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    // Create service client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create authenticated service client (audit log あり・見積削除は state-changing)
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'admin_delete_quotation',
+      userId: auth.userId,
+      route: '/api/admin/quotations',
+    });
 
     // Delete quotation (cascade will delete quotation_items)
     const { error } = await supabase

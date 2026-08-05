@@ -11,13 +11,14 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { UnifiedNotificationService } from '@/lib/unified-notifications';
 
 // Env vars checked at runtime in handler function
 const supabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 interface Specification {
   width: number;
@@ -45,22 +46,28 @@ export async function POST(
   try {
     // 認証確認
     const cookieStore = await cookies();
-    const supabase = createClient(
+    const supabaseAuth = createServerClient(
       supabaseUrl(),
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseAnonKey(),
       {
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
+          get: (name: string) => cookieStore.get(name)?.value,
+          set: () => {},
+          remove: () => {},
         },
-      } as any
+      }
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabase = createAuthenticatedServiceClient({
+      operation: 'member_spec_change_request',
+      userId: user.id,
+      route: '/api/member/orders/[id]/specification-change',
+    });
 
     const { id: orderId } = await params;
     const body = await request.json() as SpecChangeRequest;

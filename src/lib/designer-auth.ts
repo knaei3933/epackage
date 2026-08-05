@@ -13,11 +13,8 @@
  */
 
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import { hashToken, isTokenExpired } from './designer-tokens';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // =====================================================
 // Types
@@ -52,8 +49,9 @@ export async function getAuthenticatedDesignerOrToken(
   orderId: string,
   token?: string
 ): Promise<DesignerAuthResult> {
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+  const supabase = createAuthenticatedServiceClient({
+    operation: 'designer_auth',
+    route: '/lib/designer-auth',
   });
 
   // Method 1: Check middleware-based auth (x-user-id header)
