@@ -11,6 +11,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Primary 色トークン（brixa ブランド緑のエイリアス）。
+        // これまで *-primary 系クラス（border-primary / bg-primary / ring-primary /
+        // text-primary 等）がトークン不存在で無効化し、選択ハイライトや同意チェックの
+        // 強調色が一切表示されない不具合を根本解決するため追加。
+        // hex 直書きにすることで Tailwind が opacity modifier（bg-primary/10 等）も
+        // 自動で RGB 変換して計算できるようにする（CSS 変数だと hex 形式で壊れるため）。
+        primary: {
+          DEFAULT: '#5EB6AC',
+          50: '#F0FBFA',
+          100: '#E1F6F4',
+          200: '#C3EBE6',
+          300: '#89E1D8',
+          400: '#5EB6AC',
+          500: '#47A39A',
+          600: '#3A827B',
+          700: '#2D6C65',
+          800: '#235954',
+          900: '#1A453F',
+        },
         // Epackage Lab Brand Colors
         brixa: {
           DEFAULT: 'var(--brixa-primary)',
