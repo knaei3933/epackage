@@ -60,14 +60,13 @@ interface DesignerTaskAssignment {
   id: string;
   designer_id: string;
   order_id: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status: string | null;
   assigned_at: string;
   completed_at: string | null;
   notes: string | null;
   access_token_hash: string | null;
   access_token_expires_at: string | null;
   last_accessed_at: string | null;
-  sku_name?: string | null;
 }
 
 interface DesignRevision {

@@ -27,6 +27,12 @@ type SampleRequestRow = {
   created_at: string;
 };
 
+// 配送統計用（shipments テーブルの Row 部分集合・実DBカラム shipped_at/status に対応）
+type ShipmentRow = {
+  shipped_at: string | null;
+  status: string | null;
+};
+
 /**
  * GET /api/admin/dashboard/statistics
  * 管理者ダッシュボード統計API
@@ -145,7 +151,7 @@ function calculateStatistics(data: {
   quotations?: QuotationRow[];
   sampleRequests?: SampleRequestRow[];
   productionOrders?: any[];
-  shipments?: SampleRequestRow[];
+  shipments?: ShipmentRow[];
 }) {
   const { orders, quotations, sampleRequests, productionOrders, shipments } = data;
 
@@ -229,7 +235,7 @@ function calculateStatistics(data: {
 
   // 配送統計
   const todayShipments = shipments?.length || 0;
-  const inTransitShipments = shipments?.filter((s: SampleRequestRow) => s.status === 'in_transit').length || 0;
+  const inTransitShipments = shipments?.filter((s: ShipmentRow) => s.status === 'in_transit').length || 0;
 
   // 売上統計
   const avgOrderAmount = totalOrders > 0

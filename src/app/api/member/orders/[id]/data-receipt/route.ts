@@ -538,8 +538,10 @@ export async function POST(
           console.error('[Data Receipt Upload] Failed to fetch designer emails:', settingsError);
         } else if (notificationSettings?.value) {
           // JSONB配列からメールアドレスを抽出
+          // NOTE: notificationSettings.value は Json 型。配列要素は文字列を想定だが
+          // 型上は Json（string | number | boolean | object | Json[]）のため unknown 経由でキャスト
           const designerEmails: string[] = Array.isArray(notificationSettings.value)
-            ? notificationSettings.value
+            ? (notificationSettings.value as unknown as string[])
             : [];
 
           if (designerEmails.length > 0) {
@@ -584,7 +586,9 @@ export async function POST(
                     .select('id')
                     .eq('order_id', orderId)
                     .single();
-                  taskAssignment = { data: newAssignment };
+                  // NOTE: insert 直後のレコードは access_token 未設定。直後に update で設定するため
+                  // ここでは data のみ再取得。型の完全性は unknown 経由でキャスト（technical debt）
+                  taskAssignment = { data: newAssignment } as unknown as typeof taskAssignment;
                 }
               }
             }
@@ -852,16 +856,19 @@ export async function POST(
           console.log('[Data Receipt Upload] Auto-transition completed to CORRECTION_IN_PROGRESS');
 
           // 履歴を記録
-          await adminClient
-            .from('order_status_history')
-            .insert({
-              order_id: orderId,
-              from_status: currentStatus,
-              to_status: 'CORRECTION_IN_PROGRESS',
-              changed_by: 'SYSTEM',
-              changed_at: new Date().toISOString(),
-              reason: `全SKUデータ入稿完了（${totalSkus}個）による自動遷移`,
-            })
+          // NOTE: Supabase insert は PromiseLike を返すが .catch を持たないため Promise.resolve でラップ
+          await Promise.resolve(
+            adminClient
+              .from('order_status_history')
+              .insert({
+                order_id: orderId,
+                from_status: currentStatus,
+                to_status: 'CORRECTION_IN_PROGRESS',
+                changed_by: 'SYSTEM',
+                changed_at: new Date().toISOString(),
+                reason: `全SKUデータ入稿完了（${totalSkus}個）による自動遷移`,
+              })
+          )
             .then(() => console.log('[Data Receipt Upload] Status history logged'))
             .catch((err: unknown) => console.error('[Data Receipt Upload] History logging error:', err));
         }
@@ -1012,7 +1019,7 @@ export async function GET(
       (orderItemsResult.data || []).map((item: { id: string }) => [item.id, item as OrderItemType])
     );
 
-    const transformedFiles = ((filesResult.data || []) as Array<{ id: string; order_item_id: string | null; original_filename?: string | null; file_name?: string | null; file_type: string; file_url: string; uploaded_at?: string | null; created_at: string; validation_status: string }>).map((file) => {
+    const transformedFiles = ((filesResult.data || []) as Array<{ id: string; order_item_id: string | null; original_filename?: string | null; file_name?: string | null; file_type: string; file_url: string; uploaded_at?: string | null; validation_status: string }>).map((file) => {
       let skuName = null;
       if (file.order_item_id) {
         const item = orderItemsMap.get(file.order_item_id);
@@ -1056,7 +1063,7 @@ export async function GET(
         file_name: file.original_filename || file.file_name,
         file_type: file.file_type.toLowerCase(),
         file_url: file.file_url,
-        uploaded_at: file.uploaded_at || file.created_at,
+        uploaded_at: file.uploaded_at ?? null,
         validation_status: file.validation_status,
         order_item_id: file.order_item_id,  // NEW
         sku_name: skuName,  // NEW: SKU name snapshot

@@ -19,8 +19,23 @@ export async function DELETE(
     const { id: notificationId } = await params;
     const supabase = getServerClient();
 
+    // TECHNICAL DEBT: SupabaseClient<Database> で notifications クエリの型解決が深すぎて
+    // TS2589 が発生するため、最小限の structural 型へキャストして回避（C2 型厳密化の副次被害）。
+    const typedClient = supabase as unknown as {
+      from: (table: 'notifications') => {
+        delete: () => {
+          eq: (column: string, value: string) => {
+            eq: (
+              column: string,
+              value: string,
+            ) => Promise<{ error: { message: string; code: string } | null }>;
+          };
+        };
+      };
+    };
+
     // Delete notification
-    const { error } = await supabase
+    const { error } = await typedClient
       .from('notifications')
       .delete()
       .eq('id', notificationId)

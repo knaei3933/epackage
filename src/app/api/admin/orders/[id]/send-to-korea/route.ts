@@ -75,6 +75,7 @@ export async function POST(
     const supabase = createServiceClient();
 
     // 注文詳細 + ファイルを取得（status を含め、監査ログ from_status 用に使用）
+    // 注: orders テーブルに items 列は存在しないため、order_items は別クエリで取得
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
@@ -84,7 +85,6 @@ export async function POST(
         customer_email,
         customer_phone,
         created_at,
-        items,
         quotation_id,
         status,
         files (
@@ -122,10 +122,23 @@ export async function POST(
       );
     }
 
+    // 注文アイテムを実DBの order_items テーブルから取得（orders.items は実DBに存在しない）
+    const { data: orderItems } = await supabase
+      .from('order_items')
+      .select('id, product_name, specifications, quantity')
+      .eq('order_id', orderId);
+
     // 注文アイテムから製品詳細を解析
-    const items = order.items || [];
-    const firstItem = items[0] || {};
-    const specs = firstItem.specifications || {};
+    // 技術的負債: orderItems は null 可能で要素型推論が崩れるため明示型で受ける
+    type OrderItemLite = {
+      id: string;
+      product_name: string | null;
+      specifications: Record<string, unknown> | null;
+      quantity: number;
+    };
+    const items: OrderItemLite[] = (orderItems ?? []) as OrderItemLite[];
+    const firstItem = items[0];
+    const specs = (firstItem?.specifications ?? {}) as Record<string, any>;
 
     // メールデータを構築
     const emailData = {
@@ -149,7 +162,8 @@ export async function POST(
         colors: specs.printingColors || 0,
 
         // Design
-        productName: firstItem.productName || '-',
+        // 注: order_items.product_name（snake_case・実DBカラム）から取得（productName は非存在）
+        productName: firstItem?.product_name || '-',
         hasLogo: specs.hasLogo || false,
         hasBarcode: specs.hasBarcode || false,
       },

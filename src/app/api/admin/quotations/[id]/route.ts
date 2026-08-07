@@ -70,10 +70,16 @@ export async function GET(
 
     // security-reviewer M-2: 開発用 debug log（specifications/items raw dump・準 PII 含む可能性）は削除
 
-    const itemsWithBreakdown = (items || []).map((item: QuotationItem) => ({
-      ...item,
-      breakdown: calculateBreakdown(item, quotation.printing_type),
-    }));
+    // 技術的負債: items は quotation_items Row（実DB型）。QuotationItem（独自型）は
+    // notes/display_order 等の実DB非存在列を含むため、unknown 経由でキャスト。
+    // calculateBreakdown は specs/cost_breakdown/film_cost_details を参照（specs.film_cost_details で代替）。
+    const itemsWithBreakdown = (items || []).map((rawItem) => {
+      const item = rawItem as unknown as QuotationItem;
+      return {
+        ...item,
+        breakdown: calculateBreakdown(item, quotation.printing_type),
+      };
+    });
 
     // Merge quotation with profile data
     const quotationWithProfile = {

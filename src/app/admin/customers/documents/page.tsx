@@ -10,34 +10,15 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { createServiceClient } from '@/lib/supabase';
 import { DOCUMENT_TYPE_LABELS } from '@/types/portal';
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
 
-async function getDocuments(searchParams: { type?: string }) {
-  // Use service client for admin pages
-  const supabase = createServiceClient();
-
-  let query = supabase
-    .from('documents')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  // Apply type filter if specified
-  if (searchParams.type) {
-    query = query.eq('type', searchParams.type);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Documents fetch error:', error);
-    return { documents: [] };
-  }
-
-  return { documents: data || [] };
+async function getDocuments(_searchParams: { type?: string }): Promise<{ documents: Record<string, unknown>[] }> {
+  // documents テーブルは実DBに存在しない（統合ドキュメントライブラリ未実装）。
+  // 実装されるまで空リストを返す（UI は「ドキュメントがありません」を表示）。
+  return { documents: [] };
 }
 
 export default async function CustomerDocumentsPage({

@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
+import type { Database } from '@/types/database';
 
 /**
  * Admin Coupons API
@@ -11,6 +12,12 @@ import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
  * GET /api/admin/coupons - Get all coupons
  * POST /api/admin/coupons - Create new coupon
  */
+
+type CouponStatus = Database['public']['Enums']['coupon_status'];
+type CouponType = Database['public']['Enums']['coupon_type'];
+
+const COUPON_STATUS_VALUES: readonly CouponStatus[] = ['active', 'inactive', 'expired', 'scheduled'];
+const COUPON_TYPE_VALUES: readonly CouponType[] = ['percentage', 'fixed_amount', 'free_shipping'];
 
 /**
  * GET - 쿠폰 목록 조회
@@ -23,8 +30,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const type = searchParams.get('type');
+    const statusParam = searchParams.get('status');
+    const typeParam = searchParams.get('type');
 
     const supabase = createServiceClient();
 
@@ -33,12 +40,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (status) {
-      query = query.eq('status', status);
+    // 実DBの coupon_status enum に合致する値のみフィルタ適用
+    if (statusParam && COUPON_STATUS_VALUES.includes(statusParam as CouponStatus)) {
+      query = query.eq('status', statusParam as CouponStatus);
     }
 
-    if (type) {
-      query = query.eq('type', type);
+    // 実DBの coupon_type enum に合致する値のみフィルタ適用
+    if (typeParam && COUPON_TYPE_VALUES.includes(typeParam as CouponType)) {
+      query = query.eq('type', typeParam as CouponType);
     }
 
     const { data, error } = await query;
@@ -53,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: true,
-      data: data?.map((coupon: { id: string; code: string; name: string; name_ja: string; description: string | null; description_ja: string | null; type: string; value: number; minimum_order_amount: number | null; maximum_discount_amount: number | null; max_uses: number; current_uses: number; max_uses_per_customer: number; status: string; valid_from: string; valid_until: string; applicable_customers: string; applicable_customer_types: string; notes: string | null; created_at: string; updated_at: string }) => ({
+      data: data?.map((coupon) => ({
         id: coupon.id,
         code: coupon.code,
         name: coupon.name,

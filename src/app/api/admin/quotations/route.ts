@@ -114,7 +114,9 @@ export async function GET(request: NextRequest) {
 
     // Apply filters - use normalized status for 10-step workflow
     if (status) {
-      query = query.eq('status', normalizeStatus(status));
+      // quotations.status は quotation_status enum。normalizeStatus の戻り値 string → enum へ最小キャスト
+      // （technical debt: normalizeStatus は既知の enum 値のみ生成・入力値検証済み）
+      query = query.eq('status', normalizeStatus(status) as Database['public']['Enums']['quotation_status']);
     }
     if (userId) {
       query = query.eq('user_id', userId);

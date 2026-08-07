@@ -4,7 +4,7 @@
  * ユーザー設定管理：
  * - GET: ユーザー設定の読み込み
  * - PATCH: 設定の更新
- * - user_settingsテーブル連携
+ * - profiles.settings（Json）でユーザー設定を永続化
  *
  * Security:
  * - 認証されたユーザーのみアクセス可能
@@ -16,6 +16,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
+import type { Json } from '@/types/database';
 
 // =====================================================
 // Schema Validation
@@ -83,37 +84,46 @@ export async function GET(request: NextRequest) {
 
     console.log('[Settings API] Loading settings for user:', user.id);
 
-    // Fetch user settings from database
-    const { data: settings, error } = await supabase
-      .from('user_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    // Fetch user settings from profiles.settings (Json)
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('settings')
+      .eq('id', user.id)
+      .maybeSingle();
 
     if (error) {
-      // If no settings found, return defaults
-      if (error.code === 'PGRST116') {
-        console.log('[Settings API] No settings found, returning defaults');
-        return NextResponse.json({
-          success: true,
-          data: {
-            userId: user.id,
-            notificationSettings: notificationSettingsSchema.parse({}),
-            securitySettings: securitySettingsSchema.parse({}),
-            displayName: user.user_metadata?.displayName || '',
-            language: 'ja',
-            timezone: 'Asia/Tokyo',
-          }
-        });
-      }
-
       throw error;
+    }
+
+    // profiles.settings は Json 型。UserSettings へ unknown 経由で変換（technical debt: DB カラム型が Json のため）
+    const stored = (profile?.settings ?? {}) as Partial<UserSettings>;
+
+    if (!profile || !stored) {
+      console.log('[Settings API] No settings found, returning defaults');
+      return NextResponse.json({
+        success: true,
+        data: {
+          userId: user.id,
+          notificationSettings: stored.notificationSettings ?? notificationSettingsSchema.parse({}),
+          securitySettings: stored.securitySettings ?? securitySettingsSchema.parse({}),
+          displayName: stored.displayName ?? user.user_metadata?.displayName ?? '',
+          language: stored.language ?? 'ja',
+          timezone: stored.timezone ?? 'Asia/Tokyo',
+        }
+      });
     }
 
     console.log('[Settings API] Settings loaded successfully');
     return NextResponse.json({
       success: true,
-      data: settings
+      data: {
+        userId: user.id,
+        notificationSettings: stored.notificationSettings ?? notificationSettingsSchema.parse({}),
+        securitySettings: stored.securitySettings ?? securitySettingsSchema.parse({}),
+        displayName: stored.displayName ?? user.user_metadata?.displayName ?? '',
+        language: stored.language ?? 'ja',
+        timezone: stored.timezone ?? 'Asia/Tokyo',
+      }
     });
 
   } catch (error) {
@@ -170,51 +180,34 @@ export async function PATCH(request: NextRequest) {
     // Validate input
     const validatedData = userSettingsSchema.parse(body);
 
-    // Check if settings exist
-    const { data: existingSettings } = await supabase
-      .from('user_settings')
-      .select('id')
-      .eq('user_id', user.id)
+    // Get existing settings from profiles.settings (Json)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('settings')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    // profiles.settings は Json 型。UserSettings へ unknown 経由で変換
+    const existing = (profile?.settings ?? {}) as Partial<UserSettings>;
+
+    const mergedSettings: UserSettings = {
+      notificationSettings: validatedData.notificationSettings ?? existing.notificationSettings ?? notificationSettingsSchema.parse({}),
+      securitySettings: validatedData.securitySettings ?? existing.securitySettings ?? securitySettingsSchema.parse({}),
+      displayName: validatedData.displayName ?? existing.displayName ?? user.user_metadata?.displayName ?? '',
+      language: validatedData.language ?? existing.language ?? 'ja',
+      timezone: validatedData.timezone ?? existing.timezone ?? 'Asia/Tokyo',
+    };
+
+    // profiles.settings (Json) へ保存。UserSettings を unknown 経由で Json 互換へ変換
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('profiles')
+      .update({ settings: mergedSettings as unknown as Json })
+      .eq('id', user.id)
+      .select('settings')
       .single();
 
-    let result;
-
-    if (existingSettings) {
-      // Update existing settings
-      const { data, error } = await (supabase as any)
-        .from('user_settings')
-        .update({
-          notification_settings: validatedData.notificationSettings,
-          security_settings: validatedData.securitySettings,
-          display_name: validatedData.displayName,
-          language: validatedData.language,
-          timezone: validatedData.timezone,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      result = data;
-    } else {
-      // Create new settings
-      const { data, error } = await (supabase as any)
-        .from('user_settings')
-        .insert({
-          user_id: user.id,
-          notification_settings: validatedData.notificationSettings || notificationSettingsSchema.parse({}),
-          security_settings: validatedData.securitySettings || securitySettingsSchema.parse({}),
-          display_name: validatedData.displayName || user.user_metadata?.displayName || '',
-          language: validatedData.language,
-          timezone: validatedData.timezone,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      result = data;
-    }
+    if (updateError) throw updateError;
+    const result = updatedProfile?.settings;
 
     console.log('[Settings API] Settings updated successfully');
     return NextResponse.json({

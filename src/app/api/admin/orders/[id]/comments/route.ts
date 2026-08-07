@@ -144,7 +144,15 @@ export const GET = withAdminAuth<any>(async (
       .select('id, kanji_last_name, kanji_first_name, kana_last_name, kana_first_name, email, company_name, role')
       .in('id', authorIds);
 
-    const authorMap = new Map((authors || []).map((a: any) => {
+    // TS7018（avatar_url implicit any）回避のため Map ジェネリクスで値型を明示
+    type AuthorInfo = {
+      id: string;
+      full_name: string;
+      email: string;
+      avatar_url?: string;
+      role: string;
+    };
+    const authorMap = new Map<string, AuthorInfo>((authors || []).map((a: any): [string, AuthorInfo] => {
       const displayName = a.kanji_last_name && a.kanji_first_name
         ? `${a.kanji_last_name} ${a.kanji_first_name}`
         : a.company_name || a.email || '不明';

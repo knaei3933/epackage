@@ -15,8 +15,26 @@ export async function PATCH(request: NextRequest) {
     const user = await requireAuth();
     const supabase = getServerClient();
 
+    // TECHNICAL DEBT: SupabaseClient<Database> で notifications クエリの型解決が深すぎて
+    // TS2589 が発生するため、最小限の structural 型へキャストして回避（C2 型厳密化の副次被害）。
+    const typedClient = supabase as unknown as {
+      from: (table: 'notifications') => {
+        update: (values: { is_read: boolean }) => {
+          eq: (
+            column: string,
+            value: string | boolean,
+          ) => {
+            eq: (
+              column: string,
+              value: string | boolean,
+            ) => Promise<{ error: { message: string; code: string } | null }>;
+          };
+        };
+      };
+    };
+
     // Update all notifications as read for this user
-    const { error } = await supabase
+    const { error } = await typedClient
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', user.id)

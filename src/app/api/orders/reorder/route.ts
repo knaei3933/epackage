@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     // Fetch new order details
     const { data: newOrder, error: fetchError } = await supabaseAdmin
       .from('orders')
-      .select('id, order_number, status, subtotal_amount, tax_amount, total_amount')
+      .select('id, order_number, status, subtotal, tax_amount, total_amount')
       .eq('id', newOrderId)
       .single()
 
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
         id: newOrder.id,
         orderNumber: newOrder.order_number,
         status: newOrder.status,
-        subtotal: newOrder.subtotal_amount,
+        subtotal: newOrder.subtotal,
         taxAmount: newOrder.tax_amount,
         totalAmount: newOrder.total_amount,
       },

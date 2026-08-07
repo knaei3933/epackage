@@ -210,17 +210,23 @@ async function logFailoverEvent(
     const { error } = await supabase
       .from('chatbot_failover_logs')
       .insert({
-        original_provider: 'lmstudio',
-        original_error_message: options.originalErrorMessage,
-        original_error_code: options.originalErrorCode,
-        failover_provider: failoverProvider,
-        failover_enabled: isFailoverEnabled(),
-        user_message_preview: options.userMessagePreview?.substring(0, 200),
-        session_id: options.sessionId,
-        response_time_ms: options.responseTimeMs,
-        status: options.status,
-        resolved: options.resolved ?? false,
-        metadata: options.metadata ?? {},
+        // 実DB chatbot_failover_logs の構造化カラムへ主要情報を設定
+        event_type: options.status || 'failover',
+        from_provider: 'lmstudio',
+        to_provider: failoverProvider,
+        reason: options.originalErrorMessage || options.originalErrorCode || null,
+        // 実DB に存在しない詳細フィールドは metadata（Json）へ格納
+        metadata: {
+          original_error_message: options.originalErrorMessage,
+          original_error_code: options.originalErrorCode,
+          failover_enabled: isFailoverEnabled(),
+          user_message_preview: options.userMessagePreview?.substring(0, 200),
+          session_id: options.sessionId,
+          response_time_ms: options.responseTimeMs,
+          status: options.status,
+          resolved: options.resolved ?? false,
+          ...(options.metadata ?? {}),
+        },
       });
 
     if (error) {

@@ -4822,7 +4822,7 @@ Enums: {
             // User roles
             user_role: 'ADMIN' | 'MEMBER' | 'KOREA_DESIGNER' | 'OPERATOR' | 'SALES'
             // User status
-            user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED'
+            user_status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETED'
             // Order status
             order_status: 'pending' | 'processing' | 'manufacturing' | 'ready' | 'shipped' | 'delivered' | 'cancelled'
             // Quotation status

@@ -10,7 +10,7 @@
 
 import { Database } from '@/types/database'
 import type { UserRole, BusinessType } from '@/types/enums'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -26,9 +26,9 @@ export type { Database }
 // Server-Side Client
 // =====================================================
 
-let serverClient: any = null
+let serverClient: SupabaseClient<Database> | null = null
 
-export const getServerClient = () => {
+export const getServerClient = (): SupabaseClient<Database> => {
   if (serverClient) return serverClient
 
   // During build or when credentials not available, return mock client
@@ -73,7 +73,7 @@ export const getServerClient = () => {
         getUser: async (): Promise<{ data: { user: null }; error: { message: string } }> => ({ data: { user: null }, error: { message: 'Not configured' } }),
         getSession: async (): Promise<{ data: { session: null }; error: { message: string } }> => ({ data: { session: null }, error: { message: 'Not configured' } }),
       },
-    } as any
+    } as unknown as SupabaseClient<Database>
   }
 
   serverClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -90,9 +90,9 @@ export const getServerClient = () => {
 // Module-level singleton cache: avoids re-instantiating the service_role client
 // on every call (e.g. orders/shipments routes). Only the real client is cached;
 // the build-time mock fallback path is left untouched (credentials missing).
-let _serviceClient: ReturnType<typeof createClient<Database>> | null = null;
+let _serviceClient: SupabaseClient<Database> | null = null;
 
-export const createServiceClient = () => {
+export const createServiceClient = (): SupabaseClient<Database> => {
     // Return cached real client if already instantiated
     if (_serviceClient) return _serviceClient;
 
@@ -138,7 +138,7 @@ export const createServiceClient = () => {
             update: (data: any) => createQueryMock(),
             delete: () => createQueryMock(),
             rpc: (fn: string, params?: any) => createQueryMock(),
-        } as any;
+        } as unknown as SupabaseClient<Database>;
     }
 
     _serviceClient = createClient<Database>(url, key, {

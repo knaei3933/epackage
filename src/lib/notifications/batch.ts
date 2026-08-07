@@ -7,31 +7,35 @@
  * @module lib/notifications/batch
  */
 
-import { createServiceClient } from '@/lib/supabase'
+// ---------------------------------------------------------------------------
+// C2 drift 対応（TECH DEBT）
+// ---------------------------------------------------------------------------
+// 本モジュールが参照していた以下の実DB不存在テーブルを neutralize した:
+//   - batch_notification_jobs   （バッチジョブ進捗管理）
+//   - batch_notifications       （バッチ個別通知レコード）
+// いずれも実DB（database.ts SoT）に不存在。バッチ処理機能は未配線の予備機能であり、
+// アプリ/APIルート/コンポーネントのいずれからも呼び出されていない。
+//
+// ガイドの「完全にデッド機能 → 機能を安全に無害化」方針に従い、ジョブ/通知レコードの
+// 永続化関数はシグネチャを維持したまま安全なデフォルト値を返すよう neutralize した。
+// `processBatchNotifications` / `sendBatchNotifications` の送信ループ本体は
+// DB に依存しないためそのまま動作する（進捗記録だけ no-op になる）。
+//
+// 将来この機能を有効化する場合は専用テーブルの新設をリードに依頼すること。
+// ---------------------------------------------------------------------------
+
 import type {
   BatchNotificationJob,
   BatchNotification,
   BatchSendOptions,
   NotificationChannel,
-  NotificationStatus,
 } from '@/types/notification'
 import { sendEmail } from '../email/notificationService'
 import { sendSMS } from './sms'
-import { sendBulkPushNotifications } from './push'
-import { recordNotificationSent, recordDelivery, recordFailure } from './history'
 
 // ============================================================
 // Configuration
 // ============================================================
-
-// Lazy getter: createServiceClient reads env at call time (not module load).
-// This defers client construction until first use, aligning with the factory's
-// lazy design and avoiding side effects at import time (e.g. jest.mock hoisting).
-// The factory caches the singleton internally, so repeated calls are cheap.
-const getSupabase = () => createServiceClient()
-
-const BATCH_JOBS_TABLE = 'batch_notification_jobs'
-const BATCH_NOTIFICATIONS_TABLE = 'batch_notifications'
 
 const DEFAULT_OPTIONS: Required<BatchSendOptions> = {
   batch_size: 100,
@@ -47,110 +51,51 @@ const DEFAULT_OPTIONS: Required<BatchSendOptions> = {
 
 /**
  * バッチジョブを作成
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため永続化できず null を返す。
  */
 export async function createBatchJob(
-  name: string,
-  recipients: string[],
-  createdBy: string
+  _name: string,
+  _recipients: string[],
+  _createdBy: string
 ): Promise<string | null> {
-  try {
-    const jobId = `batch-${Date.now()}-${Math.random().toString(36).substring(7)}`
-
-    const { error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .insert({
-        id: jobId,
-        name,
-        status: 'pending',
-        total_recipients: recipients.length,
-        processed_recipients: 0,
-        successful_sends: 0,
-        failed_sends: 0,
-        created_by: createdBy,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-
-    if (error) throw error
-    return jobId
-  } catch (error) {
-    console.error('[BatchService] Failed to create batch job:', error)
-    return null
-  }
+  return null
 }
 
 /**
  * バッチジョブを開始
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため false を返す。
  */
-export async function startBatchJob(
-  jobId: string
-): Promise<boolean> {
-  try {
-    const { error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .update({
-        status: 'processing',
-        started_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId)
-
-    return !error
-  } catch (error) {
-    console.error('[BatchService] Failed to start batch job:', error)
-    return false
-  }
+export async function startBatchJob(_jobId: string): Promise<boolean> {
+  return false
 }
 
 /**
  * バッチジョブを完了
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため false を返す。
  */
 export async function completeBatchJob(
-  jobId: string,
-  status: 'completed' | 'failed'
+  _jobId: string,
+  _status: 'completed' | 'failed'
 ): Promise<boolean> {
-  try {
-    const { error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .update({
-        status,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId)
-
-    return !error
-  } catch (error) {
-    console.error('[BatchService] Failed to complete batch job:', error)
-    return false
-  }
+  return false
 }
 
 /**
  * バッチジョブの進捗を更新
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため false を返す。
+ * （送信ループから呼ばれるが、進捗記録が no-op になるだけで送信には影響しない）
  */
 export async function updateBatchJobProgress(
-  jobId: string,
-  processed: number,
-  successful: number,
-  failed: number
+  _jobId: string,
+  _processed: number,
+  _successful: number,
+  _failed: number
 ): Promise<boolean> {
-  try {
-    const { error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .update({
-        processed_recipients: processed,
-        successful_sends: successful,
-        failed_sends: failed,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId)
-
-    return !error
-  } catch (error) {
-    console.error('[BatchService] Failed to update job progress:', error)
-    return false
-  }
+  return false
 }
 
 // ============================================================
@@ -159,6 +104,9 @@ export async function updateBatchJobProgress(
 
 /**
  * バッチ送信を実行
+ *
+ * 送信ループ本体は DB に依存せずそのまま動作する。
+ * drift: バッチ通知レコード（`batch_notifications`）の作成は実DB不存在のため省略。
  */
 export async function processBatchNotifications<T extends { user_id: string; [key: string]: any }>(
   jobId: string,
@@ -187,20 +135,7 @@ export async function processBatchNotifications<T extends { user_id: string; [ke
       batch.map(async (recipient) => {
         try {
           const result = await sendFunction(recipient)
-
-          // バッチ通知レコードを作成
-          const batchNotifId = `bn-${Date.now()}-${Math.random().toString(36).substring(7)}`
-          await getSupabase().from(BATCH_NOTIFICATIONS_TABLE).insert({
-            id: batchNotifId,
-            job_id: jobId,
-            recipient_id: recipient.user_id,
-            notification_id: result.notificationId,
-            status: result.success ? 'sent' : 'failed',
-            retry_count: 0,
-            error_message: result.error,
-            processed_at: new Date().toISOString(),
-          })
-
+          // drift: バッチ通知レコード（batch_notifications）作成は実DB不存在のため省略
           return { recipient, result }
         } catch (error: unknown) {
           const errMsg = (error as { message?: string }).message;
@@ -321,57 +256,14 @@ export async function sendBatchNotifications<T extends { user_id: string; email?
 
 /**
  * 失敗した通知の再試行
+ *
+ * drift: `batch_notifications` が実DB不存在のため失敗レコードを取得できず 0 を返す。
  */
 export async function retryFailedNotifications(
-  jobId: string,
-  maxRetries: number = DEFAULT_OPTIONS.max_retries
+  _jobId: string,
+  _maxRetries: number = DEFAULT_OPTIONS.max_retries
 ): Promise<number> {
-  try {
-    // 失敗した通知を取得
-    const { data: failed, error } = await getSupabase()
-      .from(BATCH_NOTIFICATIONS_TABLE)
-      .select('*')
-      .eq('job_id', jobId)
-      .eq('status', 'failed')
-      .lt('retry_count', maxRetries)
-
-    if (error) throw error
-    if (!failed || failed.length === 0) return 0
-
-    let retried = 0
-
-    for (const notification of failed as BatchNotification[]) {
-      await sleep(DEFAULT_OPTIONS.retry_delay * notification.retry_count)
-
-      // 再試行ロジック（実際には通知タイプに応じた再送処理）
-      const success = await retryNotification(notification)
-
-      await getSupabase()
-        .from(BATCH_NOTIFICATIONS_TABLE)
-        .update({
-          status: success ? 'sent' : 'failed',
-          retry_count: notification.retry_count + 1,
-          processed_at: success ? new Date().toISOString() : undefined,
-        })
-        .eq('id', notification.id)
-
-      if (success) retried++
-    }
-
-    return retried
-  } catch (error) {
-    console.error('[BatchService] Failed to retry notifications:', error)
-    return 0
-  }
-}
-
-/**
- * 通知を再試行
- */
-async function retryNotification(notification: BatchNotification): Promise<boolean> {
-  // TODO: 通知タイプに応じた再試行ロジックを実装
-  // ここでは仮実装
-  return true
+  return 0
 }
 
 // ============================================================
@@ -380,63 +272,32 @@ async function retryNotification(notification: BatchNotification): Promise<boole
 
 /**
  * バッチジョブのステータスを取得
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため null を返す。
  */
-export async function getBatchJobStatus(jobId: string): Promise<BatchNotificationJob | null> {
-  try {
-    const { data, error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .select('*')
-      .eq('id', jobId)
-      .single()
-
-    if (error) throw error
-    return data as BatchNotificationJob
-  } catch (error) {
-    console.error('[BatchService] Failed to get job status:', error)
-    return null
-  }
+export async function getBatchJobStatus(_jobId: string): Promise<BatchNotificationJob | null> {
+  return null
 }
 
 /**
  * 進行中のバッチジョブ一覧を取得
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため空配列を返す。
  */
 export async function getActiveBatchJobs(): Promise<BatchNotificationJob[]> {
-  try {
-    const { data, error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .select('*')
-      .in('status', ['pending', 'processing'])
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    return (data as BatchNotificationJob[]) || []
-  } catch (error) {
-    console.error('[BatchService] Failed to get active jobs:', error)
-    return []
-  }
+  return []
 }
 
 /**
  * バッチジョブの詳細を取得
+ *
+ * drift: `batch_notification_jobs` / `batch_notifications` が実DB不存在のため空結果を返す。
  */
-export async function getBatchJobDetails(jobId: string): Promise<{
+export async function getBatchJobDetails(_jobId: string): Promise<{
   job: BatchNotificationJob | null
   notifications: BatchNotification[]
 }> {
-  try {
-    const [jobResult, notificationsResult] = await Promise.all([
-      getSupabase().from(BATCH_JOBS_TABLE).select('*').eq('id', jobId).single(),
-      getSupabase().from(BATCH_NOTIFICATIONS_TABLE).select('*').eq('job_id', jobId).limit(1000),
-    ])
-
-    return {
-      job: jobResult.data as BatchNotificationJob,
-      notifications: (notificationsResult.data as BatchNotification[]) || [],
-    }
-  } catch (error) {
-    console.error('[BatchService] Failed to get job details:', error)
-    return { job: null, notifications: [] }
-  }
+  return { job: null, notifications: [] }
 }
 
 // ============================================================
@@ -452,43 +313,18 @@ function sleep(ms: number): Promise<void> {
 
 /**
  * バッチジョブをキャンセル
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため false を返す。
  */
-export async function cancelBatchJob(jobId: string): Promise<boolean> {
-  try {
-    const { error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .update({
-        status: 'cancelled',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId)
-      .in('status', ['pending', 'processing'])
-
-    return !error
-  } catch (error) {
-    console.error('[BatchService] Failed to cancel job:', error)
-    return false
-  }
+export async function cancelBatchJob(_jobId: string): Promise<boolean> {
+  return false
 }
 
 /**
  * 古いバッチジョブを削除
+ *
+ * drift: `batch_notification_jobs` が実DB不存在のため削除対象なく 0 を返す。
  */
-export async function cleanupOldJobs(daysToKeep: number = 30): Promise<number> {
-  try {
-    const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000)
-
-    const { data, error } = await getSupabase()
-      .from(BATCH_JOBS_TABLE)
-      .delete()
-      .lt('created_at', cutoffDate.toISOString())
-      .in('status', ['completed', 'failed', 'cancelled'])
-      .select()
-
-    if (error) throw error
-    return data?.length || 0
-  } catch (error) {
-    console.error('[BatchService] Failed to cleanup old jobs:', error)
-    return 0
-  }
+export async function cleanupOldJobs(_daysToKeep: number = 30): Promise<number> {
+  return 0
 }

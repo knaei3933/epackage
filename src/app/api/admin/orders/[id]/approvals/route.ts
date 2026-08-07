@@ -31,8 +31,10 @@ export async function GET(
 
     const supabase = createServiceClient();
 
+    // 注: 実DBテーブルは customer_approval_requests（approval_requests は非存在・42P01）。
+    // 必須列: approval_type, description, order_id, requested_by, title（version は default 0）
     const { data: approvals, error: approvalsError } = await supabase
-      .from('approval_requests')
+      .from('customer_approval_requests')
       .select('*')
       .eq('order_id', orderId)
       .order('created_at', { ascending: false });
@@ -100,8 +102,9 @@ export async function POST(
       );
     }
 
+    // 注: 実DBテーブルは customer_approval_requests（approval_requests は非存在・42P01）
     const { data: approvalRequest, error: createError } = await supabase
-      .from('approval_requests')
+      .from('customer_approval_requests')
       .insert({
         order_id: orderId,
         title: title || '校正データの承認をお願いします',

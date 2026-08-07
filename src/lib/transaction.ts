@@ -84,7 +84,8 @@ export async function updateWithOptimisticLock<T = Record<string, unknown>>(
     updated_at: new Date().toISOString(),
   } as UpdateData;
 
-  const query = supabase.from(tableName).update(updatePayload).eq('id', id).eq('version', currentVersion).select().single();
+  // C2 drift (Pattern 7): 動的テーブル名のため supabase を緩い型へキャスト
+  const query = (supabase as unknown as { from(t: string): any }).from(tableName).update(updatePayload).eq('id', id).eq('version', currentVersion).select().single();
   const { data, error } = await query as unknown as { data: T | null; error: { code?: string; message?: string } | null };
 
   if (error) {
@@ -119,7 +120,8 @@ export async function getRecordWithVersion<T = Record<string, unknown>>(
 ): Promise<{ success: boolean; data?: T & { version: number }; error?: string }> {
   const supabase = createServiceClient();
 
-  const { data, error } = await supabase
+  // C2 drift (Pattern 7): 動的テーブル名のため supabase を緩い型へキャスト
+  const { data, error } = await (supabase as unknown as { from(t: string): any })
     .from(tableName)
     .select('*')
     .eq('id', id)
@@ -247,8 +249,8 @@ export async function callRpcFunction<T = unknown>(
   const supabase = createServiceClient();
 
   try {
-    // Use type assertion for RPC call since functionName is dynamic
-    const { data, error } = await supabase.rpc(functionName, params) as unknown as { data: T | null; error: { message?: string; details?: unknown } | null };
+    // C2 drift (Pattern 7): 動的 RPC 名のため supabase を緩い型へキャスト
+    const { data, error } = await (supabase as unknown as { rpc(fn: string, params: Record<string, unknown>): { data: T | null; error: { message?: string; details?: unknown } | null } }).rpc(functionName, params);
 
     if (error) {
       return {
@@ -293,17 +295,8 @@ export async function validateDataConsistency(): Promise<{
   const supabase = createServiceClient();
 
   // 1. 注文と注文項目の整合性チェック
-  // Use type assertion for RPC call result
-  const orderItemResult = await supabase.rpc('check_order_items_consistency') as unknown as { data: ConsistencyIssue[] | null; error: { message?: string } | null };
-  const { data: orderItemMismatch, error: rpcError1 } = orderItemResult;
-
-  if (!rpcError1 && orderItemMismatch && Array.isArray(orderItemMismatch) && orderItemMismatch.length > 0) {
-    issues.push({
-      table: 'orders',
-      issue: 'Order items count mismatch',
-      count: orderItemMismatch.length,
-    });
-  }
+  // TECHNICAL DEBT (C2 drift): check_order_items_consistency RPC は実DB不存在（PGRST202）。
+  // データ整合性チェックをスキップ。別フォローアップで実DB存在クエリで代替検討。
 
   // 2. 在庫完全性チェック（在庫が負の製品）
   const { data: negativeStock } = await supabase
@@ -320,17 +313,7 @@ export async function validateDataConsistency(): Promise<{
   }
 
   // 3. 孤児レコードチェック（参照する親がない子レコード）
-  // Use type assertion for RPC call result
-  const orphanedResult = await supabase.rpc('check_orphaned_records') as unknown as { data: ConsistencyIssue[] | null; error: { message?: string } | null };
-  const { data: orphanedItems, error: rpcError2 } = orphanedResult;
-
-  if (!rpcError2 && orphanedItems && Array.isArray(orphanedItems) && orphanedItems.length > 0) {
-    issues.push({
-      table: 'various',
-      issue: 'Orphaned records detected',
-      count: orphanedItems.length,
-    });
-  }
+  // TECHNICAL DEBT (C2 drift): check_orphaned_records RPC は実DB不存在。スキップ。
 
   return {
     success: issues.length === 0,

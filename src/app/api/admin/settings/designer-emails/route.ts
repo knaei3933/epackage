@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const emails: string[] = setting?.value || [];
+    // notification_settings.value は Json 型のため string[] へキャスト
+    const emails: string[] = (setting?.value as string[]) || [];
 
     const response: DesignerEmailsResponse = {
       success: true,
@@ -161,7 +162,7 @@ export async function PUT(request: NextRequest) {
 
     const response: DesignerEmailsResponse = {
       success: true,
-      emails: data?.value || [],
+      emails: (data?.value as string[]) || [],
     };
 
     return NextResponse.json(response, { status: 200 });

@@ -9,6 +9,9 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore is used here because Supabase type inference doesn't work correctly for chained query builders
+// TECHNICAL DEBT (C2 drift): DB Row（snake_case）→ アプリ型（camelCase）のキャストは
+// `as unknown as` で回避中。実DB Row とアプリ型(@/types/dashboard)のプロパティ名不一致を一時的に隠蔽。
+// C2 厳密型化で表面化。マッピング関数の導入で修正可能（別フォローアップ・コンポーネント側調査が必要）。
 
 import { createSupabaseWithCookies, createServiceClient } from '@/lib/supabase';
 import { isDevMode } from '@/lib/dev-mode';
@@ -825,7 +828,7 @@ export async function getOrderStatusHistory(orderId: string): Promise<OrderStatu
 
   if (error) throw error;
 
-  return (data || []) as OrderStatusHistory[];
+  return (data || []) as unknown as OrderStatusHistory[];
 }
 
 /**
@@ -894,7 +897,7 @@ export async function getDeliveryAddresses(): Promise<DeliveryAddress[]> {
 
   if (error) throw error;
 
-  return data as DeliveryAddress[];
+  return data as unknown as DeliveryAddress[];
 }
 
 /**
@@ -918,7 +921,7 @@ export async function getDeliveryAddressById(id: string): Promise<DeliveryAddres
     throw error;
   }
 
-  return data as DeliveryAddress;
+  return data as unknown as DeliveryAddress;
 }
 
 /**
@@ -944,7 +947,7 @@ export async function getDefaultDeliveryAddress(): Promise<DeliveryAddress | nul
     throw error;
   }
 
-  return data as DeliveryAddress;
+  return data as unknown as DeliveryAddress;
 }
 
 /**
@@ -987,7 +990,7 @@ export async function createDeliveryAddress(
 
   if (error) throw error;
 
-  return data as DeliveryAddress;
+  return data as unknown as DeliveryAddress;
 }
 
 /**
@@ -1033,7 +1036,7 @@ export async function updateDeliveryAddress(
 
   if (error) throw error;
 
-  return data as DeliveryAddress;
+  return data as unknown as DeliveryAddress;
 }
 
 /**
@@ -1077,7 +1080,7 @@ export async function getBillingAddresses(): Promise<BillingAddress[]> {
 
   if (error) throw error;
 
-  return data as BillingAddress[];
+  return data as unknown as BillingAddress[];
 }
 
 /**
@@ -1121,7 +1124,7 @@ export async function createBillingAddress(
 
   if (error) throw error;
 
-  return data as BillingAddress;
+  return data as unknown as BillingAddress;
 }
 
 /**
@@ -1168,7 +1171,7 @@ export async function updateBillingAddress(
 
   if (error) throw error;
 
-  return data as BillingAddress;
+  return data as unknown as BillingAddress;
 }
 
 /**
@@ -1276,7 +1279,7 @@ export async function getSampleRequests(
 
   if (error) throw error;
 
-  return data as DashboardSampleRequest[];
+  return data as unknown as DashboardSampleRequest[];
 }
 
 // =====================================================
@@ -1313,7 +1316,7 @@ export async function getInquiries(
 
   if (error) throw error;
 
-  return data as Inquiry[];
+  return data as unknown as Inquiry[];
 }
 
 // =====================================================
@@ -1335,7 +1338,7 @@ export async function getAnnouncements(limit = 5): Promise<Announcement[]> {
 
   if (error) return [];
 
-  return (data as Announcement[]) || [];
+  return (data as unknown as Announcement[]) || [];
 }
 
 // =====================================================
@@ -1557,11 +1560,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         total: totalQuotations || 0,
       },
       samples: {
-        pending: (transformedSamples as DashboardSampleRequest[]) || [],
+        pending: (transformedSamples as unknown as DashboardSampleRequest[]) || [],
         total: totalSamples || 0,
       },
       inquiries: {
-        unread: (unreadInquiries as Inquiry[]) || [],
+        unread: (unreadInquiries as unknown as Inquiry[]) || [],
         total: totalInquiries || 0,
       },
       announcements: announcements || [],
@@ -1633,7 +1636,7 @@ export async function getNotificationBadge(): Promise<NotificationBadge> {
     .from('orders')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .in('status', ['pending', 'processing']);
+    .in('status', ['PENDING']); // C2 drift: orders status 大文字化・'processing' は orders enum に不存在
 
   const total = (quotations || 0) + (samples || 0) + (inquiries || 0) + (orders || 0);
 
@@ -1905,7 +1908,7 @@ async function fetchAdminDashboardStats(
     // 見積統計（C3: period フィルタを orders 系クエリと統一・期間切替で quotations KPI も反映）
     serviceClient.from('quotations').select('*', { count: 'exact', head: true }).gte('created_at', startDate.toISOString()),
     serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('status', 'APPROVED').gte('created_at', startDate.toISOString()),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('status', ['DRAFT', 'SUBMITTED', 'PENDING']).gte('created_at', startDate.toISOString()),
+    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('status', ['DRAFT', 'SENT']).gte('created_at', startDate.toISOString()), // C2 drift: quotations status 実DBへ合わせる（SUBMITTED→SENT・PENDING は quotations enum に不存在）
     // 最新見積もり（C3: period 内の最新5件に絞り込み）
     serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).gte('created_at', startDate.toISOString()).limit(5),
     // 月別売上 (過去12ヶ月)
@@ -1987,9 +1990,9 @@ async function fetchAdminDashboardStats(
     settled(adminResults[14], EMPTY_LIST_RESULT), // completedProductionOrders (data)
   ];
 
-  // 売上計算
-  const totalRevenue = (totalRevenueResult.data || [])
-    .reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0);
+  // 売上計算（C2 drift: Promise.allSettled の union 型回避のため明示キャスト）
+  const totalRevenue = ((totalRevenueResult.data || []) as Array<{ total_amount?: number | null }>)
+    .reduce((sum: number, order) => sum + (order.total_amount || 0), 0);
 
   // ステータス別集計
   const statusCounts: Record<string, number> = {};
@@ -2058,7 +2061,7 @@ async function fetchAdminDashboardStats(
       approved: approvedQuotations,
       conversionRate,
     },
-    recentQuotations: recentQuotationsResult.data || [],
+    recentQuotations: (recentQuotationsResult.data || []) as unknown as Quotation[], // C2 drift: unknown[] → Quotation[]
     // 月別売上
     monthlyRevenue,
     // 配送統計（FU3: 同一データ参照の明確化）
@@ -2323,7 +2326,7 @@ async function fetchMemberDashboardStats(
     // --- 新規: 行データ（recent セクション・nextActions 用）---
     recentOrders: (transformedOrders as Order[]) || [],
     recentQuotations: (transformedQuotations as Quotation[]) || [],
-    recentSamples: (transformedSamples as DashboardSampleRequest[]) || [],
+    recentSamples: (transformedSamples as unknown as DashboardSampleRequest[]) || [],
     notifications: (notificationsResult.data as NotificationStats[]) || [],
     recentContracts: recentContractsData,
     announcements,

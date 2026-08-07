@@ -23,6 +23,25 @@ import type {
 } from '@/types/email';
 
 // ============================================================
+// Json Helpers (C2 drift: notification_settings.value は Json 型)
+// ============================================================
+
+/** Json 値を Partial<T> へ安全変換（spread で specific 型へ代入可能にする） */
+function asPartial<T>(value: unknown): Partial<T> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as unknown as Partial<T>;
+  }
+  return {};
+}
+
+/** Json 値を string[] へ安全変換（不正時は fallback） */
+function asStringArray(value: unknown, fallback: string[]): string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === 'string')
+    ? (value as string[])
+    : fallback;
+}
+
+// ============================================================
 // Cache Management
 // ============================================================
 
@@ -177,27 +196,28 @@ export async function loadEmailSettings(useCache: boolean = true): Promise<Email
     ]);
 
     // Build settings object with fallbacks
+    const defaultRecipients = getDefaultRecipients();
     const settings: EmailSettings = {
       smtp: {
         ...getDefaultSmtpConfig(),
-        ...(smtpResult.data?.value || {}),
+        ...asPartial<SmtpConfig>(smtpResult.data?.value),
       },
       toggles: {
         ...getDefaultToggles(),
-        ...(togglesResult.data?.value || {}),
+        ...asPartial<EmailToggles>(togglesResult.data?.value),
       },
       companyInfo: {
         ...getDefaultCompanyInfo(),
-        ...(companyInfoResult.data?.value || {}),
+        ...asPartial<CompanyInfo>(companyInfoResult.data?.value),
       },
       bankInfo: {
         ...getDefaultBankInfo(),
-        ...(bankInfoResult.data?.value || {}),
+        ...asPartial<BankInfo>(bankInfoResult.data?.value),
       },
       recipients: {
-        admin_emails: adminEmailsResult.data?.value || getDefaultRecipients().admin_emails,
-        sales_emails: salesEmailsResult.data?.value || getDefaultRecipients().sales_emails,
-        production_emails: productionEmailsResult.data?.value || getDefaultRecipients().production_emails,
+        admin_emails: asStringArray(adminEmailsResult.data?.value, defaultRecipients.admin_emails),
+        sales_emails: asStringArray(salesEmailsResult.data?.value, defaultRecipients.sales_emails),
+        production_emails: asStringArray(productionEmailsResult.data?.value, defaultRecipients.production_emails),
       },
     };
 

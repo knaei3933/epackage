@@ -498,7 +498,8 @@ export async function POST(
           .insert({
             order_id: orderId,
             author_id: userId,
-            comment: `ファイル再提出: ${reason.trim()}`,
+            author_role: 'customer',
+            content: `ファイル再提出: ${reason.trim()}`,
             comment_type: 'file_resubmission',
             is_internal: false,
             created_at: new Date().toISOString(),

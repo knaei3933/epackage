@@ -3,6 +3,13 @@ import { createSupabaseClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
+type ProductionStage = Database['public']['Enums']['production_stage'];
+// 有効な production_stage 値（実DB enum と一致・9段階生産プロセス）
+const VALID_PRODUCTION_STAGES: readonly ProductionStage[] = [
+  'data_received', 'inspection', 'design', 'plate_making',
+  'printing', 'surface_finishing', 'die_cutting', 'lamination', 'final_inspection',
+] as const;
+
 /**
  * GET /api/admin/production/jobs
  * 生産ジョブ一覧を取得
@@ -42,7 +49,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // ステータスフィルタ（current_stage）
     if (stage && stage !== 'all') {
-      query = query.eq('current_stage', stage);
+      // production_orders.current_stage は production_stage enum。
+      // 不正値は事前検証で除外し、有効値のみ enum へキャスト（technical debt: フロント末端で値生成）
+      if (VALID_PRODUCTION_STAGES.includes(stage as ProductionStage)) {
+        query = query.eq('current_stage', stage as ProductionStage);
+      }
     }
 
     const { data: orders, error } = await query;

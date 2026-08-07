@@ -12,6 +12,10 @@ import { getAdminAuth } from '../loader';
 import AdminOrdersClient from './AdminOrdersClient';
 import { FullPageSpinner } from '@/components/ui';
 import { createServiceClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+// orders.status の実DB enum 型（b2b_order_status）。
+type OrderStatus = Database['public']['Tables']['orders']['Row']['status'];
 
 // ============================================================
 // Types
@@ -47,7 +51,7 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
     .order('created_at', { ascending: false });
 
   if (initialStatus !== 'all') {
-    query = query.eq('status', initialStatus);
+    query = query.eq('status', initialStatus as OrderStatus);
   }
 
   // 見積もりIDでフィルタリング

@@ -7,7 +7,6 @@
  * @module lib/notifications/sms
  */
 
-import { createServiceClient } from '@/lib/supabase'
 import type {
   SMSNotification,
   SMSOptions,
@@ -18,9 +17,6 @@ import type {
 // ============================================================
 // Configuration
 // ============================================================
-
-// Lazy getter: defers client construction until first use (see batch.ts rationale).
-const getSupabase = () => createServiceClient()
 
 // Twilio設定
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID
@@ -402,34 +398,11 @@ export function validatePhoneNumber(phoneNumber: string): boolean {
 /**
  * 送信可能かどうかのチェック
  */
-export async function canSendSMS(userId: string): Promise<boolean> {
-  try {
-    // Type for database query result
-    type PreferencesQueryResult = {
-      channels: {
-        sms?: {
-          enabled: boolean;
-          phone_number?: string;
-        };
-      };
-    };
-
-    const { data, error } = await getSupabase()
-      .from('notification_preferences')
-      .select('channels')
-      .eq('user_id', userId)
-      .single();
-
-    if (error || !data) return false
-
-    // Type assertion for JSON column access
-    const prefData = data as unknown as PreferencesQueryResult;
-    const smsConfig = prefData.channels?.sms
-    return smsConfig?.enabled === true && !!smsConfig?.phone_number
-  } catch (error) {
-    console.error('[SMSService] Failed to check SMS permission:', error)
-    return false
-  }
+export async function canSendSMS(_userId: string): Promise<boolean> {
+  // drift: `notification_preferences` テーブルが実DB不存在のため、ユーザーごとの
+  // SMS許可設定を取得できず false を返す（送信不可扱い）。
+  // SMS送信機能自体（Twilio 経由）は DB に依存せず動作する。
+  return false
 }
 
 // ============================================================

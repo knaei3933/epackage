@@ -72,7 +72,9 @@ export async function POST(
 
         if (anyProfile) {
           console.log('[Designer Notify] Using existing profile as placeholder:', anyProfile.id);
-          designerProfile = { data: anyProfile };
+          // 技術的負債: Supabase の完全なレスポンス型を模擬するため unknown 経由でキャスト。
+          // anyProfile は { id: string } だが、以降は designerProfile.data.id のみ参照するため安全。
+          designerProfile = { data: anyProfile } as unknown as typeof designerProfile;
         }
       }
 
@@ -93,10 +95,12 @@ export async function POST(
           // Fetch the created assignment
           const { data: newAssignment } = await supabase
             .from('designer_task_assignments')
-            .select('id')
+            .select('id, access_token_hash, access_token_expires_at')
             .eq('order_id', orderId)
             .single();
-          taskAssignment = { data: newAssignment };
+          // 技術的負債: Supabase の完全なレスポンス型を模擬するため unknown 経由でキャスト。
+          // newAssignment は作成直後の行で access_token_* は null の可能性があるが、以降の null チェックで担保済み。
+          taskAssignment = { data: newAssignment } as unknown as typeof taskAssignment;
         } else {
           console.error('[Designer Notify] Failed to create task assignment:', insertError);
         }
@@ -174,7 +178,8 @@ export async function POST(
       .eq('key', 'korea_designer_emails')
       .maybeSingle();
 
-    const designerEmails: string[] = designerSettings?.value || [];
+    // notification_settings.value は Json 型のため string[] へキャスト
+    const designerEmails: string[] = (designerSettings?.value as string[]) || [];
 
     if (designerEmails.length === 0) {
       return NextResponse.json({ error: 'No designer emails configured' }, { status: 400 });

@@ -49,6 +49,14 @@ export async function GET(
     }
 
     // Transform invoice data to PDF format
+    // NOTE: invoices.bank_account は Json 型のため、構造化キャストで取り出す
+    const bankAccount = invoice.bank_account as {
+      bank_name?: string;
+      branch_name?: string;
+      account_type?: string;
+      account_number?: string;
+      account_holder?: string;
+    } | null;
     const pdfData: InvoiceData = {
       invoiceNumber: invoice.invoice_number,
       issueDate: new Date(invoice.issue_date).toISOString().split('T')[0],
@@ -65,12 +73,12 @@ export async function GET(
         amount: item.total_price,
       } as InvoiceItem)),
       paymentMethod: invoice.payment_method || '銀行振込',
-      bankInfo: invoice.bank_account ? {
-        bankName: invoice.bank_account.bank_name || '',
-        branchName: invoice.bank_account.branch_name || '',
-        accountType: invoice.bank_account.account_type === 'savings' ? '普通' : '当座',
-        accountNumber: invoice.bank_account.account_number || '',
-        accountHolder: invoice.bank_account.account_holder || '',
+      bankInfo: bankAccount ? {
+        bankName: bankAccount.bank_name || '',
+        branchName: bankAccount.branch_name || '',
+        accountType: bankAccount.account_type === 'savings' ? '普通' : '当座',
+        accountNumber: bankAccount.account_number || '',
+        accountHolder: bankAccount.account_holder || '',
       } : undefined,
       remarks: invoice.notes || undefined,
     };

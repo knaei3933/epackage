@@ -10,7 +10,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { QuotationConfirmClient } from '@/components/b2b/QuotationConfirmClient'
-import { getQuotationById } from '@/lib/b2b-db'
+import { getQuotationById } from '@/lib/dashboard'
 
 // ============================================================
 // Page Props

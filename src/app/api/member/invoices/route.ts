@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
 import { withMemberAuth } from '@/lib/api-auth';
 import { withApiHandler } from '@/lib/api-error-handler';
 import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
@@ -48,7 +49,7 @@ export const GET = withApiHandler(
 
     // Apply status filter if provided
     if (status && status !== 'all') {
-      query = query.eq('status', status);
+      query = query.eq('status', status as Database['public']['Enums']['invoice_status']);
     }
 
     // Apply search filter (invoice_number, customer_name, company_name)

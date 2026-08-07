@@ -54,7 +54,7 @@ export interface SoftDeleteFields extends TimestampFields {
  * 真正値（source of truth）は enums.ts（as const 配列）。実DB profiles と整合:
  *   - role（5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
  *   - business_type（2値: INDIVIDUAL/CORPORATION）
- *   - status（5値: PENDING/ACTIVE/SUSPENDED/DELETED/INVITED）
+ *   - status（4値: PENDING/ACTIVE/SUSPENDED/DELETED）
  *   - product_category（6値: COSMETICS/CLOTHING/ELECTRONICS/KITCHEN/FURNITURE/OTHER）
  */
 export type {

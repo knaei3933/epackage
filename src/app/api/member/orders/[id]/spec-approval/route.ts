@@ -254,7 +254,8 @@ export async function POST(
           .eq('key', 'korea_designer_emails')
           .maybeSingle();
 
-        const designerEmails: string[] = setting?.value || [];
+        // NOTE: setting.value は Json 型。文字列配列を想定だが型上は Json のため unknown 経由でキャスト
+        const designerEmails: string[] = (setting?.value || []) as unknown as string[];
 
         if (designerEmails.length > 0) {
           for (const email of designerEmails) {

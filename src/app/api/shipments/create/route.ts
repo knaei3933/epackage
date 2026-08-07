@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
 import {
   CarrierType,
   ShippingServiceType,
@@ -430,7 +431,7 @@ export const GET = withMemberAuth<any>(
 
       // Filter by status if provided
       if (status) {
-        query = query.eq('status', status);
+        query = query.eq('status', status as Database['public']['Enums']['b2b_order_status']);
       } else {
         // Default: show orders ready for shipment (PRODUCTION status in 10-step workflow)
         query = query.eq('status', 'PRODUCTION');

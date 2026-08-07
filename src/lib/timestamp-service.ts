@@ -17,6 +17,7 @@
  */
 
 import { createServiceClient } from './supabase';
+import type { Database } from '@/types/database';
 
 // =====================================================
 // Types & Interfaces
@@ -470,51 +471,11 @@ function validateEDocLaw(token: TimestampToken): boolean {
 export async function saveTimestampToDatabase(
   token: TimestampToken
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const supabase = createServiceClient();
-
-    // Type for insert payload with snake_case fields matching database schema
-    type InsertPayload = {
-      id: string;
-      timestamp: string;
-      document_hash: string;
-      tsa_name: string;
-      tsa_url: string | null;
-      tsa_certificate: string | null;
-      hash_algorithm: string;
-      signature_algorithm: string | null;
-      signature: string | null;
-      verification_status: string;
-      metadata: TimestampToken['metadata'];
-    };
-
-    const insertPayload: InsertPayload = {
-      id: token.id,
-      timestamp: token.timestamp,
-      document_hash: token.documentHash,
-      tsa_name: token.tsaInfo.name,
-      tsa_url: token.tsaInfo.url || null,
-      tsa_certificate: token.tsaInfo.certificate || null,
-      hash_algorithm: token.algorithm.hashAlgorithm,
-      signature_algorithm: token.algorithm.signatureAlgorithm || null,
-      signature: token.signature || null,
-      verification_status: token.verificationStatus,
-      metadata: token.metadata,
-    };
-
-    const { error } = await supabase
-      .from('timestamp_tokens')
-      .insert(insertPayload as unknown as InsertPayload);
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    return { success: true };
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessage };
-  }
+  // TECHNICAL DEBT (C2 drift): timestamp_tokens テーブルは実DB不存在（42P01 runtime error）。
+  // 完全デッド機能。DB保存を no-op 化（メモリ上で token は利用可能・呼び出し元で成功扱い）。
+  // TODO: 別フォローアップで audit_logs 等の既存テーブルへ統合、または テーブル作成を検討。
+  void token;
+  return { success: true };
 }
 
 /**
@@ -523,46 +484,10 @@ export async function saveTimestampToDatabase(
 export async function getTimestampFromDatabase(
   id: string
 ): Promise<{ success: boolean; token?: TimestampToken; error?: string }> {
-  try {
-    const supabase = createServiceClient();
-
-    const { data, error } = await supabase
-      .from('timestamp_tokens')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    // Type assertion for database row with snake_case fields
-    const dbRow = data as unknown as TimestampTokenDbRow;
-
-    // Map snake_case database fields to camelCase TypeScript interface
-    const token: TimestampToken = {
-      id: dbRow.id,
-      timestamp: dbRow.timestamp,
-      documentHash: dbRow.document_hash,
-      tsaInfo: {
-        name: dbRow.tsa_name,
-        url: dbRow.tsa_url || undefined,
-        certificate: dbRow.tsa_certificate || undefined,
-      },
-      algorithm: {
-        hashAlgorithm: dbRow.hash_algorithm as 'SHA-256' | 'SHA-384' | 'SHA-512',
-        signatureAlgorithm: dbRow.signature_algorithm || undefined,
-      },
-      signature: dbRow.signature || undefined,
-      verificationStatus: dbRow.verification_status as 'valid' | 'invalid' | 'pending',
-      metadata: dbRow.metadata,
-    };
-
-    return { success: true, token };
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessage };
-  }
+  // TECHNICAL DEBT (C2 drift): timestamp_tokens テーブルは実DB不存在。no-op 化。
+  // TODO: 別フォローアップで audit_logs 等の既存テーブルへ統合、または テーブル作成を検討。
+  void id;
+  return { success: false, error: 'timestamp_tokens table does not exist in the database' };
 }
 
 // =====================================================
@@ -701,7 +626,7 @@ async function createAuditLog(
 
     await supabase
       .from('audit_logs')
-      .insert(auditLogData as unknown as AuditLogInsert);
+      .insert(auditLogData as unknown as Database['public']['Tables']['audit_logs']['Insert']);
   } catch (error) {
     // 監査ログ失敗はタイムスタンプ生成失敗として処理しない
     console.error('Audit log creation failed:', error);

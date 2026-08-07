@@ -10,6 +10,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { escapeIlikePattern, escapePostgrestFilterValue } from '@/lib/sql-helpers';
+import type { Database } from '@/types/database';
+
+type B2BOrderStatus = Database['public']['Enums']['b2b_order_status'];
 
 export const dynamic = 'force-dynamic';
 
@@ -60,9 +63,9 @@ export async function GET(request: NextRequest) {
           .map(s => s.trim())
           .filter(s => s.length > 0 && /^[a-zA-Z0-9_-]+$/.test(s));
         if (statuses.length === 1) {
-          query = query.eq('status', statuses[0]);
+          query = query.eq('status', statuses[0] as B2BOrderStatus);
         } else if (statuses.length > 1) {
-          query = query.in('status', statuses);
+          query = query.in('status', statuses as readonly B2BOrderStatus[]);
         }
       }
 
@@ -151,9 +154,9 @@ export async function GET(request: NextRequest) {
         .map(s => s.trim())
         .filter(s => s.length > 0 && /^[a-zA-Z0-9_-]+$/.test(s));
       if (statuses.length === 1) {
-        query = query.eq('status', statuses[0]);
+        query = query.eq('status', statuses[0] as B2BOrderStatus);
       } else if (statuses.length > 1) {
-        query = query.in('status', statuses);
+        query = query.in('status', statuses as readonly B2BOrderStatus[]);
       }
     }
 

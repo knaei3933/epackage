@@ -12,6 +12,10 @@ import Link from 'next/link';
 import { OrderSummaryCard } from '@/components/shared';
 import { PORTAL_ORDER_STATUS_LABELS } from '@/types/portal';
 import { createServiceClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+// orders.status の実DB enum 型（b2b_order_status）。
+type OrderStatus = Database['public']['Tables']['orders']['Row']['status'];
 
 // Force dynamic rendering - this page requires authentication and cannot be pre-rendered
 export const dynamic = 'force-dynamic';
@@ -26,7 +30,7 @@ async function getOrders(searchParams: { status?: string; search?: string }) {
 
   // Apply status filter if specified
   if (searchParams.status) {
-    query = query.eq('status', searchParams.status);
+    query = query.eq('status', searchParams.status as OrderStatus);
   }
 
   // Apply search filter if specified

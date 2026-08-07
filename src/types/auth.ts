@@ -19,7 +19,7 @@ import { z } from 'zod';
 //   - 値参照 BusinessType.CORPORATION / ProductCategory.COSMETICS / UserRole.ADMIN 等
 //     （RegistrationForm / ProfileClient / shipments-constants / dev-mode）
 // 値は enums.ts と完全同期させること（ズレ禁止）。UserStatus は DB profiles.status
-// と整合する 5 値（INVITED 含む）。
+// と整合する 4 値（実DB user_status enum・INVITED は実DBに存在しないため含まない）。
 // =====================================================
 
 export enum BusinessType {
@@ -49,7 +49,6 @@ export enum UserStatus {
   ACTIVE = 'ACTIVE', // アクティブ
   SUSPENDED = 'SUSPENDED', // 停止
   DELETED = 'DELETED', // 削除
-  INVITED = 'INVITED', // 招待中（管理者招待・編集UI選択肢から除外・型には含む）
 }
 
 // =====================================================

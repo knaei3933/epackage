@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     // Note: We can't execute DDL via RPC, so we need to use raw SQL
     // Use Postgres function execution
     const { data, error } = await supabase
-      .rpc('exec_sql', { sql: MIGRATION_SQL });
+      .rpc('execute_sql', { sql_query: MIGRATION_SQL });
 
     if (error) {
       // Try alternative method using direct query

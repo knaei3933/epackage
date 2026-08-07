@@ -7,22 +7,28 @@
  * @module lib/notifications/preferences
  */
 
-import { createServiceClient } from '@/lib/supabase'
+// ---------------------------------------------------------------------------
+// C2 drift 対応（TECH DEBT）
+// ---------------------------------------------------------------------------
+// 本モジュールが参照していた `notification_preferences` テーブルは実DBに存在しない
+// （database.ts SoT に不存在）。ユーザーごとの通知設定は未配線の予備機能であり、
+// 現状アプリ/APIルート/コンポーネントのいずれからも呼び出されていない。
+//
+// 実DB側へテーブルを新設することは禁止されているため（本番稼働中）、
+// ガイドの「完全にデッド機能 → 機能を安全に無害化」方針に従い、
+// 各関数はシグネチャを維持したまま安全なデフォルト値を返すよう neutralize した。
+// 設定取得は null（未設定扱い）、設定更新は失敗扱いで、呼び出し元のフォールバック
+// （デフォルト設定・デフォルトチャンネル）と整合する。
+//
+// 将来この機能を有効化する場合は `notification_settings`（KV）テーブル等の
+// 実DB存在テーブルへ統合するか、専用テーブルの新設をリードに依頼すること。
+// ---------------------------------------------------------------------------
+
 import type {
   NotificationPreferences,
   NotificationChannel,
   NotificationCategory,
-  CategoryPreference,
 } from '@/types/notification'
-
-// ============================================================
-// Configuration
-// ============================================================
-
-// Lazy getter: defers client construction until first use (see batch.ts rationale).
-const getSupabase = () => createServiceClient()
-
-const TABLE_NAME = 'notification_preferences'
 
 // ============================================================
 // Default Preferences
@@ -75,81 +81,30 @@ export const defaultCategoryChannels: Record<NotificationCategory, NotificationC
 
 /**
  * ユーザーの通知設定を取得
+ *
+ * drift: `notification_preferences` が実DB不存在のため null を返す。
+ * 呼び出し元はデフォルト設定でフォールバックする。
  */
-export async function getUserPreferences(userId: string): Promise<NotificationPreferences | null> {
-  try {
-    const { data, error } = await getSupabase()
-      .from(TABLE_NAME)
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // 設定が存在しない場合はデフォルト設定を返す
-        return createDefaultPreferences(userId)
-      }
-      throw error
-    }
-
-    return data as NotificationPreferences
-  } catch (error) {
-    console.error('[NotificationPreferences] Failed to get user preferences:', error)
-    return null
-  }
+export async function getUserPreferences(_userId: string): Promise<NotificationPreferences | null> {
+  return null
 }
 
 /**
  * 通知設定を更新
+ *
+ * drift: `notification_preferences` が実DB不存在のため永続化できず null を返す。
  */
 export async function updateUserPreferences(
-  userId: string,
-  preferences: Partial<NotificationPreferences>
+  _userId: string,
+  _preferences: Partial<NotificationPreferences>
 ): Promise<NotificationPreferences | null> {
-  try {
-    const existing = await getUserPreferences(userId)
-
-    if (!existing) {
-      // 新規作成
-      const newPreferences = {
-        ...defaultPreferences,
-        ...preferences,
-        user_id: userId,
-        updated_at: new Date().toISOString(),
-      } as NotificationPreferences
-
-      const { data, error } = await getSupabase()
-        .from(TABLE_NAME)
-        .insert(newPreferences)
-        .select()
-        .single()
-
-      if (error) throw error
-      return data as NotificationPreferences
-    }
-
-    // 更新
-    const { data, error } = await getSupabase()
-      .from(TABLE_NAME)
-      .update({
-        ...existing,
-        ...preferences,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data as NotificationPreferences
-  } catch (error) {
-    console.error('[NotificationPreferences] Failed to update preferences:', error)
-    return null
-  }
+  return null
 }
 
 /**
  * デフォルト設定を作成
+ *
+ * drift: 永続化先がないため、メモリ上のデフォルト設定を返す（DB書き込みなし）。
  */
 export async function createDefaultPreferences(userId: string): Promise<NotificationPreferences> {
   const preferences: NotificationPreferences = {
@@ -157,24 +112,7 @@ export async function createDefaultPreferences(userId: string): Promise<Notifica
     user_id: userId,
     updated_at: new Date().toISOString(),
   }
-
-  try {
-    const { data, error } = await getSupabase()
-      .from(TABLE_NAME)
-      .insert(preferences)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('[NotificationPreferences] Failed to create default preferences:', error)
-      return preferences
-    }
-
-    return data as NotificationPreferences
-  } catch (error) {
-    console.error('[NotificationPreferences] Failed to create default preferences:', error)
-    return preferences
-  }
+  return preferences
 }
 
 // ============================================================
@@ -457,51 +395,22 @@ export function normalizePhoneNumber(phoneNumber: string): string {
 
 /**
  * 既存ユーザーにデフォルト設定を作成
+ *
+ * drift: `notification_preferences` が実DB不存在のため何も作成せず 0 を返す。
  */
 export async function createDefaultPreferencesForExistingUsers(): Promise<number> {
-  try {
-    // profilesテーブルからすべてのユーザーを取得
-    const { data: users, error } = await getSupabase()
-      .from('profiles')
-      .select('id')
-
-    if (error) throw error
-    if (!users) return 0
-
-    let created = 0
-    for (const user of users) {
-      const existing = await getUserPreferences(user.id)
-      if (!existing) {
-        await createDefaultPreferences(user.id)
-        created++
-      }
-    }
-
-    return created
-  } catch (error) {
-    console.error('[NotificationPreferences] Failed to create defaults for existing users:', error)
-    return 0
-  }
+  return 0
 }
 
 /**
  * 通知設定をリセット（デフォルトに戻す）
+ *
+ * drift: `notification_preferences` が実DB不存在のため削除対象はない。
+ * メモリ上のデフォルト設定を再生成して true を返す。
  */
 export async function resetPreferences(userId: string): Promise<boolean> {
-  try {
-    const { error } = await getSupabase()
-      .from(TABLE_NAME)
-      .delete()
-      .eq('user_id', userId)
-
-    if (error) throw error
-
-    await createDefaultPreferences(userId)
-    return true
-  } catch (error) {
-    console.error('[NotificationPreferences] Failed to reset preferences:', error)
-    return false
-  }
+  await createDefaultPreferences(userId)
+  return true
 }
 
 // ============================================================

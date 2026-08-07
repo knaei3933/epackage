@@ -206,8 +206,7 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
       city: c.city || '',
       street: c.street || '',
       building: c.building || '',
-      // INVITED は adminEditProfileSchema の選択肢に無いため PENDING へフォールバック
-      status: c.status === 'INVITED' ? 'PENDING' : c.status,
+      status: c.status,
       markup_rate: c.markup_rate ?? 0.5,
       markup_rate_note: c.markup_rate_note || '',
     });

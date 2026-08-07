@@ -79,13 +79,24 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
     }
 
     // Extract result from RPC function
+    // 注: adjust_inventory_atomically RPC は配列で返す（PostgREST 仕様）。
+    // 技術的負債: result 型は any で、要素構造は RPC 実装依存。unknown 経由で最小キャスト。
     type InventoryResult = {
       inventory: Database['public']['Tables']['inventory']['Row'];
       previous_quantity: number;
       new_quantity: number;
     };
 
-    const resultTyped = result as InventoryResult | null;
+    // result は配列（PostgREST の RPC 戻り値）のため先頭要素を取り出す
+    const resultArray = Array.isArray(result) ? result : null;
+    const resultTyped = (resultArray?.[0] as unknown as InventoryResult | undefined) ?? null;
+
+    if (!resultTyped) {
+      return NextResponse.json(
+        { error: '在庫調整結果を取得できませんでした' },
+        { status: 500 }
+      );
+    }
     const updatedInventory = resultTyped.inventory;
     const previousQuantity = resultTyped.previous_quantity;
     const newQuantity = resultTyped.new_quantity;

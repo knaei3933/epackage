@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { z } from 'zod';
+import type { Json } from '@/types/database';
 
 /**
  * ============================================================
@@ -176,7 +177,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Merge with defaults for missing values
-    const existingSettings = ((profile?.settings as UserSettings) || {}) as UserSettings;
+    // NOTE: profiles.settings は Json 型のため、UserSettings へは unknown 経由で変換（technical debt: DB カラム型が Json のため）
+    const existingSettings = ((profile?.settings ?? {}) as unknown as UserSettings);
     const settings = mergeWithDefaults(existingSettings);
 
     return NextResponse.json({
@@ -234,7 +236,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .eq('id', userId)
       .single();
 
-    const existingSettings = ((profile?.settings as UserSettings) || {}) as UserSettings;
+    const existingSettings = ((profile?.settings ?? {}) as unknown as UserSettings);
 
     // Merge updates with existing settings
     const mergedSettings: UserSettings = {
@@ -248,9 +250,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     // Update settings in database
+    // NOTE: profiles.settings は Json 型のため、UserSettings を unknown 経由で Json へ変換
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
-      .update({ settings: mergedSettings })
+      .update({ settings: mergedSettings as unknown as Json })
       .eq('id', userId)
       .select('settings')
       .single();
