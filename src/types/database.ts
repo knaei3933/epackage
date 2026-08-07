@@ -4701,10 +4701,15 @@ Views: {
       }
     }
 Functions: {
-            // task #8 Phase 2: .rpc() で呼ばれる関数の型定義（never 型短絡を解消）。
-            // 本番DB未存在の関数も含む。実行時の存在・スキーマ整合は Task #20 で別途対応。
+            // .rpc() で呼ばれる実DB関数の型定義（commit-6: 実DB pg_proc から取得・8関数）。
+            // シグネチャは実DBの真実。C2(commit-8)適用で service client が厳密型化された際に
+            // .rpc() 呼出が型安全になる（現在は service client が any のため未検証）。
+            // 注: src/ で .rpc() 呼出があるが実DBに存在しない関数（find_duplicate_notifications/
+            // check_order_items_consistency/check_orphaned_records/get_or_create_customer_preferences/
+            // get_customer_dashboard_data/get_customer_order_summary/log_document_access/
+            // create_external_order）は実行時 42883 温床。別フォローアップ。
 
-            // 注文作成（quotation → order）。本番DB未適用（Task #20）。
+            // 注文作成（quotation → order）。p_order_number=null で自動生成。実DB存在。
             create_order_from_quotation: {
                 Args: {
                     p_quotation_id: string
@@ -4719,7 +4724,7 @@ Functions: {
                 }[]
             }
 
-            // メンバーダッシュボード統計（本番DB定義あり、SETOF TABLE(...)）
+            // メンバーダッシュボード統計（実DB定義あり・SETOF TABLE(...)）。
             get_dashboard_stats: {
                 Args: {
                     p_user_id?: string
@@ -4734,6 +4739,79 @@ Functions: {
                     total_samples: number
                     processing_samples: number
                 }[]
+            }
+
+            // 在庫アトミック調整（トランザクション安全）。戻り値 inventory 列は inventory テーブル Row。
+            adjust_inventory_atomically: {
+                Args: {
+                    p_inventory_id: string
+                    p_quantity_adjustment: number
+                }
+                Returns: {
+                    inventory: Database['public']['Tables']['inventory']['Row']
+                    previous_quantity: number
+                    new_quantity: number
+                }[]
+            }
+
+            // 汎用 SQL 実行（動的・admin 専用）。
+            execute_sql: {
+                Args: {
+                    sql_query: string
+                    sql_params?: Json
+                }
+                Returns: Json
+            }
+
+            // 見積SKU別原価集計。
+            get_quotation_sku_costs: {
+                Args: {
+                    p_quote_id: string
+                }
+                Returns: {
+                    sku_index: number
+                    quantity: number
+                    theoretical_meters: number
+                    secured_meters: number
+                    loss_meters: number
+                    total_meters: number
+                    cost_breakdown: Json
+                }[]
+            }
+
+            // ブログ閲覧数インクリメント（post_id 指定・非トリガー版。trigger 版は除外）。
+            increment_blog_view_count: {
+                Args: {
+                    post_id: string
+                }
+                Returns: undefined
+            }
+
+            // 入庫記録。戻り値は inventory テーブル Row。
+            record_stock_receipt: {
+                Args: {
+                    p_product_id: string
+                    p_product_name: string
+                    p_product_code: string
+                    p_quantity: number
+                    p_performed_by: string
+                    p_warehouse_location?: string
+                    p_bin_location?: string | null
+                    p_reason?: string
+                    p_notes?: string | null
+                }
+                Returns: Database['public']['Tables']['inventory']['Row']
+            }
+
+            // 問い合わせ検索。戻り値は inquiries テーブル Row の SETOF。
+            search_inquiries: {
+                Args: {
+                    search_term?: string | null
+                    inquiry_type_param?: Database['public']['Enums']['inquiry_type'] | null
+                    status_param?: Database['public']['Enums']['inquiry_status'] | null
+                    limit_count?: number
+                }
+                Returns: Database['public']['Tables']['inquiries']['Row'][]
             }
         }
 Enums: {
