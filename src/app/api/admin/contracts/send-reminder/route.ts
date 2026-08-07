@@ -118,13 +118,17 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
     }
 
     // リマインター送信履歴を記録
+    // 注: 実DBには contract_reminder_history テーブルが存在しないため contract_reminders へ記録
     const { error: historyError } = await supabase
-      .from('contract_reminder_history')
+      .from('contract_reminders')
       .insert({
         contract_id: contractId,
+        sent_by: auth.userId,
         sent_at: new Date().toISOString(),
         message: message,
-        sent_to: customerEmail,
+        status: 'sent',
+        reminder_type: 'signature_reminder',
+        scheduled_for: new Date().toISOString(),
       });
 
     if (historyError) {

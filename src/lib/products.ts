@@ -162,7 +162,7 @@ export const getLatestAnnouncements = unstable_cache(
         announcement.published_at && new Date(announcement.published_at) <= now
     )
 
-    return filteredData
+    return filteredData.map(mapAnnouncement)
   } catch (error) {
     console.error('[getLatestAnnouncements] Unexpected error:', error)
     return []
@@ -199,7 +199,7 @@ export async function getPriorityAnnouncements(): Promise<Announcement[]> {
         announcement.published_at && new Date(announcement.published_at) <= now
     )
 
-    return filteredData
+    return filteredData.map(mapAnnouncement)
   } catch (error) {
     console.error('[getPriorityAnnouncements] Unexpected error:', error)
     return []
@@ -238,7 +238,7 @@ export async function getAnnouncementsByCategory(
         announcement.published_at && new Date(announcement.published_at) <= now
     )
 
-    return filteredData
+    return filteredData.map(mapAnnouncement)
   } catch (error) {
     console.error('[getAnnouncementsByCategory] Unexpected error:', error)
     return []
@@ -248,6 +248,24 @@ export async function getAnnouncementsByCategory(
 // =====================================================
 // Helper Functions
 // =====================================================
+
+/**
+ * Map announcements DB Row to Announcement app type
+ * C2 drift: category/priority が string（実DB text）→ union（アプリ型）へ明示キャスト
+ */
+function mapAnnouncement(row: Database['public']['Tables']['announcements']['Row']): Announcement {
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    category: row.category as Announcement['category'],
+    priority: row.priority as Announcement['priority'],
+    is_published: row.is_published,
+    published_at: row.published_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
 
 /**
  * Format announcement date for display (Japanese format)

@@ -5,6 +5,7 @@ import { unifiedPricingEngine, type UnifiedQuoteParams } from '@/lib/unified-pri
 import { getDefaultFilmLayers } from '@/lib/film-structure';
 import type { FilmStructureLayer } from '@/lib/film-cost-calculator';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import type { Database } from '@/types/database';
 
 export async function POST(
   request: NextRequest,
@@ -120,7 +121,9 @@ export async function POST(
     // C-9: cost_breakdown は専用カラム（quotation_items.cost_breakdown・jsonb実在）へ保存。
     // film_cost_details カラムは非存在のため specifications 内に保存（現状維持）。
     // 旧コメント「film_cost_detailsカラムとcost_breakdownカラムは存在しないため」は誤り（cost_breakdown カラム実在）。
-    const updatedSpecs = {
+    // specifications は Json 型。updatedSpecs を Record<string, unknown> で明示型化し
+    // FilmCostResult 構造オブジェクトが Json に割り当て可能であることを TS に提示。
+    const updatedSpecs: Record<string, unknown> = {
       ...specs,
       film_cost_details: filmCostDetails,  // カラム非存在 → specifications 内
     };
@@ -143,7 +146,8 @@ export async function POST(
     const { error: updateError } = await serviceClient
       .from('quotation_items')
       .update({
-        specifications: updatedSpecs,
+        // specifications は Json 型。Record<string, unknown> → Json へ明示キャスト（TS235 回避）
+        specifications: updatedSpecs as unknown as Database['public']['Tables']['quotation_items']['Update']['specifications'],
         cost_breakdown: costBreakdown,  // C-9: 専用カラム（[id]/route.ts 読込先と対称）
         unit_price: result.unitPrice,   // 再計算の単価（小数含む・100円丸め前）。total_price は自動追従
       })

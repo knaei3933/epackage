@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
+import type { Database, Json } from '@/types/database';
 import {
   generateSignatureCertificate,
   downloadCertificate,
@@ -164,13 +164,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get signer profile
     const party = body.signerRole; // 'customer' or 'admin'
-    const signerId = party === 'customer' ? contract.customer_representative : 'admin';
 
-    // Check if signature exists
-    const signedAt = contract[`${party}_signed_at`];
-    const signatureType = contract[`${party}_signature_type`];
+    // 署名日時（実在カラム: customer_signed_at / admin_signed_at）
+    const signedAt =
+      party === 'customer' ? contract.customer_signed_at : contract.admin_signed_at;
 
     if (!signedAt) {
       return NextResponse.json(
@@ -182,44 +180,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get timestamp data
-    const timestampToken = contract[`${party}_timestamp_token`];
-    const timestampVerified = contract[`${party}_timestamp_verified`];
+    // 署名者IPアドレス（実在カラム: customer_ip_address のみ。admin 側は保持しない）
+    const ipAddress =
+      party === 'customer' ? (contract.customer_ip_address ?? '') : '';
 
-    if (!timestampToken) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'タイムスタンプがありません',
-        } as GenerateCertificateResponseBody,
-        { status: 400 }
-      );
-    }
-
-    // Create certificate request
+    // 証明書生成リクエストを構築。
+    // 署名タイプ（handwritten/hanko）・タイムスタンプToken は実DBに存在しない（drift）ため、
+    // 既定値（handwritten / 未検証タイムスタンプ）で運用する。
     const certificateRequest: CertificateRequest = {
       contractId: body.contractId,
       signerId: userId,
       signerName: contract.customer_name,
       signerRole: body.signerRole,
       signatureData: {
-        type: signatureType || 'handwritten',
+        type: 'handwritten',
         metadata: {
           signedAt,
-          ipAddress: contract[`${party}_ip_address`] || '',
+          ipAddress,
           userAgent: 'unknown',
         },
       },
       timestampData: {
-        token: timestampToken,
+        token: 'unavailable',
         timestamp: signedAt,
         tsaUrl: 'https://tsa.example.com',
-        verified: timestampVerified || false,
+        verified: false,
         certificateHash: 'mock_hash',
       },
       contractDetails: {
         contractNumber: contract.contract_number,
-        contractTitle: `契約書 - ${contract.company_id || ''}`,
+        contractTitle: `契約書 - ${contract.contract_number}`,
         totalAmount: contract.total_amount,
         currency: contract.currency,
       },
@@ -228,13 +218,29 @@ export async function POST(request: NextRequest) {
     // Generate certificate
     const certificate = await generateSignatureCertificate(certificateRequest);
 
-    // Update contract with certificate URL
+    // 証明書URL・法的有効性・署名期限は実DBのカラムへ存在しない（drift）ため、
+    // contract_data(jsonb) のメタデータへ保存する。
+    // contract_data(jsonb) は Json 型。スプレッド先も Json 互換へ寄せておく。
+    const existingData =
+      (contract.contract_data as Record<string, Json> | null) ?? {};
+    const existingCertificates =
+      (existingData.certificates as Record<string, Json> | undefined) ?? {};
+    const mergedContractData = {
+      ...existingData,
+      certificates: {
+        ...existingCertificates,
+        [party]: {
+          url: certificate.certificateUrl,
+          legalValidity: certificate.legalValidity.compliant,
+          expiresAt: certificate.legalValidity.expiryDate,
+        },
+      },
+    } as Json;
+
     await supabase
       .from('contracts')
       .update({
-        [`${party}_certificate_url`]: certificate.certificateUrl,
-        legal_validity_confirmed: certificate.legalValidity.compliant,
-        signature_expires_at: certificate.legalValidity.expiryDate,
+        contract_data: mergedContractData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', body.contractId);
@@ -314,25 +320,44 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check certificates
-    const customerCertificate = contract.customer_certificate_url;
-    const adminCertificate = contract.admin_certificate_url;
+    // 証明書URL・法的有効性・署名期限は contract_data(jsonb) へ保存されている
+    // （実DBの該当カラムは drift のため）
+    const contractData =
+      (contract.contract_data as Record<string, any> | null) ?? {};
+    const certificatesData =
+      (contractData.certificates as Record<string, any> | undefined) ?? {};
+    const customerCertificate = certificatesData.customer as
+      | { url?: string; legalValidity?: boolean; expiresAt?: string }
+      | undefined;
+    const adminCertificate = certificatesData.admin as
+      | { url?: string; legalValidity?: boolean; expiresAt?: string }
+      | undefined;
 
     return NextResponse.json({
       success: true,
       certificates: {
-        customer: customerCertificate ? {
-          url: customerCertificate,
-          issuedAt: contract.customer_signed_at,
-        } : null,
-        admin: adminCertificate ? {
-          url: adminCertificate,
-          issuedAt: contract.admin_signed_at,
-        } : null,
+        customer: customerCertificate?.url
+          ? {
+              url: customerCertificate.url,
+              issuedAt: contract.customer_signed_at,
+            }
+          : null,
+        admin: adminCertificate?.url
+          ? {
+              url: adminCertificate.url,
+              issuedAt: contract.admin_signed_at,
+            }
+          : null,
       },
       legalValidity: {
-        confirmed: contract.legal_validity_confirmed,
-        expiresAt: contract.signature_expires_at,
+        confirmed:
+          customerCertificate?.legalValidity ??
+          adminCertificate?.legalValidity ??
+          false,
+        expiresAt:
+          customerCertificate?.expiresAt ??
+          adminCertificate?.expiresAt ??
+          contract.expires_at,
       },
     });
 

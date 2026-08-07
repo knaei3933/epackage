@@ -73,7 +73,7 @@ interface DesignRevision {
   revision_number: number;
   preview_image_url: string | null;
   original_file_url: string | null;
-  korean_designer_comment: string | null;
+  comment_ko: string | null;
   comment_ja: string | null;
   approval_status: string;
   created_at: string;
@@ -84,15 +84,12 @@ interface DesignRevision {
 interface DesignerUploadToken {
   id: string;
   order_id: string;
-  order_item_id: string | null;
   token_hash: string;
   expires_at: string;
-  status: 'active' | 'used' | 'expired' | 'revoked';
+  status: string;
   upload_count: number;
   created_at: string;
   last_accessed_at: string | null;
-  last_uploaded_at: string | null;
-  sku_name?: string | null;
 }
 
 interface TokenUploadClientProps {
@@ -323,7 +320,7 @@ export function TokenUploadClient({
                 <div>
                   <p className="text-xs text-slate-500">SKU</p>
                   <p className="font-medium text-slate-900">
-                    {tokenData.sku_name || '全製品'}
+                    全製品
                   </p>
                 </div>
               </div>
@@ -426,10 +423,10 @@ export function TokenUploadClient({
                       </div>
                     )}
 
-                    {revision.korean_designer_comment && (
+                    {revision.comment_ko && (
                       <div className="mt-2 p-2 bg-white rounded text-sm">
                         <BilingualText
-                          content={revision.korean_designer_comment}
+                          content={revision.comment_ko}
                           content_translated={revision.comment_ja}
                           original_language="ko"
                         />

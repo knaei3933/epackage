@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (customerId) {
-      query = query.eq('customer_id', customerId);
+      // 注: contracts テーブルに customer_id 列は存在しないため user_id で代替
+      query = query.eq('user_id', customerId);
     }
 
     if (search) {
@@ -138,19 +139,25 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now().toString(36).toUpperCase();
     const contractNumber = `CTR-${timestamp}`;
 
+    // 注: contracts テーブルの実DBカラムに合わせて挿入。
+    // customer_id → user_id, start_date → valid_from, end_date → valid_until, value → total_amount
     const { data: newContract, error } = await supabase
       .from('contracts')
       .insert({
         contract_number: contractNumber,
-        customer_id,
-        title,
+        user_id: customer_id,
         contract_type: contract_type || 'STANDARD',
-        start_date: start_date || null,
-        end_date: end_date || null,
-        value: value || null,
+        valid_from: start_date || null,
+        valid_until: end_date || null,
+        total_amount: value || 0,
         terms: terms || null,
         notes: notes || null,
         status: 'DRAFT',
+        customer_name: '',
+        customer_email: '',
+        order_id: '', // 必須カラム（空文字で仮投入・運用フローで更新）
+        currency: 'JPY',
+        contract_data: {},
       })
       .select()
       .single();

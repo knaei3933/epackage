@@ -10,7 +10,8 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { OrderConfirmSuccessClient } from '@/components/b2b/OrderConfirmSuccessClient'
-import { getOrderById } from '@/lib/b2b-db'
+import { getOrderById } from '@/lib/dashboard'
+import type { Order as DatabaseOrder } from '@/types/database'
 
 // ============================================================
 // Page Props
@@ -40,7 +41,12 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Suspense fallback={<LoadingState />}>
-          <OrderConfirmSuccessClient order={order} />
+          {/* technical debt: types/database の Order と types/dashboard の Order が二元管理されており、
+              getOrderById は types/dashboard の Order を返すが OrderConfirmSuccessClient は
+              types/database の Order を期待する。src/types/ の Order 統合（別タスク）で解消すべき。
+              なお実データには paymentTerm/shippingAddress/requestedDeliveryDate 等は含まれないため、
+              該当 UI は従来からフォールバック表示となる。 */}
+          <OrderConfirmSuccessClient order={order as unknown as DatabaseOrder} />
         </Suspense>
       </div>
     </div>

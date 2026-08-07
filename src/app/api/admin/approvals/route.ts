@@ -12,6 +12,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
+import type { Database } from '@/types/database';
+
+type UserStatus = Database['public']['Enums']['user_status'];
+const VALID_USER_STATUSES: readonly UserStatus[] = ['PENDING', 'ACTIVE', 'SUSPENDED', 'DELETED'];
 
 // ============================================================
 // GET - Fetch pending member approvals
@@ -36,9 +40,9 @@ export async function GET(request: NextRequest) {
       .from('profiles')
       .select('*', { count: 'exact' });
 
-    // Filter by status
-    if (status !== 'ALL') {
-      query = query.eq('status', status);
+    // Filter by status（実DBの user_status enum に合致する値のみ適用）
+    if (status !== 'ALL' && VALID_USER_STATUSES.includes(status as UserStatus)) {
+      query = query.eq('status', status as UserStatus);
     }
 
     // Apply pagination
@@ -105,7 +109,9 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const newStatus = action === 'approve' ? 'ACTIVE' : 'REJECTED';
+    // 注: user_status enum は PENDING|ACTIVE|SUSPENDED|DELETED のみ（'REJECTED' は存在しない）。
+    // 拒否時は SUSPENDED（承認停止状態）を使用。
+    const newStatus: UserStatus = action === 'approve' ? 'ACTIVE' : 'SUSPENDED';
 
     const { data: updatedProfile, error } = await supabase
       .from('profiles')

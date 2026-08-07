@@ -73,27 +73,24 @@ export async function deleteAccount(
     // 1. Delivery addresses (cascade from sample_requests is SET NULL, so delete manually)
     const { count: deliveryAddressesCount } = await supabase
       .from('delivery_addresses')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('user_id', userId)
-      .select('*', { count: 'exact', head: true })
 
     deletedCounts.deliveryAddresses = deliveryAddressesCount || 0
 
     // 2. Billing addresses
     const { count: billingAddressesCount } = await supabase
       .from('billing_addresses')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('user_id', userId)
-      .select('*', { count: 'exact', head: true })
 
     deletedCounts.billingAddresses = billingAddressesCount || 0
 
     // 3. Inquiries/contact submissions
     const { count: inquiriesCount } = await supabase
       .from('inquiries')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('user_id', userId)
-      .select('*', { count: 'exact', head: true })
 
     deletedCounts.inquiries = inquiriesCount || 0
 
@@ -109,7 +106,7 @@ export async function deleteAccount(
         .from('orders')
         .select('id')
         .eq('user_id', userId)
-        .in('status', ['cancelled', 'delivered'])
+        .in('status', ['CANCELLED', 'DELIVERED'])
       ordersToDelete = ordersData?.map((o: { id: string }) => o.id) || []
     } else {
       // Get all orders
@@ -134,9 +131,8 @@ export async function deleteAccount(
     if (ordersToDelete.length > 0) {
       const { count } = await supabase
         .from('orders')
-        .delete()
+        .delete({ count: 'exact' })
         .in('id', ordersToDelete)
-        .select('*', { count: 'exact', head: true })
       ordersDeleted = count || 0
     }
     deletedCounts.orders = ordersDeleted
@@ -149,10 +145,9 @@ export async function deleteAccount(
     // Note: This will cascade to quotation_items and files
     const { count: quotationsCount } = await supabase
       .from('quotations')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('user_id', userId)
       .not('status', 'in', '(approved,converted,sent)')
-      .select('*', { count: 'exact', head: true })
 
     deletedCounts.quotations = quotationsCount || 0
 
@@ -164,9 +159,8 @@ export async function deleteAccount(
     // Note: This will cascade to sample_items
     const { count: sampleRequestsCount } = await supabase
       .from('sample_requests')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('user_id', userId)
-      .select('*', { count: 'exact', head: true })
 
     deletedCounts.sampleRequests = sampleRequestsCount || 0
 
@@ -177,9 +171,8 @@ export async function deleteAccount(
     // 8. Profile
     const { count: profileCount } = await supabase
       .from('profiles')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('id', userId)
-      .select('*', { count: 'exact', head: true })
 
     deletedCounts.profile = profileCount || 0
 

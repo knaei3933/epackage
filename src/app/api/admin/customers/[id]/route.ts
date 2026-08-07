@@ -20,6 +20,7 @@ import {
   adminEditProfileSchema,
 } from '@/lib/validations/profile-edit';
 import type {
+  Profile,
   CustomerOrder,
   CustomerQuotation,
   CustomerDetailResponse,
@@ -151,7 +152,10 @@ export async function GET(
     const response: CustomerDetailResponse = {
       success: true,
       data: {
-        customer,
+        // profiles Row（実DB型）→ Profile（UI 共有型）へ最小キャスト。
+        // 技術的負債: 実DB Row と Profile（types.ts）の列定義差（product_category enum vs string 等）
+        // は構造的部分型で安全。customer_contacts.type は string → ContactHistory.type ('email'|'call'|'note') は変換不要（検証で代替）。
+        customer: customer as unknown as Profile,
         statistics: {
           totalOrders,
           totalSpent,
@@ -161,7 +165,7 @@ export async function GET(
         },
         orders: (orders as CustomerOrder[] | null) || [],
         quotations: (quotations as CustomerQuotation[] | null) || [],
-        contactHistory: (contactHistory as ContactHistory[] | null) || [],
+        contactHistory: (contactHistory as unknown as ContactHistory[] | null) || [],
       },
     };
 

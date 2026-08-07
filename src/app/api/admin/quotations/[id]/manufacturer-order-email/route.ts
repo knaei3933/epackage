@@ -41,9 +41,11 @@ export async function POST(
     return NextResponse.json({ success: false, error: '견적을 찾을 수 없습니다.' }, { status: 404 });
   }
 
+  // 注: quotation_items テーブルに bag_type / film_cost_details 列は存在しない。
+  // これらは specifications (Json) 内に格納されているため、specs から取得する。
   const { data: items, error: itemsError } = await supabase
     .from('quotation_items')
-    .select('id, product_name, bag_type, quantity, specifications, cost_breakdown, film_cost_details')
+    .select('id, product_name, quantity, specifications, cost_breakdown')
     .eq('quotation_id', quotationId);
 
   if (itemsError || !items) {
@@ -64,7 +66,7 @@ export async function POST(
   for (const item of items) {
     const cb = (item.cost_breakdown || {}) as Record<string, any>;
     const specs = (item.specifications || {}) as Record<string, any>;
-    const fcd = (item.film_cost_details || specs.film_cost_details || {}) as Record<string, any>;
+    const fcd = (specs.film_cost_details || {}) as Record<string, any>;
 
     // exchange rate: stored value preferred, fallback 0.12
     const exchangeRate = cb.exchangeRate ?? 0.12;
@@ -88,7 +90,7 @@ export async function POST(
 
     manufacturerItems.push({
       productName: item.product_name || specs.bag_type_display || '품목',
-      bagType: item.bag_type || specs.bag_type || '-',
+      bagType: specs.bag_type || '-',
       quantity: item.quantity || 0,
       specifications: {
         size: specs.size || (specs.width && specs.height ? `${specs.width}×${specs.height}mm` : undefined),

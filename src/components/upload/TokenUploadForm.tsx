@@ -31,8 +31,7 @@ import {
 interface DesignerUploadToken {
   id: string;
   order_id: string;
-  order_item_id: string | null;
-  status: 'active' | 'used' | 'expired' | 'revoked';
+  status: string;
   upload_count: number;
 }
 
@@ -196,9 +195,6 @@ export function TokenUploadForm({
       formData.append('preview_image', previewFile);
       formData.append('original_file', originalFile);
       formData.append('comment_ko', koreanComment);
-      if (tokenData.order_item_id) {
-        formData.append('order_item_id', tokenData.order_item_id);
-      }
 
       // Upload with progress simulation
       const uploadPromise = fetch(`/api/upload/${token}`, {

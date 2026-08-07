@@ -4,6 +4,15 @@
  * データベース関連のコア型定義
  * Supabaseから生成された型をインポートし、拡張する
  * @module types/core/database
+ *
+ * 【本ファイルの役割（commit-7 で明確化）】
+ * 1. 再エクスポート窓口: Database / Json を ../database（実DB 生成型・SoT）から転送。
+ * 2. 手書き業務型エイリアス群: 実DB enum が存在しない、または text 型カラムへ
+ *    アプリ側で意味を持たせる区分値（ContractStatus 等）を定義。
+ *
+ * 実DB の enum 定義は ../database の Enums セクション（generate 対象外・手書き保護）
+ * を参照のこと。本ファイルの業務型は実DB enum ではなくアプリ層の便宜型が主で、
+ * 両者が同名になる場合は本ファイル側をアプリ SoT とする。
  */
 
 // =====================================================
@@ -45,7 +54,7 @@ export interface SoftDeleteFields extends TimestampFields {
  * 真正値（source of truth）は enums.ts（as const 配列）。実DB profiles と整合:
  *   - role（5値: ADMIN/MEMBER/KOREA_DESIGNER/OPERATOR/SALES）
  *   - business_type（2値: INDIVIDUAL/CORPORATION）
- *   - status（5値: PENDING/ACTIVE/SUSPENDED/DELETED/INVITED）
+ *   - status（4値: PENDING/ACTIVE/SUSPENDED/DELETED）
  *   - product_category（6値: COSMETICS/CLOTHING/ELECTRONICS/KITCHEN/FURNITURE/OTHER）
  */
 export type {
@@ -110,14 +119,23 @@ export type QuotationStatus =
 // =====================================================
 
 /**
- * 契約ステータス
+ * 契約ステータス（アプリ業務型の SoT）
+ *
+ * 実DB contracts.status は text 型（enum 非存在）。よって本型が
+ * アプリ全体の唯一の正系（single source of truth）となる。
+ * 従来 core/database 版（6値）と admin 版（9値）で二重定義していたが、
+ * 9値が6値の上位互換（包含）のため、本 9値へ統一して曖昧さを解消。
+ * barrel（types/index.ts）経由でも直接 import でも同一の型へ解決する。
  */
 export type ContractStatus =
   | 'DRAFT'
   | 'SENT'
+  | 'PENDING_SIGNATURE'
   | 'CUSTOMER_SIGNED'
   | 'ADMIN_SIGNED'
+  | 'SIGNED'
   | 'ACTIVE'
+  | 'COMPLETED'
   | 'CANCELLED';
 
 // =====================================================

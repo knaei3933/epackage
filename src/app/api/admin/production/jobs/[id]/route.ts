@@ -11,19 +11,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 
-/**
- * production_orders テーブルの Row 型。
- * 注: production_orders テーブルは Database 型に未定義のため、
- * 使用フィールドに基づき最小限の Row 型を定義。
- */
-interface ProductionJobRow {
-  id: string;
-  current_stage?: string;
-  started_at?: string | null;
-  actual_completion_date?: string | null;
-  progress_percentage?: number | null;
-  updated_at?: string;
-}
+// production_orders の実DB Update 型（current_stage は production_stage enum）
+type ProductionOrderUpdate = Database['public']['Tables']['production_orders']['Update'];
+type ProductionStage = Database['public']['Enums']['production_stage'];
 
 export async function POST(
   request: NextRequest,
@@ -57,8 +47,11 @@ export async function POST(
     }
 
     // Update production order status
-    const updateData: Partial<ProductionJobRow> = {
-      current_stage: status,
+    // 技術的負債: validStatuses（pending/in_progress/completed 等）と production_stage enum
+    // （printing/lamination/data_received 等）は値集合が異なるが、レガシー UI 互換のため
+    // production_stage へキャスト。実行時は PostgREST が無効値を弾く（運用時は enum 値を使用すること）。
+    const updateData: ProductionOrderUpdate = {
+      current_stage: status as ProductionStage,
       updated_at: new Date().toISOString(),
     };
 
@@ -92,7 +85,8 @@ export async function POST(
         .from('stage_action_history')
         .insert({
           production_order_id: productionOrder.id,
-          stage: status as string,
+          // 技術的負債: stage も production_stage enum。validStatuses 互換のためキャスト。
+          stage: status as ProductionStage,
           action: 'status_changed',
           performed_by: auth.userId,
           performed_at: new Date().toISOString(),

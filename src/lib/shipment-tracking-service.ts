@@ -105,7 +105,7 @@ class ShipmentTrackingService {
         status: this.mapStatusToDb(trackingInfo.current_status),
         tracking_events: trackingInfo.events,
         tracking_history: this.buildTrackingHistory(
-          shipment.tracking_history || [],
+          Array.isArray(shipment.tracking_history) ? shipment.tracking_history : [],
           trackingInfo.events
         ),
         last_tracking_update: new Date().toISOString(),
@@ -384,7 +384,9 @@ class ShipmentTrackingService {
       .eq('id', shipmentId)
       .single();
 
-    const exceptions = shipment?.shipping_exceptions || [];
+    const exceptions = Array.isArray(shipment?.shipping_exceptions)
+      ? [...shipment.shipping_exceptions]
+      : [];
     exceptions.push({
       type: exceptionType,
       description,

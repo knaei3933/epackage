@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
 
 /**
  * ============================================================
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Apply status filter
     if (status && status !== 'all') {
-      query = query.eq('status', status);
+      query = query.eq('status', status as Database['public']['Enums']['sample_request_status']);
     }
 
     const { data: requests, error } = await query;
@@ -123,17 +124,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Transform to dashboard format
-    const sampleRequests = requests?.map((req: { id: string; user_id: string; request_number: string | null; status: string | null; sample_items: unknown; delivery_address: unknown; tracking_number: string | null; created_at: string; shipped_at: string | null; delivered_at: string | null }) => ({
+    // NOTE: sample_requests の実DBカラムは delivery_address_id（delivery_address ではない）。
+    // delivered_at カラムは実DBに存在しないため null で返却。
+    const sampleRequests = requests?.map((req) => ({
       id: req.id,
       userId: req.user_id,
       requestNumber: req.request_number || `SMP-${String(req.id).padStart(6, '0')}`,
       status: req.status || 'received',
       samples: req.sample_items || [],
-      deliveryAddress: req.delivery_address,
+      deliveryAddress: req.delivery_address_id,
       trackingNumber: req.tracking_number,
       createdAt: req.created_at,
       shippedAt: req.shipped_at,
-      deliveredAt: req.delivered_at,
+      deliveredAt: null as string | null,
     })) || [];
 
     console.log('[samples API] Returning', sampleRequests.length, 'requests');

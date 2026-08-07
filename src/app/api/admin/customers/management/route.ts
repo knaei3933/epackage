@@ -90,7 +90,8 @@ export async function GET(request: NextRequest) {
 
     // Apply status filter
     if (status !== 'ALL') {
-      query = query.eq('status', status);
+      // profiles.status は user_status enum。string → enum へ最小キャスト（technical debt: 入力値検証は呼び出し元で保証）
+      query = query.eq('status', status as Database['public']['Enums']['user_status']);
     }
 
     // Apply search filter
@@ -329,6 +330,9 @@ export async function POST(request: NextRequest) {
     const { data: newProfile, error } = await supabase
       .from('profiles')
       .insert({
+        // profiles.id は UUID 必須カラム（PK・実DB NOT NULL）。
+        // Supabase Auth 経由ではなく profiles 直 insert のため UUID を生成して設定。
+        id: crypto.randomUUID(),
         email,
         role: 'MEMBER',
         status: 'PENDING',

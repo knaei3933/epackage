@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
 
 // Configure for static export compatibility
 export const dynamic = 'force-static'
@@ -47,34 +46,28 @@ export async function POST(request: NextRequest) {
       console.groupEnd()
     }
 
-    // In production, save to database if enabled
+    // In production, persist error details to server logs if enabled.
+    // NOTE: 専用 error_logs テーブルは実DBに存在しないため、DB保存ではなく
+    // サーバログ（console.error）へ集約。Sentry 等の外部連携は下記ブロックで継続。
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_ERROR_LOGGING === 'true') {
       try {
-        const supabase = createServiceClient()
-
-        const { error: dbError } = await supabase
-          .from('error_logs')
-          .insert({
-            error_name: errorLog.error.name,
-            error_message: errorLog.error.message,
-            error_stack: errorLog.error.stack,
-            error_code: errorLog.error.code,
-            error_digest: errorLog.error.digest,
-            component_stack: errorLog.errorInfo?.componentStack,
-            user_agent: errorLog.userAgent,
-            url: errorLog.url,
-            boundary: errorLog.boundary,
-            is_global: errorLog.global || false,
-            is_manual: errorLog.manual || false,
-            additional_info: errorLog.additionalInfo,
-            created_at: errorLog.timestamp,
-          })
-
-        if (dbError) {
-          console.error('Failed to save error log to database:', dbError)
-        }
-      } catch (dbError) {
-        console.error('Database error logging failed:', dbError)
+        console.error('[Client Error]', {
+          errorName: errorLog.error.name,
+          errorMessage: errorLog.error.message,
+          errorStack: errorLog.error.stack,
+          errorCode: errorLog.error.code,
+          errorDigest: errorLog.error.digest,
+          componentStack: errorLog.errorInfo?.componentStack,
+          userAgent: errorLog.userAgent,
+          url: errorLog.url,
+          boundary: errorLog.boundary,
+          isGlobal: errorLog.global,
+          isManual: errorLog.manual,
+          additionalInfo: errorLog.additionalInfo,
+          timestamp: errorLog.timestamp,
+        })
+      } catch (logError) {
+        console.error('Error logging failed:', logError)
       }
     }
 

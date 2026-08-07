@@ -7,7 +7,22 @@
  * @module lib/notifications/push
  */
 
-import { createServiceClient } from '@/lib/supabase'
+// ---------------------------------------------------------------------------
+// C2 drift 対応（TECH DEBT）
+// ---------------------------------------------------------------------------
+// 本モジュールが参照していた `device_tokens` テーブルは実DBに存在しない
+// （database.ts SoT に不存在）。デバイストークン管理は未配線の予備機能であり、
+// アプリ/APIルート/コンポーネントのいずれからも呼び出されていない。
+//
+// 実DB側へテーブルを新設することは禁止されているため（本番稼働中）、
+// ガイドの「完全にデッド機能 → 機能を安全に無害化」方針に従い、
+// デバイストークン管理関数はシグネチャを維持したまま安全なデフォルト値
+// （空配列・false・0）を返すよう neutralize した。
+// FCM 経由の送信機能自体（fetch ベース）は DB に依存しないためそのまま動作する。
+//
+// 将来この機能を有効化する場合は専用テーブルの新設をリードに依頼すること。
+// ---------------------------------------------------------------------------
+
 import type {
   PushNotification,
   DeviceToken,
@@ -18,9 +33,6 @@ import type {
 // ============================================================
 // Configuration
 // ============================================================
-
-// Lazy getter: defers client construction until first use (see batch.ts rationale).
-const getSupabase = () => createServiceClient()
 
 // Firebase設定
 const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY
@@ -309,119 +321,38 @@ export async function sendPushNotificationFromObject(
  * デバイストークンを登録
  */
 export async function registerDeviceToken(
-  userId: string,
-  token: string,
-  platform: 'ios' | 'android' | 'web',
-  appVersion?: string,
-  osVersion?: string
+  _userId: string,
+  _token: string,
+  _platform: 'ios' | 'android' | 'web',
+  _appVersion?: string,
+  _osVersion?: string
 ): Promise<boolean> {
-  try {
-    // 既存のトークンをチェック
-    const { data: existing } = await getSupabase()
-      .from('device_tokens')
-      .select('id')
-      .eq('token', token)
-      .single()
-
-    if (existing) {
-      // 既存トークンを更新
-      const { error } = await getSupabase()
-        .from('device_tokens')
-        .update({
-          user_id: userId,
-          platform,
-          app_version: appVersion,
-          os_version: osVersion,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('token', token)
-
-      return !error
-    }
-
-    // 新規トークンを登録
-    const { error } = await getSupabase()
-      .from('device_tokens')
-      .insert({
-        id: `dt-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-        user_id: userId,
-        token,
-        platform,
-        app_version: appVersion,
-        os_version: osVersion,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-
-    return !error
-  } catch (error) {
-    console.error('[PushService] Failed to register device token:', error)
-    return false
-  }
+  // drift: `device_tokens` テーブルが実DB不存在のため永続化できず false を返す。
+  return false
 }
 
 /**
  * デバイストークンを削除
  */
-export async function unregisterDeviceToken(token: string): Promise<boolean> {
-  try {
-    const { error } = await getSupabase()
-      .from('device_tokens')
-      .update({
-        is_active: false,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('token', token)
-
-    return !error
-  } catch (error) {
-    console.error('[PushService] Failed to unregister device token:', error)
-    return false
-  }
+export async function unregisterDeviceToken(_token: string): Promise<boolean> {
+  // drift: `device_tokens` テーブルが実DB不存在のため false を返す。
+  return false
 }
 
 /**
  * ユーザーのアクティブなデバイストークンを取得
  */
-export async function getUserDeviceTokens(userId: string): Promise<DeviceToken[]> {
-  try {
-    const { data, error } = await getSupabase()
-      .from('device_tokens')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-
-    if (error) throw error
-    return (data as DeviceToken[]) || []
-  } catch (error) {
-    console.error('[PushService] Failed to get user device tokens:', error)
-    return []
-  }
+export async function getUserDeviceTokens(_userId: string): Promise<DeviceToken[]> {
+  // drift: `device_tokens` テーブルが実DB不存在のため空配列を返す。
+  return []
 }
 
 /**
  * 無効なトークンを削除
  */
-export async function removeInvalidTokens(tokens: string[]): Promise<number> {
-  try {
-    let removed = 0
-
-    for (const token of tokens) {
-      const { error } = await getSupabase()
-        .from('device_tokens')
-        .update({ is_active: false })
-        .eq('token', token)
-
-      if (!error) removed++
-    }
-
-    return removed
-  } catch (error) {
-    console.error('[PushService] Failed to remove invalid tokens:', error)
-    return 0
-  }
+export async function removeInvalidTokens(_tokens: string[]): Promise<number> {
+  // drift: `device_tokens` テーブルが実DB不存在のため削除対象なく 0 を返す。
+  return 0
 }
 
 // ============================================================

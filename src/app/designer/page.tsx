@@ -13,6 +13,10 @@ import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+// orders.status の実DB enum 型（b2b_order_status）。
+type OrderStatus = Database['public']['Tables']['orders']['Row']['status'];
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import {
@@ -144,7 +148,7 @@ async function fetchDesignerOrders(
     .in('status', ['CORRECTION_IN_PROGRESS', 'CUSTOMER_APPROVAL_PENDING']);
 
   if (statusFilter && statusFilter !== 'all') {
-    query = query.eq('status', statusFilter);
+    query = query.eq('status', statusFilter as OrderStatus);
   }
 
   const { data: orders, error: ordersError } = await query

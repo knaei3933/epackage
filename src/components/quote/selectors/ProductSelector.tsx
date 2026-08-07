@@ -10,6 +10,10 @@ import { Badge } from '@/components/ui/Badge'
 import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import { QuoteCalculationParams } from '@/lib/pricing-engine'
 import { Product } from '@/types/database'
+import type { Database } from '@/types/database'
+
+// 実DB products テーブルの Row 型（db.getProducts() の戻り値）。
+type ProductRow = Database['public']['Tables']['products']['Row']
 import { db } from '@/lib/supabase'
 import { PricingEngine } from '@/lib/pricing-engine'
 
@@ -55,7 +59,7 @@ interface ProductFormData {
 }
 
 export function ProductSelector({ products, onChange, onNext, errors, isLoading }: ProductSelectorProps) {
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([])
+  const [availableProducts, setAvailableProducts] = useState<ProductRow[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Product['category'] | null>(null)
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set())
 

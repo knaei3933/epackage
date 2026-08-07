@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
+import type { Database } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -121,7 +122,7 @@ export async function GET(request: NextRequest) {
       .in('status', ['CORRECTION_IN_PROGRESS', 'CUSTOMER_APPROVAL_PENDING']);
 
     if (statusFilter && statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
+      query = query.eq('status', statusFilter as Database['public']['Enums']['b2b_order_status']);
     }
 
     const { data: orders, error: ordersError } = await query

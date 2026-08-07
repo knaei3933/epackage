@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { withAdminAuth } from '@/lib/api-auth';
 import { withApiHandler } from '@/lib/api-error-handler';
+import type { Database } from '@/types/database';
 
 // ============================================================
 // Constants
@@ -22,14 +23,17 @@ import { withApiHandler } from '@/lib/api-error-handler';
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
 
+type InquiryType = Database['public']['Enums']['inquiry_type'];
+type InquiryStatus = Database['public']['Enums']['inquiry_status'];
+
 // inquiries.type の全候補（database.ts の enum と一致）
-const VALID_TYPES = new Set([
+const VALID_TYPES: Set<InquiryType> = new Set([
   'product', 'quotation', 'sample', 'order', 'billing',
   'other', 'general', 'technical', 'sales', 'support',
 ]);
 
 // inquiries.status の全候補
-const VALID_STATUSES = new Set([
+const VALID_STATUSES: Set<InquiryStatus> = new Set([
   'open', 'responded', 'resolved', 'closed', 'pending', 'in_progress',
 ]);
 
@@ -129,8 +133,8 @@ export const GET = withApiHandler(
       : DEFAULT_LIMIT;
 
     // バリデーション（不正値は null = フィルタ無視）
-    const typeParam = type && type !== 'all' && VALID_TYPES.has(type) ? type : null;
-    const statusParam = status && status !== 'all' && VALID_STATUSES.has(status) ? status : null;
+    const typeParam: InquiryType | null = type && type !== 'all' && VALID_TYPES.has(type as InquiryType) ? (type as InquiryType) : null;
+    const statusParam: InquiryStatus | null = status && status !== 'all' && VALID_STATUSES.has(status as InquiryStatus) ? (status as InquiryStatus) : null;
 
     const supabase = createServiceClient();
 

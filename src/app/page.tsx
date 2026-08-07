@@ -56,7 +56,7 @@ export default async function Home() {
     name: product.name_ja || product.name_en,
     description: product.description_ja || product.description_en,
     category: product.category,
-    material: product.material_type
+    material: (product.materials ?? []).join(', ')
   }))
 
   return (

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const { data: announcements, error } = await supabase
       .from('announcements')
       .select('*')
-      .eq('published', true)
+      .eq('is_published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(5);
 

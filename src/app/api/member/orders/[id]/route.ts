@@ -23,7 +23,7 @@ import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { extractPathFromUrl } from '@/lib/storage-path';
 import { getStatusProgress, isOrderStatus } from '@/types/order-status';
-import type { PortalOrder } from '@/types/portal';
+import type { PortalOrder, PortalProductionStage, PortalShipmentStatus, OrderNote, OrderNoteType, Address } from '@/types/portal';
 
 // GET /api/member/orders/[id] - Get order details
 export async function GET(
@@ -138,7 +138,7 @@ export async function GET(
           key,
           name: key.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
           name_ja: key,
-          status: log ? 'completed' : index === 0 ? 'in_progress' : 'pending',
+          status: (log ? 'completed' : index === 0 ? 'in_progress' : 'pending') as PortalProductionStage['status'],
           completed_at: log?.logged_at || null,
           notes: log?.notes || null,
           photo_url: photoUrl,
@@ -163,8 +163,8 @@ export async function GET(
       tracking_url: shipment.tracking_url,
       estimated_delivery_date: shipment.estimated_delivery_date,
       actual_delivery_date: shipment.delivered_at,
-      status: shipment.status,
-      delivery_address: order.shipping_address,
+      status: shipment.status as PortalShipmentStatus,
+      delivery_address: (order.delivery_addresses ?? null) as unknown as Address,
     } : null;
 
     // Fetch available documents based on order status
@@ -187,17 +187,17 @@ export async function GET(
     // Check for contract
     const { data: contract } = await supabase
       .from('contracts')
-      .select('id, pdf_url, status')
+      .select('id, final_contract_url, status')
       .eq('order_id', orderId)
       .maybeSingle();
 
-    if (contract?.pdf_url) {
+    if (contract?.final_contract_url) {
       documents.push({
         id: `contract-${contract.id}`,
         type: 'contract',
         name: '契約書',
         name_ja: '契約書',
-        file_url: contract.pdf_url,
+        file_url: contract.final_contract_url,
         file_size: null,
         created_at: order.created_at,
         order_id: orderId,
@@ -205,13 +205,28 @@ export async function GET(
       });
     }
 
-    // Fetch customer-visible notes
-    const { data: notes } = await supabase
-      .from('order_notes')
+    // Fetch customer-visible notes.
+    // NOTE: order_notes テーブルは実DB不存在のため order_comments（is_internal=false）から取得し OrderNote へマップ。
+    const { data: comments } = await supabase
+      .from('order_comments')
       .select('*')
       .eq('order_id', orderId)
-      .eq('is_visible_to_customer', true)
-    .order('created_at', { ascending: false });
+      .eq('is_internal', false)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false, nullsFirst: false });
+
+    const notes: OrderNote[] = (comments ?? []).map((c) => ({
+      id: c.id,
+      order_id: c.order_id,
+      user_id: c.author_id,
+      note_type: (c.comment_type as OrderNoteType) ?? 'customer',
+      subject: null as string | null,
+      content: c.content,
+      is_visible_to_customer: !c.is_internal,
+      is_pinned: false,
+      created_at: c.created_at ?? '',
+      updated_at: c.updated_at ?? '',
+    }));
 
     // Determine if changes can be requested
     // 変更要求は入稿・校正段階のみ許可（正規14ステータス体系に準拠）
@@ -240,9 +255,12 @@ export async function GET(
     };
     const progressPercentage = isOrderStatus(order.status)
       ? getStatusProgress(order.status)
-      : (legacyProgressMap[order.status] ?? (order.status === 'SHIPPED' ? 100 : 0));
+      : (legacyProgressMap[order.status] ?? 0);
 
-    const portalOrder: PortalOrder = {
+    // TECHNICAL DEBT: PortalOrder は旧ドメイン Order 型（orderNumber/paymentTerm/taxAmount 等）を
+    // ベースにするが、クエリ結果の order は orders テーブル Row 型（実DB整合・スネークケース）。
+    // プロパティ名体系が異なるため unknown 経由でキャスト。PortalOrder/Order 型の統合は別タスク。
+    const portalOrder = {
       ...order,
       progress_percentage: progressPercentage,
       current_stage: productionStages.find((s: any) => s.status === 'in_progress') || productionStages[0],
@@ -251,7 +269,7 @@ export async function GET(
       can_request_changes: canRequestChanges,
       available_documents: documents,
       notes: notes || [],
-    };
+    } as unknown as PortalOrder;
 
     return NextResponse.json({
       success: true,
@@ -302,7 +320,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { subject, content } = body;
+    const { subject, content } = body as { subject?: string; content: string };
 
     if (!content) {
       return NextResponse.json(
@@ -311,17 +329,17 @@ export async function POST(
       );
     }
 
-    // Create customer note
+    // Create customer note.
+    // NOTE: order_notes テーブルは実DB不存在のため order_comments へ保存。
     const { data: note, error: noteError } = await supabase
-      .from('order_notes')
+      .from('order_comments')
       .insert({
         order_id: orderId,
-        user_id: userId,
-        note_type: 'customer',
-        subject: subject || null,
+        author_id: userId,
+        author_role: 'customer',
+        comment_type: 'customer',
         content,
-        is_visible_to_customer: true,
-        is_pinned: false,
+        is_internal: false,
       })
       .select()
       .single();

@@ -21,7 +21,7 @@ import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
 import { sendEmail } from '@/lib/email';
 import { subject, plainText, html } from '@/lib/email/templates/quote_created_admin';
-import type { Database } from '@/types/database';
+import type { Database, Json } from '@/types/database';
 
 // Initialize performance monitor
 const perfMonitor = getPerformanceMonitor({
@@ -30,6 +30,8 @@ const perfMonitor = getPerformanceMonitor({
 });
 
 // Types
+type QuotationStatus = Database['public']['Enums']['quotation_status'];
+
 interface QuotationItem {
   product_id?: string | null;
   product_name: string;
@@ -241,8 +243,8 @@ export async function POST(request: NextRequest) {
       .from('quotations')
       .select('id, quotation_number, status, total_amount, customer_name, customer_email, subtotal_amount, tax_amount, valid_until, created_at')
       .eq('user_id', userId)
-      .eq('total_amount', String(finalTotalAmount))
-      .eq('status', status)
+      .eq('total_amount', finalTotalAmount)
+      .eq('status', status as QuotationStatus)
       .gte('created_at', new Date(Date.now() - DEDUP_WINDOW_MIN * 60 * 1000).toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
@@ -266,9 +268,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert quotation
+    // quotation_number をコード生成（QT-YYYYMMDD-NNNN）。database.ts Insert 型では必須。
+    const quotationNumber = `QT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(
+      Math.random() * 10000,
+    )
+      .toString()
+      .padStart(4, '0')}`;
     const { data: quotation, error: quotationError } = await serviceClient
       .from('quotations')
       .insert({
+        quotation_number: quotationNumber,
         user_id: userId,
         company_id: body.company_id || null, // Optional: B2B mode
         customer_name: body.customer_name,
@@ -284,9 +293,10 @@ export async function POST(request: NextRequest) {
         // B2B フォーム経由でも確実に有効期限をセット（発行日から30日）。
         // 未指定の場合は NULL にならず、フォールバック不要になる。
         valid_until: body.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        status,
+        status: status as QuotationStatus,
         // 【追加】見積全体の原価内訳
-        total_cost_breakdown: body.total_cost_breakdown || {},
+        // NOTE: total_cost_breakdown は Json 型。Record を unknown 経由で Json へ変換
+        total_cost_breakdown: (body.total_cost_breakdown || {}) as unknown as Json,
       })
       .select()
       .single();
@@ -325,9 +335,10 @@ export async function POST(request: NextRequest) {
       quantity: item.quantity,
       // unit_priceは小数点以下を保持（total_priceは生成列で自動計算されるため）
       unit_price: item.unit_price,
-      specifications: item.specifications || null,
+      // specifications / cost_breakdown は DB 側で Json 型のためキャスト
+      specifications: (item.specifications || null) as unknown as Json,
       // 【追加】アイテム別原価内訳
-      cost_breakdown: item.cost_breakdown || {},
+      cost_breakdown: (item.cost_breakdown || {}) as unknown as Json,
     }));
 
     const { data: items, error: itemsError } = await serviceClient
@@ -376,7 +387,7 @@ export async function POST(request: NextRequest) {
         product_name: item.product_name,
         quantity: item.quantity,
         unit_price: Number(item.unit_price),
-        specifications: item.specifications,
+        specifications: item.specifications as QuotationItem['specifications'],
       })),
       created_at: quotation.created_at,
     };
@@ -522,7 +533,7 @@ export async function GET(request: NextRequest) {
     // or 短絡評価で無効化されるリスクを根本から回避。.in() は .eq('user_id') と AND 結合
     // されるため、他人の quotation が status 一致で漏洩することはない。
     if (status) {
-      const statusValues = [status.toLowerCase(), status.toUpperCase()];
+      const statusValues = [status.toLowerCase(), status.toUpperCase()] as QuotationStatus[];
       query = query.in('status', statusValues);
     }
 
@@ -564,7 +575,7 @@ export async function GET(request: NextRequest) {
 
     // IDOR-safe: .or() を .in() で回避（L487 と同様・count クエリも user_id 制約維持）
     if (status) {
-      const statusValues = [status.toLowerCase(), status.toUpperCase()];
+      const statusValues = [status.toLowerCase(), status.toUpperCase()] as QuotationStatus[];
       countQuery = countQuery.in('status', statusValues);
     }
 

@@ -115,21 +115,10 @@ export const productionActions = {
     return data;
   },
 
-  async getStageActionHistory(productionOrderId: string) {
-    const { createServiceClient } = await import('@/lib/supabase');
-    const supabase = createServiceClient();
-
-    const { data, error } = await supabase
-      .from('production_stage_actions')
-      .select('*')
-      .eq('production_order_id', productionOrderId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching action history:', error);
-      return [];
-    }
-
-    return data || [];
+  async getStageActionHistory(_productionOrderId: string): Promise<unknown[]> {
+    // drift: `production_stage_actions` テーブルが実DB（database.ts SoT）に不存在。
+    // ステージアクション履歴機能は未配線の予備機能。専用テーブル新設時にリードへ依頼すること。
+    // （呼び出し元: api/admin/production/[orderId]/route.ts は空配列をそのまま返す）
+    return [];
   }
 };

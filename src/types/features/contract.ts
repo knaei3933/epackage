@@ -5,8 +5,11 @@
  * @module types/features/contract
  */
 
-import type { Json } from '../database';
+import type { Database, Json } from '../database';
 import type { ContractStatus } from '../core/database';
+
+// 実DB contracts テーブルの Row 型（commit-1 で実DB 28カラムへ再生成済み）。
+type ContractsRow = Database['public']['Tables']['contracts']['Row'];
 
 // =====================================================
 // Contract Types
@@ -14,41 +17,13 @@ import type { ContractStatus } from '../core/database';
 
 /**
  * 契約書
+ *
+ * 実DB contracts テーブル（28カラム）へ完全整合。
+ * status のみ業務 union（ContractStatus）へ上書きし、それ以外は
+ * database.ts の Row 型をそのまま継承する（drift カラムの再発防止）。
  */
-export interface Contract {
-  id: string;
-  contract_number: string;
-  order_id: string;
-  work_order_id: string | null;
-  company_id: string;
-  customer_name: string;
-  customer_representative: string;
-  total_amount: number;
-  currency: string;
+export interface Contract extends Omit<ContractsRow, 'status'> {
   status: ContractStatus;
-  customer_signed_at: string | null;
-  admin_signed_at: string | null;
-  signature_data: Json | null;
-  customer_ip_address: string | null;
-  admin_ip_address: string | null;
-  pdf_url: string | null;
-  terms: Json | null;
-  notes: string | null;
-  // Japan e-Signature Law Compliance Fields
-  customer_signature_type: 'handwritten' | 'hanko' | 'mixed' | null;
-  admin_signature_type: 'handwritten' | 'hanko' | 'mixed' | null;
-  customer_hanko_image_path: string | null;
-  admin_hanko_image_path: string | null;
-  customer_timestamp_token: string | null;
-  admin_timestamp_token: string | null;
-  customer_timestamp_verified: boolean | null;
-  admin_timestamp_verified: boolean | null;
-  customer_certificate_url: string | null;
-  admin_certificate_url: string | null;
-  signature_expires_at: string | null;
-  legal_validity_confirmed: boolean | null;
-  created_at: string;
-  updated_at: string;
 }
 
 /**

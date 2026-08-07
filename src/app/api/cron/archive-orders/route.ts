@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     const { data: orders, error: fetchError } = await supabase
       .from('orders')
       .select('id, order_number, customer_name, delivered_at, status')
-      .eq('status', 'delivered')  // Use lowercase status
+      .eq('status', 'DELIVERED')  // b2b_order_status enum は大文字のみ（小文字は 22P02 例外の温床）
       .lt('delivered_at', threeMonthsAgo.toISOString())
       .is('archived_at', null);
 

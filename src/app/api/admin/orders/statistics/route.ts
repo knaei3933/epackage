@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { DashboardStatistics } from '@/types/admin';
 import type { Database } from '@/types/database';
+import type { OrderStatus } from '@/types/order-status';
 import { verifyAdminAuth, unauthorizedResponse } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -30,7 +31,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
     const ordersByStatusFormatted = Object.entries(statusCounts).map(([status, count]) => ({
-      status: status as Database['public']['Tables']['orders']['Row']['status'],
+      // 実DB orders.status は b2b_order_status（22値・歴史的な古い値を含む）。
+      // DashboardStatistics.ordersByStatus は OrderStatus（正規化レイヤー・部分集合）へ寄せる。
+      // UI 側で OrderStatus 外の値は default 扱いとなる。
+      status: status as OrderStatus,
       count
     }));
 
@@ -69,10 +73,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // 4. 保留中の見積もり数
+    // 注: quotations.status は quotation_status enum。'PENDING' は存在しないため 'SENT'（送付済み・回答待ち）を使用
     const { count: pendingQuotations } = await supabase
       .from('quotations')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'PENDING');
+      .eq('status', 'SENT');
 
     // 5. 本日発送数（ステータスがSHIPPEDで、shipped_atが今日）
     const today = new Date().toISOString().split('T')[0];

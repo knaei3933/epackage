@@ -167,12 +167,9 @@ async function getDesignerOrderData(token: string) {
     .eq('uploaded_by_type', 'korea_designer')
     .order('revision_number', { ascending: false });
 
-  // Get comments for this order
-  const { data: comments, error: commentsError } = await supabase
-    .from('design_review_comments')
-    .select('*')
-    .eq('order_id', assignmentData.order_id)
-    .order('created_at', { ascending: true });
+  // design_review_comments テーブルは実DBに存在しない（コメント機能未実装）。
+  // 整備されるまで空リストを返す（UI はコメントなしとして表示）。
+  const comments: DesignReviewComment[] = [];
 
   // Get customer uploaded files for this order
   const { data: customerUploads, error: uploadsError } = await supabase
@@ -183,10 +180,7 @@ async function getDesignerOrderData(token: string) {
     .order('uploaded_at', { ascending: false });
 
   return {
-    assignmentData: {
-      ...assignmentData,
-      sku_name: null,
-    },
+    assignmentData,
     order: {
       ...order,
       items: items || [],

@@ -220,7 +220,7 @@ export async function GET(
         revision: {
           id: revision.id,
           revision_number: revision.revision_number,
-          approval_status: revision.approval_status,
+          approval_status: revision.approval_status as 'approved' | 'rejected' | 'pending',
           created_at: revision.created_at,
           original_customer_filename: revision.original_customer_filename,
           generated_correction_filename: revision.generated_correction_filename,

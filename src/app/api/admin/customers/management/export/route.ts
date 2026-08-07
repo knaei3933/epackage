@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
 
     // Apply filters if provided
     if (filters?.status && filters.status !== 'ALL') {
-      query = query.eq('status', filters.status);
+      // profiles.status は user_status enum。string → enum へ最小キャスト（technical debt: 入力値検証は呼び出し元で保証）
+      query = query.eq('status', filters.status as Database['public']['Enums']['user_status']);
     }
 
     if (filters?.search) {

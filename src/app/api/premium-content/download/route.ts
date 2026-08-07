@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server'
 import { premiumContentSchema } from '@/types/premium-content'
-import { createServiceClient } from '@/lib/supabase'
 
 /**
  * POST /api/premium-content/download
@@ -20,14 +19,12 @@ export async function POST(request: NextRequest) {
     // Validate form data
     const validatedData = premiumContentSchema.parse(body)
 
-    // Initialize Supabase client
-    const supabase = createServiceClient()
-
-    // Store download record in database
-    const { data: downloadRecord, error: dbError } = await supabase
-      .from('premium_downloads')
-      .insert({
-        content_id: validatedData.contentId,
+    // Store download record. NOTE: premium_downloads テーブルは実DBに存在しないため、
+    // lead 情報はサーバログへ記録し、機能（downloadUrl 返却）は継続。
+    // 将来的に inquiries 等の実在テーブルへ移行する場合はここを復活させること。
+    try {
+      console.info('[Premium Download] lead received', {
+        contentId: validatedData.contentId,
         name: validatedData.name,
         company: validatedData.company || null,
         email: validatedData.email,
@@ -36,14 +33,9 @@ export async function POST(request: NextRequest) {
         role: validatedData.role,
         consent: validatedData.consent,
         newsletter: validatedData.newsletter || false,
-        downloaded_at: new Date().toISOString(),
       })
-      .select()
-      .single()
-
-    if (dbError) {
-      console.error('Database error:', dbError)
-      // Continue anyway - don't block download on DB error
+    } catch (logError) {
+      console.error('Premium download log failed:', logError)
     }
 
     // TODO: Send confirmation email via SendGrid
@@ -104,22 +96,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = createServiceClient()
-
-    // Get download statistics for this content
-    const { data: stats, error } = await supabase
-      .from('premium_downloads')
-      .select('*')
-      .eq('content_id', contentId)
-
-    if (error) {
-      throw error
-    }
-
+    // Get download statistics for this content.
+    // NOTE: premium_downloads テーブルは実DBに存在しないため、統計は空を返す。
     return NextResponse.json({
       contentId,
-      totalDownloads: stats?.length || 0,
-      downloads: stats || [],
+      totalDownloads: 0,
+      downloads: [],
     })
 
   } catch (error) {

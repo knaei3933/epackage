@@ -22,7 +22,8 @@ interface Revision {
   approval_status: 'pending' | 'approved' | 'rejected';
   preview_image_url: string | null;
   created_at: string;
-  responded_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
 }
 
 interface ApprovalRequest {

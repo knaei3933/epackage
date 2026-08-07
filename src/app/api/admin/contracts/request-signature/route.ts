@@ -32,7 +32,7 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
     }
 
     const data = validationResult.data;
-    const { contractId, method, message } = data;
+    const { contractId, method } = data;
 
     // Get Supabase client
     const supabase = createServiceClient();
@@ -69,47 +69,30 @@ export const POST = withAdminAuth(async (request: NextRequest, auth) => {
       throw new Error('Customer email not registered');
     }
 
-    // Generate signature token and expiration
-    const signatureToken = `SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    // 署名要求の有効期限（30日）。実DBへは保存せずレスポンスでのみ返す。
+    // （署名トークン・要求メソッド・要求メッセージは drift カラムのため保存しない）
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
 
-    // Update contract with signature request details
+    // 契約ステータスを SENT へ更新。
+    // （署名トークン・有効期限・要求メソッド・要求メッセージは drift カラムのため UPDATE から除外）
     const { data: updatedContract, error: updateError } = await supabase
       .from('contracts')
       .update({
         status: 'SENT',
         sent_at: new Date().toISOString(),
-        signature_token: signatureToken,
-        signature_expires_at: expiresAt.toISOString(),
-        signature_request_method: method,
-        signature_request_message: message || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', contractId)
-      .select('id, contract_number, status, sent_at, signature_expires_at')
+      .select('id, contract_number, status, sent_at')
       .single();
 
     if (updateError || !updatedContract) {
       throw new Error('Failed to update contract');
     }
 
-    // Create signature request log entry
-    const { error: logError } = await supabase
-      .from('contract_signature_logs')
-      .insert({
-        contract_id: contractId,
-        action: 'REQUEST_SENT',
-        method: method,
-        sent_to: method === 'email' ? customerEmail : null,
-        message: message || null,
-        sent_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-      });
-
-    if (logError) {
-      console.error('Failed to create signature log:', logError);
-    }
+    // NOTE: 署名要求ログの、実DBに存在しない署名ログテーブル（42P01 を誘発）への
+    // INSERT は廃止した。監査ログは audit_logs テーブルへの振替を別フォローアップで実施する。
 
     // TODO: Send actual email notification
     // This would integrate with the email system

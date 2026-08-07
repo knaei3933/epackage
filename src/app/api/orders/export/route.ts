@@ -31,7 +31,7 @@ interface FetchedOrder {
   status: string | null
   total_amount: number | null
   tax_amount: number | null
-  subtotal_amount: number | null
+  subtotal: number | null
   customer_name: string | null
   delivery_address: unknown
 }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // 注文取得（本人のもののみ・user_id で絞り込み＝所有権チェック）
     const { data: ordersData, error: ordersError } = await supabaseAdmin
       .from('orders')
-      .select('id, order_number, created_at, status, total_amount, tax_amount, subtotal_amount, customer_name, delivery_address')
+      .select('id, order_number, created_at, status, total_amount, tax_amount, subtotal, customer_name, delivery_address')
       .in('id', orderIds)
       .eq('user_id', userIdForDb)
 
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const items = (itemsData ?? []) as FetchedItem[]
 
-    // 注文とアイテムを結合（subtotal_amount → subtotal にマッピング）
+    // 注文とアイテムを結合
     const itemsByOrderId = new Map<string, FetchedItem[]>()
     for (const item of items) {
       const arr = itemsByOrderId.get(item.order_id) ?? []
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         status: o.status,
         total_amount: o.total_amount,
         tax_amount: o.tax_amount,
-        subtotal: o.subtotal_amount,
+        subtotal: o.subtotal,
         customer_name: o.customer_name,
         delivery_address: o.delivery_address,
         items: (itemsByOrderId.get(o.id) ?? []).map((it) => ({

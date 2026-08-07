@@ -54,10 +54,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. 在庫アラート（在庫切れの商品）
+    // 注: 実DBの inventory テーブルを使用（inventory_items は存在しない）
     const { data: lowStockItems, error: stockError } = await supabase
-      .from('inventory_items')
-      .select('id, product_name, quantity')
-      .lt('quantity', 10)
+      .from('inventory')
+      .select('id, product_name, quantity_on_hand')
+      .lt('quantity_on_hand', 10)
       .limit(10);
 
     if (!stockError && lowStockItems && lowStockItems.length > 0) {
@@ -72,10 +73,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. 期限が迫った見積もり（期限切れ間近）
+    // 注: quotations.status は quotation_status enum。'pending' は存在しないため 'SENT'（送付済み・回答待ち）を使用
     const { count: expiringQuotations, error: quoteError } = await supabase
       .from('quotations')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
+      .eq('status', 'SENT')
       .lte('valid_until', new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()) // 3日以内に期限切れ
       .gte('valid_until', new Date().toISOString());
 
@@ -91,10 +93,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. エラーログ確認（最近のエラー）
+    // 注: chatbot_failover_logs に status 列は存在しないため event_type で判定
     const { count: recentErrors, error: logError } = await supabase
       .from('chatbot_failover_logs')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'error')
+      .eq('event_type', 'error')
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // 過去24時間
 
     if (!logError && recentErrors && recentErrors > 0) {

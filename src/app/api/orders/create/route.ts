@@ -14,6 +14,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase';
 import { sendOrderConfirmationEmail } from '@/lib/email-order';
 import { logger, maskEmail } from '@/lib/logger';
+import type { Database } from '@/types/database';
 
 // ============================================================
 // Types
@@ -175,7 +176,8 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: userIdForDb,
         order_number: orderNumber,
-        status: 'pending',
+        // NOTE: b2b_order_status enum は大文字。'PENDING' は正規14ステータスの初期値
+        status: 'PENDING' as Database['public']['Enums']['b2b_order_status'],
         total_amount: quotationItem.total_price,
         notes: customerNotes || null,
         // Customer snapshot (can be enhanced later with full profile data)

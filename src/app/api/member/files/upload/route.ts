@@ -459,7 +459,7 @@ export async function POST(request: NextRequest) {
         // response の downloadUrl は private bucket でアクセス可能な signed URL（24h 有効）。
         // DB の file_url は publicUrl のままだが実アクセス不可のため signed URL で上書きして返す。
         downloadUrl: downloadSignedUrl,
-        uploadedAt: fileRecord.created_at,
+        uploadedAt: fileRecord.uploaded_at,
       },
     };
 
@@ -597,7 +597,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (fileType) {
-      query = query.eq('file_type', fileType.toUpperCase());
+      // NOTE: file_type は DB で enum（AI/PDF/PSD/PNG/JPG/EXCEL/OTHER）。string を enum へキャスト
+      query = query.eq(
+        'file_type',
+        fileType.toUpperCase() as Database['public']['Enums']['file_type'],
+      );
     }
 
     const { data: files, error } = await query;

@@ -19,43 +19,9 @@ import { ContractDownloadButton, ContractPreviewButton } from '@/components/admi
 import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { useToastContext } from '@/components/ui/Toast';
 import { downloadContractPdf as downloadContractPdfAPI } from '@/lib/api/admin/contracts';
+import type { Contract } from '@/types/features/contract';
 
-interface Contract {
-  id: string;
-  contract_number: string;
-  order_id: string;
-  work_order_id: string | null;
-  company_id: string;
-  customer_name: string;
-  customer_representative: string;
-  total_amount: number;
-  currency: string;
-  status: 'DRAFT' | 'SENT' | 'CUSTOMER_SIGNED' | 'ADMIN_SIGNED' | 'ACTIVE' | 'CANCELLED';
-  customer_signed_at: string | null;
-  admin_signed_at: string | null;
-  signature_data: any;
-  customer_ip_address: string | null;
-  admin_ip_address: string | null;
-  pdf_url: string | null;
-  final_contract_url: string | null;
-  terms: any;
-  notes: string | null;
-  // Japan e-Signature Law Compliance Fields
-  customer_signature_type: 'handwritten' | 'hanko' | 'mixed' | null;
-  admin_signature_type: 'handwritten' | 'hanko' | 'mixed' | null;
-  customer_hanko_image_path: string | null;
-  admin_hanko_image_path: string | null;
-  customer_timestamp_token: string | null;
-  admin_timestamp_token: string | null;
-  customer_timestamp_verified: boolean | null;
-  admin_timestamp_verified: boolean | null;
-  customer_certificate_url: string | null;
-  admin_certificate_url: string | null;
-  signature_expires_at: string | null;
-  legal_validity_confirmed: boolean | null;
-  created_at: string;
-  updated_at: string;
-}
+// Contract 型は @/types/features/contract から import（実DB 28カラムへ統一・drift 解消）。
 
 interface Order {
   id: string;
@@ -164,9 +130,6 @@ export default function AdminContractDetailClient() {
         .update({
           status: 'ADMIN_SIGNED',
           admin_signed_at: new Date().toISOString(),
-          // 127.0.0.1 はローカル開発環境のダミー。本番では API 側で
-          // x-forwarded-for / x-real-ip から取得して保存する必要がある。
-          admin_ip_address: '127.0.0.1',
           updated_at: new Date().toISOString(),
         })
         .eq('id', contractId);
@@ -194,7 +157,7 @@ export default function AdminContractDetailClient() {
       // Update contract with PDF URL
       const { error } = await supabase
         .from('contracts')
-        .update({ pdf_url: data.pdfUrl })
+        .update({ final_contract_url: data.pdfUrl })
         .eq('id', contractId);
 
       if (error) throw error;
@@ -376,7 +339,7 @@ export default function AdminContractDetailClient() {
                   管理者署名
                 </Button>
               )}
-              {contract.status === 'ADMIN_SIGNED' && !contract.legal_validity_confirmed && (
+              {contract.status === 'ADMIN_SIGNED' && (
                 <Button
                   onClick={() => {
                     if (confirm('契約の法的効力を確認します。よろしいですか？')) {
@@ -434,12 +397,6 @@ export default function AdminContractDetailClient() {
                 {contract.total_amount.toLocaleString()} {contract.currency}
               </dd>
             </div>
-            {contract.work_order_id && (
-              <div>
-                <dt className="text-gray-600">作業標準書ID</dt>
-                <dd className="text-gray-900 mt-1">{contract.work_order_id}</dd>
-              </div>
-            )}
             {order && (
               <>
                 <div>
@@ -462,10 +419,6 @@ export default function AdminContractDetailClient() {
             <div>
               <dt className="text-gray-600">顧客名（乙）</dt>
               <dd className="text-gray-900 mt-1">{contract.customer_name}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-600">代理人</dt>
-              <dd className="text-gray-900 mt-1">{contract.customer_representative}</dd>
             </div>
           </dl>
         </div>
@@ -504,12 +457,12 @@ export default function AdminContractDetailClient() {
           </div>
         </div>
 
-        {/* 署名データ */}
-        {contract.signature_data && (
+        {/* 契約データ（jsonb メタデータ） */}
+        {contract.contract_data && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">署名データ</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">契約データ</h2>
             <pre className="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg overflow-x-auto">
-              {JSON.stringify(contract.signature_data, null, 2)}
+              {JSON.stringify(contract.contract_data, null, 2)}
             </pre>
           </div>
         )}

@@ -153,18 +153,12 @@ async function getTokenUploadData(token: string) {
     .eq('uploaded_by_type', 'korea_designer')
     .order('revision_number', { ascending: false });
 
-  // Get comments for this order
-  const { data: comments, error: commentsError } = await supabase
-    .from('design_review_comments')
-    .select('*')
-    .eq('order_id', tokenData.order_id)
-    .order('created_at', { ascending: true });
+  // design_review_comments テーブルは実DBに存在しない（コメント機能未実装）。
+  // 整備されるまで空リストを返す（UI はコメントなしとして表示）。
+  const comments: DesignReviewComment[] = [];
 
   return {
-    tokenData: {
-      ...tokenData,
-      sku_name: null,
-    },
+    tokenData,
     order,
     revisions: revisions || [],
     comments: comments || [],

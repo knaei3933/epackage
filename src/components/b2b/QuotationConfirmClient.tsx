@@ -17,7 +17,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
-import type { Quotation, QuotationItem } from '@/types/database'
+import type { Quotation, QuotationItem } from '@/types/entities/quotation'
 import { translatePostProcessing, BAG_TYPE_JA, translateMaterialType } from '@/constants/enToJa'
 
 // ============================================================

@@ -8,6 +8,10 @@
 
 import { createServiceClient } from '@/lib/supabase';
 import { getMaterialSpecification } from '@/lib/unified-pricing-engine';
+import type { Database } from '@/types/database';
+
+// quotations.status の実DB enum 型（quotation_status）。string 値をキャストして型安全化。
+type QuotationStatus = Database['public']['Tables']['quotations']['Row']['status'];
 
 export interface QuotationItem {
   id: string;
@@ -112,10 +116,10 @@ export async function fetchQuotationsServerSide(
                               'SHIPPED', 'CANCELLED'].includes(statusUpper);
 
     if (isWorkflowStatus) {
-      countQuery = countQuery.eq('status', statusUpper);
+      countQuery = countQuery.eq('status', statusUpper as QuotationStatus);
     } else {
       // IDOR-safe: .or() を .in() で回避（外側の .eq('user_id') と AND 結合・or 短絡リスクなし）
-      countQuery = countQuery.in('status', [statusLower, statusUpper]);
+      countQuery = countQuery.in('status', [statusLower, statusUpper] as QuotationStatus[]);
     }
   }
 
@@ -146,11 +150,11 @@ export async function fetchQuotationsServerSide(
 
     if (isWorkflowStatus) {
       // Exact match for workflow statuses
-      query = query.eq('status', statusUpper);
+      query = query.eq('status', statusUpper as QuotationStatus);
     } else {
       // Check both lowercase and uppercase for legacy statuses
       // IDOR-safe: .or() を .in() で回避（外側の .eq('user_id') と AND 結合・or 短絡リスクなし）
-      query = query.in('status', [statusLower, statusUpper]);
+      query = query.in('status', [statusLower, statusUpper] as QuotationStatus[]);
     }
   }
 

@@ -233,7 +233,13 @@ export async function PUT(
       orderUpdateData.modification_requested_at = new Date().toISOString();
 
       // 修正前の仕様を保存（履歴用）
-      orderUpdateData.previous_specifications = order.items?.map((item: any) => ({
+      // 注: orders テーブルに items 列は存在しないため、order_items から別途取得
+      const { data: previousItems } = await supabase
+        .from('order_items')
+        .select('id, specifications, quantity, unit_price')
+        .eq('order_id', orderId);
+
+      orderUpdateData.previous_specifications = (previousItems || []).map((item: any) => ({
         id: item.id,
         specifications: item.specifications,
         quantity: item.quantity,
