@@ -4850,6 +4850,29 @@ Enums: {
 
             // Designer task assignment status
             designer_task_status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+
+            // ============================================================
+            // 実DB ENUMS（commit-1 再生成で Tables カラムが参照・labels は実DB pg_enum の真実そのまま）
+            // 注: quotation_status は実DB上で大文字/小文字の重複を含む（歴史的経緯・別値として扱う）
+            // ============================================================
+
+            // Invoice status（請求書ステータス・8値）
+            invoice_status: 'DRAFT' | 'SENT' | 'VIEWED' | 'OVERDUE' | 'PAID' | 'PARTIAL' | 'CANCELLED' | 'REFUNDED'
+
+            // Correction status（修正ステータス・4値）
+            correction_status: 'pending' | 'in_progress' | 'completed' | 'rejected'
+
+            // Correction source（修正依頼元・4値）
+            correction_source: 'email' | 'phone' | 'portal' | 'manual'
+
+            // B2B order status（B2B 注文ステータス・22値）
+            b2b_order_status: 'PENDING' | 'QUOTATION' | 'DATA_RECEIVED' | 'WORK_ORDER' | 'CONTRACT_SENT' | 'CONTRACT_SIGNED' | 'PRODUCTION' | 'STOCK_IN' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'QUOTATION_PENDING' | 'QUOTATION_APPROVED' | 'DATA_UPLOAD_PENDING' | 'DATA_UPLOADED' | 'CORRECTION_IN_PROGRESS' | 'CORRECTION_COMPLETED' | 'CUSTOMER_APPROVAL_PENDING' | 'READY_TO_SHIP' | 'MODIFICATION_REQUESTED' | 'MODIFICATION_APPROVED' | 'MODIFICATION_REJECTED'
+
+            // Production stage（生産工程・9値）
+            production_stage: 'data_received' | 'inspection' | 'design' | 'plate_making' | 'printing' | 'surface_finishing' | 'die_cutting' | 'lamination' | 'final_inspection'
+
+            // Quotation status（見積ステータス・実DBに大文字/小文字の重複あり・23値）
+            quotation_status: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired' | 'converted' | 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED' | 'QUOTATION_PENDING' | 'QUOTATION_APPROVED' | 'DATA_UPLOAD_PENDING' | 'DATA_UPLOADED' | 'CORRECTION_IN_PROGRESS' | 'CORRECTION_COMPLETED' | 'CUSTOMER_APPROVAL_PENDING' | 'PRODUCTION' | 'READY_TO_SHIP' | 'SHIPPED' | 'CANCELLED'
         }
 CompositeTypes: {
             [_ in never]: never
