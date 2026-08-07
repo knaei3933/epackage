@@ -1,6 +1,12 @@
 import { OrderStatus } from './database';
+import type { ContractStatus } from './core/database';
 import type { Permission } from '@/lib/rbac/rbac-helpers';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
+
+// ContractStatus の SoT は core/database（commit-7 で統一・実DB は text 型）。
+// 従来 admin.ts で重複定義していたが core/database 版（9値）へ統一済み。
+// 本 re-export で @/types/admin 経由の既存 import を壊さずに一本化する。
+export type { ContractStatus };
 
 // =====================================================
 // Admin Auth Types (Canonical)
@@ -156,8 +162,6 @@ export interface RecentActivity {
   status: OrderStatus;
   createdAt: string;
 }
-
-export type ContractStatus = 'DRAFT' | 'SENT' | 'PENDING_SIGNATURE' | 'CUSTOMER_SIGNED' | 'ADMIN_SIGNED' | 'SIGNED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 
 export interface Contract {
   id: string;
