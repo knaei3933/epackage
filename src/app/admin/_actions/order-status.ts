@@ -40,9 +40,6 @@ export async function updateOrderStatus(params: UpdateStatusParams): Promise<Upd
     reason,
     notifyCustomer
   });
-  console.log('[Server Action] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...');
-  console.log('[Server Action] Has service key:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-
   // Validate input
   if (!orderId || !status) {
     console.error('[Server Action] Missing required params:', { orderId, status });

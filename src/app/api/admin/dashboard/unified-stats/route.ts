@@ -14,11 +14,13 @@ import { getAuthenticatedUserFromHeaders } from '@/lib/supabase-ssr';
 
 export async function GET(request: NextRequest) {
   try {
-    // Check if Supabase is configured
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Check if Supabase is configured (boolean guard only — the key itself is
+    // never held in a local variable here, reducing exposure surface).
+    const hasServiceCredentials = !!(
+      process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!hasServiceCredentials) {
       console.warn('[API] Supabase environment variables not configured');
       return NextResponse.json(
         { error: 'Service unavailable - Database not configured' },
