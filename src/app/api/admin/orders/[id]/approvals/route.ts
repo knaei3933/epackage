@@ -47,7 +47,7 @@ export async function GET(
 
     const { data: revisions } = await supabase
       .from('design_revisions')
-      .select('id, revision_number, approval_status, preview_image_url, created_at, responded_at')
+      .select('id, revision_number, approval_status, preview_image_url, created_at, approved_at, rejected_at')
       .eq('order_id', orderId)
       .order('revision_number', { ascending: false });
 
