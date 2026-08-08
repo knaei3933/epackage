@@ -33,6 +33,13 @@ export async function generateMetadata(
   const tag = decodeURIComponent(tagParam);
   const baseUrl = SITE_URL;
 
+  // Soft 404 対策: 該当タグの記事が0件（存在しない無効タグ）なら noindex にして
+  // インデックス候補から除外する。generateMetadata はページ本体の notFound() より
+  // 先に解決されるため、ここで明示的にクロールを拒否しないと #undefined などの
+  // 無意味なタグページが index,follow で露出してしまう。
+  const { total } = await getPublishedPosts({ tag, limit: 1 });
+  const isValidTag = total > 0;
+
   return {
     // title 本体のみ（blog/layout.tsx の template "%s | Epackage Lab ブログ" が適用される）
     title: `#${tag}`,
@@ -46,6 +53,8 @@ export async function generateMetadata(
     alternates: {
       canonical: `${baseUrl}/blog/tag/${tagParam}`,
     },
+    // 無効タグ（記事0件）はインデックスさせない
+    ...(isValidTag ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
