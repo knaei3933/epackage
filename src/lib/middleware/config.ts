@@ -75,6 +75,7 @@ export const PUBLIC_ROUTES = [
   '/news',
   '/premium-content',
   '/archives',
+  '/data-templates', // データ入稿テンプレート（公開ページ・Footer/見積シミュレータ導線）
   '/blog', // ブログページ（公開）
   '/inquiry',
   '/compare',
