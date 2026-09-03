@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { normalizeStatus } from '@/components/admin/quotations/quotation-utils';
 import { unauthorizedResponse, authenticateAdminAction } from '@/lib/auth-helpers';
 import type { Database } from '@/types/database';
 import { invalidateAdminDashboardCache } from '@/lib/cache-helpers';
@@ -75,25 +76,23 @@ export async function GET(
       );
     }
 
-    // Fetch customer's orders — CustomerOrder 必要フィールドのみ明示 select
-    // （quotation_id 含む・Step 8 の注文明細→見積紐付け表示に使用・created_at 降順）
-    // limit 解除・全件取得（クライアント側ページネーションのため）
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
-      .select('id, order_number, status, total_amount, created_at, quotation_id')
-      .eq('user_id', id)
-      .order('created_at', { ascending: false });
+    const sp = request.nextUrl.searchParams;
+    const parsePage = (value: string | null, fallback: number): number => {
+      const parsed = value ? parseInt(value, 10) : fallback;
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+    };
+    const parseLimit = (value: string | null, fallback: number): number => {
+      const parsed = value ? parseInt(value, 10) : fallback;
+      return [10, 20, 50].includes(parsed) ? parsed : fallback;
+    };
+    const qPage = parsePage(sp.get('qPage'), 1);
+    const qLimit = parseLimit(sp.get('qLimit'), 20);
+    const qStatusRaw = sp.get('qStatus') || 'ALL';
+    const qStatus = qStatusRaw === 'ALL' ? 'ALL' : normalizeStatus(qStatusRaw);
+    const oPage = parsePage(sp.get('oPage'), 1);
+    const oLimit = parseLimit(sp.get('oLimit'), 10);
 
-    if (ordersError) {
-      console.error('[Customer Detail API] Orders query error:', ordersError);
-    }
-
-    // Fetch customer's quotations with items
-    // 注意: quotation_items.notes 列は実DBに存在しない。select に含めると PostgREST が
-    // 42703 (undefined_column) を返し HTTP 400 になり、quotations 全体が取得できなくなる
-    // （一覧APIはこの列を参照しないため正常に取得でき、一覧/詳細の乖離が起きていた）。
-    // limit 解除・全件取得（クライアント側ページネーションのため）
-    const { data: quotations, error: quotationsError } = await supabase
+    let quotationsQuery = supabase
       .from('quotations')
       .select(`
         id,
@@ -121,32 +120,62 @@ export async function GET(
           total_price,
           specifications
         )
-      `)
-      .eq('user_id', id)
-      .order('created_at', { ascending: false });
+      `, { count: 'exact' })
+      .eq('user_id', id);
+    if (qStatus !== 'ALL') {
+      quotationsQuery = quotationsQuery.eq('status', qStatus);
+    }
+    const quotationsFrom = (qPage - 1) * qLimit;
+    const { data: quotations, error: quotationsError, count: quotationsCount } = await quotationsQuery
+      .order('created_at', { ascending: false })
+      .range(quotationsFrom, quotationsFrom + qLimit - 1);
 
     if (quotationsError) {
       console.error('[Customer Detail API] Quotations query error:', quotationsError);
     }
 
-    // Calculate statistics
-    const totalOrders = orders?.length || 0;
-    const totalSpent = orders?.reduce((sum: number, order: { total_amount: number | null }) => sum + (order.total_amount || 0), 0) || 0;
-    const lastOrderDate = orders?.[0]?.created_at || null;
-    const totalQuotations = quotations?.length || 0;
-    const pendingQuotations = quotations?.filter((q: { status: string }) => q.status === 'QUOTATION_PENDING' || q.status === 'draft' || q.status === 'sent').length || 0;
-
-    // Fetch contact history (if table exists)
-    // 注意: customer_contacts テーブルが未作成の場合は PostgREST 404 になる（error を可視化）
-    const { data: contactHistory, error: contactHistoryError } = await supabase
-      .from('customer_contacts')
-      .select('*')
-      .eq('customer_id', id)
+    const ordersFrom = (oPage - 1) * oLimit;
+    const { data: orders, error: ordersError, count: ordersCount } = await supabase
+      .from('orders')
+      .select(
+        'id, order_number, status, total_amount, created_at, quotation_id, quotation:quotations!quotation_id(quotation_number)',
+        { count: 'exact' }
+      )
+      .eq('user_id', id)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .range(ordersFrom, ordersFrom + oLimit - 1);
 
-    if (contactHistoryError) {
-      console.error('[Customer Detail API] Contact history query error:', contactHistoryError);
+    if (ordersError) {
+      console.error('[Customer Detail API] Orders query error:', ordersError);
+    }
+
+    const [
+      totalQuotationsResult,
+      totalOrdersResult,
+      pendingQuotationsResult,
+      allOrdersAmountResult,
+      lastOrderResult,
+      contactHistoryResult,
+    ] = await Promise.all([
+      supabase.from('quotations').select('*', { count: 'exact', head: true }).eq('user_id', id),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).eq('user_id', id),
+      supabase.from('quotations').select('*', { count: 'exact', head: true }).eq('user_id', id).in('status', ['DRAFT', 'SENT']),
+      supabase.from('orders').select('total_amount').eq('user_id', id),
+      supabase.from('orders').select('created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(1),
+      supabase.from('customer_contacts').select('*').eq('customer_id', id).order('created_at', { ascending: false }).limit(20),
+    ]);
+
+    const totalOrders = totalOrdersResult.count || 0;
+    const totalSpent = (allOrdersAmountResult.data || []).reduce(
+      (sum: number, order: { total_amount: number | null }) => sum + (order.total_amount || 0),
+      0
+    );
+    const lastOrderDate = (lastOrderResult.data && lastOrderResult.data[0]?.created_at) || null;
+    const totalQuotations = totalQuotationsResult.count || 0;
+    const pendingQuotations = pendingQuotationsResult.count || 0;
+
+    if (contactHistoryResult.error) {
+      console.error('[Customer Detail API] Contact history query error:', contactHistoryResult.error);
     }
 
     const response: CustomerDetailResponse = {
@@ -165,7 +194,19 @@ export async function GET(
         },
         orders: (orders as CustomerOrder[] | null) || [],
         quotations: (quotations as CustomerQuotation[] | null) || [],
-        contactHistory: (contactHistory as unknown as ContactHistory[] | null) || [],
+        quotationsPagination: {
+          page: qPage,
+          limit: qLimit,
+          total: quotationsCount || 0,
+          totalPages: Math.max(1, Math.ceil((quotationsCount || 0) / qLimit)),
+        },
+        ordersPagination: {
+          page: oPage,
+          limit: oLimit,
+          total: ordersCount || 0,
+          totalPages: Math.max(1, Math.ceil((ordersCount || 0) / oLimit)),
+        },
+        contactHistory: (contactHistoryResult.data as unknown as ContactHistory[] | null) || [],
       },
     };
 

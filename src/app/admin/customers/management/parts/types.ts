@@ -64,6 +64,13 @@ export interface CustomerFilters {
   registrationPeriod: 'all' | 'week' | 'month' | 'quarter' | 'year';
 }
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface CustomerListResponse {
   success: boolean;
   data?: Profile[];
@@ -129,21 +136,26 @@ export interface CustomerOrder {
   total_amount: number;
   created_at: string;
   quotation_id: string | null;
+  quotation?: { quotation_number: string | null } | null;
+}
+
+export interface CustomerDetailStatistics {
+  totalOrders: number;
+  totalSpent: number;
+  lastOrderDate: string | null;
+  totalQuotations: number;
+  pendingQuotations: number;
 }
 
 export interface CustomerDetailResponse {
   success: boolean;
   data?: {
     customer: Profile;
-    statistics: {
-      totalOrders: number;
-      totalSpent: number;
-      lastOrderDate: string | null;
-      totalQuotations: number;
-      pendingQuotations: number;
-    };
+    statistics: CustomerDetailStatistics;
     orders: CustomerOrder[];
     quotations: CustomerQuotation[];
+    quotationsPagination?: Pagination;
+    ordersPagination?: Pagination;
     contactHistory: ContactHistory[];
   };
   error?: string;

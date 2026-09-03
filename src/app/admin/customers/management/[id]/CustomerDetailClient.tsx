@@ -20,7 +20,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,13 +59,13 @@ import type { OrderStatus } from '@/types/order-status';
 import { formatDate } from '@/types/portal';
 import type {
   Profile,
+  Pagination,
   CustomerDetailResponse,
   CustomerOrder,
   CustomerQuotation,
 } from '../parts/types';
+import { DesktopPagination, MobilePagination } from '../parts/Pagination';
 import { getStatusBadge, getQuotationStatusBadge } from '../parts/badges';
-// クライアント側ページネーション用のページネーションUI（一覧テーブルと共通コンポーネント）
-import { DesktopPagination } from '../parts/Pagination';
 
 // =====================================================
 // フォームスキーマ（基本情報 + 運用項目 を統合）
@@ -106,31 +106,20 @@ const USER_STATUS_OPTIONS: { value: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'DELETE
   { value: 'DELETED', label: '削除済み' },
 ];
 
-// 見積ステータスフィルタ選択肢（実データの status 値を網羅的にカバー）
+// 見積ステータスフィルタ選択肢（実DBに存在する status 値のみ）
 const QUOTATION_STATUS_FILTER_OPTIONS = [
   { value: 'ALL', label: 'すべて' },
-  { value: 'QUOTATION_PENDING', label: '見積待ち' },
-  { value: 'draft', label: '下書き' },
-  { value: 'sent', label: '送信済み' },
-  { value: 'QUOTATION_APPROVED', label: '承認済み' },
-  { value: 'approved', label: '承認済み' },
-  { value: 'REJECTED', label: '拒否' },
-  { value: 'rejected', label: '拒否' },
-  { value: 'EXPIRED', label: '期限切れ' },
-  { value: 'expired', label: '期限切れ' },
+  { value: 'DRAFT', label: '下書き' },
+  { value: 'SENT', label: '送信済み' },
+  { value: 'APPROVED', label: '承認済み' },
+  { value: 'QUOTATION_APPROVED', label: '見積承認済み' },
   { value: 'CONVERTED', label: '注文化済み' },
-  { value: 'converted', label: '注文化済み' },
 ];
 
 type TabId = 'basic' | 'quotations' | 'orders';
 
 type SortKey = 'date' | 'amount' | 'status';
 type SortDir = 'asc' | 'desc';
-
-// クライアント側ページネーション・1ページあたりの表示件数
-// （APIは全件返却・クライアントで slice して表示する仕様）
-const QUOTATIONS_PAGE_SIZE = 5;
-const ORDERS_PAGE_SIZE = 5;
 
 // =====================================================
 // メインコンポーネント
@@ -145,6 +134,14 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [qPage, setQPage] = useState(1);
+  const [qLimit, setQLimit] = useState(20);
+  const [qStatus, setQStatus] = useState('ALL');
+  const [oPage, setOPage] = useState(1);
+  const [oLimit, setOLimit] = useState(10);
+  const [paginationLoading, setPaginationLoading] = useState(false);
+  const detailRef = useRef(detail);
+  detailRef.current = detail;
 
   const {
     register,
@@ -157,11 +154,18 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
 
   // データ取得
   const loadDetail = useCallback(async () => {
-    setLoading(true);
+    if (detailRef.current === null) setLoading(true);
+    else setPaginationLoading(true);
     setLoadError(null);
     try {
       // fetchCustomerById は { data: unknown } を返すため CustomerDetailResponse へキャスト。
-      const result = (await fetchCustomerById(customerId)) as CustomerDetailResponse;
+      const result = (await fetchCustomerById(customerId, {
+        qPage,
+        qLimit,
+        qStatus,
+        oPage,
+        oLimit,
+      })) as CustomerDetailResponse;
       if (result.success && result.data) {
         setDetail(result.data);
       } else {
@@ -172,8 +176,9 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
       setLoadError('顧客詳細の読み込みに失敗しました。');
     } finally {
       setLoading(false);
+      setPaginationLoading(false);
     }
-  }, [customerId]);
+  }, [customerId, qPage, qLimit, qStatus, oPage, oLimit]);
 
   useEffect(() => {
     loadDetail();
@@ -406,12 +411,33 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
           />
         )}
         {activeTab === 'quotations' && (
-          <QuotationsTab quotations={detail.quotations || []} />
+          <div>
+          {paginationLoading && (
+            <div className="mb-4 flex justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+            </div>
+          )}
+          <QuotationsTab
+            quotations={detail.quotations || []}
+            pagination={detail.quotationsPagination}
+            qPage={qPage}
+            qStatus={qStatus}
+            setQPage={setQPage}
+            setQStatus={setQStatus}
+            qLimit={qLimit}
+            setQLimit={setQLimit}
+          />
+          </div>
         )}
         {activeTab === 'orders' && (
           <OrdersTab
             orders={detail.orders || []}
-            quotations={detail.quotations || []}
+            pagination={detail.ordersPagination}
+            oPage={oPage}
+            setOPage={setOPage}
+            oLimit={oLimit}
+            setOLimit={setOLimit}
+            paginationLoading={paginationLoading}
           />
         )}
       </div>
@@ -721,20 +747,31 @@ function BasicInfoTab({
 // =====================================================
 // Step 7: 見積履歴タブ
 // =====================================================
-function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
+function QuotationsTab({
+  quotations,
+  pagination,
+  qPage,
+  qStatus,
+  setQPage,
+  setQStatus,
+  qLimit,
+  setQLimit,
+}: {
+  quotations: CustomerQuotation[];
+  pagination?: Pagination;
+  qPage: number;
+  qStatus: string;
+  setQPage: (page: number) => void;
+  setQStatus: (status: string) => void;
+  qLimit: number;
+  setQLimit: (limit: number) => void;
+}) {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  // クライアント側ページネーション用 state
-  const [currentPage, setCurrentPage] = useState(1);
 
   const sorted = useMemo(() => {
-    let list = quotations;
-    if (statusFilter !== 'ALL') {
-      list = list.filter((q) => q.status === statusFilter);
-    }
-    const arr = [...list];
+    const arr = [...quotations];
     arr.sort((a, b) => {
       let cmp = 0;
       if (sortKey === 'date') cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -743,18 +780,7 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return arr;
-  }, [quotations, sortKey, sortDir, statusFilter]);
-
-  // ページネーション計算: フィルタ・ソート後の sorted 配列をページサイズで分割
-  const totalPages = Math.max(1, Math.ceil(sorted.length / QUOTATIONS_PAGE_SIZE));
-  const paginated = sorted.slice((currentPage - 1) * QUOTATIONS_PAGE_SIZE, currentPage * QUOTATIONS_PAGE_SIZE);
-
-  // フィルタ・ソート変更で sorted 件数が変わり currentPage が totalPages を超えたら1ページ目へ戻す
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [currentPage, totalPages]);
+  }, [quotations, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -763,14 +789,6 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
       setSortKey(key);
       setSortDir('desc');
     }
-    // ソート変更時に1ページ目へリセット
-    setCurrentPage(1);
-  };
-
-  // ステータスフィルタ変更時に1ページ目へリセット
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-    setCurrentPage(1);
   };
 
   const toggleExpand = (id: string) => {
@@ -792,15 +810,24 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
         <label className="text-sm text-gray-600">ステータス絞り込み:</label>
         <select
-          value={statusFilter}
-          onChange={(e) => handleStatusFilterChange(e.target.value)}
+          value={qStatus}
+          onChange={(e) => setQStatus(e.target.value)}
           className="h-10 px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
         >
           {QUOTATION_STATUS_FILTER_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        <span className="text-xs text-gray-400 sm:ml-auto">{sorted.length}件 / 全{quotations.length}件</span>
+        <select
+          value={qLimit}
+          onChange={(e) => setQLimit(Number(e.target.value))}
+          className="h-10 px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          {[10, 20, 50].map((n) => (
+            <option key={n} value={n}>{n}件</option>
+          ))}
+        </select>
+        <span className="text-xs text-gray-400 sm:ml-auto">{pagination?.total ?? sorted.length}件</span>
       </div>
 
       {/* デスクトップ: テーブル */}
@@ -817,7 +844,7 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {paginated.map((q) => (
+            {sorted.map((q) => (
               <QuotationRow
                 key={q.id}
                 quotation={q}
@@ -827,21 +854,20 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
             ))}
           </tbody>
         </table>
-        {/* クライアント側ページネーション（テーブル直下・全件対象） */}
-        {sorted.length > QUOTATIONS_PAGE_SIZE && (
+        {(pagination?.totalPages ?? 1) > 1 && (
           <DesktopPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={sorted.length}
-            itemsPerPage={QUOTATIONS_PAGE_SIZE}
-            setCurrentPage={setCurrentPage}
+            currentPage={qPage}
+            totalPages={pagination?.totalPages ?? 1}
+            totalItems={pagination?.total ?? sorted.length}
+            itemsPerPage={qLimit}
+            setCurrentPage={setQPage}
           />
         )}
       </div>
 
       {/* モバイル: カード */}
       <div className="md:hidden space-y-3">
-        {paginated.map((q) => (
+        {sorted.map((q) => (
           <div key={q.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0">
@@ -866,17 +892,14 @@ function QuotationsTab({ quotations }: { quotations: CustomerQuotation[] }) {
             </div>
           </div>
         ))}
-        {/* クライアント側ページネーション（モバイル・カード直下） */}
-        {sorted.length > QUOTATIONS_PAGE_SIZE && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-3">
-            <DesktopPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={sorted.length}
-              itemsPerPage={QUOTATIONS_PAGE_SIZE}
-              setCurrentPage={setCurrentPage}
-            />
-          </div>
+        {(pagination?.totalPages ?? 1) > 1 && (
+          <MobilePagination
+            currentPage={qPage}
+            totalPages={pagination?.totalPages ?? 1}
+            totalItems={pagination?.total ?? sorted.length}
+            itemsPerPage={qLimit}
+            setCurrentPage={setQPage}
+          />
         )}
       </div>
     </div>
@@ -953,22 +976,23 @@ function QuotationItems({ quotation }: { quotation: CustomerQuotation }) {
 // =====================================================
 function OrdersTab({
   orders,
-  quotations,
+  pagination,
+  oPage,
+  setOPage,
+  oLimit,
+  setOLimit,
+  paginationLoading,
 }: {
   orders: CustomerOrder[];
-  quotations: CustomerQuotation[];
+  pagination?: Pagination;
+  oPage: number;
+  setOPage: (page: number) => void;
+  oLimit: number;
+  setOLimit: (limit: number) => void;
+  paginationLoading?: boolean;
 }) {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
-  // クライアント側ページネーション用 state
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // quotation_id → quotation_number の参照マップ（元見積紐付け表示用）
-  const quotationMap = useMemo(() => {
-    const m = new Map<string, string>();
-    quotations.forEach((q) => m.set(q.id, q.quotation_number));
-    return m;
-  }, [quotations]);
 
   const sorted = useMemo(() => {
     const arr = [...orders];
@@ -982,18 +1006,6 @@ function OrdersTab({
     return arr;
   }, [orders, sortKey, sortDir]);
 
-  // ページネーション計算: ソート後の sorted 配列をページサイズで分割
-  const totalPages = Math.max(1, Math.ceil(sorted.length / ORDERS_PAGE_SIZE));
-  const paginated = sorted.slice((currentPage - 1) * ORDERS_PAGE_SIZE, currentPage * ORDERS_PAGE_SIZE);
-
-  // ソート変更で sorted 件数は変わらないが、表示位置をリセットするため1ページ目へ戻す
-  // （orders にフィルタは無いが totalPages > currentPage になり得ないよう念のためクランプ）
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [currentPage, totalPages]);
-
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -1001,8 +1013,6 @@ function OrdersTab({
       setSortKey(key);
       setSortDir('desc');
     }
-    // ソート変更時に1ページ目へリセット
-    setCurrentPage(1);
   };
 
   if (orders.length === 0) {
@@ -1011,6 +1021,24 @@ function OrdersTab({
 
   return (
     <div className="space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+        <label className="text-sm text-gray-600">表示件数:</label>
+        <select
+          value={oLimit}
+          onChange={(e) => setOLimit(Number(e.target.value))}
+          className="h-10 px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          {[10, 20, 50].map((n) => (
+            <option key={n} value={n}>{n}件</option>
+          ))}
+        </select>
+        <span className="text-xs text-gray-400 sm:ml-auto">{pagination?.total ?? sorted.length}件</span>
+      </div>
+      {paginationLoading && (
+        <div className="flex justify-center">
+          <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+        </div>
+      )}
       {/* デスクトップ: テーブル */}
       <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">
@@ -1024,7 +1052,7 @@ function OrdersTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {paginated.map((o) => (
+            {sorted.map((o) => (
               <tr key={o.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">{o.order_number}</td>
                 <td className="px-4 py-3 text-gray-600">{formatDate(o.created_at, 'ja')}</td>
@@ -1032,13 +1060,13 @@ function OrdersTab({
                 <td className="px-4 py-3">{getOrderStatusBadge(o.status)}</td>
                 <td className="px-4 py-3">
                   {o.quotation_id ? (
-                    quotationMap.has(o.quotation_id) ? (
+                    o.quotation?.quotation_number ? (
                       <a
                         href={`/admin/quotations?id=${o.quotation_id}`}
                         className="inline-flex items-center gap-1 text-blue-600 hover:underline"
                       >
                         <Link2 className="w-3 h-3" />
-                        {quotationMap.get(o.quotation_id)}
+                        {o.quotation.quotation_number}
                       </a>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-xs text-gray-400">
@@ -1054,21 +1082,20 @@ function OrdersTab({
             ))}
           </tbody>
         </table>
-        {/* クライアント側ページネーション（テーブル直下・全件対象） */}
-        {sorted.length > ORDERS_PAGE_SIZE && (
+        {(pagination?.totalPages ?? 1) > 1 && (
           <DesktopPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={sorted.length}
-            itemsPerPage={ORDERS_PAGE_SIZE}
-            setCurrentPage={setCurrentPage}
+            currentPage={oPage}
+            totalPages={pagination?.totalPages ?? 1}
+            totalItems={pagination?.total ?? sorted.length}
+            itemsPerPage={oLimit}
+            setCurrentPage={setOPage}
           />
         )}
       </div>
 
       {/* モバイル: カード */}
       <div className="md:hidden space-y-3">
-        {paginated.map((o) => (
+        {sorted.map((o) => (
           <div key={o.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-start justify-between gap-2 mb-2">
               <p className="font-medium text-gray-900">{o.order_number}</p>
@@ -1080,10 +1107,10 @@ function OrdersTab({
             </div>
             {o.quotation_id && (
               <div className="mt-2 pt-2 border-t border-gray-100">
-                {quotationMap.has(o.quotation_id) ? (
+                {o.quotation?.quotation_number ? (
                   <a href={`/admin/quotations?id=${o.quotation_id}`} className="inline-flex items-center gap-1 text-xs text-blue-600">
                     <Link2 className="w-3 h-3" />
-                    元見積: {quotationMap.get(o.quotation_id)}
+                    元見積: {o.quotation.quotation_number}
                   </a>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs text-gray-400">
@@ -1095,17 +1122,14 @@ function OrdersTab({
             )}
           </div>
         ))}
-        {/* クライアント側ページネーション（モバイル・カード直下） */}
-        {sorted.length > ORDERS_PAGE_SIZE && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-3">
-            <DesktopPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={sorted.length}
-              itemsPerPage={ORDERS_PAGE_SIZE}
-              setCurrentPage={setCurrentPage}
-            />
-          </div>
+        {(pagination?.totalPages ?? 1) > 1 && (
+          <MobilePagination
+            currentPage={oPage}
+            totalPages={pagination?.totalPages ?? 1}
+            totalItems={pagination?.total ?? sorted.length}
+            itemsPerPage={oLimit}
+            setCurrentPage={setOPage}
+          />
         )}
       </div>
     </div>
