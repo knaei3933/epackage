@@ -2,7 +2,9 @@
 supabase>=2.4.0
 Pillow>=10.0.0
 python-dotenv>=1.0.0
-# Print transport (invoke as CLI subprocess - GPL-3.0 isolation)
+# Print backend: Windows spooler (office default) via official Brother driver
+pywin32; sys_platform == "win32"
+# Print backend: raw TCP fallback (invoke as CLI subprocess - GPL-3.0 isolation)
 brother-ql-next>=0.12.0
 # Dev/test
 pytest>=8.0.0

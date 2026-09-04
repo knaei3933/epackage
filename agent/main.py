@@ -30,7 +30,7 @@ from jobs import (
     run_due,
 )
 from label_renderer import render_label
-from printer import print_label
+from printer import print_label, validate_backend_config
 
 load_dotenv()
 logging.basicConfig(
@@ -109,11 +109,10 @@ def main() -> None:
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
         raise SystemExit("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing (.env)")
-    if not os.environ.get("LABEL_PRINTER_URL"):
-        raise SystemExit("LABEL_PRINTER_URL missing (.env)")
+    backend = validate_backend_config()  # fail fast with actionable message
     sb = create_client(url, key)
-    log.info("label agent started (poll=%ss, batch=%02d:00 JST weekdays)",
-             POLL_INTERVAL_SECONDS, BATCH_HOUR)
+    log.info("label agent started (backend=%s, poll=%ss, batch=%02d:00 JST weekdays)",
+             backend, POLL_INTERVAL_SECONDS, BATCH_HOUR)
 
     last_batch_date: date | None = None
     while True:

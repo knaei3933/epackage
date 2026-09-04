@@ -8,7 +8,8 @@
 | 항목 | 내용 |
 |---|---|
 | 프린터 | Brother QL-820NWBc, DK-22205(62mm 백색 연속 롤) 장착 |
-| 네트워크 | 프린터가 사무실 공유기에 LAN/Wi-Fi 연결 + **DHCP 예약으로 고정 IP** (예: `192.168.1.50`) |
+| 네트워크 | 프린터가 사무실 공유기에 LAN/Wi-Fi 연결. **검증된 실기 IP: `192.168.0.25`** (DHCP 예약 권장) |
+| 인쇄 큐 | **`Brother QL-820NWB USB Setup`** (공식 드라이버, 포트 USB003) — 실기 시험 인쇄 성공 확인됨 |
 | PC | Windows 10/11, Python 3.10+, 업무시간 전원 켜짐 (절전 모드 해제 권장) |
 | 자격증명 | Supabase `SERVICE_ROLE_KEY` (Supabase Dashboard → Settings → API) |
 
@@ -27,8 +28,10 @@ copy .env.example .env
 ::  .env 편집:
 ::   SUPABASE_URL=https://ijlgpzjdfipzmjvawofp.supabase.co
 ::   SUPABASE_SERVICE_ROLE_KEY=<실제 키>
-::   LABEL_PRINTER_URL=tcp://192.168.1.50:9100
-::   LABEL_PRINTER_MODEL=QL-820NWB
+::   LABEL_PRINT_BACKEND=windows_spooler
+::   LABEL_WINDOWS_PRINTER_NAME=Brother QL-820NWB USB Setup
+::   (raw TCP 폴백 시에만: LABEL_PRINT_BACKEND=brother_ql_raw
+::                      LABEL_PRINTER_URL=tcp://192.168.0.25:9100)
 ```
 
 ## 3. Windows 시작 등록 (상시 실행)
@@ -41,7 +44,7 @@ copy .env.example .env
 
 | # | 검증 | 방법 | 통과 기준 |
 |---|---|---|---|
-| **F1** | 실기 1장 인쇄 (게이트) | README.md 5번 명령 실행 (render → brother_ql print) | 라벨에 우편번호/주소/회사명/담당자 인쇄 + 자동 컷 |
+| **F1** | 실기 1장 인쇄 (게이트) | README "F1 실기 인쇄 테스트" 절차 — **windows_spooler 백엔드** (render → print_label) | `PrintResult(ok=True)` + 라벨에 우편번호/주소/회사명/담당자 인쇄 + 자동 컷 |
 | **F2** | 평일 17:00 배치 | 당일 접수 1건 이상 생성 후 17:00 대기 | 당일 접수분 전체 인쇄, 누락 0 |
 | **F3** | 장애 복구 | 프린터 전원 off → 의뢰 접수 → 17:00 경과 → 전원 on | failed 기록 후 다음 폴링/배치에서 자동 재인쇄 |
 | **F4** | 관리자 재인쇄 | `/admin/samples` → 라벨 재인쇄 버튼 | 60초 내 인쇄, 중복 pending 없음 |
@@ -55,7 +58,8 @@ copy .env.example .env
 [관리자] /admin/samples → POST /api/admin/samples/[id]/reprint
                           ↓ label_prints (pending)
 [사무실 PC 에이전트] 60초 폴링 → claim(printing) → 라벨 PNG 렌더(696px@300dpi)
-                          → brother-ql CLI → TCP 9100 인쇄 → printed/failed
+                          → windows_spooler: 공식 Brother 드라이버 큐(GDI) → 인쇄 → printed/failed
+                          → (폴백) brother_ql_raw: TCP 9100 raw raster
 ```
 
 - 인쇄 실패 시 3회 재시도 → failed 기록 → 프린터 복구 후 자동 재처리
@@ -66,7 +70,8 @@ copy .env.example .env
 
 | 증상 | 확인 사항 |
 |---|---|
-| 인쇄 없음 | `.env`의 LABEL_PRINTER_URL 도달성: `ping 192.168.1.50` |
+| 인쇄 없음 | windows_spooler: 큐 이름 정확성(`LABEL_WINDOWS_PRINTER_NAME`)·드라이버 기본 용지가 62mm 연속용지인지 확인 / brother_ql_raw: `ping 192.168.0.25` |
+| LCD "Wrong Roll Type" (raw TCP) | 2026-09-05 실기 재현 확인된 알려진 이슈 — 미디어 타입 핸드셰이크 문제. **windows_spooler 백엔드 사용** (기본값) |
 | "brother_ql CLI not found" | `pip install brother-ql-next` 후 PATH 확인 |
 | 한글 깨짐 | Windows면 Meiryo 자동 인식. 수동 지정: `.env`의 LABEL_FONT_PATH |
 | 관리자 버튼 후 무반응 | 에이전트 실행 여부(작업 관리자에 python), label_prints 테이블에 pending 행 확인 |
