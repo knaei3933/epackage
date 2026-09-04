@@ -2749,6 +2749,53 @@ Tables: {
           },
         ]
       }
+      label_prints: {
+        Row: {
+          attempts: number
+          created_at: string
+          destination_id: string
+          failure_reason: string | null
+          id: string
+          printed_at: string | null
+          requested_by: string | null
+          source: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          destination_id: string
+          failure_reason?: string | null
+          id?: string
+          printed_at?: string | null
+          requested_by?: string | null
+          source: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          destination_id?: string
+          failure_reason?: string | null
+          id?: string
+          printed_at?: string | null
+          requested_by?: string | null
+          source?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "label_prints_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "sample_request_destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_settings: {
         Row: {
           created_at: string | null

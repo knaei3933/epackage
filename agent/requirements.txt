@@ -1,0 +1,8 @@
+# Office Windows PC runtime (Python 3.10+)
+supabase>=2.4.0
+Pillow>=10.0.0
+python-dotenv>=1.0.0
+# Print transport (invoke as CLI subprocess - GPL-3.0 isolation)
+brother-ql-next>=0.12.0
+# Dev/test
+pytest>=8.0.0
