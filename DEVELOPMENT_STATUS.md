@@ -4,8 +4,8 @@ Updated: 2026-09-03
 
 ## Current Baseline
 
-- Local `main`, `origin/main`, and the `Epackage-lab` worktree are synchronized at `141dfead`.
-- Working tree is clean.
+- Local `main`, `origin/main`, and the `Epackage-lab` worktree are synchronized at `5316bab0`.
+- The GitHub authentication issue was resolved by using the authenticated Windows `gh` credential helper from WSL.
 - The consolidated baseline includes the GSC index fixes, database-type drift cleanup, restored customer-detail server-side pagination, quote-label unification, and blog JSON-LD cleanup.
 
 ## Recent Completed Work
@@ -19,12 +19,15 @@ Updated: 2026-09-03
 | 2026-09-03 | `6777809e` | Unified remaining Japanese post-processing labels with `enToJa.ts`. |
 | 2026-09-03 | `5e1fd50e` | Removed duplicate blog breadcrumb JSON-LD and the dead schema helper. |
 | 2026-09-03 | `141dfead` | Restored server-side pagination for customer quotations and orders without reintroducing obsolete branch changes. |
+| 2026-09-03 | `5316bab0` | Consolidated the development baseline and synchronized it to GitHub. |
+| 2026-09-03 | uncommitted | Reconciled Supabase migrations: canonical `supabase/migrations` now contains the 30 versions recorded in linked remote history; 130 legacy local-only SQL files are retained under `supabase/migrations-archive/legacy-local`. |
 
 ## Verification Snapshot
 
 - `pnpm typecheck`: pass.
 - `pnpm build`: pass.
 - Targeted post-processing suites: 3 suites / 28 tests passed.
+- `supabase db push --linked --dry-run`: remote database is up to date.
 - Production spot checks for the GSC fixes passed: `/data-templates` returned HTTP 200, an invalid tag emitted `noindex, nofollow`, and a valid tag remained `index, follow`.
 - Lint runs with 0 errors and many pre-existing warnings; warnings are not part of this baseline change.
 
@@ -34,4 +37,4 @@ Updated: 2026-09-03
 2. Trace production logs after deployment to confirm the database-type drift fixes remain silent and error-free.
 3. Clean up the duplicate `robots` meta tag on invalid blog tag pages.
 4. Audit the old local branches and their remote counterparts that are already represented in `main`; delete only after that confirmation.
-5. Apply Supabase migration history only after restoring authenticated Supabase CLI access; do not infer remote state from the current local migration list.
+5. Keep the canonical 30-file migration set aligned with linked Supabase history; archive—not mix—legacy local-only SQL.

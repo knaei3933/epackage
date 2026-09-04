@@ -98,8 +98,8 @@ test.describe('Design Revision Workflow v2 - Component Display', () => {
     const path = require('path');
 
     const migrationPath = path.join(
-      'C:/Users/kanei/claudecode/02.Homepage_Dev/02.epac_homepagever1.1',
-      'supabase/migrations/20260222000000_design_revision_workflow_v2.sql'
+      process.cwd(),
+      'supabase/migrations-archive/legacy-local/20260222000000_design_revision_workflow_v2.sql'
     );
 
     const exists = fs.existsSync(migrationPath);

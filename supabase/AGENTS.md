@@ -11,6 +11,8 @@ This directory contains all Supabase database migrations, storage bucket configu
 ```
 supabase/
 ├── migrations/              # SQL migration files (chronologically ordered)
+├── migrations-archive/
+│   └── legacy-local/        # Historical local-only SQL retained for audit
 ├── .temp/                   # Supabase CLI temporary files
 ├── README.md                # Migration instructions and troubleshooting
 └── AGENTS.md                # This file - AI agent reference guide
@@ -27,7 +29,11 @@ supabase/
 
 ### `migrations/`
 
-Contains 82+ SQL migration files that define the entire database schema. Migrations are named with timestamp prefixes (`YYYYMMDDHHMMSS_description.sql`) for proper ordering.
+Contains the 30 SQL migration files represented in the linked Supabase migration history. Migrations are named with timestamp prefixes (`YYYYMMDDHHMMSS_description.sql`) for proper ordering. Do not add ad-hoc legacy SQL here; create a new migration for forward changes.
+
+### `migrations-archive/legacy-local/`
+
+Contains 130 earlier local SQL files that are not present in the linked remote migration history. They are retained for historical and audit purposes only and are not applied by `supabase db push`.
 
 **Core Schema Migrations:**
 - `001_dashboard_schema.sql` - Initial dashboard schema (orders, addresses, quotations)

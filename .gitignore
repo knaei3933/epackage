@@ -103,6 +103,9 @@ update-*.js
 *_INTEGRATION_TEST_REPORT.md
 .env*.local
 
+# Supabase CLI session metadata
+supabase/.temp/linked-project.json
+
 # Coverage reports
 coverage/
 

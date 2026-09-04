@@ -17,7 +17,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 // Read migration SQL
-const migrationPath = path.join(__dirname, '../supabase/migrations/20250323_auto_create_profile_trigger.sql');
+const migrationPath = path.join(__dirname, '../supabase/migrations-archive/legacy-local/20250323_auto_create_profile_trigger.sql');
 const sql = fs.readFileSync(migrationPath, 'utf8');
 
 // Split SQL by semicolons and execute each statement

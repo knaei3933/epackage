@@ -32,7 +32,13 @@ async function applyMigration() {
     console.log('🚀 Starting Supabase migration...\n');
 
     // Read migration file
-    const migrationPath = join(process.cwd(), 'supabase', 'migrations', '20250125000000_create_profiles_table.sql');
+    const migrationPath = join(
+      process.cwd(),
+      'supabase',
+      'migrations-archive',
+      'legacy-local',
+      '20250125000000_create_profiles_table.sql',
+    );
     const migrationSQL = readFileSync(migrationPath, 'utf-8');
 
     console.log('📄 Migration file loaded');
@@ -113,7 +119,7 @@ async function applyMigration() {
     console.error('❌ Migration failed:', error.message);
     console.error('\n📝 Please apply the migration manually through Supabase Dashboard:\n');
     console.error('   1. Go to SQL Editor in Supabase Dashboard');
-    console.error('   2. Copy contents of: supabase/migrations/20250125000000_create_profiles_table.sql');
+    console.error('   2. Copy contents of: supabase/migrations-archive/legacy-local/20250125000000_create_profiles_table.sql');
     console.error('   3. Paste and click Run\n');
     process.exit(1);
   }

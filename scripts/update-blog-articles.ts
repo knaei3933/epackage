@@ -24,7 +24,10 @@ async function updateBlogArticles() {
   console.log('=== Blog Articles Update ===\n');
 
   // Read SQL file
-  const sqlFilePath = path.join(process.cwd(), 'supabase/migrations/20260227020000_update_blog_articles.sql');
+  const sqlFilePath = path.join(
+    process.cwd(),
+    'supabase/migrations-archive/legacy-local/20260227020000_update_blog_articles.sql',
+  );
   const sqlContent = fs.readFileSync(sqlFilePath, 'utf-8');
 
   // Split SQL into individual statements
