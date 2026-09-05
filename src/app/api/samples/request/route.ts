@@ -14,7 +14,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase';
-import { executeSql } from '@/lib/supabase-mcp';
 import { createAdminNotification } from '@/lib/admin-notifications';
 import { sendSampleRequestEmail } from '@/lib/email';
 import type { Database } from '@/types/database';
@@ -249,38 +248,30 @@ export async function POST(request: NextRequest) {
     console.log('[Sample Request API] All sample items inserted');
 
     // ============================================================
-    // STEP 3: Store delivery destinations in metadata (using Supabase MCP)
+    // STEP 3: Store delivery destinations in the normalized table consumed by
+    // the label printer agent. Never tolerate a silent failure here: without
+    // this row the request cannot be printed.
     // ============================================================
 
-    // Store delivery destinations as JSON in notes (or create a separate table if needed)
-    const deliveryDestinationsJson = JSON.stringify(validatedData.deliveryDestinations);
+    for (const dest of validatedData.deliveryDestinations) {
+      const { error: destinationError } = await supabase
+        .from('sample_request_destinations')
+        .insert({
+          sample_request_id: sampleRequestId,
+          company_name: dest.companyName || null,
+          contact_person: dest.contactPerson,
+          phone: dest.phone,
+          postal_code: dest.postalCode || null,
+          address: dest.address,
+        });
 
-    // Update sample request with delivery info
-    const updateResult = await executeSql(
-      `
-      UPDATE sample_requests
-      SET notes = CASE
-        WHEN notes IS NULL THEN $1::jsonb
-        ELSE notes || $1::jsonb
-      END,
-      updated_at = NOW()
-      WHERE id = $2
-      RETURNING id
-      `,
-      [
-        JSON.stringify({
-          delivery_type: validatedData.deliveryType,
-          delivery_destinations: validatedData.deliveryDestinations,
-          customer_info: userId ? null : validatedData.customerInfo,
-          urgency: validatedData.urgency
-        }),
-        sampleRequestId
-      ]
-    );
-
-    if (updateResult.error) {
-      console.error('[Sample Request API] Update delivery info error:', updateResult.error);
-      // Don't throw - the request was already created successfully
+      if (destinationError) {
+        console.error('[Sample Request API] Destination insert error:', destinationError);
+        // Roll back the parent request (items cascade) so customers do not
+        // receive a confirmation for an unprintable request.
+        await supabase.from('sample_requests').delete().eq('id', sampleRequestId);
+        throw new Error(`Sample destination creation failed: ${destinationError.message}`);
+      }
     }
 
     // ============================================================
