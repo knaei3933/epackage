@@ -30,6 +30,10 @@ BACKEND_RAW = "brother_ql_raw"
 VALID_BACKENDS = (BACKEND_WINDOWS, BACKEND_RAW)
 DEFAULT_BACKEND = BACKEND_WINDOWS  # office default (raw TCP failed on real HW)
 
+FORM_WIDTH_TENTHS_MM = 589  # 62mm-roll printable form (verified working in F2/F4)
+MIN_PAGE_LENGTH_TENTHS_MM = 300  # 25.4mm continuous-tape safety minimum
+LABEL_WIDTH_PX = 696  # 58.9mm printable width @300dpi
+
 BROTHER_MODEL = os.environ.get("LABEL_PRINTER_MODEL", "QL-820NWB")
 LABEL_SIZE = "62"  # 62mm continuous (raw backend only)
 
@@ -39,6 +43,8 @@ RETRY_BACKOFF_SECONDS = 5
 # win32print GDI device-cap constants (fallback values match win32print)
 HORZRES = 8   # printable width (device pixels)
 VERTRES = 10  # printable height (device pixels)
+
+RENDER_DPI = 300  # label_renderer renders at 300 dpi
 
 
 class PrinterNotConfigured(RuntimeError):
@@ -106,7 +112,7 @@ def _print_raw_once(cmd: list[str], image_path: Path) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 def _load_windows_deps():
-    """Lazy-import pywin32 + PIL ImageWin so Linux imports/tests still work."""
+    """Lazy-import Windows print modules so Linux imports/tests still work."""
     try:
         import win32print  # type: ignore[import-untyped]
         import win32ui  # type: ignore[import-untyped]
@@ -117,6 +123,12 @@ def _load_windows_deps():
             f"({exc}). Install on the office Windows PC: pip install pywin32"
         ) from exc
     return win32print, win32ui, ImageWin
+
+
+def _page_tenths_mm(height_px: int, buffer_tenths: int = 15) -> int:
+    """Convert rendered height (px @300dpi) to DEVMODE tenths-of-mm, +buffer."""
+    return max(MIN_PAGE_LENGTH_TENTHS_MM,
+               int(height_px * 254 / RENDER_DPI) + buffer_tenths)
 
 
 def _windows_printer_name() -> str:
@@ -132,17 +144,41 @@ def _windows_printer_name() -> str:
 def _submit_via_spooler_once(image_path: Path, doc_name: str) -> None:
     """One spooler submission through the official Brother driver queue.
 
-    Renders the PNG into the printer device context (GDI) so the Brother
-    driver - not our code - handles 62mm continuous media, raster conversion,
-    and cutting. Raises on any submission error (caller retries).
+    PROVEN path (F2/F4 prints succeeded): SetPrinter adjusts the queue page
+    size (62mm x content length), then win32ui CreatePrinterDC renders the
+    label through the official driver.
     """
     printer_name = _windows_printer_name()
-    win32print, win32ui, ImageWin = _load_windows_deps()
-
-    from PIL import Image  # local import: only needed on the print path
+    from PIL import Image  # Windows-side import
 
     img = Image.open(image_path).convert("RGB")
 
+    win32print, win32ui, ImageWin = _load_windows_deps()
+    img_width, img_height = img.size
+    if img_width != LABEL_WIDTH_PX:
+        raise RuntimeError(
+            f"label image width must be {LABEL_WIDTH_PX}px @300dpi, got {img_width}px"
+        )
+
+    # 1) dynamic page size via SetPrinter (proven in F2/F4)
+    h = win32print.OpenPrinter(printer_name, {"DesiredAccess": win32print.PRINTER_ALL_ACCESS})
+    try:
+        info = win32print.GetPrinter(h, 2)
+        dm = info.get("pDevMode")
+        if dm is not None:
+            dm.PaperWidth = FORM_WIDTH_TENTHS_MM            # 589 (58.9mm printable)
+            dm.PaperLength = _page_tenths_mm(img.size[1])   # feed = content height + buffer
+            dm.PaperSize = 256                              # driver snaps to its 62mm form
+            dm.Orientation = 1                              # DMORIENT_PORTRAIT: no driver rotation
+            dm.Fields = int(getattr(dm, "Fields", 0)) | 0x2 | 0x4 | 0x8
+            info["pDevMode"] = dm
+            win32print.SetPrinter(h, 2, info, 0)
+    finally:
+        win32print.ClosePrinter(h)
+
+    # 2) GDI coordinates are printer-device pixels, not renderer pixels. Query
+    # the resolved custom page and scale to the printable rectangle; this keeps
+    # physical size correct even when a driver defaults to 600dpi.
     hdc = win32ui.CreateDC()
     try:
         hdc.CreatePrinterDC(printer_name)
@@ -151,24 +187,19 @@ def _submit_via_spooler_once(image_path: Path, doc_name: str) -> None:
         if page_w <= 0 or page_h <= 0:
             raise RuntimeError(
                 f"Printer queue reported invalid page size {page_w}x{page_h} "
-                "(check the queue's default paper form = 62mm continuous)"
+                "(check the queue default paper form = 62mm continuous)"
             )
-
+        scale = min(page_w / img_width, page_h / img_height)
+        draw_w = max(1, int(img_width * scale))
+        draw_h = max(1, int(img_height * scale))
         hdc.StartDoc(doc_name)
-        try:
-            hdc.StartPage()
-            img_w, img_h = img.size
-            scale = min(page_w / img_w, page_h / img_h)
-            w, h = max(1, int(img_w * scale)), max(1, int(img_h * scale))
-            x, y = (page_w - w) // 2, 0  # top-aligned on a roll
-            dib = ImageWin.Dib(img)
-            dib.draw(hdc.GetHandleOutput(), (x, y, x + w, y + h))
-            hdc.EndPage()
-        finally:
-            hdc.EndDoc()
+        hdc.StartPage()
+        dib = ImageWin.Dib(img)
+        dib.draw(hdc.GetHandleOutput(), (0, 0, draw_w, draw_h))
+        hdc.EndPage()
+        hdc.EndDoc()
     finally:
         hdc.DeleteDC()
-        del img
 
 
 def validate_backend_config() -> str:
@@ -176,7 +207,10 @@ def validate_backend_config() -> str:
     backend = get_backend()
     if backend == BACKEND_WINDOWS:
         _windows_printer_name()  # raises with guidance if missing
-        _load_windows_deps()  # raises with guidance if pywin32 missing
+        if os.name != "nt":
+            raise WindowsSpoolerUnavailable(
+                "windows_spooler backend requires Windows (office PC)."
+            )
     else:
         if not _printer_url():
             raise PrinterNotConfigured(

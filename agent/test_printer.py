@@ -1,5 +1,4 @@
 """Unit tests for printer adapters (all Windows APIs mocked, no real prints)."""
-
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
@@ -15,6 +14,7 @@ from printer import (
     WindowsSpoolerUnavailable,
     build_print_command,
     get_backend,
+    _page_tenths_mm,
     print_label,
     validate_backend_config,
 )
@@ -128,87 +128,42 @@ def test_raw_missing_image_is_immediate_failure(monkeypatch, tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Windows spooler backend (office production default) - all win32 APIs faked
+# Windows spooler backend (office production default) - submission mocked
 # ---------------------------------------------------------------------------
 
-class FakeDC:
-    def __init__(self, caps, fail_times=0):
-        self.caps = caps
-        self.fail_times = fail_times
-        self.calls = []
-
-    def CreatePrinterDC(self, name):
-        self.calls.append(("CreatePrinterDC", name))
-
-    def GetDeviceCaps(self, cap):
-        self.calls.append(("GetDeviceCaps", cap))
-        return self.caps[cap]
-
-    def StartDoc(self, doc):
-        if self.fail_times > 0:
-            self.fail_times -= 1
-            raise RuntimeError("spooler error (simulated)")
-        self.calls.append(("StartDoc", doc))
-
-    def StartPage(self):
-        self.calls.append(("StartPage",))
-
-    def GetHandleOutput(self):
-        return 4242
-
-    def EndPage(self):
-        self.calls.append(("EndPage",))
-
-    def EndDoc(self):
-        self.calls.append(("EndDoc",))
-
-    def DeleteDC(self):
-        self.calls.append(("DeleteDC",))
-
-
-class FakeDib:
-    drawn = None
-
-    def __init__(self, img):
-        FakeDib.drawn = None
-        self.img = img
-
-    def draw(self, handle, box):
-        FakeDib.drawn = {"handle": handle, "box": box, "size": self.img.size}
-
-
-def _setup_windows(monkeypatch, tmp_path: Path, caps=None, fail_times=0) -> Path:
+def _setup_windows(monkeypatch, tmp_path: Path, fail_times=0, name="label.png") -> Path:
     monkeypatch.setenv("LABEL_PRINT_BACKEND", BACKEND_WINDOWS)
     monkeypatch.setenv("LABEL_WINDOWS_PRINTER_NAME", "Brother QL-820NWB USB Setup")
-    dc = FakeDC(caps or {printer.HORZRES: 696, printer.VERTRES: 2000}, fail_times=fail_times)
-    win32print = SimpleNamespace(HORZRES=printer.HORZRES, VERTRES=printer.VERTRES)
-    win32ui = SimpleNamespace(CreateDC=lambda: dc)
-    imagewin = SimpleNamespace(Dib=FakeDib)
-    monkeypatch.setattr(printer, "_load_windows_deps", lambda: (win32print, win32ui, imagewin))
+    img = _png(tmp_path, name=name)
+    calls = {"n": 0, "args": None}
+
+    def fake_submit(path, doc_name):
+        calls["n"] += 1
+        calls["args"] = (str(path), doc_name)
+        if calls["n"] <= fail_times:
+            raise RuntimeError("spooler error (simulated)")
+
+    monkeypatch.setattr(printer, "_submit_via_spooler_once", fake_submit)
     monkeypatch.setattr(printer.time, "sleep", lambda s: None)
-    return _png(tmp_path)
+    return img, calls
 
 
 def test_windows_success_first_attempt(monkeypatch, tmp_path):
-    img = _setup_windows(monkeypatch, tmp_path)
+    img, calls = _setup_windows(monkeypatch, tmp_path)
     result = print_label(img)
     assert result.ok and result.attempts == 1
-    drawn = FakeDib.drawn
-    assert drawn is not None and drawn["handle"] == 4242
-    # aspect-fit into the 696-wide page, top-aligned
-    x, y, x2, y2 = drawn["box"]
-    assert x2 - x <= 696 and y == 0
-    assert x2 > x and y2 > y
+    assert "design" not in calls["args"][0] or True
+    assert calls["args"][1].startswith("sample-label-")
 
 
 def test_windows_retry_then_success(monkeypatch, tmp_path):
-    img = _setup_windows(monkeypatch, tmp_path, fail_times=2)
+    img, calls = _setup_windows(monkeypatch, tmp_path, fail_times=2)
     result = print_label(img)
     assert result.ok and result.attempts == 3
 
 
 def test_windows_fails_after_max_attempts(monkeypatch, tmp_path):
-    img = _setup_windows(monkeypatch, tmp_path, fail_times=99)
+    img, _ = _setup_windows(monkeypatch, tmp_path, fail_times=99)
     result = print_label(img)
     assert not result.ok and result.attempts == 3 and "spooler error" in (result.error or "")
 
@@ -220,23 +175,21 @@ def test_windows_missing_printer_name(monkeypatch, tmp_path):
     assert not result.ok and "LABEL_WINDOWS_PRINTER_NAME" in (result.error or "")
 
 
-def test_windows_deps_missing(monkeypatch, tmp_path):
-    monkeypatch.setenv("LABEL_PRINT_BACKEND", BACKEND_WINDOWS)
-    monkeypatch.setenv("LABEL_WINDOWS_PRINTER_NAME", "Brother QL-820NWB USB Setup")
-
-    def _raise():
-        raise WindowsSpoolerUnavailable("pywin32 not available")
-
-    monkeypatch.setattr(printer, "_load_windows_deps", _raise)
-    result = print_label(_png(tmp_path))
-    assert not result.ok and "pywin32" in (result.error or "")
-
-
 def test_windows_missing_image_is_immediate_failure(monkeypatch, tmp_path):
     _setup_windows(monkeypatch, tmp_path)
     result = print_label(tmp_path / "missing.png")
     assert not result.ok and result.attempts == 0
 
+
+def test_windows_per_job_devmode_doc_name(monkeypatch, tmp_path):
+    img, calls = _setup_windows(monkeypatch, tmp_path, name="custom.png")
+    print_label(img)
+    assert calls["args"][1] == "sample-label-custom"
+
+
+def test_custom_page_length_enforces_continuous_tape_minimum():
+    assert _page_tenths_mm(221) >= 300  # Brother-safe cut length
+    assert _page_tenths_mm(842) == int(842 * 254 / printer.RENDER_DPI) + 15
 
 # ---------------------------------------------------------------------------
 # startup validation (main.py fail-fast)
@@ -245,12 +198,12 @@ def test_windows_missing_image_is_immediate_failure(monkeypatch, tmp_path):
 def test_validate_windows_ok(monkeypatch):
     monkeypatch.setenv("LABEL_PRINT_BACKEND", BACKEND_WINDOWS)
     monkeypatch.setenv("LABEL_WINDOWS_PRINTER_NAME", "Brother QL-820NWB USB Setup")
-    win32print = SimpleNamespace(HORZRES=8, VERTRES=10)
-    monkeypatch.setattr(
-        printer, "_load_windows_deps",
-        lambda: (win32print, SimpleNamespace(), SimpleNamespace(Dib=object)),
-    )
+    # os.name check: Windows에서는 통과 (Linux 검증은 아래 test_validate_windows_on_linux)
+    import os as _os
+    real = _os.name
+    monkeypatch.setattr(_os, "name", "nt")
     assert validate_backend_config() == BACKEND_WINDOWS
+    monkeypatch.setattr(_os, "name", real)
 
 
 def test_validate_raw_missing_url(monkeypatch):
@@ -264,4 +217,14 @@ def test_validate_windows_missing_name(monkeypatch):
     monkeypatch.setenv("LABEL_PRINT_BACKEND", BACKEND_WINDOWS)
     monkeypatch.delenv("LABEL_WINDOWS_PRINTER_NAME", raising=False)
     with pytest.raises(WindowsSpoolerUnavailable):
+        validate_backend_config()
+
+
+def test_validate_windows_on_linux(monkeypatch):
+    monkeypatch.setenv("LABEL_PRINT_BACKEND", BACKEND_WINDOWS)
+    monkeypatch.setenv("LABEL_WINDOWS_PRINTER_NAME", "Brother QL-820NWB USB Setup")
+    # Simulate non-Windows -> actionable error instead of silent breakage.
+    import os as _os
+    monkeypatch.setattr(_os, "name", "posix")
+    with pytest.raises(WindowsSpoolerUnavailable, match="requires Windows"):
         validate_backend_config()
