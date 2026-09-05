@@ -7,7 +7,7 @@ separate from thin Supabase wrappers so the logic is unit-testable.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time as dtime, timedelta, timezone
 from typing import Any
 
 JST = timezone(timedelta(hours=9))
@@ -20,7 +20,9 @@ STALE_PRINTING_TIMEOUT = timedelta(minutes=10)
 # Pure logic (unit-tested)
 # ---------------------------------------------------------------------------
 
-def is_batch_candidate(destination: dict[str, Any], cutoff_utc: datetime) -> bool:
+def is_batch_candidate(
+    destination: dict[str, Any], cutoff_utc: datetime, lower_bound_utc: datetime
+) -> bool:
     """True when the destination has no printed/pending/printing job.
 
     Batch semantics (PRD D2/D3): a destination is eligible when it has no
@@ -30,6 +32,11 @@ def is_batch_candidate(destination: dict[str, Any], cutoff_utc: datetime) -> boo
     F5 boundary (BLOCKER fix): only requests created before today's 17:00 JST
     cutoff are eligible, so an agent restart after 17:00 never batch-prints
     after-cutoff intake.
+
+    First-run backfill guard: requests created BEFORE the previous weekday's
+    17:00 JST cutoff are excluded, so the first real batch never re-prints
+    months of historical intake - only the current batch window
+    (previous weekday 17:00 -> today 17:00, e.g. Fri 17:00 -> Mon 17:00).
     """
     prints = destination.get("label_prints") or []
     has_active = any(p.get("status") in ("pending", "printing", "printed") for p in prints)
@@ -45,7 +52,17 @@ def is_batch_candidate(destination: dict[str, Any], cutoff_utc: datetime) -> boo
         return False
     if created.tzinfo is None:
         created = created.replace(tzinfo=timezone.utc)
+    if created < lower_bound_utc:
+        return False
     return created < cutoff_utc
+
+
+def previous_weekday_cutoff_utc(now_utc: datetime) -> datetime:
+    """17:00 JST of the most recent weekday strictly before today (JST)."""
+    d = now_utc.astimezone(JST).date() - timedelta(days=1)
+    while d.weekday() not in BATCH_WEEKDAYS:
+        d -= timedelta(days=1)
+    return datetime.combine(d, dtime(BATCH_HOUR), tzinfo=JST).astimezone(timezone.utc)
 
 
 def run_due(now_jst: datetime, last_batch_date) -> bool:

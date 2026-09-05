@@ -26,6 +26,7 @@ from jobs import (
     is_batch_candidate,
     mark_failed,
     mark_printed,
+    previous_weekday_cutoff_utc,
     requeue_stale_printing,
     run_due,
 )
@@ -98,7 +99,8 @@ def run_batch_if_due(sb, last_batch_date: date | None) -> date | None:
     log.info("batch due (%s) - collecting destinations", now.astimezone(JST).isoformat())
     destinations = fetch_batch_destinations(sb)
     cutoff = _today_cutoff_utc(now)
-    candidates = [d["id"] for d in destinations if is_batch_candidate(d, cutoff)]
+    lower = previous_weekday_cutoff_utc(now)
+    candidates = [d["id"] for d in destinations if is_batch_candidate(d, cutoff, lower)]
     created = create_batch_jobs(sb, candidates)
     log.info("batch: %d destinations, %d jobs created", len(candidates), created)
     return now.astimezone(JST).date()

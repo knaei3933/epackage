@@ -10,6 +10,7 @@
 | 프린터 | Brother QL-820NWBc, DK-22205(62mm 백색 연속 롤) 장착 |
 | 네트워크 | 프린터가 사무실 공유기에 LAN/Wi-Fi 연결. **검증된 실기 IP: `192.168.0.25`** (DHCP 예약 권장) |
 | 인쇄 큐 | **`Brother QL-820NWB USB Setup`** (공식 드라이버, 포트 USB003) — 실기 시험 인쇄 성공 확인됨 |
+| 드라이버 용지 종류 | **인쇄 기본 설정 → 용지 종류를 실제 장착 롤과 일치** (출고 DK-22251 = `흰바탕 검정/빨강`). 불일치 시 큐 오류 "흰바탕 검정/빨강이 설치되어 있습니다..." 로 인쇄 거부 |
 | PC | Windows 10/11, Python 3.10+, 업무시간 전원 켜짐 (절전 모드 해제 권장) |
 | 자격증명 | Supabase `SERVICE_ROLE_KEY` (Supabase Dashboard → Settings → API) |
 
@@ -72,6 +73,7 @@ copy .env.example .env
 |---|---|
 | 인쇄 없음 | windows_spooler: 큐 이름 정확성(`LABEL_WINDOWS_PRINTER_NAME`)·드라이버 기본 용지가 62mm 연속용지인지 확인 / brother_ql_raw: `ping 192.168.0.25` |
 | LCD "Wrong Roll Type" (raw TCP) | 2026-09-05 실기 재현 확인된 알려진 이슈 — 미디어 타입 핸드셰이크 문제. **windows_spooler 백엔드 사용** (기본값) |
+| 큐 오류 "흰바탕 검정/빨강이 설치되어 있습니다" | 드라이버 용지 종류 ≠ 실제 롤. 인쇄 기본 설정에서 용지 종류를 실제 롤(검정/빨강 or 흑백)과 일치시킨 뒤 작업 **다시 시작**. 주의: 기존 유지 작업은 원본 설정으로 재시작되므로, 기본값 변경 후 **새로 인쇄**하는 것이 확실 |
 | "brother_ql CLI not found" | `pip install brother-ql-next` 후 PATH 확인 |
 | 한글 깨짐 | Windows면 Meiryo 자동 인식. 수동 지정: `.env`의 LABEL_FONT_PATH |
 | 관리자 버튼 후 무반응 | 에이전트 실행 여부(작업 관리자에 python), label_prints 테이블에 pending 행 확인 |

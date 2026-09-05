@@ -2,60 +2,63 @@
 
 from datetime import date, datetime, timedelta, timezone
 
-from jobs import is_batch_candidate, is_stale_printing, run_due
+from jobs import is_batch_candidate, is_stale_printing, previous_weekday_cutoff_utc, run_due
 
 JST = timezone(timedelta(hours=9))
 UTC = timezone.utc
 
-# Fixed cutoff: 2026-09-08 17:00 JST = 08:00 UTC
+# Fixed window: previous weekday cutoff Fri 2026-09-04 17:00 JST (= 08:00 UTC)
+#                 today cutoff      Tue 2026-09-08 17:00 JST (= 08:00 UTC)
 CUTOFF = datetime(2026, 9, 8, 8, 0, tzinfo=UTC)
+LOWER = datetime(2026, 9, 4, 8, 0, tzinfo=UTC)
 
 
 def _dest(prints, created_at="2026-09-08T05:00:00+00:00"):
+    # 2026-09-08T05:00Z = Tue 14:00 JST -> inside [Fri17:00, Tue17:00) window
     return {"id": "d1", "request": {"created_at": created_at}, "label_prints": prints}
 
 
 def test_candidate_when_no_prints():
-    assert is_batch_candidate(_dest(None), CUTOFF) is True
-    assert is_batch_candidate(_dest([]), CUTOFF) is True
+    assert is_batch_candidate(_dest(None), CUTOFF, LOWER) is True
+    assert is_batch_candidate(_dest([]), CUTOFF, LOWER) is True
 
 
 def test_not_candidate_when_printed():
-    assert is_batch_candidate(_dest([{"status": "printed"}]), CUTOFF) is False
+    assert is_batch_candidate(_dest([{"status": "printed"}]), CUTOFF, LOWER) is False
 
 
 def test_not_candidate_when_pending():
-    assert is_batch_candidate(_dest([{"status": "pending"}]), CUTOFF) is False
+    assert is_batch_candidate(_dest([{"status": "pending"}]), CUTOFF, LOWER) is False
 
 
 def test_not_candidate_when_printing():
-    assert is_batch_candidate(_dest([{"status": "printing"}]), CUTOFF) is False
+    assert is_batch_candidate(_dest([{"status": "printing"}]), CUTOFF, LOWER) is False
 
 
 def test_candidate_when_all_failed():
     dest = _dest([{"status": "failed"}, {"status": "failed"}])
-    assert is_batch_candidate(dest, CUTOFF) is True
+    assert is_batch_candidate(dest, CUTOFF, LOWER) is True
 
 
 def test_not_candidate_when_mixed_failed_printed():
     dest = _dest([{"status": "failed"}, {"status": "printed"}])
-    assert is_batch_candidate(dest, CUTOFF) is False
+    assert is_batch_candidate(dest, CUTOFF, LOWER) is False
 
 
 def test_not_candidate_when_created_after_cutoff():
     # 17:01 JST intake must NOT be batch-printed even if the agent restarts.
     late = datetime.fromisoformat("2026-09-08T08:01:00+00:00")
     dest = _dest([], created_at=late.isoformat())
-    assert is_batch_candidate(dest, CUTOFF) is False
+    assert is_batch_candidate(dest, CUTOFF, LOWER) is False
 
 
 def test_candidate_when_created_just_before_cutoff():
     just_before = "2026-09-08T07:59:59+00:00"
-    assert is_batch_candidate(_dest([], created_at=just_before), CUTOFF) is True
+    assert is_batch_candidate(_dest([], created_at=just_before), CUTOFF, LOWER) is True
 
 
 def test_not_candidate_when_created_at_missing():
-    assert is_batch_candidate({"id": "d1", "label_prints": []}, CUTOFF) is False
+    assert is_batch_candidate({"id": "d1", "label_prints": []}, CUTOFF, LOWER) is False
 
 
 # --- schedule due (weekday 17:00 JST, weekend boundary) ---
@@ -106,3 +109,37 @@ def test_not_stale_within_10min():
 def test_none_started_is_stale():
     now = datetime(2026, 9, 8, 8, 0, tzinfo=UTC)
     assert is_stale_printing(None, now) is True
+
+
+# --- first-run backfill guard (previous weekday lower bound) ---
+
+def test_not_candidate_when_created_before_lower_bound():
+    hist = _dest([], created_at="2026-09-01T00:00:00+00:00")
+    assert is_batch_candidate(hist, CUTOFF, LOWER) is False
+
+
+def test_candidate_when_created_between_bounds():
+    sun = _dest([], created_at="2026-09-06T03:00:00+00:00")  # Sun 12:00 JST
+    assert is_batch_candidate(sun, CUTOFF, LOWER) is True
+
+
+def test_not_candidate_exactly_at_lower_bound():
+    at_lower = _dest([], created_at="2026-09-04T08:00:00+00:00")
+    # exactly at Friday 17:00.000: NOT covered by Friday's batch (created<cutoff
+    # is exclusive at that instant) -> belongs to the next window (inclusive).
+    assert is_batch_candidate(at_lower, CUTOFF, LOWER) is True
+
+
+def test_previous_weekday_cutoff_from_monday():
+    mon = datetime(2026, 9, 7, 8, 0, tzinfo=UTC)
+    assert previous_weekday_cutoff_utc(mon) == datetime(2026, 9, 4, 8, 0, tzinfo=UTC)
+
+
+def test_previous_weekday_cutoff_from_tuesday():
+    tue = datetime(2026, 9, 8, 8, 0, tzinfo=UTC)
+    assert previous_weekday_cutoff_utc(tue) == datetime(2026, 9, 7, 8, 0, tzinfo=UTC)
+
+
+def test_previous_weekday_cutoff_from_saturday():
+    sat = datetime(2026, 9, 5, 8, 0, tzinfo=UTC)
+    assert previous_weekday_cutoff_utc(sat) == datetime(2026, 9, 4, 8, 0, tzinfo=UTC)
