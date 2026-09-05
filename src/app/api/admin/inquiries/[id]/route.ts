@@ -26,6 +26,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { withAdminAuth } from '@/lib/api-auth';
 import { withApiHandler } from '@/lib/api-error-handler';
 import { getAttachmentBucketForInquiry } from '@/lib/storage/inquiry-buckets';
+import { toSampleLabelSummary, type SampleRequestListRow } from '@/lib/admin/sample-labels';
 
 // ============================================================
 // Constants
@@ -128,6 +129,26 @@ export const GET = withApiHandler(
       }
     }
 
+    let sampleLabel: ReturnType<typeof toSampleLabelSummary> | null = null;
+    if (typeof inquiry.request_number === 'string' && /^SMP-/i.test(inquiry.request_number)) {
+      const { data: sampleRows, error: sampleError } = await (supabase as any)
+        .from('sample_requests')
+        .select(
+          'id, request_number, created_at, status, user_id,' +
+          'destinations:sample_request_destinations(' +
+          'id, company_name, contact_person, postal_code, address, label_prints(status))',
+        )
+        .eq('request_number', inquiry.request_number)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (sampleError) {
+        console.error('[admin inquiry detail GET] sample label fetch error (non-blocking):', sampleError);
+      } else if (sampleRows?.[0]) {
+        sampleLabel = toSampleLabelSummary(sampleRows[0] as SampleRequestListRow);
+      }
+    }
+
     // メッセージ一覧（時系列順）
     const { data: messages, error: messagesError } = await (supabase as any)
       .from('inquiry_messages')
@@ -224,6 +245,7 @@ export const GET = withApiHandler(
           // 注文 inquiry の識別子・注文ページ（/admin/orders/{orderId}）へのリンク用（M7・AC-UI-A-3）
           orderId: inquiry.order_id ?? null,
           orderNumber,
+          sampleLabel,
           createdAt: inquiry.created_at,
           updatedAt: inquiry.updated_at,
           respondedAt: inquiry.responded_at,

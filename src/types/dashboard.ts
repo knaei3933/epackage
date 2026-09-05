@@ -367,6 +367,23 @@ export interface AdminInquiry {
    * 注文削除（order_id SET NULL）後は null になるため nullable
    */
   orderNumber: string | null;
+  /**
+   * サンプル依頼に紐づくラベル印刷状態。
+   * type === 'sample' のとき /api/admin/inquiries が sample_requests を結合して補完する。
+   */
+  sampleLabel?: {
+    id: string;
+    requestNumber: string;
+    printStatus: string;
+    destinationCount: number;
+    printSummary: string;
+    destinations: {
+      id: string;
+      companyName: string | null;
+      contactPerson: string;
+      printStatus: string;
+    }[];
+  } | null;
   createdAt: string;
   updatedAt: string;
   respondedAt: string | null;

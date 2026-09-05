@@ -57,6 +57,19 @@ export function destinationPrintStatus(printStates: { status: string }[] | null)
   return 'partial';
 }
 
+/** Aggregate all destination states into one request-level print status. */
+export function sampleRequestPrintStatus(
+  destinations: SampleRequestListItem['destinations']
+): string {
+  const statuses = destinations.map((d) => d.printStatus);
+  if (statuses.length === 0) return 'unprinted';
+  if (statuses.every((s) => s === 'printed')) return 'printed';
+  if (statuses.every((s) => s === 'failed')) return 'failed';
+  if (statuses.includes('pending') || statuses.includes('printing')) return 'printing';
+  if (statuses.length > 1) return 'partial';
+  return statuses[0];
+}
+
 export interface SampleRequestListRow {
   id: string;
   request_number: string;
@@ -80,6 +93,27 @@ export interface SampleRequestListItem {
     contactPerson: string;
     printStatus: string;
   }[];
+}
+
+/** Extract the compact label state embedded in admin inquiry responses. */
+export type SampleLabelSummary = Pick<
+  SampleRequestListItem,
+  'id' | 'requestNumber' | 'destinationCount' | 'printSummary' | 'destinations'
+> & { printStatus: string };
+
+/** Build inquiry-facing label state from a sample request DB row. */
+export function toSampleLabelSummary(
+  row: SampleRequestListRow
+): SampleLabelSummary {
+  const item = transformSampleRequestRow(row, null);
+  return {
+    id: item.id,
+    requestNumber: item.requestNumber,
+    destinationCount: item.destinationCount,
+    printSummary: item.printSummary,
+    destinations: item.destinations,
+    printStatus: sampleRequestPrintStatus(item.destinations),
+  };
 }
 
 /** Transform a DB row + optional member name into the client list shape (U1). */

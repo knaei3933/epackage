@@ -25,6 +25,8 @@ import {
   MessageSquare,
   RefreshCw,
   ChevronRight,
+  Printer,
+  Loader2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -73,6 +75,24 @@ const inquiryStatusBadgeClass: Record<InquiryStatus, string> = {
   responded: 'bg-blue-100 text-blue-800',
   resolved: 'bg-green-100 text-green-800',
   closed: 'bg-gray-200 text-gray-700',
+};
+
+const samplePrintStatusLabels: Record<string, string> = {
+  unprinted: '未印刷',
+  pending: '印刷待ち',
+  printing: '印刷中',
+  printed: '印刷済',
+  failed: '失敗',
+  partial: '一部印刷',
+};
+
+const samplePrintStatusClasses: Record<string, string> = {
+  printed: 'bg-green-100 text-green-800',
+  pending: 'bg-blue-100 text-blue-800',
+  printing: 'bg-blue-100 text-blue-800',
+  failed: 'bg-red-100 text-red-800',
+  partial: 'bg-yellow-100 text-yellow-800',
+  unprinted: 'bg-gray-100 text-gray-700',
 };
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -131,6 +151,7 @@ export default function AdminInquiriesClient() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [limit, setLimit] = useState(50);
+  const [reprintingSampleId, setReprintingSampleId] = useState<string | null>(null);
 
   const loadInquiries = useCallback(async () => {
     setIsLoading(true);
@@ -180,6 +201,25 @@ export default function AdminInquiriesClient() {
     setTypeFilter('all');
     setLimit(50);
   };
+
+  const handleReprint = useCallback(async (sampleRequestId: string) => {
+    setReprintingSampleId(sampleRequestId);
+    try {
+      const response = await fetch(`/api/admin/samples/${sampleRequestId}/reprint`, {
+        method: 'POST',
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || '再印字に失敗しました');
+      }
+      await loadInquiries();
+      window.alert(result.message);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : '通信エラーが発生しました');
+    } finally {
+      setReprintingSampleId(null);
+    }
+  }, [loadInquiries]);
 
   const hasActiveFilters =
     appliedSearch !== '' || statusFilter !== 'all' || typeFilter !== 'all' || limit !== 50;
@@ -340,6 +380,9 @@ export default function AdminInquiriesClient() {
                         種別
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
+                        ラベル
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
                         ステータス
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
@@ -406,6 +449,39 @@ export default function AdminInquiriesClient() {
                           >
                             {inquiryTypeLabels[inquiry.type] || inquiry.type}
                           </Badge>
+                        </td>
+                        <td className="py-4 px-4 align-top whitespace-nowrap">
+                          {inquiry.type !== 'sample' ? (
+                            <span className="text-gray-400 text-xs">-</span>
+                          ) : inquiry.sampleLabel ? (
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="secondary"
+                                className={
+                                  samplePrintStatusClasses[inquiry.sampleLabel.printStatus] ||
+                                  samplePrintStatusClasses.unprinted
+                                }
+                              >
+                                {samplePrintStatusLabels[inquiry.sampleLabel.printStatus] || '未印刷'}
+                              </Badge>
+                              <button
+                                type="button"
+                                onClick={() => void handleReprint(inquiry.sampleLabel!.id)}
+                                disabled={reprintingSampleId === inquiry.sampleLabel!.id}
+                                className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                                title="宛先ラベルを再印字キューに追加します"
+                              >
+                                {reprintingSampleId === inquiry.sampleLabel!.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Printer className="w-3 h-3" />
+                                )}
+                                再印刷
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-red-600">未連携</span>
+                          )}
                         </td>
                         <td className="py-4 px-4 align-top whitespace-nowrap">
                           <StatusBadge status={inquiry.status} />

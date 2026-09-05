@@ -40,6 +40,7 @@ import {
   CheckCircle,
   Info,
   Package,
+  Printer,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -72,6 +73,24 @@ const inquiryTypeLabels: Record<InquiryType, string> = {
   technical: '技術',
   sales: '営業',
   support: 'サポート',
+};
+
+const samplePrintStatusLabels: Record<string, string> = {
+  unprinted: '未印刷',
+  pending: '印刷待ち',
+  printing: '印刷中',
+  printed: '印刷済',
+  failed: '失敗',
+  partial: '一部印刷',
+};
+
+const samplePrintStatusClasses: Record<string, string> = {
+  printed: 'bg-green-100 text-green-800',
+  pending: 'bg-blue-100 text-blue-800',
+  printing: 'bg-blue-100 text-blue-800',
+  failed: 'bg-red-100 text-red-800',
+  partial: 'bg-yellow-100 text-yellow-800',
+  unprinted: 'bg-gray-100 text-gray-700',
 };
 
 const inquiryStatusLabels: Record<InquiryStatus, string> = {
@@ -245,6 +264,8 @@ export default function AdminInquiryDetailClient({
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [replyFeedback, setReplyFeedback] = useState<string | null>(null);
+  const [isReprinting, setIsReprinting] = useState(false);
+  const [reprintMessage, setReprintMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   // 自動スクロール用
   const scrollBottomRef = useRef<HTMLDivElement>(null);
@@ -333,6 +354,32 @@ export default function AdminInquiryDetailClient({
       setIsSending(false);
     }
   };
+
+  const handleReprint = useCallback(async () => {
+    const sampleLabel = detail?.inquiry.sampleLabel;
+    if (!sampleLabel) return;
+
+    setIsReprinting(true);
+    setReprintMessage(null);
+    try {
+      const response = await fetch(`/api/admin/samples/${sampleLabel.id}/reprint`, {
+        method: 'POST',
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || '再印字に失敗しました');
+      }
+      setReprintMessage({ ok: true, text: result.message });
+      await loadDetail();
+    } catch (err) {
+      setReprintMessage({
+        ok: false,
+        text: err instanceof Error ? err.message : '通信エラーが発生しました',
+      });
+    } finally {
+      setIsReprinting(false);
+    }
+  }, [detail?.inquiry.sampleLabel, loadDetail]);
 
   // =====================================================
   // Render
@@ -469,6 +516,107 @@ export default function AdminInquiryDetailClient({
             )}
           </div>
         </Card>
+
+        {/* サンプルラベル */}
+        {inquiry.type === 'sample' && (
+          <Card className="p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">サンプルラベル</h3>
+                <p className="text-sm text-gray-600">
+                  事務所PCのラベルエージェントが自動印刷します。
+                </p>
+              </div>
+              {inquiry.sampleLabel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void handleReprint()}
+                  disabled={isReprinting}
+                  className="flex items-center"
+                >
+                  {isReprinting ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Printer className="w-4 h-4 mr-1.5" />
+                  )}
+                  再印刷
+                </Button>
+              )}
+            </div>
+
+            {reprintMessage && (
+              <div
+                role="status"
+                className={`mb-4 rounded-lg border px-3 py-2 text-sm ${
+                  reprintMessage.ok
+                    ? 'border-green-200 bg-green-50 text-green-800'
+                    : 'border-red-200 bg-red-50 text-red-700'
+                }`}
+              >
+                {reprintMessage.text}
+              </div>
+            )}
+
+            {!inquiry.sampleLabel ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                このサンプル問い合わせにはラベル用の配送先が連携されていません。
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="secondary"
+                    className={
+                      samplePrintStatusClasses[inquiry.sampleLabel.printStatus] ||
+                      samplePrintStatusClasses.unprinted
+                    }
+                  >
+                    {samplePrintStatusLabels[inquiry.sampleLabel.printStatus] || '未印刷'}
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    印刷完了 {inquiry.sampleLabel.printSummary}
+                  </span>
+                </div>
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium">宛先</th>
+                        <th className="px-3 py-2 text-left font-medium">状態</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {inquiry.sampleLabel.destinations.map((destination) => (
+                        <tr key={destination.id}>
+                          <td className="px-3 py-2">
+                            <div className="font-medium text-gray-900">
+                              {destination.companyName || '（会社名なし）'}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {destination.contactPerson}
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">
+                            <Badge
+                              variant="secondary"
+                              className={
+                                samplePrintStatusClasses[destination.printStatus] ||
+                                samplePrintStatusClasses.unprinted
+                              }
+                            >
+                              {samplePrintStatusLabels[destination.printStatus] || '未印刷'}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
 
         {/* スレッド */}
         <Card className="p-6">

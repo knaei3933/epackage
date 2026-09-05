@@ -15,6 +15,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { withAdminAuth } from '@/lib/api-auth';
 import { withApiHandler } from '@/lib/api-error-handler';
 import type { Database } from '@/types/database';
+import { toSampleLabelSummary, type SampleRequestListRow } from '@/lib/admin/sample-labels';
 
 // ============================================================
 // Constants
@@ -59,6 +60,7 @@ const VALID_STATUSES: Set<InquiryStatus> = new Set([
 function transformInquiryRow(
   row: Record<string, unknown>,
   orderNumber?: string | null,
+  sampleLabel?: ReturnType<typeof toSampleLabelSummary> | null,
 ) {
   const orderId = (row.order_id as string | null | undefined) ?? null;
   return {
@@ -78,10 +80,62 @@ function transformInquiryRow(
     userId: row.user_id,
     orderId,
     orderNumber: orderNumber ?? (row.order_number as string | null | undefined) ?? null,
+    sampleLabel: sampleLabel ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     respondedAt: row.responded_at,
   };
+}
+
+/**
+ * Batch-load label state for sample inquiries linked by request_number.
+ * Label lookup is deliberately non-blocking: inquiry list remains usable even
+ * when print tables are temporarily unavailable.
+ */
+async function fetchSampleLabelMap(
+  supabase: ReturnType<typeof createServiceClient>,
+  rows: Array<Record<string, unknown>>,
+): Promise<Map<string, ReturnType<typeof toSampleLabelSummary>>> {
+  const requestNumbers = Array.from(
+    new Set(
+      rows
+        .map((r) => r.request_number as string | null | undefined)
+        .filter((n): n is string => typeof n === 'string' && /^SMP-/i.test(n)),
+    ),
+  );
+  if (requestNumbers.length === 0) return new Map();
+
+  const { data, error } = await (supabase as any)
+    .from('sample_requests')
+    .select(
+      'id, request_number, created_at, status, user_id,' +
+      'destinations:sample_request_destinations(' +
+      'id, company_name, contact_person, postal_code, address, label_prints(status))',
+    )
+    .in('request_number', requestNumbers);
+
+  if (error) {
+    console.error('[admin inquiries GET] sample label JOIN error (non-blocking):', error);
+    return new Map();
+  }
+
+  const map = new Map<
+    string,
+    { createdAt: string; label: ReturnType<typeof toSampleLabelSummary> }
+  >();
+  for (const row of (data ?? []) as SampleRequestListRow[]) {
+    // Prefer the newest sample request if legacy data contains duplicates.
+    const current = map.get(row.request_number);
+    if (!current || new Date(row.created_at) > new Date(current.createdAt)) {
+      map.set(row.request_number, {
+        createdAt: row.created_at,
+        label: toSampleLabelSummary(row),
+      });
+    }
+  }
+  return new Map(
+    Array.from(map.entries(), ([key, value]) => [key, value.label] as const),
+  );
 }
 
 /**
@@ -208,8 +262,13 @@ export const GET = withApiHandler(
     // order_id → order_number の map を構築してクライアント向け shape へ変換
     // （search_inquiries RPC は SETOF inquiries なので order_id は含むが order_number は含まない）
     const orderMap = await fetchOrderNumberMap(supabase, list);
+    const sampleLabelMap = await fetchSampleLabelMap(supabase, list);
     const transformed = list.map((row) =>
-      transformInquiryRow(row, row.order_id ? orderMap.get(row.order_id as string) ?? null : null),
+      transformInquiryRow(
+        row,
+        row.order_id ? orderMap.get(row.order_id as string) ?? null : null,
+        row.request_number ? sampleLabelMap.get(row.request_number as string) ?? null : null,
+      ),
     );
 
     return NextResponse.json({

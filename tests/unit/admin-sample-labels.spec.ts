@@ -7,7 +7,9 @@
 import {
   buildReprintInserts,
   destinationPrintStatus,
+  sampleRequestPrintStatus,
   transformSampleRequestRow,
+  toSampleLabelSummary,
   type SampleRequestListRow,
 } from '@/lib/admin/sample-labels';
 
@@ -93,5 +95,41 @@ describe('transformSampleRequestRow (U1)', () => {
   it('guest rows have null customerName', () => {
     const item = transformSampleRequestRow({ ...baseRow, user_id: null }, null);
     expect(item.customerName).toBeNull();
+  });
+});
+
+describe('inquiry label integration helpers', () => {
+  it('aggregates request-level print status across destinations', () => {
+    expect(sampleRequestPrintStatus([])).toBe('unprinted');
+    expect(sampleRequestPrintStatus([
+      { id: 'd1', companyName: null, contactPerson: 'A', printStatus: 'printed' },
+      { id: 'd2', companyName: null, contactPerson: 'B', printStatus: 'unprinted' },
+    ])).toBe('partial');
+    expect(sampleRequestPrintStatus([
+      { id: 'd1', companyName: null, contactPerson: 'A', printStatus: 'printed' },
+    ])).toBe('printed');
+  });
+
+  it('creates the compact summary embedded in admin inquiry responses', () => {
+    const row: SampleRequestListRow = {
+      id: 'req-1',
+      request_number: 'SMP-2026-9527',
+      created_at: '2026-09-05T14:00:00Z',
+      status: 'received',
+      user_id: null,
+      destinations: [
+        { id: 'd1', company_name: '株式会社A', contact_person: '山田太郎', postal_code: '100-0001', address: '東京', label_prints: [{ status: 'printed' }] },
+      ],
+    };
+    expect(toSampleLabelSummary(row)).toEqual({
+      id: 'req-1',
+      requestNumber: 'SMP-2026-9527',
+      printStatus: 'printed',
+      destinationCount: 1,
+      printSummary: '1/1',
+      destinations: [
+        { id: 'd1', companyName: '株式会社A', contactPerson: '山田太郎', printStatus: 'printed' },
+      ],
+    });
   });
 });
