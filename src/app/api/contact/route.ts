@@ -38,6 +38,109 @@ function insertInquiry(
     .single();
 }
 
+function generateSampleRequestNumber(): string {
+  const year = new Date().getFullYear();
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `SMP-${year}-${random}`;
+}
+
+/**
+ * Create the normalized sample-request records consumed by the office label
+ * agent, then enqueue immediate printing. `/samples` intentionally posts the
+ * simple public form to this API, so sample inquiries must be bridged here.
+ */
+async function createSampleLabelPipeline(
+  supabase: ReturnType<typeof createServiceClient>,
+  inquiryId: string,
+  data: ContactFormData
+): Promise<{ requestNumber: string; sampleRequestId: string }> {
+  const supabaseAny = supabase as any;
+  let lastError: string | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const requestNumber = generateSampleRequestNumber();
+
+    const { data: savedRequest, error: requestError } = await supabaseAny
+      .from('sample_requests')
+      .insert({
+        request_number: requestNumber,
+        status: 'received',
+        notes: data.message || 'パウチサンプルセットをご依頼いたします。',
+      })
+      .select('id')
+      .single();
+
+    if (requestError) {
+      lastError = requestError.message;
+      // 23505: unique request_number collision; retry with a new number.
+      if (requestError.code === '23505') continue;
+      throw new Error(`Sample request creation failed: ${requestError.message}`);
+    }
+
+    const sampleRequestId = savedRequest.id as string;
+
+    const { error: itemError } = await supabaseAny
+      .from('sample_items')
+      .insert({
+        sample_request_id: sampleRequestId,
+        product_name: 'パウチサンプルセット',
+        category: 'standup-pouch',
+        quantity: 1,
+      });
+
+    if (itemError) {
+      await supabaseAny.from('sample_requests').delete().eq('id', sampleRequestId);
+      throw new Error(`Sample item creation failed: ${itemError.message}`);
+    }
+
+    const { data: savedDestination, error: destinationError } = await supabaseAny
+      .from('sample_request_destinations')
+      .insert({
+        sample_request_id: sampleRequestId,
+        company_name: data.company || null,
+        contact_person: `${data.kanjiLastName} ${data.kanjiFirstName}`,
+        phone: data.phone,
+        postal_code: data.postalCode || null,
+        address: data.address,
+      })
+      .select('id')
+      .single();
+
+    if (destinationError) {
+      await supabaseAny.from('sample_requests').delete().eq('id', sampleRequestId);
+      throw new Error(`Sample destination creation failed: ${destinationError.message}`);
+    }
+
+    const destinationId = savedDestination.id as string;
+
+    const { error: printError } = await supabaseAny
+      .from('label_prints')
+      .insert({ destination_id: destinationId, source: 'batch' });
+    if (printError) {
+      await supabaseAny.from('sample_requests').delete().eq('id', sampleRequestId);
+      throw new Error(`Label job creation failed: ${printError.message}`);
+    }
+
+    return { requestNumber, sampleRequestId };
+  }
+
+  throw new Error(`Sample request creation failed: ${lastError || 'request number collision'}`);
+}
+
+async function linkInquiryToSampleRequest(
+  supabase: ReturnType<typeof createServiceClient>,
+  inquiryId: string,
+  requestNumber: string
+): Promise<void> {
+  const { error } = await (supabase as any)
+    .from('inquiries')
+    .update({ request_number: requestNumber })
+    .eq('id', inquiryId);
+  if (error) {
+    console.error('[Contact API] Failed to link inquiry to sample request:', error);
+  }
+}
+
 // ============================================================
 // Schema Validation
 // ============================================================
@@ -96,6 +199,14 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
     // Validate data
     const validatedData = contactFormSchema.parse(body);
 
+    if (validatedData.inquiryType === 'sample' && (!validatedData.postalCode?.trim() || !validatedData.address?.trim())) {
+      return NextResponse.json({
+        success: false,
+        error: '入力データに誤りがあります',
+        message: 'サンプル発送のため、郵便番号と住所を入力してください',
+      }, { status: 400 });
+    }
+
     // Build customer name
     const customerName = `${validatedData.kanjiLastName} ${validatedData.kanjiFirstName}`;
     const customerNameKana = `${validatedData.kanaLastName} ${validatedData.kanaFirstName}`;
@@ -141,6 +252,18 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
 
     console.log('[Contact API] Saved to database:', savedInquiry?.id);
 
+    let labelRequestNumber: string | null = null;
+    if (validatedData.inquiryType === 'sample') {
+      const labelPipeline = await createSampleLabelPipeline(
+        supabase,
+        savedInquiry.id,
+        validatedData
+      );
+      await linkInquiryToSampleRequest(supabase, savedInquiry.id, labelPipeline.requestNumber);
+      labelRequestNumber = labelPipeline.requestNumber;
+      console.log('[Contact API] Sample label job created:', labelPipeline);
+    }
+
     // Send emails
     console.log('[Contact API] Sending emails...');
     const emailResult = await sendContactEmail({
@@ -178,6 +301,8 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
       data: {
         requestId,
         inquiryId: savedInquiry?.id,
+        sampleRequestNumber: labelRequestNumber,
+        labelQueued: Boolean(labelRequestNumber),
         emailSent: emailResult.success,
         messageIds: {
           customer: emailResult.customerEmail?.messageId,

@@ -45,7 +45,9 @@ POLL_INTERVAL_SECONDS = 60
 
 def process_pending(sb) -> None:
     """Claim and print every pending job, then persist the outcome."""
-    for job in fetch_pending_jobs(sb):
+    jobs = fetch_pending_jobs(sb)
+    log.info("pending label jobs: %d", len(jobs))
+    for job in jobs:
         job_id = job["id"]
         dest = job["destination"]
         request_number = (dest.get("request") or {}).get("request_number", "?")
