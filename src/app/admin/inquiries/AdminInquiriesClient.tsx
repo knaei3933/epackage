@@ -367,6 +367,9 @@ export default function AdminInquiriesClient() {
                       <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
                         受付番号
                       </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
+                        ラベル
+                      </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900">
                         顧客
                       </th>
@@ -378,9 +381,6 @@ export default function AdminInquiriesClient() {
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
                         種別
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        ラベル
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
                         ステータス
@@ -403,6 +403,39 @@ export default function AdminInquiriesClient() {
                           <div className="font-medium text-gray-900">
                             {inquiry.inquiryNumber || inquiry.id.slice(0, 8)}
                           </div>
+                        </td>
+                        <td className="py-4 px-4 align-top whitespace-nowrap">
+                          {inquiry.type !== 'sample' ? (
+                            <span className="text-gray-400 text-xs">-</span>
+                          ) : inquiry.sampleLabel ? (
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="secondary"
+                                className={
+                                  samplePrintStatusClasses[inquiry.sampleLabel.printStatus] ||
+                                  samplePrintStatusClasses.unprinted
+                                }
+                              >
+                                {samplePrintStatusLabels[inquiry.sampleLabel.printStatus] || '未印刷'}
+                              </Badge>
+                              <button
+                                type="button"
+                                onClick={() => void handleReprint(inquiry.sampleLabel!.id)}
+                                disabled={reprintingSampleId === inquiry.sampleLabel!.id}
+                                className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                                title="宛先ラベルを再印字キューに追加します"
+                              >
+                                {reprintingSampleId === inquiry.sampleLabel!.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Printer className="w-3 h-3" />
+                                )}
+                                再印刷
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-red-600">未連携</span>
+                          )}
                         </td>
                         <td className="py-4 px-4 align-top">
                           <div className="font-medium text-gray-900">
@@ -449,39 +482,6 @@ export default function AdminInquiriesClient() {
                           >
                             {inquiryTypeLabels[inquiry.type] || inquiry.type}
                           </Badge>
-                        </td>
-                        <td className="py-4 px-4 align-top whitespace-nowrap">
-                          {inquiry.type !== 'sample' ? (
-                            <span className="text-gray-400 text-xs">-</span>
-                          ) : inquiry.sampleLabel ? (
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="secondary"
-                                className={
-                                  samplePrintStatusClasses[inquiry.sampleLabel.printStatus] ||
-                                  samplePrintStatusClasses.unprinted
-                                }
-                              >
-                                {samplePrintStatusLabels[inquiry.sampleLabel.printStatus] || '未印刷'}
-                              </Badge>
-                              <button
-                                type="button"
-                                onClick={() => void handleReprint(inquiry.sampleLabel!.id)}
-                                disabled={reprintingSampleId === inquiry.sampleLabel!.id}
-                                className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-                                title="宛先ラベルを再印字キューに追加します"
-                              >
-                                {reprintingSampleId === inquiry.sampleLabel!.id ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <Printer className="w-3 h-3" />
-                                )}
-                                再印刷
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-red-600">未連携</span>
-                          )}
                         </td>
                         <td className="py-4 px-4 align-top whitespace-nowrap">
                           <StatusBadge status={inquiry.status} />
