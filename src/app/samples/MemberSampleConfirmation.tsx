@@ -2,6 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  JAPANESE_PREFECTURES,
+  isCompletePostalCode,
+  normalizePostalCodeInput,
+} from '@/lib/address/postal-code';
+import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
 
 export interface MemberSampleConfirmationValue {
   contactPerson?: string;
@@ -35,14 +41,58 @@ export default function MemberSampleConfirmation({
   profileKana,
 }: MemberSampleConfirmationProps) {
   const router = useRouter();
-  const [confirmation, setConfirmation] = useState(initialConfirmation);
+  const [confirmation, setConfirmation] = useState(() => ({
+    ...initialConfirmation,
+    postalCode: normalizePostalCodeInput(initialConfirmation.postalCode ?? ''),
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const handlePostalAddressFound = ({
+    postalCode,
+    prefecture,
+    city,
+    street,
+  }: {
+    postalCode: string;
+    prefecture: string;
+    city: string;
+    street: string;
+  }) => {
+    // Match signup: registry district data is kept in city and street is left
+    // editable for the customer's lot/building number.
+    setConfirmation((current) => ({
+      ...current,
+      postalCode,
+      prefecture,
+      city: street ? `${city}${street}` : city,
+      street: '',
+    }));
+  };
+
+  const {
+    lookupPostalCode,
+    isSearchingPostal,
+    postalSearchError,
+    clearPostalSearchError,
+  } = usePostalCodeLookup({ onAddressFound: handlePostalAddressFound });
+
   const update = (field: ConfirmationField) => (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    setConfirmation((current) => ({ ...current, [field]: event.target.value }));
+    const value =
+      field === 'postalCode'
+        ? normalizePostalCodeInput(event.target.value)
+        : event.target.value;
+
+    setConfirmation((current) => ({ ...current, [field]: value }));
+
+    if (field === 'postalCode') {
+      clearPostalSearchError();
+      if (isCompletePostalCode(value)) {
+        void lookupPostalCode(value);
+      }
+    }
   };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -97,6 +147,35 @@ export default function MemberSampleConfirmation({
       <div className="grid gap-4 md:grid-cols-2">
         {rows.map(({ field, label, placeholder }) => {
           const optional = OPTIONAL_FIELDS.includes(field);
+          if (field === 'prefecture') {
+            return (
+              <div key={field}>
+                <label
+                  htmlFor={`member-sample-${field}`}
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  {label}
+                  <span className="text-red-600"> *</span>
+                </label>
+                <select
+                  id={`member-sample-${field}`}
+                  data-testid={`member-sample-${field}`}
+                  name={field}
+                  value={confirmation[field] ?? ''}
+                  onChange={update(field)}
+                  required
+                  className={inputClassName}
+                >
+                  <option value="">選択</option>
+                  {JAPANESE_PREFECTURES.map((prefecture) => (
+                    <option key={prefecture} value={prefecture}>
+                      {prefecture}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          }
           return (
             <div key={field} className={field === 'companyName' ? 'md:col-span-2' : ''}>
               <label
@@ -114,12 +193,25 @@ export default function MemberSampleConfirmation({
                 onChange={update(field)}
                 placeholder={placeholder}
                 required={!optional}
+                inputMode={field === 'postalCode' ? 'numeric' : undefined}
+                autoComplete={field === 'postalCode' ? 'postal-code' : undefined}
                 className={inputClassName}
               />
             </div>
           );
         })}
       </div>
+
+      {isSearchingPostal ? (
+        <p role="status" data-testid="member-sample-postal-loading" className="text-sm text-gray-600">
+          住所を検索しています...
+        </p>
+      ) : null}
+      {postalSearchError ? (
+        <p role="alert" data-testid="member-sample-postal-error" className="text-sm text-red-600">
+          {postalSearchError}
+        </p>
+      ) : null}
 
       {errorMessage ? (
         <p role="alert" data-testid="member-sample-error" className="text-sm text-red-600">

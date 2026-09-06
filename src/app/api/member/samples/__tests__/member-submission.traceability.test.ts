@@ -149,7 +149,7 @@ describe('member submission to label-agent traceability (G008)', () => {
         destinationId: 'destination-1',
         labelId: 'label-1',
         inquiryNumber: expect.stringMatching(/^CTC-\d+-[0-9a-z]{9}$/),
-        requestNumber: expect.stringMatching(/^SMP-\d{4}-\d{4}$/),
+        requestNumber: expect.stringMatching(/^SMP-\d{4}-[0-9a-f]{12}$/),
       },
     });
     expect(memberService.inserted.sample_requests?.[0]).toMatchObject({

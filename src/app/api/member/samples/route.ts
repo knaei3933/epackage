@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic';
 
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase';
 import { createSupabaseSSRClient } from '@/lib/supabase-ssr';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 import {
@@ -102,9 +101,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const supabase = createServiceClient();
 
-    let query = supabase
+    let query = authClient
       .from('sample_requests')
       .select(`
         *,

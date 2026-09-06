@@ -401,14 +401,17 @@ describe('member samples API (G006)', () => {
         resolve({ data: history, error: null }),
       ),
     };
-    setupAuth({ id: activeUserId, email: 'm@example.com' });
-    mockedCreateServiceClient.mockReturnValue({ from: jest.fn(() => historyBuilder) } as never);
+    const { authClient } = setupAuth({ id: activeUserId, email: 'm@example.com' });
+    authClient.from.mockImplementation((table: string) =>
+      table === 'sample_requests' ? historyBuilder : profileBuilder,
+    );
 
     const request = new NextRequest('http://localhost/api/member/samples');
     const response = await GET(request);
     const body = await response.json();
 
     expect(historyBuilder.eq).toHaveBeenCalledWith('user_id', activeUserId);
+    expect(mockedCreateServiceClient).not.toHaveBeenCalled();
     expect(body.data[0]).toMatchObject({
       id: 'request-1',
       userId: activeUserId,

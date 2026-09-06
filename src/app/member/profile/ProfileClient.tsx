@@ -15,6 +15,13 @@ import { Card, Button, Badge } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { useToastContext } from '@/components/ui/Toast';
 import {
+  JAPANESE_PREFECTURES,
+  isCompletePostalCode,
+  normalizePostalCodeInput,
+  POSTAL_CODE_PATTERN,
+} from '@/lib/address/postal-code';
+import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
+import {
   BusinessType,
   type UserEditableFields,
 } from '@/types/auth';
@@ -173,20 +180,49 @@ export function ProfileClient({
     city: userCity || '',
     street: userStreet || '',
   };
-  const [completionForm, setCompletionForm] = useState<ProfileCompletionFormData>({
+  const [completionForm, setCompletionForm] = useState<ProfileCompletionFormData>(() => ({
     kanjiLastName: userLastName || '',
     kanjiFirstName: userFirstName || '',
     kanaLastName: userKanaLastName || '',
     kanaFirstName: userKanaFirstName || '',
     corporatePhone: userCorporatePhone || '',
     personalPhone: userPersonalPhone || '',
-    postalCode: userPostalCode || '',
+    postalCode: normalizePostalCodeInput(userPostalCode || ''),
     prefecture: userPrefecture || '',
     city: userCity || '',
     street: userStreet || '',
-  });
+  }));
   const [completionErrors, setCompletionErrors] = useState<Partial<Record<ProfileCompletionField | '_form', string>>>({});
   const [isCompleting, setIsCompleting] = useState(false);
+
+  const handlePostalAddressFound = ({
+    postalCode,
+    prefecture,
+    city,
+    street,
+  }: {
+    postalCode: string;
+    prefecture: string;
+    city: string;
+    street: string;
+  }) => {
+    // Keep the exact signup address split: registry district data belongs to
+    // city, while the customer adds the lot/building portion to street.
+    setCompletionForm((current) => ({
+      ...current,
+      postalCode,
+      prefecture,
+      city: street ? `${city}${street}` : city,
+      street: '',
+    }));
+  };
+
+  const {
+    lookupPostalCode,
+    isSearchingPostal,
+    postalSearchError,
+    clearPostalSearchError,
+  } = usePostalCodeLookup({ onAddressFound: handlePostalAddressFound });
 
   // props 変更時にフォーム状態へ同期
   useEffect(() => {
@@ -247,7 +283,7 @@ export function ProfileClient({
   const validateCompletion = (): boolean => {
     const phoneRe = /^\d{2,4}-?\d{2,4}-?\d{3,4}$/;
     const kanaRe = /^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/;
-    const postalRe = /^\d{3}-?\d{4}$/;
+    const postalRe = POSTAL_CODE_PATTERN;
     const errors: Partial<Record<ProfileCompletionField | '_form', string>> = {};
     const currentValues = approvedCompletionValues;
     const isEditable = (field: ProfileCompletionField) => !currentValues[field].trim();
@@ -358,7 +394,8 @@ export function ProfileClient({
       }
 
       showSuccess('プロフィールを保存しました');
-      router.push(safeReturnTo);
+      router.replace(safeReturnTo);
+      router.refresh();
     } catch (error) {
       console.error('Failed to complete profile:', error);
       setCompletionErrors({ _form: 'プロフィールの保存に失敗しました。' });
@@ -372,18 +409,30 @@ export function ProfileClient({
     <main className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
+        {completionMode ? (
+          <div className="mb-8" data-testid="profile-completion-title">
             <h1 className="text-3xl font-bold text-text-primary mb-2">
-              マイページ
+              サンプル依頼に必要な情報
             </h1>
             <p className="text-text-muted">
-              会員情報を確認できます。
+              未入力の必須項目だけをご入力ください。
             </p>
           </div>
-        </div>
+        ) : (
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">
+                マイページ
+              </h1>
+              <p className="text-text-muted">
+                会員情報を確認できます。
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Profile Overview Card */}
+        {!completionMode && (
         <Card className="p-6 mb-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -430,6 +479,7 @@ export function ProfileClient({
             </div>
           </div>
         </Card>
+        )}
 
         {completionMode && (
           <Card className="p-6 mb-6 border-warning-300 bg-warning-50" data-testid="profile-completion-mode">
@@ -510,19 +560,34 @@ export function ProfileClient({
                     data-testid="completion-postal-code"
                     required
                     value={completionForm.postalCode}
-                    onChange={(e) => setCompletionForm({ ...completionForm, postalCode: e.target.value })}
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    onChange={(e) => {
+                      const value = normalizePostalCodeInput(e.target.value);
+                      setCompletionForm((current) => ({ ...current, postalCode: value }));
+                      clearPostalSearchError();
+                      if (isCompletePostalCode(value)) {
+                        void lookupPostalCode(value);
+                      }
+                    }}
                     error={completionErrors.postalCode}
                   />
                 )}
                 {!(userPrefecture || '').trim() && (
-                  <Input
-                    label="都道府県"
+                  <select
                     data-testid="completion-prefecture"
                     required
                     value={completionForm.prefecture}
                     onChange={(e) => setCompletionForm({ ...completionForm, prefecture: e.target.value })}
-                    error={completionErrors.prefecture}
-                  />
+                    className="w-full h-10 px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
+                  >
+                    <option value="">選択</option>
+                    {JAPANESE_PREFECTURES.map((prefecture) => (
+                      <option key={prefecture} value={prefecture}>
+                        {prefecture}
+                      </option>
+                    ))}
+                  </select>
                 )}
                 {!(userCity || '').trim() && (
                   <Input
@@ -546,12 +611,29 @@ export function ProfileClient({
                 )}
               </div>
 
+              {isSearchingPostal ? (
+                <p role="status" data-testid="profile-postal-loading" className="mt-3 text-sm text-text-muted">
+                  住所を検索しています...
+                </p>
+              ) : null}
+              {postalSearchError ? (
+                <p role="alert" data-testid="profile-postal-error" className="mt-3 text-sm text-warning-600">
+                  {postalSearchError}
+                </p>
+              ) : null}
+
               {completionErrors._form && (
                 <p className="mt-3 text-sm text-error-600" role="alert">{completionErrors._form}</p>
               )}
 
-              <Button type="submit" variant="primary" className="mt-4" disabled={isCompleting}>
-                {isCompleting ? '保存中...' : '保存してサンプル依頼へ進む'}
+              <Button
+                type="submit"
+                variant="primary"
+                className="mt-4"
+                data-testid="profile-completion-submit"
+                disabled={isCompleting}
+              >
+                {isCompleting ? '送信中...' : '確認画面へ進む'}
               </Button>
             </form>
           </Card>
@@ -560,6 +642,7 @@ export function ProfileClient({
         {/* =====================================================
             SECTION 1: 認証情報 (読み取り専用)
             ===================================================== */}
+        {!completionMode && (
         <Card className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-text-primary">
@@ -616,6 +699,7 @@ export function ProfileClient({
             </p>
           </div>
         </Card>
+        )}
 
         {/* =====================================================
             SECTION 2: 連絡先 (編集可能)
@@ -675,7 +759,7 @@ export function ProfileClient({
         {/* =====================================================
             SECTION 3: 会社情報 (読み取り専用)
             ===================================================== */}
-        {userBusinessType === BusinessType.CORPORATION && (
+        {!completionMode && userBusinessType === BusinessType.CORPORATION && (
           <Card className="p-6 mb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4">
               会社情報
@@ -718,6 +802,7 @@ export function ProfileClient({
         {/* =====================================================
             SECTION 4: 住所 (読み取り専用・承認済み)
             ===================================================== */}
+        {!completionMode && (
         <Card className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-text-primary">
@@ -776,10 +861,12 @@ export function ProfileClient({
             </p>
           </div>
         </Card>
+        )}
 
         {/* =====================================================
             SECTION 5: 商品種別 (読み取り専用)
             ===================================================== */}
+        {!completionMode && (
         <Card className="p-6 mb-6">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
             商品種別
@@ -789,10 +876,12 @@ export function ProfileClient({
             {getProductCategoryLabel(userProductCategory) || '未登録'}
           </div>
         </Card>
+        )}
 
         {/* =====================================================
             Additional Actions
             ===================================================== */}
+        {!completionMode && (
         <Card className="p-6 mt-6">
           <h2 className="text-lg font-semibold text-text-primary mb-4">
             その他
@@ -809,6 +898,7 @@ export function ProfileClient({
             </Button>
           </div>
         </Card>
+        )}
       </div>
     </main>
   );

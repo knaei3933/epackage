@@ -142,9 +142,11 @@ const asId = (value: unknown): string => String(value);
  */
 export function generateSampleRequestNumber(now: Date): string {
   const year = now.getFullYear();
-  const sequence = Math.floor(Math.random() * 10_000)
+  // A 12-hex suffix keeps the externally visible SMP prefix while avoiding
+  // the tiny 10,000-value/year space of the previous four-digit sequence.
+  const sequence = crypto.randomUUID().replace(/-/g, '').slice(0, 12)
     .toString()
-    .padStart(4, '0');
+    .toLowerCase();
   return `SMP-${year}-${sequence}`;
 }
 

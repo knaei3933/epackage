@@ -21,6 +21,12 @@ import {
 } from '@/components/ui';
 import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput';
 import {
+  JAPANESE_PREFECTURES,
+  isCompletePostalCode,
+  normalizePostalCodeInput,
+} from '@/lib/address/postal-code';
+import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
+import {
   registrationSchema,
   type RegistrationFormData,
   BusinessType,
@@ -56,16 +62,6 @@ const ACQUISITION_CHANNEL_OPTIONS = [
   { value: 'other', label: 'その他' },
 ];
 
-const PREFECTURE_OPTIONS = [
-  '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
-  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
-  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県',
-  '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
-  '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
-  '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
-  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
-];
-
 interface CorporateSearchResult {
   corporateNumber: string;
   name: string;
@@ -74,12 +70,6 @@ interface CorporateSearchResult {
   streetNumber?: string;
   postalCode?: string;
   address?: string;
-}
-
-interface PostalSearchResult {
-  prefecture?: string;
-  city?: string;
-  street?: string;
 }
 
 // =====================================================
@@ -101,8 +91,6 @@ export default function RegistrationForm({
   const [corporateSearchError, setCorporateSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<CorporateSearchResult[]>([]);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState<number>(-1);
-  const [isSearchingPostal, setIsSearchingPostal] = useState(false);
-  const [postalSearchError, setPostalSearchError] = useState<string | null>(null);
 
   // React Hook Form設定
   const {
@@ -121,6 +109,39 @@ export default function RegistrationForm({
       ...defaultValues,
     },
     mode: 'onBlur',
+  });
+
+  const handlePostalAddressFound = ({
+    prefecture,
+    city,
+    street,
+  }: {
+    prefecture: string;
+    city: string;
+    street: string;
+  }) => {
+    // Signup keeps the registry district in city and asks the user to add
+    // the actual lot/building portion in street.
+    if (prefecture) {
+      setValue('prefecture', prefecture, { shouldValidate: true, shouldDirty: true });
+    }
+    if (city) {
+      setValue('city', street ? `${city}${street}` : city, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue('street', '', { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
+  const {
+    lookupPostalCode,
+    isSearchingPostal,
+    postalSearchError,
+    clearPostalSearchError,
+  } = usePostalCodeLookup({
+    onAddressFound: handlePostalAddressFound,
+    prefectureOptions: JAPANESE_PREFECTURES,
   });
 
   // 事業者タイプ監視
@@ -212,7 +233,7 @@ export default function RegistrationForm({
     // フォールバック: 個別フィールドがない場合、addressフィールドから解析
     if (!result.prefecture && result.address) {
       let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
-      const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
+      const prefectureMatch = JAPANESE_PREFECTURES.find(p => addressWithoutPostal.includes(p));
       if (prefectureMatch) {
         setValue('prefecture', prefectureMatch, { shouldValidate: true, shouldDirty: true });
         addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
@@ -226,51 +247,6 @@ export default function RegistrationForm({
     setSelectedSearchIndex(index);
     if (searchResults[index]) {
       applySearchResult(searchResults[index]);
-    }
-  };
-
-  // 郵便番号から住所検索関数
-  const searchAddressByPostalCode = async (code: string) => {
-    if (!code || code.length < 7) {
-      setPostalSearchError('郵便番号を正しく入力してください（例: 123-4567）');
-      return;
-    }
-
-    setIsSearchingPostal(true);
-    setPostalSearchError(null);
-
-    try {
-      const response = await fetch(`/api/registry/postal-code?postalCode=${encodeURIComponent(code)}`);
-
-      if (!response.ok) {
-        throw new Error('住所検索に失敗しました。');
-      }
-
-      const data = await response.json() as PostalSearchResult;
-
-      if (data.prefecture || data.city) {
-        // 都道府県はドロップダウンから自動選択
-        if (data.prefecture) {
-          const prefectureMatch = PREFECTURE_OPTIONS.find(p => data.prefecture.includes(p));
-          if (prefectureMatch) {
-            setValue('prefecture', prefectureMatch);
-          }
-        }
-        // 市区町村＋番地まで自動入力（例: 加古郡稲美町六分一）
-        if (data.city) {
-          const cityValue = data.street ? `${data.city}${data.street}` : data.city;
-          setValue('city', cityValue);
-        }
-        // streetフィールドはクリア（追加番地はユーザーが直接入力）
-        setValue('street', '');
-        setPostalSearchError(null);
-      } else {
-        setPostalSearchError('住所が見つかりませんでした。郵便番号を確認してください。');
-      }
-    } catch (error) {
-      setPostalSearchError(error instanceof Error ? error.message : '住所検索に失敗しました。');
-    } finally {
-      setIsSearchingPostal(false);
     }
   };
 
@@ -608,10 +584,12 @@ export default function RegistrationForm({
                 error={errors.postalCode?.message}
                 {...register('postalCode', {
                   onChange: (e) => {
-                    const value = e.target.value.replace('-', '')
+                    const value = normalizePostalCodeInput(e.target.value)
+                    setValue('postalCode', value, { shouldValidate: true, shouldDirty: true })
+                    clearPostalSearchError()
                     // 7桁入力されたら自動検索
-                    if (value.length === 7) {
-                      searchAddressByPostalCode(e.target.value)
+                    if (isCompletePostalCode(value)) {
+                      void lookupPostalCode(value)
                     }
                   }
                 })}
@@ -634,7 +612,7 @@ export default function RegistrationForm({
                   className="w-full h-10 px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
                 >
                   <option value="">選択</option>
-                  {PREFECTURE_OPTIONS.map((pref) => (
+                  {JAPANESE_PREFECTURES.map((pref) => (
                     <option key={pref} value={pref}>
                       {pref}
                     </option>

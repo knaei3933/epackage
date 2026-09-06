@@ -1,9 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const push = jest.fn();
+const router = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  refresh: jest.fn(),
+};
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => router,
 }));
 
 jest.mock('@/components/ui/Toast', () => ({
@@ -61,11 +65,12 @@ describe('ProfileClient completion mode (G003)', () => {
     fireEvent.change(screen.getByTestId('completion-kanji-last-name'), {
       target: { value: '山田' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '保存してサンプル依頼へ進む' }));
+    fireEvent.click(screen.getByTestId('profile-completion-submit'));
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith('/samples?from=profile');
+      expect(router.replace).toHaveBeenCalledWith('/samples?from=profile');
     });
+    expect(router.refresh).toHaveBeenCalled();
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/member/profile/complete',
       expect.objectContaining({ method: 'POST' }),
@@ -89,7 +94,7 @@ describe('ProfileClient completion mode (G003)', () => {
     expect(screen.queryByTestId('completion-kanji-first-name')).not.toBeInTheDocument();
     expect(screen.queryByTestId('completion-corporate-phone')).not.toBeInTheDocument();
     expect(screen.getByTestId('completion-kanji-last-name')).toBeEnabled();
-    expect(screen.getByDisplayValue('花子')).toBeDisabled();
+    expect(screen.queryByTestId('completion-kanji-first-name')).not.toBeInTheDocument();
   });
 
   it('keeps ordinary phone-only profile editing available outside completion mode', () => {
@@ -100,5 +105,74 @@ describe('ProfileClient completion mode (G003)', () => {
     expect(screen.getByTestId('personal-phone-input')).toBeEnabled();
     expect(screen.getByTestId('fax-input')).toBeEnabled();
     expect(screen.getByRole('button', { name: '変更を保存' })).toBeEnabled();
+  });
+
+  it('shows only the focused completion flow in completion mode', () => {
+    render(<ProfileClient {...baseProps} completionMode />);
+
+    expect(screen.getByTestId('profile-completion-title')).toHaveTextContent(
+      'サンプル依頼に必要な情報',
+    );
+    expect(screen.getByTestId('profile-completion-submit')).toHaveTextContent(
+      '確認画面へ進む',
+    );
+    expect(screen.queryByText('マイページ')).not.toBeInTheDocument();
+    expect(screen.queryByText('その他')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('company-phone-input')).not.toBeInTheDocument();
+  });
+
+  it('uses the shared signup lookup and keeps registry street editable', async () => {
+    global.fetch = jest.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === '/api/registry/postal-code?postalCode=673-0846') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            prefecture: '兵庫県',
+            city: '明石市',
+            street: '上ノ丸',
+          }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, returnTo: '/samples' }),
+      });
+    });
+
+    render(
+      <ProfileClient
+        {...baseProps}
+        userPostalCode=""
+        userPrefecture=""
+        userCity=""
+        userStreet=""
+        completionMode
+      />,
+    );
+
+    fireEvent.change(screen.getByTestId('completion-postal-code'), {
+      target: { value: '6730846' },
+    });
+    await waitFor(() => expect(screen.getByTestId('completion-postal-code')).toHaveValue('673-0846'));
+    await waitFor(() => expect(screen.getByTestId('completion-city')).toHaveValue('明石市上ノ丸'));
+    expect(screen.getByTestId('completion-prefecture')).toHaveValue('兵庫県');
+    expect(screen.getByTestId('completion-street')).toHaveValue('');
+
+    fireEvent.change(screen.getByTestId('completion-street'), {
+      target: { value: '2-11-21' },
+    });
+    fireEvent.click(screen.getByTestId('profile-completion-submit'));
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/samples'));
+    const payload = JSON.parse(jest.mocked(global.fetch).mock.calls.at(-1)![1]!.body as string);
+    expect(payload).toMatchObject({
+      postal_code: '673-0846',
+      prefecture: '兵庫県',
+      city: '明石市上ノ丸',
+      street: '2-11-21',
+    });
   });
 });
