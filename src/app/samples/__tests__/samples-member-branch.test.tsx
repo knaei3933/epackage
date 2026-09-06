@@ -285,8 +285,10 @@ describe('member sample confirmation UI (G006)', () => {
     render(<MemberSampleConfirmation confirmation={confirmation} profileKana={loadedPrefill.data.profileKana} />);
 
     expect(screen.queryByLabelText('サンプルを選択')).not.toBeInTheDocument();
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    expect(screen.getByText('パウチサンプルセット（1点）')).toBeInTheDocument();
+    // The prefecture combobox is shipping data, not a product/sample selector.
+    expect(screen.getByTestId('member-sample-prefecture')).toBeInTheDocument();
+    expect(screen.getByText('会社・担当者情報')).toBeInTheDocument();
+    expect(screen.getByText('お届け先住所')).toBeInTheDocument();
   });
 
   it('K08: profile completion shows the required-field notice and return path', () => {

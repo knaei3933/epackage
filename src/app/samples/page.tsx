@@ -5,6 +5,8 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { createClient } from '@/lib/supabase/server'
 import { loadSamplePrefill } from '@/lib/member/sample-prefill'
 import { redirect } from 'next/navigation'
+import { CheckCircle2, Clock, Package, Phone, ShieldCheck } from 'lucide-react'
+import { Card } from '@/components/ui'
 
 export const metadata: Metadata = {
   title: 'パウチサンプルご依頼',
@@ -76,7 +78,100 @@ async function SamplesPageContent() {
       redirect('/member/profile?complete=1&returnTo=%2Fsamples');
     }
 
-    return <MemberSampleConfirmation confirmation={prefill.data.confirmation} profileKana={prefill.data.profileKana} />;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-brixa-50 via-white to-gray-50">
+        <BreadcrumbJsonLd pathname="/samples" />
+
+        <section className="bg-gradient-to-br from-brixa-600 via-brixa-700 to-navy-800 py-10">
+          <div className="mx-auto max-w-6xl px-4">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brixa-100">
+              MEMBER SAMPLE
+            </p>
+            <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">
+              サンプル依頼の確認
+            </h1>
+            <p className="mt-3 text-brixa-100">
+              登録情報を読み込みました。お届け先を確認して依頼を完了してください。
+            </p>
+          </div>
+        </section>
+
+        <main className="mx-auto max-w-6xl px-4 py-10">
+          <ol className="mb-8 grid gap-3 sm:grid-cols-2" aria-label="申込手順">
+            <li className="flex items-center gap-3 rounded-2xl border border-brixa-200 bg-white px-5 py-4 shadow-sm">
+              <span className="flex size-9 items-center justify-center rounded-full bg-brixa-600 text-sm font-bold text-white">1</span>
+              <div>
+                <p className="text-sm font-bold text-gray-900">会員情報の確認</p>
+                <p className="text-xs text-gray-600">お届け先を確認・編集</p>
+              </div>
+            </li>
+            <li className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/60 px-5 py-4 text-gray-500">
+              <span className="flex size-9 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500">2</span>
+              <div>
+                <p className="text-sm font-semibold">依頼完了</p>
+                <p className="text-xs">ラベル印字と発送準備へ</p>
+              </div>
+            </li>
+          </ol>
+
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <Card className="rounded-3xl border-white/70 p-6 shadow-xl shadow-brixa-900/5 md:p-8">
+              <MemberSampleConfirmation confirmation={prefill.data.confirmation} />
+            </Card>
+
+            <aside className="space-y-6 lg:sticky lg:top-6">
+              <Card className="overflow-hidden rounded-3xl border-0 shadow-xl">
+                <div className="bg-gradient-to-br from-brixa-600 to-navy-800 p-5 text-white">
+                  <Package className="size-8" />
+                  <h2 className="mt-3 text-lg font-bold">パウチサンプルセット</h2>
+                  <p className="text-sm text-brixa-100">内容は固定の1点です</p>
+                </div>
+                <div className="space-y-4 p-5">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">完全無料</p>
+                      <p className="text-xs text-gray-600">サンプル・送料ともに0円</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock className="mt-0.5 size-5 shrink-0 text-brixa-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">2-3営業日</p>
+                      <p className="text-xs text-gray-600">発送準備後に連絡します</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck className="mt-0.5 size-5 shrink-0 text-green-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">追跡あり</p>
+                      <p className="text-xs text-gray-600">発送後にお知らせします</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="rounded-3xl p-5">
+                <h3 className="text-sm font-bold text-gray-900">ご質問・ご相談</h3>
+                <p className="mt-2 text-xs text-gray-600">
+                  サンプルに関するご質問は下記までお気軽にご連絡ください。
+                </p>
+                <div className="mt-4 space-y-3 text-sm text-gray-700">
+                  <a href="mailto:info@package-lab.com" className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-3 transition-colors hover:bg-gray-100">
+                    <Phone className="size-4 text-brixa-600" />
+                    info@package-lab.com
+                  </a>
+                  <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-3">
+                    <Clock className="size-4 text-brixa-600" />
+                    平日 9:00-18:00
+                  </div>
+                </div>
+              </Card>
+            </aside>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
