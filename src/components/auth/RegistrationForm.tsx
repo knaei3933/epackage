@@ -13,7 +13,6 @@
 import React, { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import {
   Input,
@@ -67,6 +66,22 @@ const PREFECTURE_OPTIONS = [
   '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
 ];
 
+interface CorporateSearchResult {
+  corporateNumber: string;
+  name: string;
+  prefecture?: string;
+  city?: string;
+  streetNumber?: string;
+  postalCode?: string;
+  address?: string;
+}
+
+interface PostalSearchResult {
+  prefecture?: string;
+  city?: string;
+  street?: string;
+}
+
 // =====================================================
 // Component
 // =====================================================
@@ -84,7 +99,7 @@ export default function RegistrationForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSearchingCorporate, setIsSearchingCorporate] = useState(false);
   const [corporateSearchError, setCorporateSearchError] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<CorporateSearchResult[]>([]);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState<number>(-1);
   const [isSearchingPostal, setIsSearchingPostal] = useState(false);
   const [postalSearchError, setPostalSearchError] = useState<string | null>(null);
@@ -97,7 +112,7 @@ export default function RegistrationForm({
     setValue,
     control,
     trigger,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
@@ -111,7 +126,6 @@ export default function RegistrationForm({
   // 事業者タイプ監視
   const businessType = watch('businessType');
   const companyName = watch('companyName', '');
-  const postalCode = watch('postalCode', '');
 
   // 法人番号検索関数（適格請求書発行事業者登録番号公表サイトAPI）
   const searchCorporateNumber = async (name: string) => {
@@ -132,7 +146,7 @@ export default function RegistrationForm({
         throw new Error('法人番号の検索に失敗しました。');
       }
 
-      const data = await response.json();
+      const data = await response.json() as CorporateSearchResult[];
 
       if (data.length > 0) {
         setSearchResults(data);
@@ -154,14 +168,12 @@ export default function RegistrationForm({
   };
 
   // 検索結果をフォームに適用する関数
-  const applySearchResult = (result: any) => {
-    console.log('applySearchResult called with:', result);
+  const applySearchResult = (result: CorporateSearchResult) => {
     setValue('legalEntityNumber', result.corporateNumber);
     setValue('companyName', result.name);
 
     // APIから個別フィールドで住所情報が返ってきた場合、直接設定
     if (result.prefecture) {
-      console.log('Setting prefecture:', result.prefecture);
       setValue('prefecture', result.prefecture, { shouldValidate: true, shouldDirty: true });
     }
 
@@ -178,39 +190,30 @@ export default function RegistrationForm({
 
         // 市区町村 ＋ 町名
         const cityValue = `${result.city}${townName}`;
-        console.log('Setting city with town:', cityValue);
         setValue('city', cityValue, { shouldValidate: true, shouldDirty: true });
 
         // 番地部分
-        console.log('Setting street:', streetPart);
         setValue('street', streetPart, { shouldValidate: true, shouldDirty: true });
       } else {
         // 分離できない場合は市区町村のみ設定、番地はstreetNumber全体
-        console.log('Setting city (no town split):', result.city);
         setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
-        console.log('Setting street:', result.streetNumber);
         setValue('street', result.streetNumber, { shouldValidate: true, shouldDirty: true });
       }
     } else if (result.city) {
-      console.log('Setting city:', result.city);
       setValue('city', result.city, { shouldValidate: true, shouldDirty: true });
     } else if (result.streetNumber) {
-      console.log('Setting street (no city):', result.streetNumber);
       setValue('street', result.streetNumber, { shouldValidate: true, shouldDirty: true });
     }
 
     if (result.postalCode) {
-      console.log('Setting postalCode:', result.postalCode);
       setValue('postalCode', result.postalCode, { shouldValidate: true, shouldDirty: true });
     }
 
     // フォールバック: 個別フィールドがない場合、addressフィールドから解析
     if (!result.prefecture && result.address) {
-      console.log('Using fallback address parsing');
       let addressWithoutPostal = result.address.replace(/〒\d{3}-\d{4}\s*/, '');
       const prefectureMatch = PREFECTURE_OPTIONS.find(p => addressWithoutPostal.includes(p));
       if (prefectureMatch) {
-        console.log('Fallback: found prefecture:', prefectureMatch);
         setValue('prefecture', prefectureMatch, { shouldValidate: true, shouldDirty: true });
         addressWithoutPostal = addressWithoutPostal.replace(prefectureMatch, '');
       }
@@ -243,7 +246,7 @@ export default function RegistrationForm({
         throw new Error('住所検索に失敗しました。');
       }
 
-      const data = await response.json();
+      const data = await response.json() as PostalSearchResult;
 
       if (data.prefecture || data.city) {
         // 都道府県はドロップダウンから自動選択
@@ -315,7 +318,11 @@ export default function RegistrationForm({
 
   return (
     <Card className="p-6 md:p-8">
-      <form onSubmit={handleSubmit(onSubmit)} className={`text-base ${className}`}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className={`text-base ${className}`}
+      >
         {/* サーバーエラーメッセージ */}
         {serverError && (
           <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
@@ -394,6 +401,11 @@ export default function RegistrationForm({
             control={control}
             setValue={setValue}
             trigger={trigger}
+            required
+            kanjiLastNameError={errors.kanjiLastName?.message}
+            kanjiFirstNameError={errors.kanjiFirstName?.message}
+            kanaLastNameError={errors.kanaLastName?.message}
+            kanaFirstNameError={errors.kanaFirstName?.message}
             kanjiLastNameName="kanjiLastName"
             kanjiFirstNameName="kanjiFirstName"
             kanaLastNameName="kanaLastName"
@@ -433,6 +445,9 @@ export default function RegistrationForm({
               {...register('fax')}
             />
           </div>
+          <p className="mt-2 text-sm text-text-muted">
+            会社電話番号または携帯電話のいずれかを入力してください。
+          </p>
         </div>
 
         {/* =====================================================
@@ -588,7 +603,7 @@ export default function RegistrationForm({
             {/* 郵便番号入力 - 自動検索 */}
             <div>
               <Input
-                label="郵便番号"
+                label="郵便番号 *"
                 placeholder="123-4567"
                 error={errors.postalCode?.message}
                 {...register('postalCode', {
@@ -604,12 +619,15 @@ export default function RegistrationForm({
               {postalSearchError && (
                 <p className="mt-2 text-sm text-warning-600">{postalSearchError}</p>
               )}
+              {isSearchingPostal && (
+                <p className="mt-2 text-sm text-text-muted">住所を検索しています...</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-2">
-                  都道府県
+                  都道府県 *
                 </label>
                 <select
                   {...register('prefecture')}
@@ -629,7 +647,7 @@ export default function RegistrationForm({
 
               <div>
                 <Input
-                  label="市区町村"
+                  label="市区町村 *"
                   placeholder="加古郡稲美町六分一"
                   error={errors.city?.message}
                   {...register('city')}
@@ -637,7 +655,7 @@ export default function RegistrationForm({
               </div>
               <div>
                 <Input
-                  label="番地"
+                  label="番地 *"
                   placeholder="1-2-3"
                   error={errors.street?.message}
                   {...register('street')}

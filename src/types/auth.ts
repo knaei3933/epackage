@@ -79,31 +79,37 @@ export const registrationSchema = z
       .regex(/[0-9]/, 'パスワードには少なくとも1つの数字を含める必要があります。'),
     passwordConfirm: z.string().min(1, 'パスワード確認を入力してください。'),
 
-    // 日本の氏名（漢字・カタカナ、姓・名別）- オプション化
-    kanjiLastName: z.union([
-      z.string().max(50, '姓は50文字以内で入力してください。'),
-      z.literal('')
-    ]).optional(),
-    kanjiFirstName: z.union([
-      z.string().max(50, '名は50文字以内で入力してください。'),
-      z.literal('')
-    ]).optional(),
-    kanaLastName: z.union([
-      z.string().regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/, 'ひらがなで入力してください。').max(50, '姓は50文字以内で入力してください。'),
-      z.literal('')
-    ]).optional(),
-    kanaFirstName: z.union([
-      z.string().regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/, 'ひらがなで入力してください。').max(50, '名は50文字以内で入力してください。'),
-      z.literal('')
-    ]).optional(),
+    // 日本の氏名（漢字・カタカナ、姓・名別）- 必須
+    kanjiLastName: z
+      .string()
+      .trim()
+      .min(1, '姓を入力してください。')
+      .max(50, '姓は50文字以内で入力してください。'),
+    kanjiFirstName: z
+      .string()
+      .trim()
+      .min(1, '名を入力してください。')
+      .max(50, '名は50文字以内で入力してください。'),
+    kanaLastName: z
+      .string()
+      .trim()
+      .min(1, '姓（カナ）を入力してください。')
+      .regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/, 'ひらがなで入力してください。')
+      .max(50, '姓は50文字以内で入力してください。'),
+    kanaFirstName: z
+      .string()
+      .trim()
+      .min(1, '名（カナ）を入力してください。')
+      .regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/, 'ひらがなで入力してください。')
+      .max(50, '名は50文字以内で入力してください。'),
 
     // 電話番号 - オプション化
     corporatePhone: z.union([
-      z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
+      z.string().trim().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
     ]).optional(),
     personalPhone: z.union([
-      z.string().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
+      z.string().trim().regex(/^\d{2,4}-?\d{2,4}-?\d{3,4}$/, '有効な電話番号の形式ではありません。'),
       z.literal('')
     ]).optional(),
     // FAX番号 - オプション（personalPhone と同一の正規表現）
@@ -146,23 +152,15 @@ export const registrationSchema = z
       z.literal('')
     ]).optional(),
 
-    // 住所情報 - オプション化
-    postalCode: z.union([
-      z.string().regex(/^\d{3}-?\d{4}$/, '有効な郵便番号を入力してください。（例：123-4567）'),
-      z.literal('')
-    ]).optional(),
-    prefecture: z.union([
-      z.string(),
-      z.literal('')
-    ]).optional(),
-    city: z.union([
-      z.string(),
-      z.literal('')
-    ]).optional(),
-    street: z.union([
-      z.string(),
-      z.literal('')
-    ]).optional(),
+    // 住所情報 - 必須
+    postalCode: z
+      .string()
+      .trim()
+      .min(1, '郵便番号を入力してください。')
+      .regex(/^\d{3}-?\d{4}$/, '有効な郵便番号を入力してください。（例：123-4567）'),
+    prefecture: z.string().trim().min(1, '都道府県を選択してください。'),
+    city: z.string().trim().min(1, '市区町村を入力してください。'),
+    street: z.string().trim().min(1, '番地を入力してください。'),
 
     // 個人情報の収集および利用への同意（必須）
     privacyConsent: z.literal(true, {
@@ -172,6 +170,10 @@ export const registrationSchema = z
   .refine((data) => data.password === data.passwordConfirm, {
     message: 'パスワードが一致しません。',
     path: ['passwordConfirm'],
+  })
+  .refine((data) => Boolean(data.corporatePhone) || Boolean(data.personalPhone), {
+    message: '法人電話番号または携帯電話のいずれかを入力してください。',
+    path: ['corporatePhone'],
   });
 
 export type RegistrationFormData = z.infer<typeof registrationSchema>;

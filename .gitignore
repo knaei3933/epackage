@@ -134,6 +134,8 @@ cookies.txt
 
 # === Legacy omx tooling artifacts (superseded by .omc/) ===
 .omx/
+.omx-state-locks/
+.omx-state-locks.identity.json
 
 # === Scratch verification scripts (repo root, not part of app) ===
 tmp/

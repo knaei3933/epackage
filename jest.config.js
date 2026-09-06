@@ -9,6 +9,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setupAfterEnv.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^server-only$': '<rootDir>/jest.server-only.js',
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['@swc/jest', {

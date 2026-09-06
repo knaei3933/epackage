@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/Input';
 import { useToastContext } from '@/components/ui/Toast';
 import {
   BusinessType,
-  type User,
   type UserEditableFields,
 } from '@/types/auth';
 import { getProductCategoryLabel } from '@/types/enums';
@@ -50,6 +49,8 @@ export interface ProfileClientProps {
   userStatus: string;
   userCreatedAt: string;
   userLastLoginAt?: string;
+  completionMode?: boolean;
+  returnTo?: string;
   // AuthContext の updateProfile を wrapper 経由で注入
   updateProfile: (updates: Partial<UserEditableFields>) => Promise<void>;
 }
@@ -86,10 +87,43 @@ const BUSINESS_TYPE_LABELS: Record<string, string> = {
 // Component
 // =====================================================
 
+export interface ProfileCompletionFormData {
+  kanjiLastName: string;
+  kanjiFirstName: string;
+  kanaLastName: string;
+  kanaFirstName: string;
+  corporatePhone: string;
+  personalPhone: string;
+  postalCode: string;
+  prefecture: string;
+  city: string;
+  street: string;
+}
+
+type ProfileCompletionField = keyof ProfileCompletionFormData;
+
+const COMPLETION_FIELD_TO_API: Record<ProfileCompletionField, string> = {
+  kanjiLastName: 'kanji_last_name',
+  kanjiFirstName: 'kanji_first_name',
+  kanaLastName: 'kana_last_name',
+  kanaFirstName: 'kana_first_name',
+  corporatePhone: 'corporate_phone',
+  personalPhone: 'personal_phone',
+  postalCode: 'postal_code',
+  prefecture: 'prefecture',
+  city: 'city',
+  street: 'street',
+};
+
+const safeReturnPath = (value?: string) => {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return '/samples';
+  }
+  return value;
+};
+
 export function ProfileClient({
-  userId,
   userEmail,
-  userName,
   userLastName,
   userFirstName,
   userKanaLastName,
@@ -111,6 +145,8 @@ export function ProfileClient({
   userStatus,
   userCreatedAt,
   userLastLoginAt,
+  completionMode = false,
+  returnTo,
   updateProfile,
 }: ProfileClientProps) {
   const router = useRouter();
@@ -124,6 +160,33 @@ export function ProfileClient({
     fax: userFax || '',
   });
   const [profileErrors, setProfileErrors] = useState<Partial<Record<keyof ProfileFormData, string>>>({});
+  const safeReturnTo = safeReturnPath(returnTo);
+  const approvedCompletionValues: Record<ProfileCompletionField, string> = {
+    kanjiLastName: userLastName || '',
+    kanjiFirstName: userFirstName || '',
+    kanaLastName: userKanaLastName || '',
+    kanaFirstName: userKanaFirstName || '',
+    corporatePhone: userCorporatePhone || '',
+    personalPhone: userPersonalPhone || '',
+    postalCode: userPostalCode || '',
+    prefecture: userPrefecture || '',
+    city: userCity || '',
+    street: userStreet || '',
+  };
+  const [completionForm, setCompletionForm] = useState<ProfileCompletionFormData>({
+    kanjiLastName: userLastName || '',
+    kanjiFirstName: userFirstName || '',
+    kanaLastName: userKanaLastName || '',
+    kanaFirstName: userKanaFirstName || '',
+    corporatePhone: userCorporatePhone || '',
+    personalPhone: userPersonalPhone || '',
+    postalCode: userPostalCode || '',
+    prefecture: userPrefecture || '',
+    city: userCity || '',
+    street: userStreet || '',
+  });
+  const [completionErrors, setCompletionErrors] = useState<Partial<Record<ProfileCompletionField | '_form', string>>>({});
+  const [isCompleting, setIsCompleting] = useState(false);
 
   // props 変更時にフォーム状態へ同期
   useEffect(() => {
@@ -178,6 +241,130 @@ export function ProfileClient({
       showError('連絡先の更新に失敗しました');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const validateCompletion = (): boolean => {
+    const phoneRe = /^\d{2,4}-?\d{2,4}-?\d{3,4}$/;
+    const kanaRe = /^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]*$/;
+    const postalRe = /^\d{3}-?\d{4}$/;
+    const errors: Partial<Record<ProfileCompletionField | '_form', string>> = {};
+    const currentValues = approvedCompletionValues;
+    const isEditable = (field: ProfileCompletionField) => !currentValues[field].trim();
+    const required: Array<[ProfileCompletionField, string]> = [
+      ['kanjiLastName', '姓を入力してください。'],
+      ['kanjiFirstName', '名を入力してください。'],
+      ['kanaLastName', '姓（カナ）を入力してください。'],
+      ['kanaFirstName', '名（カナ）を入力してください。'],
+      ['postalCode', '郵便番号を入力してください。'],
+      ['prefecture', '都道府県を選択してください。'],
+      ['city', '市区町村を入力してください。'],
+      ['street', '番地を入力してください。'],
+    ];
+
+    for (const [field, message] of required) {
+      if (isEditable(field) && !completionForm[field].trim()) {
+        errors[field] = message;
+      }
+    }
+
+    if (isEditable('kanjiLastName') && completionForm.kanjiLastName.trim().length > 50) {
+      errors.kanjiLastName = '姓は50文字以内で入力してください。';
+    }
+    if (isEditable('kanjiFirstName') && completionForm.kanjiFirstName.trim().length > 50) {
+      errors.kanjiFirstName = '名は50文字以内で入力してください。';
+    }
+    if (isEditable('kanaLastName') && completionForm.kanaLastName.trim()) {
+      if (!kanaRe.test(completionForm.kanaLastName)) {
+        errors.kanaLastName = 'ひらがなで入力してください。';
+      } else if (completionForm.kanaLastName.trim().length > 50) {
+        errors.kanaLastName = '姓は50文字以内で入力してください。';
+      }
+    }
+    if (isEditable('kanaFirstName') && completionForm.kanaFirstName.trim()) {
+      if (!kanaRe.test(completionForm.kanaFirstName)) {
+        errors.kanaFirstName = 'ひらがなで入力してください。';
+      } else if (completionForm.kanaFirstName.trim().length > 50) {
+        errors.kanaFirstName = '名は50文字以内で入力してください。';
+      }
+    }
+    if (isEditable('postalCode') && completionForm.postalCode.trim() && !postalRe.test(completionForm.postalCode)) {
+      errors.postalCode = '有効な郵便番号を入力してください。（例：123-4567）';
+    }
+    if (isEditable('corporatePhone') && completionForm.corporatePhone.trim() && !phoneRe.test(completionForm.corporatePhone)) {
+      errors.corporatePhone = '有効な電話番号の形式ではありません。';
+    }
+    if (isEditable('personalPhone') && completionForm.personalPhone.trim() && !phoneRe.test(completionForm.personalPhone)) {
+      errors.personalPhone = '有効な電話番号の形式ではありません。';
+    }
+    if (
+      !(userCorporatePhone || '').trim() &&
+      !(userPersonalPhone || '').trim() &&
+      !completionForm.corporatePhone.trim() &&
+      !completionForm.personalPhone.trim()
+    ) {
+      errors.corporatePhone = '法人電話番号または携帯電話のいずれかを入力してください。';
+    }
+
+    setCompletionErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleProfileComplete = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!validateCompletion()) {
+      return;
+    }
+
+    setIsCompleting(true);
+    setCompletionErrors({});
+
+    try {
+      // 非空の承認済み値は UI に入力欄を作らない。さらに送信時にも二重排除する。
+      const payload: Record<string, string> = {};
+      const currentValues = approvedCompletionValues;
+
+      for (const [field, apiKey] of Object.entries(COMPLETION_FIELD_TO_API)) {
+        const completionField = field as ProfileCompletionField;
+        const value = completionForm[completionField].trim();
+        if (value && !currentValues[completionField].trim()) {
+          payload[apiKey] = value;
+        }
+      }
+
+      const response = await fetch('/api/member/profile/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, returnTo: safeReturnTo }),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.success) {
+        const details = result.details || {};
+        const nextErrors: Partial<Record<ProfileCompletionField | '_form', string>> = {};
+        for (const [apiKey, messages] of Object.entries(details)) {
+          const field = (
+            Object.entries(COMPLETION_FIELD_TO_API) as Array<[ProfileCompletionField, string]>
+          ).find(([, value]) => value === apiKey)?.[0];
+          const message = Array.isArray(messages) ? messages[0] : undefined;
+          if (field && message) {
+            nextErrors[field] = message;
+          }
+        }
+        nextErrors._form = result.error || 'プロフィールの保存に失敗しました。';
+        setCompletionErrors(nextErrors);
+        showError(nextErrors._form);
+        return;
+      }
+
+      showSuccess('プロフィールを保存しました');
+      router.push(safeReturnTo);
+    } catch (error) {
+      console.error('Failed to complete profile:', error);
+      setCompletionErrors({ _form: 'プロフィールの保存に失敗しました。' });
+      showError('プロフィールの保存に失敗しました。');
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -244,6 +431,132 @@ export function ProfileClient({
           </div>
         </Card>
 
+        {completionMode && (
+          <Card className="p-6 mb-6 border-warning-300 bg-warning-50" data-testid="profile-completion-mode">
+            <div
+              className="mb-4 rounded-md border border-warning-300 bg-warning-100 p-3 text-sm text-warning-800"
+              role="status"
+              data-testid="profile-completion-notice"
+            >
+              サンプル依頼には氏名・電話番号・住所が必要です。未入力の必須項目だけをご入力ください。
+              保存後は「{safeReturnTo}」へ戻ります。
+            </div>
+
+            <form onSubmit={handleProfileComplete} noValidate>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {!(userLastName || '').trim() && (
+                  <Input
+                    label="姓（漢字）"
+                    data-testid="completion-kanji-last-name"
+                    required
+                    value={completionForm.kanjiLastName}
+                    onChange={(e) => setCompletionForm({ ...completionForm, kanjiLastName: e.target.value })}
+                    error={completionErrors.kanjiLastName}
+                  />
+                )}
+                {!(userFirstName || '').trim() && (
+                  <Input
+                    label="名（漢字）"
+                    data-testid="completion-kanji-first-name"
+                    required
+                    value={completionForm.kanjiFirstName}
+                    onChange={(e) => setCompletionForm({ ...completionForm, kanjiFirstName: e.target.value })}
+                    error={completionErrors.kanjiFirstName}
+                  />
+                )}
+                {!(userKanaLastName || '').trim() && (
+                  <Input
+                    label="姓（ひらがな）"
+                    data-testid="completion-kana-last-name"
+                    required
+                    value={completionForm.kanaLastName}
+                    onChange={(e) => setCompletionForm({ ...completionForm, kanaLastName: e.target.value })}
+                    error={completionErrors.kanaLastName}
+                  />
+                )}
+                {!(userKanaFirstName || '').trim() && (
+                  <Input
+                    label="名（ひらがな）"
+                    data-testid="completion-kana-first-name"
+                    required
+                    value={completionForm.kanaFirstName}
+                    onChange={(e) => setCompletionForm({ ...completionForm, kanaFirstName: e.target.value })}
+                    error={completionErrors.kanaFirstName}
+                  />
+                )}
+                {!(userCorporatePhone || '').trim() && (
+                  <Input
+                    label="会社電話番号"
+                    type="tel"
+                    data-testid="completion-corporate-phone"
+                    value={completionForm.corporatePhone}
+                    onChange={(e) => setCompletionForm({ ...completionForm, corporatePhone: e.target.value })}
+                    error={completionErrors.corporatePhone}
+                  />
+                )}
+                {!(userPersonalPhone || '').trim() && (
+                  <Input
+                    label="携帯電話"
+                    type="tel"
+                    data-testid="completion-personal-phone"
+                    value={completionForm.personalPhone}
+                    onChange={(e) => setCompletionForm({ ...completionForm, personalPhone: e.target.value })}
+                    error={completionErrors.personalPhone}
+                  />
+                )}
+                {!(userPostalCode || '').trim() && (
+                  <Input
+                    label="郵便番号"
+                    data-testid="completion-postal-code"
+                    required
+                    value={completionForm.postalCode}
+                    onChange={(e) => setCompletionForm({ ...completionForm, postalCode: e.target.value })}
+                    error={completionErrors.postalCode}
+                  />
+                )}
+                {!(userPrefecture || '').trim() && (
+                  <Input
+                    label="都道府県"
+                    data-testid="completion-prefecture"
+                    required
+                    value={completionForm.prefecture}
+                    onChange={(e) => setCompletionForm({ ...completionForm, prefecture: e.target.value })}
+                    error={completionErrors.prefecture}
+                  />
+                )}
+                {!(userCity || '').trim() && (
+                  <Input
+                    label="市区町村"
+                    data-testid="completion-city"
+                    required
+                    value={completionForm.city}
+                    onChange={(e) => setCompletionForm({ ...completionForm, city: e.target.value })}
+                    error={completionErrors.city}
+                  />
+                )}
+                {!(userStreet || '').trim() && (
+                  <Input
+                    label="番地"
+                    data-testid="completion-street"
+                    required
+                    value={completionForm.street}
+                    onChange={(e) => setCompletionForm({ ...completionForm, street: e.target.value })}
+                    error={completionErrors.street}
+                  />
+                )}
+              </div>
+
+              {completionErrors._form && (
+                <p className="mt-3 text-sm text-error-600" role="alert">{completionErrors._form}</p>
+              )}
+
+              <Button type="submit" variant="primary" className="mt-4" disabled={isCompleting}>
+                {isCompleting ? '保存中...' : '保存してサンプル依頼へ進む'}
+              </Button>
+            </form>
+          </Card>
+        )}
+
         {/* =====================================================
             SECTION 1: 認証情報 (読み取り専用)
             ===================================================== */}
@@ -307,6 +620,7 @@ export function ProfileClient({
         {/* =====================================================
             SECTION 2: 連絡先 (編集可能)
             ===================================================== */}
+        {!completionMode && (
         <Card className="p-6 mb-6">
           <form onSubmit={handleProfileUpdate}>
             <div className="flex items-center justify-between mb-4">
@@ -356,6 +670,7 @@ export function ProfileClient({
             </div>
           </form>
         </Card>
+        )}
 
         {/* =====================================================
             SECTION 3: 会社情報 (読み取り専用)

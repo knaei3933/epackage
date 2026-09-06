@@ -11,11 +11,25 @@ import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { ProfileSignOutProvider } from './ProfileSignOutProvider';
 
+type ProfilePageSearchParams = Record<string, string | string[] | undefined>;
+
+const safeReturnPath = (value: string | string[] | undefined) => {
+  const path = Array.isArray(value) ? value[0] : value;
+  if (!path || !path.startsWith('/') || path.startsWith('//') || path.includes('\\')) {
+    return '/samples';
+  }
+  return path;
+};
+
 // =====================================================
 // Server Component Content
 // =====================================================
 
-async function ProfileContent() {
+async function ProfileContent({
+  searchParams,
+}: {
+  searchParams: ProfilePageSearchParams;
+}) {
   // Use requireAuth helper - works in both Dev Mode and Production
   let user;
   try {
@@ -96,6 +110,8 @@ async function ProfileContent() {
       userStatus={userStatus}
       userCreatedAt={userCreatedAt}
       userLastLoginAt={userLastLoginAt}
+      completionMode={searchParams.complete === '1' && userStatus === 'ACTIVE'}
+      returnTo={safeReturnPath(searchParams.returnTo)}
     />
   );
 }
@@ -104,8 +120,12 @@ async function ProfileContent() {
 // Page Component (Server Component)
 // =====================================================
 
-export default async function ProfilePage() {
-  return <ProfileContent />;
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<ProfilePageSearchParams>;
+}) {
+  return <ProfileContent searchParams={await searchParams} />;
 }
 
 // =====================================================

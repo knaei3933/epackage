@@ -1,6 +1,10 @@
 import { Metadata } from 'next'
 import SampleRequestFormWrapper from './SampleRequestFormWrapper'
+import MemberSampleConfirmation from './MemberSampleConfirmation'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
+import { createClient } from '@/lib/supabase/server'
+import { loadSamplePrefill } from '@/lib/member/sample-prefill'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'パウチサンプルご依頼',
@@ -14,7 +18,67 @@ export const metadata: Metadata = {
   },
 }
 
-export default function SamplesPage() {
+async function SamplesPageContent() {
+  type SamplesAuthentication =
+    | { status: 'authenticated'; userId: string }
+    | { status: 'no_session' }
+    | { status: 'lookup_failed' }
+
+  let authentication: SamplesAuthentication
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error) {
+      authentication = { status: 'lookup_failed' }
+    } else if (data.user?.id) {
+      authentication = { status: 'authenticated', userId: data.user.id }
+    } else {
+      authentication = { status: 'no_session' }
+    }
+  } catch {
+    authentication = { status: 'lookup_failed' }
+  }
+
+  if (authentication.status === 'lookup_failed') {
+    console.warn('[SAMPLES] authentication lookup unavailable', {
+      pathname: '/samples',
+    })
+    redirect('/auth/error?error=authentication_unavailable')
+  }
+
+  if (authentication.status === 'authenticated') {
+    const supabase = await createClient();
+    const prefill = await loadSamplePrefill(supabase, authentication.userId);
+
+    if (prefill.status === 'profile_not_active') {
+      if (prefill.profileStatus === 'PENDING') {
+        redirect('/auth/pending');
+      }
+      if (prefill.profileStatus === 'SUSPENDED') {
+        redirect('/auth/suspended');
+      }
+      redirect('/auth/signin?redirect=%2Fsamples');
+    }
+
+    if (prefill.status === 'profile_not_found') {
+      redirect('/auth/signin?redirect=%2Fsamples');
+    }
+
+    // loadSamplePrefill logs query infrastructure failures with non-PII status
+    // and correlation context; infrastructure remains fail-closed rather than
+    // masquerading as profile completion work.
+    if (prefill.status !== 'loaded') {
+      redirect('/auth/error?error=sample_prefill_unavailable');
+    }
+
+    if (!prefill.complete) {
+      redirect('/member/profile?complete=1&returnTo=%2Fsamples');
+    }
+
+    return <MemberSampleConfirmation confirmation={prefill.data.confirmation} profileKana={prefill.data.profileKana} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <BreadcrumbJsonLd pathname="/samples" />
@@ -82,3 +146,9 @@ export default function SamplesPage() {
     </div>
   )
 }
+
+export default async function SamplesPage() {
+  return await SamplesPageContent()
+}
+
+export const dynamic = 'force-dynamic'

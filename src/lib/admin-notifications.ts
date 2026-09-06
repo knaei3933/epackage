@@ -9,6 +9,7 @@
 
 import { createServiceClient } from '@/lib/supabase';
 import { executeSql } from '@/lib/supabase-sql';
+import type { Json } from '@/types/database';
 
 // ============================================================
 // Type Definitions
@@ -40,7 +41,7 @@ export interface CreateAdminNotificationParams {
   userId?: string
   actionUrl?: string
   actionLabel?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   expiresAt?: Date
 }
 
@@ -57,7 +58,7 @@ export interface AdminNotification {
   read_at?: string
   action_url?: string
   action_label?: string
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   created_at: string
   expires_at?: string
 }
@@ -96,7 +97,7 @@ export async function createAdminNotification(
         user_id: params.userId || null,
         action_url: params.actionUrl || null,
         action_label: params.actionLabel || null,
-        metadata: params.metadata || {},
+        metadata: (params.metadata || {}) as Json,
         expires_at: params.expiresAt ? params.expiresAt.toISOString() : null,
       })
       .select()
@@ -418,7 +419,8 @@ export async function notifyQuotationRequest(
 export async function notifySampleRequest(
   sampleRequestId: string,
   customerName: string,
-  sampleCount: number
+  sampleCount: number,
+  metadata?: Record<string, unknown>
 ): Promise<AdminNotification | null> {
   return createAdminNotification({
     type: 'sample',
@@ -431,7 +433,8 @@ export async function notifySampleRequest(
     actionLabel: 'サンプルを表示',
     metadata: {
       customer_name: customerName,
-      sample_count: sampleCount
+      sample_count: sampleCount,
+      ...metadata
     }
   })
 }
@@ -532,7 +535,7 @@ export async function notifyContractSignature(
 export async function notifySystemError(
   errorType: string,
   errorMessage: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<AdminNotification | null> {
   return createAdminNotification({
     type: 'system',

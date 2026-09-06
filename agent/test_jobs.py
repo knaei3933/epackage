@@ -2,7 +2,15 @@
 
 from datetime import date, datetime, timedelta, timezone
 
-from jobs import is_batch_candidate, is_stale_printing, previous_weekday_cutoff_utc, run_due
+from jobs import (
+    claim_job,
+    fetch_pending_jobs,
+    is_batch_candidate,
+    is_stale_printing,
+    mark_printed,
+    previous_weekday_cutoff_utc,
+    run_due,
+)
 
 JST = timezone(timedelta(hours=9))
 UTC = timezone.utc
@@ -143,3 +151,61 @@ def test_previous_weekday_cutoff_from_tuesday():
 def test_previous_weekday_cutoff_from_saturday():
     sat = datetime(2026, 9, 5, 8, 0, tzinfo=UTC)
     assert previous_weekday_cutoff_utc(sat) == datetime(2026, 9, 4, 8, 0, tzinfo=UTC)
+
+
+class _FakeTable:
+    def __init__(self, job):
+        self.job = job
+        self.conditions = []
+
+    def select(self, _columns):
+        return self
+
+    def update(self, values):
+        self.next_values = values
+        return self
+
+    def eq(self, field, value):
+        self.conditions.append((field, value))
+        return self
+
+    def order(self, _field, **_options):
+        return self
+
+    def execute(self):
+        if hasattr(self, "next_values"):
+            if all(self.job.get(field) == value for field, value in self.conditions):
+                self.job.update(self.next_values)
+                self.data = [self.job]
+            else:
+                self.data = []
+        else:
+            self.data = [self.job] if self.job["status"] == "pending" else []
+        return self
+
+
+def test_L03_agent_claims_printable_job_and_marks_it_printed():
+    job = {
+        "id": "label-job-1",
+        "attempts": 2,
+        "status": "pending",
+        "destination": {
+            "id": "destination-1",
+            "postal_code": "100-0001",
+            "address": "東京都千代田区千代田1-1",
+            "company_name": "株式会社サンプル",
+            "contact_person": "山田 太郎",
+        },
+    }
+    sb = type("FakeSupabase", (), {"table": lambda _self, _name: _FakeTable(job)})()
+
+    pending_jobs = fetch_pending_jobs(sb)
+    assert len(pending_jobs) == 1
+    assert pending_jobs[0]["destination"]["contact_person"] == "山田 太郎"
+    assert claim_job(sb, "label-job-1", current_attempts=2) is True
+    assert job["status"] == "printing"
+    assert job["attempts"] == 3
+    assert mark_printed(sb, "label-job-1") is True
+    assert job["status"] == "printed"
+    assert claim_job(sb, "label-job-1") is False
+    assert mark_printed(sb, "label-job-1") is False
