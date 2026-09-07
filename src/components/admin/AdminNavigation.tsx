@@ -5,11 +5,9 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   ShoppingCart,
-  Package,
   Truck,
   FileText,
   UserCheck,
-  Boxes,
   Settings,
   Users,
   ChevronRight,
@@ -39,9 +37,9 @@ export function AdminNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav aria-label="管理者ナビゲーション" className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center space-x-1 overflow-x-auto py-2">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1 py-2">
           {navigation.map((item) => {
             const isActive = pathname?.startsWith(item.href);
             const Icon = item.icon;
@@ -50,18 +48,19 @@ export function AdminNavigation() {
               <Link
                 key={item.name}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`
-                  group flex items-center px-3 py-2 text-sm font-medium rounded-md
-                  transition-colors duration-150 whitespace-nowrap
+                  group flex min-w-0 max-w-full w-fit items-center rounded-md px-2 py-2
+                  text-xs font-medium transition-colors duration-150 sm:px-3 sm:text-sm
                   ${isActive
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }
                 `}
               >
-                <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>{item.name}</span>
-                <ChevronRight className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Icon className="mr-1.5 h-4 w-4 flex-shrink-0 sm:mr-2" />
+                <span className="min-w-0 max-w-full">{item.name}</span>
+                <ChevronRight className="ml-1 h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
               </Link>
             );
           })}
