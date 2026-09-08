@@ -360,7 +360,7 @@ describe('measurement harness resilience', () => {
     const accountTypes = [...new Set(report.routeOrder.map(routeId => (
       manifest.routes.find(route => route.id === routeId)!.accountType
     )))];
-    const submitSelector = 'form button[type="submit"]:not([disabled])';
+    const submitSelector = 'form:has(input[name="email"]) button[type="submit"]:not([disabled])';
 
     expect(signInNavigationOptions).toEqual(accountTypes.map(() => ({
       url: 'https://production.invalid/auth/signin',

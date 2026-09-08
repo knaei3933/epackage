@@ -100,7 +100,7 @@ async function signIn(page: Page, baseUrl: string, account: { email: string; pas
   const password = page.locator('input[name="password"]');
   // Restricting to :not([disabled]) makes this wait cover visibility and
   // enabled state before hydration can trigger a native form submission.
-  const submit = page.locator('form button[type="submit"]:not([disabled])');
+  const submit = page.locator('form:has(input[name="email"]) button[type="submit"]:not([disabled])');
   await submit.waitFor({ state: 'visible', timeout: 60_000 });
   await email.fill(account.email);
   await password.fill(account.password);

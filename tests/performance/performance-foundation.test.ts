@@ -323,12 +323,12 @@ describe('measurement harness', () => {
           }
         },
         click: async () => {
-          if (selector.startsWith('form button')) {
+          if (selector.startsWith('form')) {
             signInInteractions.push({ action: 'click', selector });
           }
         },
         waitFor: async (options: { state?: string }) => {
-          if (selector.startsWith('form button')) {
+          if (selector.startsWith('form')) {
             signInInteractions.push({ action: 'waitFor', selector, value: options.state });
           }
         },
@@ -524,7 +524,7 @@ describe('measurement harness', () => {
   });
 
   it('signs in after hydration using enabled-form selectors and waits for a dashboard', async () => {
-    const submitSelector = 'form button[type="submit"]:not([disabled])';
+    const submitSelector = 'form:has(input[name="email"]) button[type="submit"]:not([disabled])';
     const report = await measure();
 
     expect(signInNavigationOptions).toHaveLength(2);
