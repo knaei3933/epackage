@@ -128,6 +128,11 @@ function contextOptions(): BrowserContextOptions {
   return options;
 }
 
+function credentialKey({ email, password }: MeasurementCredentials['member']): string {
+  // Keys are process-local only; credential material is never logged or reported.
+  return JSON.stringify([email, password]);
+}
+
 function emitProgress(fields: Record<string, string | number>): void {
   const label = Object.entries(fields).map(([key, value]) => `${key}=${value}`).join(' ');
   process.stderr.write(`PERF_PROGRESS ${label}\n`);
@@ -220,22 +225,24 @@ export async function measureRoutes(options: MeasurementOptions): Promise<Record
     const route = manifest.routes.find(item => item.id === routeId)!;
     return [routeId, { routeId, accountType: route.accountType, warmupRuns: 0, measuredRuns: 0, failedRuns: 0, medianMs: null, rawSamples: [], failedSamples: [] }];
   }));
-  // Create one logical browser session per account type. Even when dual-role owner
-  // credentials are supplied twice, the member and admin contexts remain isolated.
-  const accountContexts = new Map<AccountType, BrowserContext>();
+  // One authenticated browser session per exact credential pair. Distinct roles
+  // stay isolated; production-authorized identical dual-role credentials reuse
+  // the same in-memory context so re-sign-in cannot invalidate the first session.
+  const credentialContexts = new Map<string, BrowserContext>();
 
   try {
     // Strict sequential execution: this loop is intentionally not Promise.all.
     for (const routeId of routeOrder) {
       const route = manifest.routes.find(item => item.id === routeId)!;
       const result = rawResults.get(routeId)!;
-      let context = accountContexts.get(route.accountType);
+      const credential = credentialKey(options.credentials[route.accountType]);
+      let context = credentialContexts.get(credential);
       const account = options.credentials[route.accountType];
 
       emitProgress({ route: route.id, phase: 'signin' });
       if (!context) {
         context = await browser.newContext(contextOptions());
-        accountContexts.set(route.accountType, context);
+        credentialContexts.set(credential, context);
         const signInPage = await context.newPage();
         const signInStarted = new Date();
         try {
@@ -342,10 +349,10 @@ export async function measureRoutes(options: MeasurementOptions): Promise<Record
   } finally {
     try {
       // Contexts never leave this process; teardown happens once, after the route loop.
-      for (const context of accountContexts.values()) {
+      for (const context of credentialContexts.values()) {
         await context.close();
       }
-      accountContexts.clear();
+      credentialContexts.clear();
     } finally {
       await browser.close();
     }

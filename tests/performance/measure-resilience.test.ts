@@ -34,6 +34,11 @@ interface TrackedContext {
   closed: boolean;
 }
 
+interface ContextOptionCapture {
+  contextId: number;
+  storageState: unknown;
+}
+
 interface SignInAttempt {
   contextId: number;
   accountType: AccountType;
@@ -54,6 +59,8 @@ describe('measurement harness resilience', () => {
   let rerenderRemovesContent: boolean | undefined;
   let navigationCalls: NavigationKey[];
   let createdContexts: TrackedContext[];
+  let contextOptions: ContextOptionCapture[];
+  let contextCloseCalls: number[];
   let signInAttempts: SignInAttempt[];
   let signInNavigationOptions: Array<{ url: string; waitUntil?: string; timeout?: number }>;
   let signInInteractions: SignInInteraction[];
@@ -69,7 +76,7 @@ describe('measurement harness resilience', () => {
       let contextIndex = 0;
       return {
         version: () => 'test-browser',
-        newContext: async () => {
+        newContext: async (options?: { storageState?: unknown }) => {
           const routeIndex = contextIndex;
           contextIndex += 1;
           const usedAccountTypes = new Set(createdContexts.map(context => context.accountType));
@@ -78,6 +85,7 @@ describe('measurement harness resilience', () => {
             .find(account => !usedAccountTypes.has(account)) ?? 'admin';
           const context: TrackedContext = { id: routeIndex, accountType, closed: false };
           createdContexts.push(context);
+          contextOptions.push({ contextId: routeIndex, storageState: options?.storageState });
           let sampleIndex = 0;
           const createPage = () => {
             const kindIndex = sampleIndex;
@@ -172,6 +180,7 @@ describe('measurement harness resilience', () => {
             newPage: createPage,
             close: async () => {
               context.closed = true;
+              contextCloseCalls.push(context.id);
             },
           };
         },
@@ -209,6 +218,8 @@ describe('measurement harness resilience', () => {
     rerenderRemovesContent = false;
     configureBrowser();
     createdContexts = [];
+    contextOptions = [];
+    contextCloseCalls = [];
     signInAttempts = [];
     signInNavigationOptions = [];
     signInInteractions = [];
@@ -324,7 +335,7 @@ describe('measurement harness resilience', () => {
     expect(report.acceptance.verdict).toBe('passed');
   });
 
-  it('reuses one signed-in context per account type', async () => {
+  it('keeps two signed-in contexts and closes each once for distinct credentials', async () => {
     const report = await measure();
     const firstAccount = manifest.routes.find(route => route.id === report.routeOrder[0])!.accountType;
     const secondAccount = firstAccount === 'member' ? 'admin' : 'member';
@@ -340,6 +351,8 @@ describe('measurement harness resilience', () => {
     expect(report.results.filter(result => result.accountType === firstAccount)).toHaveLength(3);
     expect(report.results.filter(result => result.accountType === secondAccount)).toHaveLength(3);
     expect(createdContexts.map(context => context.closed)).toEqual([true, true]);
+    expect(contextCloseCalls).toEqual([0, 1]);
+    expect(contextOptions.every(option => option.storageState === undefined)).toBe(true);
   });
 
   it('uses hydration-safe selectors and strips query/hash from every reported URL', async () => {
@@ -375,7 +388,7 @@ describe('measurement harness resilience', () => {
     expect(serialized).not.toContain(encodeURIComponent(credentials.member.password));
   });
 
-  it('keeps separate account contexts when identical owner credentials are supplied', async () => {
+  it('shares one dual-role context when identical owner credentials are supplied', async () => {
     const sharedCredentials = {
       member: credentials.member,
       admin: credentials.member,
@@ -383,14 +396,21 @@ describe('measurement harness resilience', () => {
 
     const report = await measure(sharedCredentials);
 
-    expect(createdContexts).toHaveLength(2);
-    expect(createdContexts.map(context => context.accountType)).toEqual(['member', 'admin']);
+    expect(createdContexts).toHaveLength(1);
+    expect(createdContexts[0]).toEqual({ id: 0, accountType: 'member', closed: true });
     expect(signInAttempts).toEqual([
       { contextId: 0, accountType: 'member' },
-      { contextId: 1, accountType: 'admin' },
     ]);
-    expect(navigationCalls.filter(call => call.contextIndex === 0).length).toBeGreaterThan(0);
-    expect(navigationCalls.filter(call => call.contextIndex === 1).length).toBeGreaterThan(0);
+    expect(signInInteractions.filter(interaction => interaction.action === 'click')).toHaveLength(1);
+    expect(signInInteractions.filter(interaction => interaction.action === 'fill').map(interaction => interaction.value)).toEqual([
+      sharedCredentials.member.email,
+      sharedCredentials.member.password,
+    ]);
+    expect(navigationCalls.length).toBeGreaterThan(0);
+    expect(navigationCalls.every(call => call.contextIndex === 0)).toBe(true);
     expect(report.acceptance.verdict).toBe('passed');
+    expect(report.isolation.storageStatePersisted).toBe(false);
+    expect(contextOptions).toEqual([{ contextId: 0, storageState: undefined }]);
+    expect(contextCloseCalls).toEqual([0]);
   });
 });
