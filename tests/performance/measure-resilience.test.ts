@@ -39,6 +39,12 @@ interface SignInAttempt {
   accountType: AccountType;
 }
 
+interface SignInInteraction {
+  action: 'waitFor' | 'fill' | 'click';
+  selector: string;
+  value?: string;
+}
+
 describe('measurement harness resilience', () => {
   let warmupFirstFailure: Error | undefined;
   let warmupRetryFailure: Error | undefined;
@@ -49,6 +55,8 @@ describe('measurement harness resilience', () => {
   let navigationCalls: NavigationKey[];
   let createdContexts: TrackedContext[];
   let signInAttempts: SignInAttempt[];
+  let signInNavigationOptions: Array<{ url: string; waitUntil?: string; timeout?: number }>;
+  let signInInteractions: SignInInteraction[];
 
   const error = (message: string, name?: string): Error => {
     const value = new Error(message);
@@ -77,11 +85,23 @@ describe('measurement harness resilience', () => {
             if (kindIndex === 0) {
               signInAttempts.push({ contextId: routeIndex, accountType });
               return {
-                goto: async () => ({ status: () => 200 }),
-                locator: () => ({
+                goto: async (url: string, options?: { waitUntil?: string; timeout?: number }) => {
+                  if (url.endsWith('/auth/signin')) {
+                    signInNavigationOptions.push({ url, waitUntil: options?.waitUntil, timeout: options?.timeout });
+                  }
+                  return { status: () => 200 };
+                },
+                locator: (selector: string) => ({
                   count: async () => 1,
-                  fill: async () => undefined,
-                  click: async () => undefined,
+                  fill: async (value: string) => {
+                    signInInteractions.push({ action: 'fill', selector, value });
+                  },
+                  click: async () => {
+                    signInInteractions.push({ action: 'click', selector });
+                  },
+                  waitFor: async (options: { state?: string }) => {
+                    signInInteractions.push({ action: 'waitFor', selector, value: options.state });
+                  },
                   first: () => ({ waitFor: async () => undefined }),
                 }),
                 getByLabel: () => ({
@@ -98,7 +118,11 @@ describe('measurement harness resilience', () => {
                 }),
                 waitForURL: async () => undefined,
                 waitForLoadState: async () => undefined,
-                url: () => 'https://production.invalid/member/dashboard',
+                url: () => {
+                  const email = encodeURIComponent(credentials.member.email);
+                  const password = encodeURIComponent(credentials.member.password);
+                  return `https://production.invalid/member/dashboard?email=${email}&password=${password}&token=must-not-appear#credential-hash`;
+                },
                 evaluate: (callback: () => unknown) => callback(),
                 close: async () => undefined,
               };
@@ -125,13 +149,20 @@ describe('measurement harness resilience', () => {
               },
               locator: () => ({
                 count: async () => (rerenderRemovesContent ? 0 : 1),
+                fill: async () => undefined,
+                click: async () => undefined,
+                waitFor: async () => undefined,
                 first: () => ({
                   waitFor: async () => {
                     if (selectorFails) throw error('SELECTOR_NOT_VISIBLE');
                   },
                 }),
               }),
-              url: () => 'https://production.invalid/redirect-target?token=must-not-appear',
+              url: () => {
+                const email = encodeURIComponent(credentials.member.email);
+                const password = encodeURIComponent(credentials.member.password);
+                return `https://production.invalid/redirect-target?email=${email}&password=${password}&token=must-not-appear#credential-hash`;
+              },
               evaluate: (callback: () => unknown) => callback(),
               close: async () => undefined,
             };
@@ -179,6 +210,8 @@ describe('measurement harness resilience', () => {
     configureBrowser();
     createdContexts = [];
     signInAttempts = [];
+    signInNavigationOptions = [];
+    signInInteractions = [];
   });
 
   afterEach(() => {
@@ -307,6 +340,39 @@ describe('measurement harness resilience', () => {
     expect(report.results.filter(result => result.accountType === firstAccount)).toHaveLength(3);
     expect(report.results.filter(result => result.accountType === secondAccount)).toHaveLength(3);
     expect(createdContexts.map(context => context.closed)).toEqual([true, true]);
+  });
+
+  it('uses hydration-safe selectors and strips query/hash from every reported URL', async () => {
+    const report = await measure();
+    const accountTypes = [...new Set(report.routeOrder.map(routeId => (
+      manifest.routes.find(route => route.id === routeId)!.accountType
+    )))];
+    const submitSelector = 'form button[type="submit"]:not([disabled])';
+
+    expect(signInNavigationOptions).toEqual(accountTypes.map(() => ({
+      url: 'https://production.invalid/auth/signin',
+      waitUntil: 'networkidle',
+      timeout: 60_000,
+    })));
+    expect(signInInteractions).toEqual(accountTypes.flatMap(accountType => [
+      { action: 'waitFor', selector: submitSelector, value: 'visible' },
+      { action: 'fill', selector: 'input[name="email"]', value: credentials[accountType].email },
+      { action: 'fill', selector: 'input[name="password"]', value: credentials[accountType].password },
+      { action: 'click', selector: submitSelector },
+    ]));
+
+    const persistedUrls = report.results.flatMap(result => [
+      ...result.rawSamples.map(sample => sample.finalUrl),
+      ...result.failedSamples.map(sample => sample.url),
+    ]);
+    expect(persistedUrls.length).toBeGreaterThan(0);
+    expect(persistedUrls.every(url => url === 'https://production.invalid/redirect-target')).toBe(true);
+
+    const serialized = JSON.stringify(report);
+    expect(serialized).not.toContain('?');
+    expect(serialized).not.toContain('#');
+    expect(serialized).not.toContain(encodeURIComponent(credentials.member.email));
+    expect(serialized).not.toContain(encodeURIComponent(credentials.member.password));
   });
 
   it('keeps separate account contexts when identical owner credentials are supplied', async () => {

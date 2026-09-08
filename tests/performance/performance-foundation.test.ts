@@ -305,6 +305,8 @@ describe('measurement harness', () => {
   let signInNavigationWaits: Array<{ matches: Record<'memberDashboard' | 'adminDashboard' | 'signIn', boolean>; timeoutMs: number | undefined }>;
   let signInLoadStates: string[];
   let selectorEvidenceEvents: Array<{ selector: string; action: 'wait' | 'count'; timeoutMs?: number }>;
+  let signInNavigationOptions: Array<{ url: string; waitUntil?: string; timeout?: number }>;
+  let signInInteractions: Array<{ action: 'waitFor' | 'fill' | 'click'; selector: string; value?: string }>;
 
   const mockPage = (isFirstContext: boolean) => {
     let navigationAttempts = 0;
@@ -315,8 +317,21 @@ describe('measurement harness', () => {
           selectorEvidenceEvents.push({ selector, action: 'count' });
           return visible ? 2 : 0;
         },
-        fill: async () => undefined,
-        click: async () => undefined,
+        fill: async (value: string) => {
+          if (selector.startsWith('input[')) {
+            signInInteractions.push({ action: 'fill', selector, value });
+          }
+        },
+        click: async () => {
+          if (selector.startsWith('form button')) {
+            signInInteractions.push({ action: 'click', selector });
+          }
+        },
+        waitFor: async (options: { state?: string }) => {
+          if (selector.startsWith('form button')) {
+            signInInteractions.push({ action: 'waitFor', selector, value: options.state });
+          }
+        },
         first: () => ({
           waitFor: async (options: { timeout?: number }) => {
             selectorEvidenceEvents.push({ selector, action: 'wait', timeoutMs: options?.timeout });
@@ -327,7 +342,10 @@ describe('measurement harness', () => {
     };
 
     return {
-      goto: async () => {
+      goto: async (url: string, options?: { waitUntil?: string; timeout?: number }) => {
+        if (url.endsWith('/auth/signin')) {
+          signInNavigationOptions.push({ url, waitUntil: options?.waitUntil, timeout: options?.timeout });
+        }
         navigationAttempts += 1;
         if (isFirstContext && navigationAttempts === 1 && signInFailuresRemaining > 0) {
           signInFailuresRemaining -= 1;
@@ -336,8 +354,13 @@ describe('measurement harness', () => {
         return { status: () => 200 };
       },
       locator: (selector: string) => locator(selector),
-      getByLabel: () => locator('email-or-password'),
-      getByRole: () => locator('login-button'),
+      getByLabel: () => locator('legacy-label-selector'),
+      getByRole: () => locator('legacy-role-selector'),
+      url: () => {
+        const email = encodeURIComponent(credentials.member.email);
+        const password = encodeURIComponent(credentials.member.password);
+        return `https://production.invalid/redirect-target?legacy=1&email=${email}&password=${password}&token=must-not-appear#credential-hash`;
+      },
       waitForURL: async (pattern: unknown, options?: { timeout?: number }) => {
         const matches = (pathname: string) => typeof pattern === 'function'
           && Boolean((pattern as (url: URL) => boolean)(new URL(`https://production.invalid${pathname}`)));
@@ -358,7 +381,6 @@ describe('measurement harness', () => {
         signInLoadStates.push(state);
         return undefined;
       },
-      url: () => 'https://production.invalid/redirect-target?token=must-not-appear',
       evaluate: (callback: () => unknown) => callback(),
       close: async () => undefined,
     };
@@ -410,6 +432,8 @@ describe('measurement harness', () => {
     signInNavigationWaits = [];
     signInLoadStates = [];
     selectorEvidenceEvents = [];
+    signInNavigationOptions = [];
+    signInInteractions = [];
     configureBrowser();
   });
 
@@ -499,9 +523,22 @@ describe('measurement harness', () => {
     }
   });
 
-  it('waits for a protected dashboard redirect and DOM content loaded after login', async () => {
+  it('signs in after hydration using enabled-form selectors and waits for a dashboard', async () => {
+    const submitSelector = 'form button[type="submit"]:not([disabled])';
     const report = await measure();
 
+    expect(signInNavigationOptions).toHaveLength(2);
+    expect(signInNavigationOptions.every(options => (
+      options.url === 'https://production.invalid/auth/signin'
+        && options.waitUntil === 'networkidle'
+        && options.timeout === 60_000
+    ))).toBe(true);
+    expect(signInInteractions.slice(0, 4)).toEqual([
+      { action: 'waitFor', selector: submitSelector, value: 'visible' },
+      { action: 'fill', selector: 'input[name="email"]', value: credentials.member.email },
+      { action: 'fill', selector: 'input[name="password"]', value: credentials.member.password },
+      { action: 'click', selector: submitSelector },
+    ]);
     expect(signInNavigationWaits).toHaveLength(2);
     expect(signInNavigationWaits[0]).toEqual({
       matches: { memberDashboard: true, adminDashboard: true, signIn: false },
@@ -512,6 +549,24 @@ describe('measurement harness', () => {
     ))).toBe(true);
     expect(signInLoadStates).toEqual(['domcontentloaded', 'domcontentloaded']);
     expect(report.results.every(result => result.failedRuns === 0)).toBe(true);
+  });
+
+  it('parses page URLs before redaction and persists neither query strings nor encoded credentials', async () => {
+    const report = await measure();
+    const persistedUrls = report.results.flatMap(result => [
+      ...result.rawSamples.map(sample => sample.finalUrl),
+      ...result.failedSamples.map(sample => sample.url),
+    ]);
+
+    expect(persistedUrls.length).toBeGreaterThan(0);
+    expect(persistedUrls.every(url => url === 'https://production.invalid/redirect-target')).toBe(true);
+    const serialized = JSON.stringify(report);
+    expect(serialized).not.toContain('?');
+    expect(serialized).not.toContain('#');
+    expect(serialized).not.toContain(encodeURIComponent(credentials.member.email));
+    expect(serialized).not.toContain(encodeURIComponent(credentials.member.password));
+    expect(serialized).not.toContain(credentials.member.email);
+    expect(serialized).not.toContain(credentials.member.password);
   });
 
   it('records a stable sign-in failure without exposing redirect wait details', async () => {

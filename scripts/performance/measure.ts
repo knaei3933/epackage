@@ -82,11 +82,29 @@ export function bootstrapCi(values: readonly number[], seed: number, iterations 
   };
 }
 
+/** Parses before redaction so encoded credentials in query/hash cannot be persisted. */
+function reportUrl(value: string | undefined): string {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    // Never echo an unparseable URL: it may contain credential material.
+    return '[UNPARSEABLE_URL]';
+  }
+}
+
 async function signIn(page: Page, baseUrl: string, account: { email: string; password: string }): Promise<void> {
-  await page.goto(`${baseUrl}/auth/signin`, { waitUntil: 'domcontentloaded' });
-  await page.getByLabel('メールアドレス').fill(account.email);
-  await page.getByLabel('パスワード').fill(account.password);
-  await page.getByRole('button', { name: 'ログイン' }).click();
+  await page.goto(`${baseUrl}/auth/signin`, { waitUntil: 'networkidle', timeout: 60_000 });
+  const email = page.locator('input[name="email"]');
+  const password = page.locator('input[name="password"]');
+  // Restricting to :not([disabled]) makes this wait cover visibility and
+  // enabled state before hydration can trigger a native form submission.
+  const submit = page.locator('form button[type="submit"]:not([disabled])');
+  await submit.waitFor({ state: 'visible', timeout: 60_000 });
+  await email.fill(account.email);
+  await password.fill(account.password);
+  await submit.click();
   try {
     await page.waitForURL(url => url.pathname === '/member/dashboard' || url.pathname === '/admin/dashboard', {
       timeout: 60_000,
@@ -255,7 +273,7 @@ export async function measureRoutes(options: MeasurementOptions): Promise<Record
           result.rawSamples.push({
             routeId, accountType: route.accountType, mode: 'warmup', runNumber: 1,
             startedAt: warmupStarted.toISOString(), durationMs: Date.now() - warmupStarted.getTime(),
-            finalUrl: redactJson(warmupPage.url(), secrets).value, httpStatus: navigation.response?.status() ?? null,
+            finalUrl: redactJson(reportUrl(warmupPage.url()), secrets).value, httpStatus: navigation.response?.status() ?? null,
             navigationTiming: await navigationTiming(warmupPage), resourceTotals: await resourceTotals(warmupPage),
             selectorEvidence: evidence,
           });
@@ -296,7 +314,7 @@ export async function measureRoutes(options: MeasurementOptions): Promise<Record
             result.rawSamples.push({
               routeId, accountType: route.accountType, mode: 'measured', runNumber,
               startedAt: sampleStarted.toISOString(), durationMs: duration,
-              finalUrl: redactJson(page.url(), secrets).value, httpStatus: navigation.response?.status() ?? null,
+              finalUrl: redactJson(reportUrl(page.url()), secrets).value, httpStatus: navigation.response?.status() ?? null,
               navigationTiming: await navigationTiming(page), resourceTotals: await resourceTotals(page),
               selectorEvidence,
             });
@@ -456,7 +474,7 @@ async function failedSample(
     routeId: route.id, accountType, mode, runNumber, startedAt: startedAt.toISOString(),
     errorCode: error instanceof Error && error.name ? error.name : 'NAVIGATION_FAILED',
     message: redactJson(nativeError.message, secrets).value,
-    url: redactJson(page?.url() ?? fallbackUrl ?? '', secrets).value,
+    url: redactJson(reportUrl(page?.url() ?? fallbackUrl), secrets).value,
   };
 }
 
