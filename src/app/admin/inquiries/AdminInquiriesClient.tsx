@@ -7,7 +7,7 @@
  * - 全文検索（件名 / 本文 / 顧客名 / メール等・サーバー側 search_inquiries RPC）
  * - フィルタ（ステータス / 種別）
  * - 取得件数（limit）選択
- * - テーブル形式の一覧表示
+ * - 横スクロール不要なレスポンシブカード一覧表示
  * - 詳細ページ（/admin/inquiries/[id]）へ遷移
  *
  * @client
@@ -230,7 +230,7 @@ export default function AdminInquiriesClient() {
         <Container size="7xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 id="admin-inquiries-heading" className="text-3xl font-bold text-gray-900 mb-2">
               お問い合わせ管理
             </h1>
             <p className="text-gray-600">
@@ -242,57 +242,96 @@ export default function AdminInquiriesClient() {
           <Card className="p-6 mb-6">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
+                <label
+                  htmlFor="admin-inquiry-search"
+                  className="block text-xs font-medium text-gray-700 mb-1.5"
+                >
+                  キーワード検索
+                </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
+                    id="admin-inquiry-search"
                     type="text"
+                    name="admin-inquiry-search"
                     placeholder="件名・本文・顧客名・メールアドレスで検索..."
+                    autoComplete="off"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full min-w-0 max-w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm break-words"
                   />
                 </div>
               </div>
 
               {/* Filters */}
-              <div className="flex flex-wrap gap-3">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  {STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="min-w-0 max-w-full">
+                  <label
+                    htmlFor="admin-inquiry-status"
+                    className="block text-xs font-medium text-gray-700 mb-1.5"
+                  >
+                    ステータスで絞り込み
+                  </label>
+                  <select
+                    id="admin-inquiry-status"
+                    name="admin-inquiry-status"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  {TYPE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="min-w-0 max-w-full">
+                  <label
+                    htmlFor="admin-inquiry-type"
+                    className="block text-xs font-medium text-gray-700 mb-1.5"
+                  >
+                    種別で絞り込み
+                  </label>
+                  <select
+                    id="admin-inquiry-type"
+                    name="admin-inquiry-type"
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    className="w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    {TYPE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                <select
-                  value={limit}
-                  onChange={(e) => setLimit(Number(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  {LIMIT_OPTIONS.map((n) => (
-                    <option key={n} value={n}>
-                      {n}件
-                    </option>
-                  ))}
-                </select>
+                <div className="min-w-0 max-w-full">
+                  <label
+                    htmlFor="admin-inquiry-limit"
+                    className="block text-xs font-medium text-gray-700 mb-1.5"
+                  >
+                    表示件数
+                  </label>
+                  <select
+                    id="admin-inquiry-limit"
+                    name="admin-inquiry-limit"
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                    className="w-full min-w-0 max-w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    {LIMIT_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}件
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <Button
                   onClick={commitSearch}
@@ -346,7 +385,7 @@ export default function AdminInquiriesClient() {
             </p>
           </div>
 
-          {/* Table */}
+          {/* Inquiry cards */}
           {inquiries.length === 0 && !isLoading ? (
             <Card className="p-12">
               <div className="text-center">
@@ -359,76 +398,125 @@ export default function AdminInquiriesClient() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        受付番号
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        ラベル
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                        顧客
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">
-                        件名
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        注文
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        種別
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        ステータス
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        受付日
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                        詳細
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inquiries.map((inquiry) => (
-                      <tr
-                        key={inquiry.id}
-                        className="border-b border-gray-100 hover:bg-gray-50"
-                      >
-                        <td className="py-4 px-4 align-top whitespace-nowrap">
-                          <div className="font-medium text-gray-900">
-                            {inquiry.inquiryNumber || inquiry.id.slice(0, 8)}
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 align-top whitespace-nowrap">
+            <ul
+              aria-labelledby="admin-inquiries-heading"
+              className="grid min-w-0 max-w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            >
+              {inquiries.map((inquiry) => {
+                const inquiryNumber = inquiry.inquiryNumber || inquiry.id.slice(0, 8);
+                const sampleLabel = inquiry.sampleLabel;
+
+                return (
+                  <li
+                    key={inquiry.id}
+                    aria-label={inquiryNumber}
+                    className="flex min-w-0 max-w-full flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex min-w-0 max-w-full flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 max-w-full">
+                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                          受付番号
+                        </p>
+                        <p className="mt-1 break-words font-semibold text-gray-900">
+                          {inquiryNumber}
+                        </p>
+                      </div>
+                      <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5">
+                        <Badge
+                          variant="secondary"
+                          className="bg-gray-100 text-gray-700"
+                        >
+                          {inquiryTypeLabels[inquiry.type] || inquiry.type}
+                        </Badge>
+                        <StatusBadge status={inquiry.status} />
+                      </div>
+                    </div>
+
+                    <dl className="mt-4 flex min-w-0 max-w-full flex-1 flex-col gap-4 text-sm">
+                      <div className="min-w-0 max-w-full">
+                        <dt className="text-xs font-medium text-gray-500">顧客名</dt>
+                        <dd className="mt-0.5 break-words font-medium text-gray-900">
+                          {inquiry.customerName || '（名前未設定）'}
+                        </dd>
+                        {inquiry.companyName && (
+                          <>
+                            <dt className="mt-2 text-xs font-medium text-gray-500">会社名</dt>
+                            <dd className="mt-0.5 break-words text-gray-600">
+                              {inquiry.companyName}
+                            </dd>
+                          </>
+                        )}
+                        {inquiry.email && (
+                          <>
+                            <dt className="mt-2 text-xs font-medium text-gray-500">メールアドレス</dt>
+                            <dd className="mt-0.5 break-all text-gray-600">
+                              {inquiry.email}
+                            </dd>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 max-w-full">
+                        <dt className="text-xs font-medium text-gray-500">件名</dt>
+                        <dd className="mt-0.5 break-words font-medium text-gray-900">
+                          {inquiry.subject || '（件名なし）'}
+                        </dd>
+                      </div>
+
+                      {inquiry.message && (
+                        <div className="min-w-0 max-w-full">
+                          <dt className="text-xs font-medium text-gray-500">本文</dt>
+                          <dd className="mt-0.5 whitespace-pre-wrap break-words text-gray-600">
+                            {inquiry.message}
+                          </dd>
+                        </div>
+                      )}
+
+                      <div className="min-w-0 max-w-full">
+                        <dt className="text-xs font-medium text-gray-500">注文</dt>
+                        <dd className="mt-0.5 min-w-0 max-w-full">
+                          {inquiry.orderId && inquiry.orderNumber ? (
+                            <Link
+                              href={`/admin/orders/${inquiry.orderId}`}
+                              className="inline-flex min-w-0 max-w-full items-center break-words rounded px-2 py-1 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800"
+                              title={`注文 ${inquiry.orderNumber} の詳細へ`}
+                            >
+                              {inquiry.orderNumber}
+                            </Link>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                        </dd>
+                      </div>
+
+                      <div className="min-w-0 max-w-full">
+                        <dt className="text-xs font-medium text-gray-500">ラベル</dt>
+                        <dd className="mt-0.5 min-w-0 max-w-full">
                           {inquiry.type !== 'sample' ? (
-                            <span className="text-gray-400 text-xs">-</span>
-                          ) : inquiry.sampleLabel ? (
-                            <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">-</span>
+                          ) : sampleLabel ? (
+                            <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
                               <Badge
                                 variant="secondary"
                                 className={
-                                  samplePrintStatusClasses[inquiry.sampleLabel.printStatus] ||
+                                  samplePrintStatusClasses[sampleLabel.printStatus] ||
                                   samplePrintStatusClasses.unprinted
                                 }
                               >
-                                {samplePrintStatusLabels[inquiry.sampleLabel.printStatus] || '未印刷'}
+                                {samplePrintStatusLabels[sampleLabel.printStatus] || '未印刷'}
                               </Badge>
                               <button
                                 type="button"
-                                onClick={() => void handleReprint(inquiry.sampleLabel!.id)}
-                                disabled={reprintingSampleId === inquiry.sampleLabel!.id}
-                                className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                                data-testid={`admin-inquiry-reprint-${inquiry.id}`}
+                                onClick={() => void handleReprint(sampleLabel.id)}
+                                disabled={reprintingSampleId === sampleLabel.id}
+                                className="inline-flex min-w-0 max-w-full items-center gap-1 rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
                                 title="宛先ラベルを再印字キューに追加します"
                               >
-                                {reprintingSampleId === inquiry.sampleLabel!.id ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                {reprintingSampleId === sampleLabel.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
                                 ) : (
-                                  <Printer className="w-3 h-3" />
+                                  <Printer className="h-3 w-3" />
                                 )}
                                 再印刷
                               </button>
@@ -436,79 +524,35 @@ export default function AdminInquiriesClient() {
                           ) : (
                             <span className="text-xs text-red-600">未連携</span>
                           )}
-                        </td>
-                        <td className="py-4 px-4 align-top">
-                          <div className="font-medium text-gray-900">
-                            {inquiry.customerName || '（名前未設定）'}
-                          </div>
-                          {inquiry.companyName && (
-                            <div className="text-gray-600 text-xs">
-                              {inquiry.companyName}
-                            </div>
-                          )}
-                          {inquiry.email && (
-                            <div className="text-gray-500 text-xs break-all">
-                              {inquiry.email}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 align-top">
-                          <div className="font-medium text-gray-900 line-clamp-1 max-w-md">
-                            {inquiry.subject || '（件名なし）'}
-                          </div>
-                          {inquiry.message && (
-                            <div className="text-gray-500 text-xs line-clamp-1 max-w-md mt-0.5">
-                              {inquiry.message}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 align-top whitespace-nowrap">
-                          {inquiry.orderId && inquiry.orderNumber ? (
-                            <Link
-                              href={`/admin/orders/${inquiry.orderId}`}
-                              className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                              title={`注文 ${inquiry.orderNumber} の詳細へ`}
-                            >
-                              {inquiry.orderNumber}
-                            </Link>
-                          ) : (
-                            <span className="text-gray-400 text-xs">-</span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 align-top whitespace-nowrap">
-                          <Badge
-                            variant="secondary"
-                            className="bg-gray-100 text-gray-700"
-                          >
-                            {inquiryTypeLabels[inquiry.type] || inquiry.type}
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-4 align-top whitespace-nowrap">
-                          <StatusBadge status={inquiry.status} />
-                        </td>
-                        <td className="py-4 px-4 align-top whitespace-nowrap text-gray-700">
+                        </dd>
+                      </div>
+
+                      <div className="min-w-0 max-w-full">
+                        <dt className="text-xs font-medium text-gray-500">受付日</dt>
+                        <dd className="mt-0.5 break-words text-gray-700">
                           {inquiry.createdAt
                             ? format(new Date(inquiry.createdAt), 'yyyy/MM/dd HH:mm', {
                                 locale: ja,
                               })
                             : '-'}
-                        </td>
-                        <td className="py-4 px-4 align-top text-right whitespace-nowrap">
-                          <Link
-                            href={`/admin/inquiries/${inquiry.id}`}
-                            className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            詳細
-                            <ChevronRight className="w-3 h-3 ml-0.5" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                        </dd>
+                      </div>
+                    </dl>
+
+                    <div className="mt-4 flex min-w-0 max-w-full items-center justify-end border-t border-gray-100 pt-3">
+                      <Link
+                        href={`/admin/inquiries/${inquiry.id}`}
+                        className="inline-flex min-w-0 max-w-full items-center rounded px-3 py-1.5 text-sm text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800"
+                      >
+                        <Eye className="mr-1 h-4 w-4" />
+                        詳細
+                        <ChevronRight className="ml-0.5 h-3 w-3" />
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </Container>
       </div>
