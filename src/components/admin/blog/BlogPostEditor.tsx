@@ -172,7 +172,7 @@ export function BlogPostEditor({
       },
     },
     {
-      icon: <Image className="h-4 w-4" />,
+      icon: <Image aria-hidden="true" focusable="false" className="h-4 w-4" />,
       label: '画像',
       action: () => {
         fileInputRef.current?.click();
@@ -454,7 +454,7 @@ export function BlogPostEditor({
               {isDragging && (
                 <div className="absolute inset-0 bg-brixa-100 flex items-center justify-center pointer-events-none">
                   <div className="text-center">
-                    <Image className="h-12 w-12 mx-auto mb-2 text-brixa-500" />
+                    <Image aria-hidden="true" focusable="false" className="h-12 w-12 mx-auto mb-2 text-brixa-500" />
                     <p className="text-brixa-700 font-medium">画像をドロップ</p>
                   </div>
                 </div>

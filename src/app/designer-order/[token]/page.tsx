@@ -30,8 +30,6 @@ interface Order {
   id: string;
   order_number: string;
   customer_name: string;
-  customer_email: string;
-  total_amount: number;
   status: string;
   created_at: string;
   items: OrderItem[];
@@ -39,13 +37,10 @@ interface Order {
 
 interface DesignerTaskAssignment {
   id: string;
-  designer_id: string;
-  order_id: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  order_id: string;
   assigned_at: string;
   completed_at: string | null;
-  notes: string | null;
-  access_token_hash: string | null;
   access_token_expires_at: string | null;
   last_accessed_at: string | null;
 }
@@ -57,11 +52,8 @@ interface DesignRevision {
   original_file_url: string | null;
   comment_ko: string | null;
   comment_ja: string | null;
-  translation_status: string | null;
   approval_status: string;
   created_at: string;
-  original_customer_filename?: string | null;
-  generated_correction_filename?: string | null;
 }
 
 interface DesignReviewComment {
@@ -100,13 +92,17 @@ async function getDesignerOrderData(token: string) {
   const { data: assignmentData, error: assignmentError } = await supabase
     .from('designer_task_assignments')
     .select(`
-      *,
+      id,
+      status,
+      order_id,
+      assigned_at,
+      completed_at,
+      last_accessed_at,
+      access_token_expires_at,
       orders (
         id,
         order_number,
         customer_name,
-        customer_email,
-        total_amount,
         status,
         created_at
       )
@@ -156,13 +152,23 @@ async function getDesignerOrderData(token: string) {
   // Get order items
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
-    .select('*')
+    .select('id, product_name, quantity, sku_name, specifications')
     .eq('order_id', order.id);
 
   // Get existing revisions for this order
   const { data: revisions, error: revisionsError } = await supabase
     .from('design_revisions')
-    .select('*')
+    .select(
+      `id,
+        revision_number,
+        order_item_id,
+        preview_image_url,
+        original_file_url,
+        comment_ko,
+        comment_ja,
+        approval_status,
+        created_at`,
+    )
     .eq('order_id', assignmentData.order_id)
     .eq('uploaded_by_type', 'korea_designer')
     .order('revision_number', { ascending: false });

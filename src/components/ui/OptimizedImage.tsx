@@ -4,8 +4,6 @@ import { cn } from '@/lib/utils';
 
 interface OptimizedImageProps extends Omit<ImageProps, 'onLoad' | 'onError'> {
   fallbackSrc?: string;
-  webpSrc?: string;
-  avifSrc?: string;
   lowQualitySrc?: string;
   className?: string;
   containerClassName?: string;
@@ -17,8 +15,6 @@ export function OptimizedImage({
   src,
   alt,
   fallbackSrc,
-  webpSrc,
-  avifSrc,
   lowQualitySrc,
   className,
   containerClassName,
@@ -39,30 +35,7 @@ export function OptimizedImage({
     setIsLoading(false);
   }, []);
 
-  // Generate WebP and AVIF paths if not provided
-  const generateOptimizedSrc = useCallback((originalSrc: string, format: 'webp' | 'avif') => {
-    if (typeof originalSrc !== 'string') return undefined;
-    const lastDot = originalSrc.lastIndexOf('.');
-    if (lastDot === -1) return undefined;
-    return originalSrc.slice(0, lastDot) + '.' + format + originalSrc.slice(lastDot);
-  }, []);
-
   const imageSrc = hasError && fallbackSrc ? fallbackSrc : src;
-
-  // Generate picture sources for progressive enhancement
-  const sources = [];
-  if (avifSrc || (typeof src === 'string' && generateOptimizedSrc(src, 'avif'))) {
-    sources.push({
-      type: 'image/avif',
-      srcSet: avifSrc || generateOptimizedSrc(src as string, 'avif'),
-    });
-  }
-  if (webpSrc || (typeof src === 'string' && generateOptimizedSrc(src, 'webp'))) {
-    sources.push({
-      type: 'image/webp',
-      srcSet: webpSrc || generateOptimizedSrc(src as string, 'webp'),
-    });
-  }
 
   return (
     <div className={cn('relative overflow-hidden', containerClassName)}>
@@ -77,45 +50,21 @@ export function OptimizedImage({
         />
       )}
 
-      {/* Progressive enhancement with picture element */}
-      {sources.length > 0 ? (
-        <picture>
-          {sources.map((source, index) => (
-            <source key={index} type={source.type} srcSet={source.srcSet} />
-          ))}
-          <Image
-            src={imageSrc}
-            alt={alt}
-            className={cn(
-              'duration-700 ease-in-out',
-              isLoading ? 'scale-110 blur-2xl grayscale' : 'scale-100 blur-0 grayscale-0',
-              className
-            )}
-            onLoad={handleLoad}
-            onError={handleError}
-            loading={lazy && !priority && !critical ? 'lazy' : 'eager'}
-            priority={priority || critical}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            {...props}
-          />
-        </picture>
-      ) : (
-        <Image
-          src={imageSrc}
-          alt={alt}
-          className={cn(
-            'duration-700 ease-in-out',
-            isLoading ? 'scale-110 blur-2xl grayscale' : 'scale-100 blur-0 grayscale-0',
-            className
-          )}
-          onLoad={handleLoad}
-          onError={handleError}
-          loading={lazy && !priority && !critical ? 'lazy' : 'eager'}
-          priority={priority || critical}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          {...props}
-        />
-      )}
+      <Image
+        src={imageSrc}
+        alt={alt}
+        className={cn(
+          'duration-700 ease-in-out',
+          isLoading ? 'scale-110 blur-2xl grayscale' : 'scale-100 blur-0 grayscale-0',
+          className
+        )}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading={lazy && !priority && !critical ? 'lazy' : 'eager'}
+        priority={priority || critical}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        {...props}
+      />
 
       {/* Loading placeholder */}
       {isLoading && (

@@ -49,8 +49,6 @@ interface Order {
   id: string;
   order_number: string;
   customer_name: string;
-  customer_email: string;
-  total_amount: number;
   status: string;
   created_at: string;
   items: OrderItem[];
@@ -58,13 +56,10 @@ interface Order {
 
 interface DesignerTaskAssignment {
   id: string;
-  designer_id: string;
-  order_id: string;
   status: string | null;
+  order_id: string;
   assigned_at: string;
   completed_at: string | null;
-  notes: string | null;
-  access_token_hash: string | null;
   access_token_expires_at: string | null;
   last_accessed_at: string | null;
 }
@@ -76,11 +71,8 @@ interface DesignRevision {
   original_file_url: string | null;
   comment_ko: string | null;
   comment_ja: string | null;
-  translation_status: string | null;
   approval_status: string;
   created_at: string;
-  original_customer_filename?: string | null;
-  generated_correction_filename?: string | null;
   order_item_id?: string | null;
 }
 

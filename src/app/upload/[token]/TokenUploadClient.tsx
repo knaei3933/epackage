@@ -38,22 +38,11 @@ import { BilingualText } from '@/components/upload/BilingualText';
 // Types
 // =====================================================
 
-interface OrderItem {
-  id: string;
-  product_name: string;
-  quantity: number;
-  sku_name: string | null;
-}
-
 interface Order {
-  id: string;
   order_number: string;
   customer_name: string;
-  customer_email: string;
   total_amount: number;
-  status: string;
   created_at: string;
-  items: OrderItem[];
 }
 
 interface DesignReviewComment {
@@ -75,7 +64,6 @@ interface DesignRevision {
   original_file_url: string | null;
   comment_ko: string | null;
   comment_ja: string | null;
-  approval_status: string;
   created_at: string;
   original_customer_filename?: string | null;
   generated_correction_filename?: string | null;
@@ -84,12 +72,9 @@ interface DesignRevision {
 interface DesignerUploadToken {
   id: string;
   order_id: string;
-  token_hash: string;
   expires_at: string;
   status: string;
   upload_count: number;
-  created_at: string;
-  last_accessed_at: string | null;
 }
 
 interface TokenUploadClientProps {

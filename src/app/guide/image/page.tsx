@@ -73,7 +73,7 @@ export default function ImageGuide() {
       <div className="prose prose-gray max-w-none">
       <div className="flex items-center space-x-3 mb-8">
         <div className="p-3 bg-green-100 rounded-lg text-green-600">
-          <Image className="h-8 w-8" />
+          <Image aria-hidden="true" focusable="false" className="h-8 w-8" />
         </div>
         <div>
           <h1 className="text-3xl font-bold text-text-primary">
@@ -196,7 +196,7 @@ export default function ImageGuide() {
           <Card className="p-6 border-2 border-blue-500">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-text-primary">ラスター形式</h3>
-              <Image className="h-5 w-5 text-blue-600" />
+              <Image aria-hidden="true" focusable="false" className="h-5 w-5 text-blue-600" />
             </div>
             <div className="space-y-3">
               <div>

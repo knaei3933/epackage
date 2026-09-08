@@ -15,6 +15,7 @@
 
 import { createSupabaseWithCookies, createServiceClient } from '@/lib/supabase';
 import { isDevMode } from '@/lib/dev-mode';
+import { getRequestAuthUser } from '@/lib/auth/request-context';
 import { unstable_cache } from 'next/cache';
 import type {
   Order,
@@ -284,71 +285,13 @@ export async function requireAuth(): Promise<{
   };
 }> {
   try {
-    // ============================================================
-    // Use RBAC context for consistent authentication (same as admin)
-    // ============================================================
-    let context;
-    try {
-      const { getRBACContext } = await import('@/lib/rbac/rbac-helpers');
-      context = await getRBACContext();
-    } catch (rbacError) {
-      console.error('[requireAuth] getRBACContext failed:', rbacError);
+    const user = await getRequestAuthUser();
+
+    if (!user) {
       throw new AuthRequiredError();
     }
 
-    if (!context) {
-      throw new AuthRequiredError();
-    }
-
-    // Fetch profile data for user metadata
-    const serviceClient = createServiceClient();
-    let profile;
-    try {
-      const result = await serviceClient
-        .from('profiles')
-        .select('*')
-        .eq('id', context.userId)
-        .maybeSingle();
-      profile = result.data;
-    } catch (profileError) {
-      console.error('[requireAuth] Profile fetch error:', profileError);
-      // Continue with empty profile data - don't crash
-      profile = null;
-    }
-
-    const profileAny = profile as any;
-
-    return {
-      id: context.userId,
-      email: profileAny?.email || '',
-      user_metadata: {
-        // 互換用の従来フィールド（name_kanji / name_kana は残す）
-        kanji_last_name: profileAny?.kanji_last_name || '',
-        kanji_first_name: profileAny?.kanji_first_name || '',
-        name_kanji: profileAny?.kanji_last_name || '',
-        name_kana: profileAny?.kana_last_name || '',
-        // マイページ表示・編集で参照する全フィールド
-        kana_last_name: profileAny?.kana_last_name || '',
-        kana_first_name: profileAny?.kana_first_name || '',
-        corporate_phone: profileAny?.corporate_phone || '',
-        personal_phone: profileAny?.personal_phone || '',
-        fax: profileAny?.fax || '',
-        company_name: profileAny?.company_name || '',
-        position: profileAny?.position || '',
-        department: profileAny?.department || '',
-        company_url: profileAny?.company_url || '',
-        postal_code: profileAny?.postal_code || '',
-        prefecture: profileAny?.prefecture || '',
-        city: profileAny?.city || '',
-        street: profileAny?.street || '',
-        product_category: profileAny?.product_category || '',
-        business_type: profileAny?.business_type || '',
-        role: profileAny?.role || '',
-        status: profileAny?.status || '',
-        created_at: profileAny?.created_at || '',
-        last_login_at: profileAny?.last_login_at || undefined,
-      },
-    };
+    return user;
   } catch (error) {
     // AuthRequiredError should be re-thrown for redirect handling
     if (error instanceof AuthRequiredError) {
@@ -1331,14 +1274,20 @@ export async function getAnnouncements(limit = 5): Promise<Announcement[]> {
 
   const { data, error } = await serviceClient
     .from('announcements')
-    .select('*')
+    .select('id, title, content, category, priority, is_published, published_at, created_at')
     .eq('is_published', true)
     .order('published_at', { ascending: false })
     .limit(limit);
 
   if (error) return [];
 
-  return (data as unknown as Announcement[]) || [];
+  // AnnouncementCard は camelCase contract を直接参照するため、DB row をアプリ型へ変換する。
+  return ((data as any[]) || []).map(({ is_published, published_at, created_at, ...announcement }) => ({
+    ...announcement,
+    isPublished: is_published,
+    publishedAt: published_at ?? created_at,
+    createdAt: created_at,
+  }));
 }
 
 // =====================================================
@@ -1900,17 +1849,18 @@ async function fetchAdminDashboardStats(
   const EMPTY_LIST_RESULT: { data: unknown[]; count: number | null; error: unknown } = { data: [], count: null, error: null };
   const EMPTY_COUNT_RESULT: { data: unknown; count: number | null; error: unknown } = { data: null, count: 0, error: null };
   const adminResults = await Promise.allSettled([
-    serviceClient.from('orders').select('*', { count: 'exact', head: true }),
-    serviceClient.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
-    serviceClient.from('orders').select('total_amount').gte('created_at', startDate.toISOString()),
-    serviceClient.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
-    serviceClient.from('orders').select('status').gte('created_at', startDate.toISOString()),
+    serviceClient.from('orders').select('id', { count: 'exact', head: true }),
+    serviceClient.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'QUOTATION_PENDING'),
+    // 売上とステータス集計は同一期間・同一表の行集合なので 1 回の取得から導出する。
+    serviceClient.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
+    serviceClient.from('orders').select('status, total_amount').gte('created_at', startDate.toISOString()),
     // 見積統計（C3: period フィルタを orders 系クエリと統一・期間切替で quotations KPI も反映）
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).gte('created_at', startDate.toISOString()),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).eq('status', 'APPROVED').gte('created_at', startDate.toISOString()),
-    serviceClient.from('quotations').select('*', { count: 'exact', head: true }).in('status', ['DRAFT', 'SENT']).gte('created_at', startDate.toISOString()), // C2 drift: quotations status 実DBへ合わせる（SUBMITTED→SENT・PENDING は quotations enum に不存在）
-    // 最新見積もり（C3: period 内の最新5件に絞り込み）
-    serviceClient.from('quotations').select('*').order('created_at', { ascending: false }).gte('created_at', startDate.toISOString()).limit(5),
+    serviceClient.from('quotations').select('id', { count: 'exact', head: true }).gte('created_at', startDate.toISOString()),
+    serviceClient.from('quotations').select('id', { count: 'exact', head: true }).eq('status', 'APPROVED').gte('created_at', startDate.toISOString()),
+    serviceClient.from('quotations').select('id', { count: 'exact', head: true }).in('status', ['DRAFT', 'SENT']).gte('created_at', startDate.toISOString()), // C2 drift: quotations status 実DBへ合わせる（SUBMITTED→SENT・PENDING は quotations enum に不存在）
+    // 最新見積もり（C3: period 内の最新5件に絞り込み）。表示テーブルが使う列のみ投影する。
+    serviceClient.from('quotations').select('quotation_number, customer_name, customer_email, status, total_amount, created_at')
+      .order('created_at', { ascending: false }).gte('created_at', startDate.toISOString()).limit(5),
     // 月別売上 (過去12ヶ月)
     serviceClient
       .from('orders')
@@ -1920,22 +1870,22 @@ async function fetchAdminDashboardStats(
     // 本日出荷
     serviceClient
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('status', 'SHIPPED')
       .gte('shipped_at', todayStart.toISOString()),
     // 輸送中
     serviceClient
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .in('status', ['SHIPPED']),
     // サンプル統計
     serviceClient
       .from('sample_requests')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .gte('created_at', startDate.toISOString()),
     serviceClient
       .from('sample_requests')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .in('status', ['received', 'processing'])
       .gte('created_at', startDate.toISOString()),
     // 生産完了注文（製造期間計算用）
@@ -1949,12 +1899,24 @@ async function fetchAdminDashboardStats(
   // rejected クエリは空 result でフォールバック
   // インデックス順: 0-3,6-8,11-14 = カウント系(EMPTY_COUNT_RESULT)、4-5,9-10,13-14の一部 = 一覧系(EMPTY_LIST_RESULT)
   // 判定は個別 status チェックで安全に取り出す
-  const settled = <T>(r: PromiseSettledResult<T>, fallback: T) =>
-    r.status === 'fulfilled' ? r.value : fallback;
+  const settled = <T extends { error?: unknown }>(
+    result: PromiseSettledResult<T>,
+    fallback: T,
+    label: string
+  ): T => {
+    if (result.status === 'rejected') {
+      console.error(`[getUnifiedDashboardStats:ADMIN] ${label} query rejected:`, result.reason);
+      return fallback;
+    }
+    if (result.value?.error) {
+      console.error(`[getUnifiedDashboardStats:ADMIN] ${label} query failed:`, result.value.error);
+      return fallback;
+    }
+    return result.value;
+  };
   const [
     totalOrdersResult,
     pendingOrdersResult,
-    totalRevenueResult,
     activeUsersResult,
     ordersByStatusResult,
     totalQuotationsResult,
@@ -1973,30 +1935,30 @@ async function fetchAdminDashboardStats(
     // 生産完了注文（製造期間計算用）
     completedProductionOrdersResult,
   ] = [
-    settled(adminResults[0], EMPTY_COUNT_RESULT), // totalOrders (count)
-    settled(adminResults[1], EMPTY_COUNT_RESULT), // pendingOrders (count)
-    settled(adminResults[2], EMPTY_LIST_RESULT), // totalRevenue (data)
-    settled(adminResults[3], EMPTY_COUNT_RESULT), // activeUsers (count)
-    settled(adminResults[4], EMPTY_LIST_RESULT), // ordersByStatus (data)
-    settled(adminResults[5], EMPTY_COUNT_RESULT), // totalQuotations (count)
-    settled(adminResults[6], EMPTY_COUNT_RESULT), // approvedQuotations (count)
-    settled(adminResults[7], EMPTY_COUNT_RESULT), // pendingQuotations (count)
-    settled(adminResults[8], EMPTY_LIST_RESULT), // recentQuotations (data)
-    settled(adminResults[9], EMPTY_LIST_RESULT), // monthlyRevenue (data)
-    settled(adminResults[10], EMPTY_COUNT_RESULT), // todayShipments (count)
-    settled(adminResults[11], EMPTY_COUNT_RESULT), // inTransitShipments (count)
-    settled(adminResults[12], EMPTY_COUNT_RESULT), // totalSamples (count)
-    settled(adminResults[13], EMPTY_COUNT_RESULT), // processingSamples (count)
-    settled(adminResults[14], EMPTY_LIST_RESULT), // completedProductionOrders (data)
+    settled(adminResults[0], EMPTY_COUNT_RESULT, 'totalOrders'),
+    settled(adminResults[1], EMPTY_COUNT_RESULT, 'pendingOrders'),
+    settled(adminResults[2], EMPTY_COUNT_RESULT, 'activeUsers'),
+    settled(adminResults[3], EMPTY_LIST_RESULT, 'period orders/status'),
+    settled(adminResults[4], EMPTY_COUNT_RESULT, 'totalQuotations'),
+    settled(adminResults[5], EMPTY_COUNT_RESULT, 'approvedQuotations'),
+    settled(adminResults[6], EMPTY_COUNT_RESULT, 'pendingQuotations'),
+    settled(adminResults[7], EMPTY_LIST_RESULT, 'recentQuotations'),
+    settled(adminResults[8], EMPTY_LIST_RESULT, 'monthlyRevenue'),
+    settled(adminResults[9], EMPTY_COUNT_RESULT, 'todayShipments'),
+    settled(adminResults[10], EMPTY_COUNT_RESULT, 'inTransitShipments'),
+    settled(adminResults[11], EMPTY_COUNT_RESULT, 'totalSamples'),
+    settled(adminResults[12], EMPTY_COUNT_RESULT, 'processingSamples'),
+    settled(adminResults[13], EMPTY_LIST_RESULT, 'completedProductionOrders'),
   ];
 
   // 売上計算（C2 drift: Promise.allSettled の union 型回避のため明示キャスト）
-  const totalRevenue = ((totalRevenueResult.data || []) as Array<{ total_amount?: number | null }>)
+  const periodOrders = (ordersByStatusResult.data || []) as Array<{ status?: string | null; total_amount?: number | null }>;
+  const totalRevenue = periodOrders
     .reduce((sum: number, order) => sum + (order.total_amount || 0), 0);
 
   // ステータス別集計
   const statusCounts: Record<string, number> = {};
-  (ordersByStatusResult.data || []).forEach((order: any) => {
+  periodOrders.forEach((order) => {
     const status = order.status || 'UNKNOWN';
     statusCounts[status] = (statusCounts[status] || 0) + 1;
   });
@@ -2103,7 +2065,7 @@ async function fetchMemberDashboardStats(
   startDate.setDate(startDate.getDate() - period);
 
   // お知らせ取得（Critic MAJOR-1）: getAnnouncements(3) を先行宣言し、下記
-  // Promise.allSettled（14本）と並行で実行する（直列 await を避ける）。
+  // Promise.allSettled（お知らせ1本）と並行で実行する（直列 await を避ける）。
   const announcementsPromise = getAnnouncements(3)
     .then((data): Announcement[] => data)
     .catch((annError: unknown): Announcement[] => {
@@ -2111,50 +2073,45 @@ async function fetchMemberDashboardStats(
       return [];
     });
 
-  // 並列クエリ（既存 count-only 7本 + 新規 行データ/count 7本 = 計14本）
+  // 並列クエリ（15本）。処理中サンプル件数は recentSamples と同一フィルターの
+  // count:'exact' から取得し、専用 count クエリを廃止する。
   // Promise.allSettled を使用 — 1クエリの reject で全体が短絡しないよう、
   // rejected は空 result（行データ=空配列、カウント=0）でフォールバック（getDashboardStats パターン踏襲）。
   const EMPTY_LIST_RESULT: { data: unknown[]; count: number | null; error: unknown } = { data: [], count: null, error: null };
   const EMPTY_COUNT_RESULT: { data: unknown; count: number | null; error: unknown } = { data: null, count: 0, error: null };
   const unifiedResults = await Promise.allSettled([
-    // --- 既存: 統計カード用 count-only クエリ（7本）---
+    // --- 統計カード用 count-only クエリ（6本）---
     serviceClient
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('created_at', startDate.toISOString()),
     serviceClient
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .in('status', ['PENDING', 'PRODUCTION']),
     serviceClient
       .from('quotations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       // 期間内のすべての見積もりをカウント（ステータスフィルターなし）
       .gte('created_at', startDate.toISOString()),
     serviceClient
       .from('sample_requests')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       // 期間内のすべてのサンプル依頼をカウント（ステータスフィルターなし）
       .gte('created_at', startDate.toISOString()),
     serviceClient
-      .from('sample_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      // 処理中のサンプル依頼をカウント
-      .in('status', ['received', 'processing']),
-    serviceClient
       .from('inquiries')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       // 期間内のすべての問い合わせをカウント
       .gte('created_at', startDate.toISOString()),
     serviceClient
       .from('inquiries')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       // 回答済みの問い合わせをカウント
       .in('status', ['responded', 'resolved', 'closed']),
@@ -2162,23 +2119,26 @@ async function fetchMemberDashboardStats(
     // orders top-5（Critic M-1: PRODUCTION を含む・降順）
     serviceClient
       .from('orders')
-      .select('*')
+      .select('id, user_id, status, order_number, total_amount, created_at')
       .eq('user_id', userId)
       .in('status', ['PENDING', 'QUOTATION', 'PRODUCTION'])
       .order('created_at', { ascending: false })
       .limit(5),
-    // quotations top-5（draft/sent・quotation_items 含む・降順）
+    // quotations top-5（draft/sent・表示/nextActions 列と嵌め子項目・降順）
     serviceClient
       .from('quotations')
-      .select('*, quotation_items (*)')
+      .select(`id, user_id, status, quotation_number, total_amount, created_at, quotation_items(
+        id, quotation_id, product_id, product_name, category, quantity, unit_price, total_price,
+        specifications, notes, display_order, created_at
+      )`)
       .eq('user_id', userId)
       .in('status', ['DRAFT', 'SENT'])
       .order('created_at', { ascending: false })
       .limit(5),
-    // sample_requests top-5（received/processing・sample_items 含む・降順）
+    // sample_requests top-5（received/processing・exact count 併用・降順）
     serviceClient
       .from('sample_requests')
-      .select('*, sample_items (*)')
+      .select('id, user_id, status, request_number, created_at, sample_items(id, sample_request_id, product_id, product_name, category, quantity)', { count: 'exact' })
       .eq('user_id', userId)
       .in('status', ['received', 'processing'])
       .order('created_at', { ascending: false })
@@ -2186,7 +2146,7 @@ async function fetchMemberDashboardStats(
     // admin_notifications 未読 top-5（Critic m-2: is_read=false で厳格化・降順）
     serviceClient
       .from('admin_notifications')
-      .select('*')
+      .select('id, title, message, created_at')
       .eq('user_id', userId)
       .eq('is_read', false)
       .order('created_at', { ascending: false })
@@ -2194,7 +2154,7 @@ async function fetchMemberDashboardStats(
     // contracts pending top-5（Critic m-3: top-5 制限を新規付与・降順・B2B）
     serviceClient
       .from('contracts')
-      .select('*')
+      .select('id, contract_number, status, total_amount, created_at')
       .eq('user_id', userId)
       .in('status', ['DRAFT', 'SENT', 'PENDING_SIGNATURE', 'CUSTOMER_SIGNED'])
       .order('created_at', { ascending: false })
@@ -2203,12 +2163,12 @@ async function fetchMemberDashboardStats(
     // contracts total count（Critic M-4: contracts.total 用）
     serviceClient
       .from('contracts')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId),
     // contracts signed count（Critic MAJOR-2: contracts.signed 用）
     serviceClient
       .from('contracts')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .in('status', ['SIGNED', 'ADMIN_SIGNED', 'ACTIVE']),
     // --- 新規: pendingQuotations 用 count-only クエリ（draft/sent・期間内）---
@@ -2217,7 +2177,7 @@ async function fetchMemberDashboardStats(
     // recentQuotationsResult は top-5 制限があるため .length は不正確（5件超で頭打ち）。
     serviceClient
       .from('quotations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .in('status', ['DRAFT', 'SENT'])
       .gte('created_at', startDate.toISOString()),
@@ -2227,19 +2187,33 @@ async function fetchMemberDashboardStats(
     // 「N / total 承認・conversionRate%」が常に 0 だったのを正確化（contracts.pending と同枠）。
     serviceClient
       .from('quotations')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'APPROVED')
       .gte('created_at', startDate.toISOString()),
   ]);
 
-  // rejected クエリは空 result でフォールバック（行データ=空配列、カウント=0）
+  // rejected / fulfilled-with-error クエリは空 result でフォールバックし、診断を残す。
+  const settled = <T extends { error?: unknown }>(
+    result: PromiseSettledResult<T>,
+    fallback: T,
+    label: string
+  ): T => {
+    if (result.status === 'rejected') {
+      console.error(`[getUnifiedDashboardStats:MEMBER] ${label} query rejected:`, result.reason);
+      return fallback;
+    }
+    if (result.value?.error) {
+      console.error(`[getUnifiedDashboardStats:MEMBER] ${label} query failed:`, result.value.error);
+      return fallback;
+    }
+    return result.value;
+  };
   const [
     totalOrdersResult,
     pendingOrdersResult,
     totalQuotationsResult,
     totalSamplesResult,
-    pendingSamplesResult,
     totalInquiriesResult,
     respondedInquiriesResult,
     recentOrdersResult,
@@ -2252,22 +2226,21 @@ async function fetchMemberDashboardStats(
     pendingQuotationsCountResult,
     approvedQuotationsResult,
   ] = [
-    unifiedResults[0].status === 'fulfilled' ? unifiedResults[0].value : EMPTY_COUNT_RESULT,
-    unifiedResults[1].status === 'fulfilled' ? unifiedResults[1].value : EMPTY_COUNT_RESULT,
-    unifiedResults[2].status === 'fulfilled' ? unifiedResults[2].value : EMPTY_COUNT_RESULT,
-    unifiedResults[3].status === 'fulfilled' ? unifiedResults[3].value : EMPTY_COUNT_RESULT,
-    unifiedResults[4].status === 'fulfilled' ? unifiedResults[4].value : EMPTY_COUNT_RESULT,
-    unifiedResults[5].status === 'fulfilled' ? unifiedResults[5].value : EMPTY_COUNT_RESULT,
-    unifiedResults[6].status === 'fulfilled' ? unifiedResults[6].value : EMPTY_COUNT_RESULT,
-    unifiedResults[7].status === 'fulfilled' ? unifiedResults[7].value : EMPTY_LIST_RESULT,
-    unifiedResults[8].status === 'fulfilled' ? unifiedResults[8].value : EMPTY_LIST_RESULT,
-    unifiedResults[9].status === 'fulfilled' ? unifiedResults[9].value : EMPTY_LIST_RESULT,
-    unifiedResults[10].status === 'fulfilled' ? unifiedResults[10].value : EMPTY_LIST_RESULT,
-    unifiedResults[11].status === 'fulfilled' ? unifiedResults[11].value : EMPTY_LIST_RESULT,
-    unifiedResults[12].status === 'fulfilled' ? unifiedResults[12].value : EMPTY_COUNT_RESULT,
-    unifiedResults[13].status === 'fulfilled' ? unifiedResults[13].value : EMPTY_COUNT_RESULT,
-    unifiedResults[14].status === 'fulfilled' ? unifiedResults[14].value : EMPTY_COUNT_RESULT,
-    unifiedResults[15].status === 'fulfilled' ? unifiedResults[15].value : EMPTY_COUNT_RESULT,
+    settled(unifiedResults[0], EMPTY_COUNT_RESULT, 'totalOrders'),
+    settled(unifiedResults[1], EMPTY_COUNT_RESULT, 'pendingOrders'),
+    settled(unifiedResults[2], EMPTY_COUNT_RESULT, 'totalQuotations'),
+    settled(unifiedResults[3], EMPTY_COUNT_RESULT, 'totalSamples'),
+    settled(unifiedResults[4], EMPTY_COUNT_RESULT, 'totalInquiries'),
+    settled(unifiedResults[5], EMPTY_COUNT_RESULT, 'respondedInquiries'),
+    settled(unifiedResults[6], EMPTY_LIST_RESULT, 'recentOrders'),
+    settled(unifiedResults[7], EMPTY_LIST_RESULT, 'recentQuotations'),
+    settled(unifiedResults[8], EMPTY_LIST_RESULT, 'recentSamples/processingCount'),
+    settled(unifiedResults[9], EMPTY_LIST_RESULT, 'notifications'),
+    settled(unifiedResults[10], EMPTY_LIST_RESULT, 'recentContracts'),
+    settled(unifiedResults[11], EMPTY_COUNT_RESULT, 'contractsTotal'),
+    settled(unifiedResults[12], EMPTY_COUNT_RESULT, 'contractsSigned'),
+    settled(unifiedResults[13], EMPTY_COUNT_RESULT, 'pendingQuotations'),
+    settled(unifiedResults[14], EMPTY_COUNT_RESULT, 'approvedQuotations'),
   ];
 
   // Transform リネーム（Critic MINOR-1）: quotation_items → items / sample_items → samples
@@ -2286,7 +2259,16 @@ async function fetchMemberDashboardStats(
     // snake_case(DB生) → camelCase 変換（page.tsx / buildNextActions が camelCase 参照）
     createdAt: request.created_at,
     requestNumber: request.request_number,
-    samples: Array.isArray(request.sample_items) ? request.sample_items : [],
+    samples: Array.isArray(request.sample_items)
+      ? request.sample_items.map((item: any) => ({
+          id: item.id,
+          sampleRequestId: item.sample_request_id,
+          productId: item.product_id,
+          productName: item.product_name,
+          category: item.category,
+          quantity: item.quantity,
+        }))
+      : [],
   })) ?? [];
 
   // recentOrders も snake_case(DB生) → camelCase 変換（page.tsx / buildNextActions が camelCase 参照）
@@ -2317,7 +2299,7 @@ async function fetchMemberDashboardStats(
     pendingQuotations: pendingQuotationsCount,
     samples: {
       total: totalSamplesResult.count || 0,
-      processing: pendingSamplesResult.count || 0,
+      processing: recentSamplesResult.count || 0,
     },
     inquiries: {
       total: totalInquiriesResult.count || 0,

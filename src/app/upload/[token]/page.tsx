@@ -20,35 +20,19 @@ import { TokenUploadClient } from './TokenUploadClient';
 // Types
 // ============================================================
 
-interface OrderItem {
-  id: string;
-  product_name: string;
-  quantity: number;
-  sku_name: string | null;
-}
-
 interface Order {
-  id: string;
   order_number: string;
   customer_name: string;
-  customer_email: string;
   total_amount: number;
-  status: string;
   created_at: string;
-  items: OrderItem[];
 }
 
 interface DesignerUploadToken {
   id: string;
   order_id: string;
-  order_item_id: string | null;
-  token_hash: string;
   expires_at: string;
   status: 'active' | 'used' | 'expired' | 'revoked';
   upload_count: number;
-  created_at: string;
-  last_accessed_at: string | null;
-  last_uploaded_at: string | null;
 }
 
 interface DesignRevision {
@@ -58,7 +42,6 @@ interface DesignRevision {
   original_file_url: string | null;
   korean_designer_comment: string | null;
   comment_ja: string | null;
-  approval_status: string;
   created_at: string;
   original_customer_filename?: string | null;
   generated_correction_filename?: string | null;
@@ -90,14 +73,15 @@ async function getTokenUploadData(token: string) {
   const { data: tokenData, error: tokenError } = await supabase
     .from('designer_upload_tokens')
     .select(`
-      *,
+      id,
+      status,
+      expires_at,
+      order_id,
+      upload_count,
       orders (
-        id,
         order_number,
         customer_name,
-        customer_email,
         total_amount,
-        status,
         created_at
       )
     `)
@@ -148,7 +132,17 @@ async function getTokenUploadData(token: string) {
   // Get existing revisions for this order
   const { data: revisions, error: revisionsError } = await supabase
     .from('design_revisions')
-    .select('*')
+    .select(
+      `id,
+        revision_number,
+        preview_image_url,
+        original_file_url,
+        original_customer_filename,
+        generated_correction_filename,
+        comment_ko,
+        comment_ja,
+        created_at`,
+    )
     .eq('order_id', tokenData.order_id)
     .eq('uploaded_by_type', 'korea_designer')
     .order('revision_number', { ascending: false });

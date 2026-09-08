@@ -6,9 +6,9 @@
  * - Server Component用データフェッチ
  */
 
-import { createServiceClient } from '@/lib/supabase';
 import { redirect } from 'next/navigation';
-import { getRBACContext, hasPermission } from '@/lib/rbac/rbac-helpers';
+import { hasPermission } from '@/lib/rbac/rbac-helpers';
+import { getRequestProfile, getRequestRBACContext } from '@/lib/auth/request-context';
 import type { Permission } from '@/lib/rbac/rbac-helpers';
 import type { AdminAuthContext } from '@/types/admin';
 
@@ -30,7 +30,7 @@ export async function requireAdminAuth(
   requiredPermissions?: Permission[]
 ): Promise<AdminAuthContext> {
   // RBACコンテキスト取得
-  const context = await getRBACContext();
+  const context = await getRequestRBACContext();
 
   if (!context) {
     // 未認証 → ログインページへ
@@ -59,8 +59,19 @@ export async function requireAdminAuth(
     }
   }
 
-  // ユーザー名取得
-  const userName = await getUserName(context.userId);
+  // Reuse the request's verified profile instead of querying name fields again.
+  const profile = await getRequestProfile();
+
+  if (!profile) {
+    console.error(
+      '[RequestContext] Profile lookup failed: using admin fallback name'
+    );
+  }
+
+  const lastName = profile?.kanji_last_name || '';
+  const firstName = profile?.kanji_first_name || '';
+  const fullName = (lastName || firstName) ? `${lastName} ${firstName}`.trim() : '';
+  const userName = fullName || profile?.email || '管理者';
 
   return {
     userId: context.userId,
@@ -69,26 +80,6 @@ export async function requireAdminAuth(
     permissions: context.permissions,
     isDevMode: context.isDevMode,
   };
-}
-
-/**
- * ユーザー名取得
- */
-async function getUserName(userId: string): Promise<string> {
-  const supabase = createServiceClient();
-
-  const { data } = await supabase
-    .from('profiles')
-    .select('kanji_last_name, kanji_first_name, email')
-    .eq('id', userId)
-    .single();
-
-  // kanji_first_name は profiles 実カラム（name_kanji は存在しない派生値）
-  // 誤って name_kanji を select すると Supabase は列エラーを返すため実カラムのみ使用
-  const lastName = data?.kanji_last_name || '';
-  const firstName = data?.kanji_first_name || '';
-  const fullName = (lastName || firstName) ? `${lastName} ${firstName}`.trim() : '';
-  return fullName || data?.email || '管理者';
 }
 
 // =====================================================
@@ -118,4 +109,3 @@ export async function getAdminAuth(
     redirect(redirectPath);
   }
 }
-

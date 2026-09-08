@@ -47,7 +47,9 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
   const supabaseService = createServiceClient();
   let query = supabaseService
     .from('orders')
-    .select('*')
+    .select(
+      'id, order_number, customer_name, customer_email, status, total_amount, created_at',
+    )
     .order('created_at', { ascending: false });
 
   if (initialStatus !== 'all') {

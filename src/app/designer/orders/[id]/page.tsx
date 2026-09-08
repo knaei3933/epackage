@@ -51,16 +51,13 @@ interface DesignerOrderItem {
 
 interface DesignRevision {
   id: string;
-  order_id: string;
   order_item_id?: string | null;
   revision_number: number;
-  revision_name: string;
   approval_status: 'pending' | 'approved' | 'rejected';
   partner_comment: string | null;
   preview_image_url: string;
   original_file_url: string;
   created_at: string;
-  updated_at: string;
 }
 
 interface DesignerProfile {
@@ -196,7 +193,16 @@ async function fetchOrderDetail(orderId: string, isAdmin: boolean = false): Prom
   // リビジョンを取得
   const { data: revisions, error: revisionsError } = await supabase
     .from('design_revisions')
-    .select('*')
+    .select(
+      `id,
+        order_item_id,
+        revision_number,
+        approval_status,
+        partner_comment,
+        preview_image_url,
+        original_file_url,
+        created_at`,
+    )
     .eq('order_id', orderId)
     .order('created_at', { ascending: false });
 

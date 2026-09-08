@@ -10,7 +10,6 @@
 
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
-import { auth } from '@/lib/supabase';
 import { OrdersClient } from './OrdersClient';
 
 // Disable static generation for this page due to client-side interactivity
@@ -46,9 +45,6 @@ export default async function OrdersPage() {
     throw error;
   }
 
-  // Fetch user profile
-  const profile = await auth.getProfile(user.id);
-
   // Render the client component with user info
-  return <OrdersClient userId={user.id} userEmail={user.email} userProfile={profile} />;
+  return <OrdersClient userId={user.id} userEmail={user.email} userProfile={user.user_metadata} />;
 }

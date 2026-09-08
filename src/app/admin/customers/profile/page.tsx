@@ -30,7 +30,26 @@ async function getProfileData() {
   // Fetch user profile
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('*')
+    .select(
+      `id,
+        email,
+        kanji_last_name,
+        kanji_first_name,
+        kana_last_name,
+        kana_first_name,
+        business_type,
+        corporate_phone,
+        personal_phone,
+        company_name,
+        position,
+        department,
+        company_url,
+        postal_code,
+        prefecture,
+        city,
+        street,
+        building`,
+    )
     .eq('id', context.userId)
     .single() as { data: any; error: any };
 
@@ -43,7 +62,7 @@ async function getProfileData() {
   if (profile.company_name) {
     const { data: companyData } = await supabase
       .from('companies')
-      .select('*')
+      .select('corporate_number, industry')
       .eq('id', context.userId)
       .maybeSingle() as { data: any; error: any };
 

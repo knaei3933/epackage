@@ -32,11 +32,13 @@ module.exports = {
   ],
   // jest 非対象のテストを除外
   // - tests/e2e: Playwright E2E テスト（jest 環境では @playwright/test の import に失敗する）
+  // - tests/performance: パフォーマンステストは専用の Node 環境設定で実行する
   // - server:    server/ 配下は別プロジェクト（独立 package.json）
   // - scripts:   補助スクリプト（実行用ツール）
   testPathIgnorePatterns: [
     '/node_modules/',
     '/tests/e2e/',
+    '/tests/performance/',
     '/server/',
     '/scripts/',
     '/.next/',

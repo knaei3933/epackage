@@ -4,8 +4,6 @@
  * Generates PDFs with multiple quantity tiers.
  */
 
-import html2canvas from "html2canvas";
-import { jsPDF } from 'jspdf';
 import type { QuoteData, PdfGenerationOptions, PdfGenerationResult } from './types';
 import { JAPANESE_CONSTANTS } from './constants';
 import { formatJapaneseDate, formatWesternDate, formatYen, isSpoutPouchIncompatible, isZipperIncompatible, isCornerIncompatible } from './format-helpers';
@@ -14,6 +12,14 @@ import { POST_PROCESSING_JA } from '@/constants/enToJa';
 import { generateQuoteHTML } from './quote-html';
 import { generateProductTypeSection } from './product-type-section';
 import { sanitizePdfHtml } from './sanitize';
+
+async function loadHtml2Canvas(): Promise<typeof import('html2canvas')['default']> {
+  return (await import('html2canvas')).default;
+}
+
+async function loadJsPDF(): Promise<typeof import('jspdf')['jsPDF']> {
+  return (await import('jspdf')).jsPDF;
+}
 
 // ============================================================
 // Type Definitions
@@ -573,6 +579,9 @@ export async function generateMultiQuantityPDF(
   bodyElement.style.transform = 'translateZ(0)';
 
   try {
+    const html2canvas = await loadHtml2Canvas();
+    const JsPDF = await loadJsPDF();
+
     // Wait for browser to apply freeze styles
     await new Promise(resolve => requestAnimationFrame(resolve));
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -659,7 +668,7 @@ export async function generateMultiQuantityPDF(
     const contentWidth = a4Width - marginLeft - marginRight; // 180mm
     const contentHeight = a4Height - marginTop - marginBottom; // 277mm
 
-    const doc = new jsPDF({
+    const doc = new JsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
@@ -730,4 +739,3 @@ export async function generateMultiQuantityPDF(
     window.scrollTo(scrollX, scrollY);
   }
 }
-

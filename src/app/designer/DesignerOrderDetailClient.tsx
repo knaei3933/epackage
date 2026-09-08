@@ -60,16 +60,13 @@ interface DesignerOrder {
 
 interface DesignRevision {
   id: string;
-  order_id: string;
   order_item_id?: string | null;
   revision_number: number;
-  revision_name: string;
   approval_status: 'pending' | 'approved' | 'rejected';
   partner_comment: string | null;
   preview_image_url: string;
   original_file_url: string;
   created_at: string;
-  updated_at: string;
 }
 
 interface DesignerOrderDetailClientProps {

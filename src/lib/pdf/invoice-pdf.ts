@@ -2,13 +2,19 @@
  * Invoice PDF Generator
  */
 
-import html2canvas from "html2canvas";
-import { jsPDF } from 'jspdf';
 import type { InvoiceData, PdfGenerationOptions, PdfGenerationResult } from './types';
 import { JAPANESE_CONSTANTS } from './constants';
 import { formatJapaneseDate, formatYen, calculateTotals } from './format-helpers';
 import { sanitizePdfHtml } from './sanitize';
 import { validatePdfData } from './validation';
+
+async function loadHtml2Canvas(): Promise<typeof import('html2canvas')['default']> {
+  return (await import('html2canvas')).default;
+}
+
+async function loadJsPDF(): Promise<typeof import('jspdf')['jsPDF']> {
+  return (await import('jspdf')).jsPDF;
+}
 
 /**
  * Generate Invoice PDF (Japanese format)
@@ -60,6 +66,9 @@ export async function generateInvoicePDF(
     document.body.appendChild(element);
 
     try {
+      const html2canvas = await loadHtml2Canvas();
+      const JsPDF = await loadJsPDF();
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -72,7 +81,7 @@ export async function generateInvoicePDF(
       const imgData = canvas.toDataURL('image/png');
 
       // Create PDF
-      const pdf = new jsPDF({
+      const pdf = new JsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
@@ -505,4 +514,3 @@ function generateInvoiceHTML(
 </html>
   `.trim();
 }
-

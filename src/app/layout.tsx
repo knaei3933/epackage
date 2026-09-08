@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Noto_Sans_JP } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -15,41 +13,12 @@ import { BreadcrumbNav } from "@/components/seo/BreadcrumbNav";
 import { OrganizationSchema, LocalBusinessSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
-import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
-import { InactivityWarningModal } from "@/components/auth/InactivityWarningModal";
 import { WebVitals } from "@/components/analytics/WebVitals";
-import { CookieConsentBanner } from "@/components/analytics/CookieConsentBanner";
+import { CookieConsentBannerWrapper } from "@/components/analytics/CookieConsentBannerWrapper";
 import { GA4_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/analytics/dataLayer";
 import { SWRConfig } from "swr";
 import { SITE_URL } from "@/lib/seo/canonical";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-  adjustFontFallback: true,
-  fallback: ["system-ui", "arial"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-  fallback: ["monospace"],
-});
-
-const notoSansJP = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
-  subsets: ["latin"],
-  weight: ["400", "500", "700", "900"],
-  display: "swap",
-  preload: true,
-  adjustFontFallback: true,
-  fallback: ["Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", "sans-serif"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -186,7 +155,7 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased font-sans`}
+        className="antialiased font-sans"
         suppressHydrationWarning
       >
         <ThemeProvider
@@ -196,8 +165,6 @@ export default function RootLayout({
         >
           {/* WebVitals 計測（CWV改善: next/web-vitals useReportWebVitals → dataLayer push） */}
           <WebVitals />
-          {/* CustomCursor only for interactive pages */}
-          {/* <CustomCursor /> */}
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center">読み込み中...</div>}>
             <AuthProvider>
               <CatalogProvider>
@@ -211,9 +178,7 @@ export default function RootLayout({
                   <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
                   <Footer />
                   <ChatWidget />
-                  <CookieConsentBanner />
-                  {/* InactivityWarningModal only for logged-in users */}
-                  {/* <InactivityWarningModal /> */}
+                  <CookieConsentBannerWrapper />
                 </LanguageProvider>
               </CatalogProvider>
             </AuthProvider>

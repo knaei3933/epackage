@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "signInPath": "/auth/signin",
+  "routes": [
+    {
+      "id": "member-dashboard",
+      "url": "/member/dashboard",
+      "accountType": "member",
+      "role": "member",
+      "meaningfulContentSelectors": [
+        "h1:has-text(\"ようこそ\")",
+        "h2:has-text(\"クイックアクション\")"
+      ],
+      "selectorAssertion": "allVisible",
+      "navigationTimeoutMs": 60000
+    },
+    {
+      "id": "member-orders",
+      "url": "/member/orders",
+      "accountType": "member",
+      "role": "member",
+      "meaningfulContentSelectors": [
+        "[data-testid=\"member-orders-list\"]",
+        "[data-testid=\"new-quotation-button\"]"
+      ],
+      "selectorAssertion": "allVisible",
+      "navigationTimeoutMs": 60000
+    },
+    {
+      "id": "member-quotations",
+      "url": "/member/quotations",
+      "accountType": "member",
+      "role": "member",
+      "meaningfulContentSelectors": [
+        "h1:has-text(\"見積一覧\")",
+        "p:has-text(\"ようこそ\")"
+      ],
+      "selectorAssertion": "allVisible",
+      "navigationTimeoutMs": 60000
+    },
+    {
+      "id": "admin-dashboard",
+      "url": "/admin/dashboard",
+      "accountType": "admin",
+      "role": "admin",
+      "meaningfulContentSelectors": [
+        "h1:has-text(\"管理ダッシュボード\")",
+        "h2:has-text(\"ステータス別 KPI\")"
+      ],
+      "selectorAssertion": "allVisible",
+      "navigationTimeoutMs": 60000
+    },
+    {
+      "id": "admin-orders",
+      "url": "/admin/orders",
+      "accountType": "admin",
+      "role": "admin",
+      "meaningfulContentSelectors": [
+        "h1:has-text(\"注文管理\")",
+        "[data-testid=\"admin-orders-list\"]"
+      ],
+      "selectorAssertion": "allVisible",
+      "navigationTimeoutMs": 60000
+    },
+    {
+      "id": "admin-quotations",
+      "url": "/admin/quotations",
+      "accountType": "admin",
+      "role": "admin",
+      "meaningfulContentSelectors": [
+        "h1:has-text(\"見積もり管理\")",
+        "p:has-text(\"ようこそ\")"
+      ],
+      "selectorAssertion": "allVisible",
+      "navigationTimeoutMs": 60000
+    }
+  ]
+}

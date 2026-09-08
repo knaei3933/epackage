@@ -4,8 +4,6 @@
  * Generates single-quantity quote PDFs.
  */
 
-import html2canvas from "html2canvas";
-import { jsPDF } from 'jspdf';
 import type { QuoteData, PdfGenerationOptions, PdfGenerationResult } from './types';
 import { JAPANESE_CONSTANTS } from './constants';
 import { formatJapaneseDate, formatYen, calculateTotals } from './format-helpers';
@@ -13,6 +11,14 @@ import { sanitizePdfHtml } from './sanitize';
 import { validatePdfData } from './validation';
 import { generateQuoteHTML } from './quote-html';
 import { generateProductTypeSection } from './product-type-section';
+
+async function loadHtml2Canvas(): Promise<typeof import('html2canvas')['default']> {
+  return (await import('html2canvas')).default;
+}
+
+async function loadJsPDF(): Promise<typeof import('jspdf')['jsPDF']> {
+  return (await import('jspdf')).jsPDF;
+}
 
 /**
  * Generate Quote PDF (Excel Template Format with CJK support)
@@ -102,6 +108,9 @@ export async function generateQuotePDF(
     bodyElement.style.transform = 'translateZ(0)'; // Force GPU compositing
 
     try {
+      const html2canvas = await loadHtml2Canvas();
+      const JsPDF = await loadJsPDF();
+
       // Wait for browser to apply freeze styles
       await new Promise(resolve => requestAnimationFrame(resolve));
       // Double wait to ensure browser is completely stable
@@ -218,7 +227,7 @@ export async function generateQuotePDF(
       const contentWidth = a4Width - marginLeft - marginRight; // 180mm
       const contentHeight = a4Height - marginTop - marginBottom; // 277mm
 
-      const doc = new jsPDF({
+      const doc = new JsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
@@ -327,4 +336,3 @@ export async function generateQuotePDF(
     };
   }
 }
-

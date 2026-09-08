@@ -27,7 +27,10 @@ async function getBlogPosts(): Promise<{ posts: BlogPostListItem[]; total: numbe
 
   const { data: posts, count } = await supabase
     .from('blog_posts')
-    .select('*', { count: 'exact' })
+    .select(
+      'id, title, slug, excerpt, category, status, author_id, published_at, created_at, view_count',
+      { count: 'exact' },
+    )
     .order('created_at', { ascending: false })
     .range(0, 19);
 

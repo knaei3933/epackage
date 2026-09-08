@@ -30,10 +30,14 @@
     "test:multi-quantity": "jest --testPathPattern='multi-quantity'",
     "test:accessibility": "jest --testPathPattern='accessibility'",
     "test:api": "jest --testPathPattern='api'",
-    "test:all": "npm run lint && npm run test:unit && npm run test:e2e && npm run test:performance",
+    "test:all": "npm run lint && npm run test:unit && npm run test:performance:harness && npm run test:e2e && npm run test:performance",
+    "test:performance:harness": "jest -c tests/performance/jest.config.js --runInBand",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "sync:blog": "ts-node scripts/sync-blog.ts",
-    "sync:blog:verbose": "ts-node scripts/sync-blog.ts --verbose"
+    "sync:blog:verbose": "ts-node scripts/sync-blog.ts --verbose",
+    "perf:self-check": "ts-node --transpile-only scripts/performance/self-check.ts",
+    "perf:preflight": "ts-node --transpile-only scripts/performance/preflight.ts",
+    "perf:validate": "ts-node --transpile-only scripts/performance/validate-report.ts .omx/reports/perf-protocol-lock-homepage-speed.template.json"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.54",

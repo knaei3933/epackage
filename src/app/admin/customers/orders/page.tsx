@@ -25,7 +25,9 @@ async function getOrders(searchParams: { status?: string; search?: string }) {
 
   let query = supabase
     .from('orders')
-    .select('*')
+    .select(
+      'id, order_number, customer_name, status, total_amount, created_at',
+    )
     .order('created_at', { ascending: false });
 
   // Apply status filter if specified

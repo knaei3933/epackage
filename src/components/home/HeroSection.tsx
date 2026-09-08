@@ -30,21 +30,18 @@ export function HeroSection() {
       <div className="absolute inset-0">
         {/* Professional manufacturing facility background - WebP optimized */}
         <div className="absolute inset-0 relative h-full w-full">
-          <picture>
-            <source srcSet="/images/main/main15.webp" type="image/webp" />
-            <Image
-              src="/images/main/main15.png"
-              alt="オリジナ包装材専用 - 高品質なスタンドパウチ製造"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
-              className="object-cover opacity-60"
-              priority
-              fetchPriority="high"
-              quality={80}
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-            />
-          </picture>
+          <Image
+            src="/images/main/main15.png"
+            alt="オリジナ包装材専用 - 高品質なスタンドパウチ製造"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+            className="object-cover opacity-60"
+            priority
+            fetchPriority="high"
+            quality={80}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          />
         </div>
 
         {/* Single optimized gradient overlay for LCP performance */}

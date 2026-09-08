@@ -120,8 +120,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Increment view count (non-blocking)
   incrementViewCount(post.id).catch(console.error);
 
-  // Parse markdown content
-  const { html, headings, wordCount, readingTime } = await parseMarkdown(post.content);
+  // Markdown parsing and related-post lookup depend only on the fetched post.
+  // Keep the view-count RPC fire-and-catch so its errors cannot suppress content.
+  const [{ html, headings, wordCount, readingTime }, relatedPosts] = await Promise.all([
+    parseMarkdown(post.content),
+    getRelatedPosts(post.id, post.category, 10),
+  ]);
 
   // Insert CTA placeholders into HTML
   const htmlWithCTAs = insertCTAPlaceholders(html, {
@@ -131,9 +135,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   // Split content by CTA placeholders
   const { beforeMid, afterMid, hasMidCTA } = splitContentByCTA(htmlWithCTAs);
-
-  // Get related posts (use more posts to find matches)
-  const relatedPosts = await getRelatedPosts(post.id, post.category, 10);
 
   // Generate structured data
   const blogPostingSchema = seoUtils.generateBlogPostingSchema({

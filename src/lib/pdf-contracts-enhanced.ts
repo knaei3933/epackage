@@ -8,7 +8,6 @@
  * - 消費税計算対応
  */
 
-import { jsPDF } from 'jspdf';
 import type { ContractData } from '@/types/contract';
 
 /**
@@ -20,6 +19,8 @@ import type { ContractData } from '@/types/contract';
 export async function generateEnhancedContractPDF(
   data: ContractData
 ): Promise<Uint8Array> {
+  const { jsPDF } = await import('jspdf');
+
   // Create PDF with A4 portrait
   const doc = new jsPDF({
     orientation: 'portrait',

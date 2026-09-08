@@ -4,8 +4,6 @@
  * 契約書PDF生成器
  */
 
-import { jsPDF } from 'jspdf';
-
 /**
  * Contract data structure for PDF generation
  */
@@ -52,6 +50,8 @@ export interface ContractPDFData {
 export async function generateContractPDF(
   data: ContractPDFData
 ): Promise<Uint8Array> {
+  const { jsPDF } = await import('jspdf');
+
   // Create PDF
   const doc = new jsPDF({
     orientation: 'portrait',
