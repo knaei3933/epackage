@@ -605,9 +605,11 @@ export function OrdersClient(props: OrdersClientProps) {
       <Suspense fallback={<OrdersHeader />}>
         <OrdersHeader />
       </Suspense>
-      <Suspense fallback={<OrdersListSkeleton />}>
-        <OrdersClientContent {...props} />
-      </Suspense>
+      <section aria-label="注文一覧" data-testid="member-orders-list">
+        <Suspense fallback={<OrdersListSkeleton />}>
+          <OrdersClientContent {...props} />
+        </Suspense>
+      </section>
     </div>
   );
 }

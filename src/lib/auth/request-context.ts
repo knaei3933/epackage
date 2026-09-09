@@ -9,52 +9,17 @@
 import { cache } from 'react';
 import { createServiceClient, type Database } from '@/lib/supabase';
 import { getRBACContext, type RBACContext } from '@/lib/rbac/rbac-helpers';
+import {
+  isTrustedProfileIdentity,
+  parseTrustedProfileHeader,
+  PROFILE_COLUMNS,
+  PROFILE_FIELD_BINDINGS,
+  TRUSTED_PROFILE_HEADER,
+  type TrustedProfilePayload,
+} from '@/lib/auth/profile-header';
 
-/**
- * One source for both the Supabase projection and the legacy
- * `user_metadata` mapping. Repeating a profile column is intentional when
- * one source field has multiple compatibility names.
- */
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
-
-function defineProfileBindings<
-  const Bindings extends ReadonlyArray<readonly [keyof ProfileRow, string | null]>,
->(bindings: Bindings): Bindings {
-  return bindings;
-}
-
-const PROFILE_FIELD_BINDINGS = defineProfileBindings([
-  ['id', null],
-  ['email', null],
-  ['role', 'role'],
-  ['status', 'status'],
-  ['kanji_last_name', 'kanji_last_name'],
-  ['kanji_last_name', 'name_kanji'],
-  ['kanji_first_name', 'kanji_first_name'],
-  ['kana_last_name', 'kana_last_name'],
-  ['kana_last_name', 'name_kana'],
-  ['kana_first_name', 'kana_first_name'],
-  ['corporate_phone', 'corporate_phone'],
-  ['personal_phone', 'personal_phone'],
-  ['fax', 'fax'],
-  ['company_name', 'company_name'],
-  ['position', 'position'],
-  ['department', 'department'],
-  ['company_url', 'company_url'],
-  ['postal_code', 'postal_code'],
-  ['prefecture', 'prefecture'],
-  ['city', 'city'],
-  ['street', 'street'],
-  ['product_category', 'product_category'],
-  ['business_type', 'business_type'],
-  ['created_at', 'created_at'],
-  ['last_login_at', 'last_login_at'],
-]);
-
-type ProfileColumn = (typeof PROFILE_FIELD_BINDINGS)[number][0];
-const PROFILE_COLUMNS = [
-  ...new Set(PROFILE_FIELD_BINDINGS.map(([column]) => column)),
-].join(',');
+type ProfileColumn = keyof TrustedProfilePayload;
 
 export type RequestProfile = Pick<ProfileRow, ProfileColumn>;
 
@@ -97,6 +62,28 @@ const cachedProfile = cache(async (): Promise<RequestProfile | null> => {
   const context = await cachedRBACContext();
   if (!context) {
     return null;
+  }
+
+  const { headers } = await import('next/headers');
+  const encodedProfile = (await headers()).get(TRUSTED_PROFILE_HEADER);
+
+  if (encodedProfile !== null) {
+    const result = parseTrustedProfileHeader(encodedProfile);
+
+    if (!result.ok) {
+      console.error('[RequestContext] Invalid trusted profile header:', result.reason);
+      return null;
+    }
+
+    if (!isTrustedProfileIdentity(result.profile, context)) {
+      console.error(
+        '[RequestContext] Invalid trusted profile header:',
+        'identity does not match verified RBAC context',
+      );
+      return null;
+    }
+
+    return result.profile;
   }
 
   const serviceClient = createServiceClient();

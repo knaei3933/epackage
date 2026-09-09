@@ -2,6 +2,8 @@
  * Middleware Auth Utilities
  */
 
+import { PROFILE_COLUMNS } from '@/lib/auth/profile-header';
+
 // Helper: Check User Status from Profile
 // =====================================================
 
@@ -28,7 +30,7 @@ export async function checkDesignerEmailList(supabase: any, email: string): Prom
 export async function getUserProfile(supabase: any, userId: string) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('role, status')
+    .select(PROFILE_COLUMNS)
     .eq('id', userId)
     .single();
 
@@ -38,4 +40,3 @@ export async function getUserProfile(supabase: any, userId: string) {
 
   return data;
 }
-

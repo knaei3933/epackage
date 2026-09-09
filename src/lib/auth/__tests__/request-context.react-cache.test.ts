@@ -20,6 +20,7 @@ jest.mock('react', () => jest.requireActual(mockReactServerEntry));
 
 const mockGetRBACContext = jest.fn();
 const mockFrom = jest.fn();
+const mockHeaderGet = jest.fn(() => null);
 
 jest.mock('@/lib/rbac/rbac-helpers', () => ({
   getRBACContext: mockGetRBACContext,
@@ -32,6 +33,10 @@ jest.mock('@/lib/rbac/rbac-helpers', () => ({
 
 jest.mock('@/lib/supabase', () => ({
   createServiceClient: jest.fn(() => ({ from: mockFrom })),
+}));
+
+jest.mock('next/headers', () => ({
+  headers: jest.fn(async () => ({ get: mockHeaderGet })),
 }));
 
 type ProfileResult = { data: unknown; error: { message: string } | null };

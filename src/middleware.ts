@@ -22,9 +22,79 @@ import {
 } from './lib/middleware/config';
 import { createMiddlewareClient } from './lib/middleware/client';
 import { getUserProfile, checkDesignerEmailList } from './lib/middleware/auth-utils';
+import {
+  encodeTrustedProfileHeader,
+  TRUSTED_PROFILE_HEADER,
+} from './lib/auth/profile-header';
 import { validateCSRFRequest, isValidOrigin, isCSRFProtectedPath } from './lib/middleware/csrf';
 import { addSecurityHeaders } from './lib/middleware/security-headers';
 
+
+type VerifiedProfile = NonNullable<Awaited<ReturnType<typeof getUserProfile>>>;
+
+function setTrustedAuthHeaders(
+  headers: Headers,
+  userId: string,
+  profile: VerifiedProfile,
+) {
+  headers.set('x-user-id', userId);
+  headers.set('x-user-role', profile.role);
+  headers.set('x-user-status', profile.status);
+
+  const encodedProfile = encodeTrustedProfileHeader(profile);
+  if (encodedProfile) {
+    headers.set(TRUSTED_PROFILE_HEADER, encodedProfile);
+  }
+}
+
+function createRequestOnlyContinuation(
+  requestHeaders: Headers,
+): NextResponse {
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  // Verified profile-bearing requests can contain member-specific data. Make
+  // the browser response explicitly uncacheable while forwarding identity to
+  // the server-side request.
+  response.headers.set('Cache-Control', 'private, no-store');
+  return response;
+}
+
+function createAuthenticatedContinuation(
+  request: NextRequest,
+  userId: string,
+  profile: VerifiedProfile,
+  cookieResponse?: NextResponse,
+): NextResponse {
+  const requestHeaders = new Headers(request.headers);
+  setTrustedAuthHeaders(requestHeaders, userId, profile);
+
+  const response = createRequestOnlyContinuation(requestHeaders);
+
+  // Supabase may rotate auth cookies while validating the session. Those
+  // updates belong on the browser response; identity headers do not.
+  if (cookieResponse) {
+    for (const cookie of cookieResponse.cookies.getAll()) {
+      response.cookies.set(cookie);
+    }
+  }
+
+  return response;
+}
+
+function createDevModeContinuation(
+  request: NextRequest,
+  userId: string,
+  role: 'MEMBER' | 'ADMIN',
+): NextResponse {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-user-id', userId);
+  requestHeaders.set('x-user-role', role);
+  requestHeaders.set('x-user-status', 'ACTIVE');
+
+  const response = createRequestOnlyContinuation(requestHeaders);
+  response.headers.set('x-dev-mode', 'true');
+  return response;
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -41,7 +111,13 @@ export async function middleware(request: NextRequest) {
   // getUser() + DB profile lookup. Any inbound value is untrusted (attacker-
   // injectable) and MUST be removed before we decide what (if anything) to set.
   // This is the single defense against header-spoofing privilege escalation.
-  const USER_HEADERS = ['x-user-id', 'x-user-role', 'x-user-status', 'x-dev-mode'];
+  const USER_HEADERS = [
+    'x-user-id',
+    'x-user-role',
+    'x-user-status',
+    TRUSTED_PROFILE_HEADER,
+    'x-dev-mode',
+  ];
   const inboundUserHeaders: Record<string, string | null> = {};
   let hadInboundUserHeaders = false;
   for (const h of USER_HEADERS) {
@@ -123,12 +199,9 @@ export async function middleware(request: NextRequest) {
     if (isDevMode) {
       const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
       if (devMockUserId) {
-        const response = NextResponse.next();
-        response.headers.set('x-user-id', devMockUserId);
-        response.headers.set('x-user-role', 'MEMBER');
-        response.headers.set('x-user-status', 'ACTIVE');
-        response.headers.set('x-dev-mode', 'true');
-        return addSecurityHeaders(response);
+        return addSecurityHeaders(
+          createDevModeContinuation(request, devMockUserId, 'MEMBER'),
+        );
       }
     }
 
@@ -143,13 +216,13 @@ export async function middleware(request: NextRequest) {
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (user && !error) {
-        const profile = await getUserProfile(supabase, user.id);
-        // Only set headers when we have a verified ACTIVE profile.
-        // Missing/inactive profile => no headers => downstream returns 401.
-        if (profile) {
-          authResponse.headers.set('x-user-id', user.id);
-          authResponse.headers.set('x-user-role', profile.role);
-          authResponse.headers.set('x-user-status', profile.status);
+      const profile = await getUserProfile(supabase, user.id);
+      // Only set headers when we have a verified ACTIVE profile.
+      // Missing/inactive profile => no headers => downstream returns 401.
+      if (profile) {
+        return addSecurityHeaders(
+          createAuthenticatedContinuation(request, user.id, profile, authResponse),
+        );
         }
       }
       return addSecurityHeaders(authResponse);
@@ -292,20 +365,15 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Processing /api/admin route:', pathname);
     }
 
-    const response = NextResponse.next();
-
     // DEV_MODE: Check for mock user cookie first
     if (isDevMode) {
       const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
 
       if (devMockUserId) {
         console.log('[Middleware] DEV_MODE: Setting headers for /api/admin:', devMockUserId);
-        response.headers.set('x-dev-mode', 'true');
-        response.headers.set('x-user-id', devMockUserId);
-        response.headers.set('x-user-role', 'ADMIN');
-        response.headers.set('x-user-status', 'ACTIVE');
-
-        return addSecurityHeaders(response);
+        return addSecurityHeaders(
+          createDevModeContinuation(request, devMockUserId, 'ADMIN'),
+        );
       }
     }
 
@@ -320,13 +388,9 @@ export async function middleware(request: NextRequest) {
       // Only add headers for ACTIVE admin users
       // SECURITY (S2.0): require explicit ACTIVE status; no 'ACTIVE' fallback.
       if (profile?.role === 'ADMIN' && profile.status === 'ACTIVE') {
-        authResponse.headers.set('x-user-id', user.id);
-        authResponse.headers.set('x-user-role', profile.role);
-        authResponse.headers.set('x-user-status', profile.status);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Middleware] Added auth headers for /api/admin:', user.id, profile.role, profile.status);
-        }
+        return addSecurityHeaders(
+          createAuthenticatedContinuation(request, user.id, profile, authResponse),
+        );
       } else {
         if (process.env.NODE_ENV === 'development') {
           console.log('[Middleware] User is not admin, not adding headers for /api/admin');
@@ -363,8 +427,6 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Processing /api/designer route:', pathname);
     }
 
-    const response = NextResponse.next();
-
     // Normal auth: extract user info and add to headers
     const { supabase, response: authResponse } = createMiddlewareClient(request);
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -375,13 +437,9 @@ export async function middleware(request: NextRequest) {
       // Only add headers for ACTIVE designer users
       // SECURITY (S2.0): require explicit ACTIVE status; no 'ACTIVE' fallback.
       if (profile?.role === 'KOREA_DESIGNER' && profile.status === 'ACTIVE') {
-        authResponse.headers.set('x-user-id', user.id);
-        authResponse.headers.set('x-user-role', profile.role);
-        authResponse.headers.set('x-user-status', profile.status);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Middleware] Added auth headers for /api/designer:', user.id, profile.role, profile.status);
-        }
+        return addSecurityHeaders(
+          createAuthenticatedContinuation(request, user.id, profile, authResponse),
+        );
       } else {
         // Not a designer - return 403
         return addSecurityHeaders(
@@ -404,20 +462,15 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Processing /admin page route:', pathname);
     }
 
-    const response = NextResponse.next();
-
     // DEV_MODE: Check for mock user cookie first
     if (isDevMode) {
       const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
 
       if (devMockUserId) {
         console.log('[Middleware] DEV_MODE: Setting headers for /admin page:', devMockUserId);
-        response.headers.set('x-dev-mode', 'true');
-        response.headers.set('x-user-id', devMockUserId);
-        response.headers.set('x-user-role', 'ADMIN');
-        response.headers.set('x-user-status', 'ACTIVE');
-
-        return addSecurityHeaders(response);
+        return addSecurityHeaders(
+          createDevModeContinuation(request, devMockUserId, 'ADMIN'),
+        );
       }
       // DEV_MODE but no mock cookie - DO NOT allow access without authentication
       // SECURITY FIX: Remove lenient dev mode access - proceed to normal auth check
@@ -448,20 +501,15 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    const response = NextResponse.next();
-
     // DEV_MODE: Check for mock user cookie first
     if (isDevMode) {
       const devMockUserId = request.cookies.get('dev-mock-user-id')?.value;
 
       if (devMockUserId) {
         console.log('[Middleware] DEV_MODE: Setting headers for /api/member:', devMockUserId);
-        response.headers.set('x-dev-mode', 'true');
-        response.headers.set('x-user-id', devMockUserId);
-        response.headers.set('x-user-role', 'MEMBER');
-        response.headers.set('x-user-status', 'ACTIVE');
-
-        return addSecurityHeaders(response);
+        return addSecurityHeaders(
+          createDevModeContinuation(request, devMockUserId, 'MEMBER'),
+        );
       }
     }
 
@@ -475,13 +523,9 @@ export async function middleware(request: NextRequest) {
       // which let a user with no/empty profile reach member APIs as ACTIVE.
       const profile = await getUserProfile(supabase, user.id);
       if (profile) {
-        authResponse.headers.set('x-user-id', user.id);
-        authResponse.headers.set('x-user-role', profile.role);
-        authResponse.headers.set('x-user-status', profile.status);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Middleware] Added auth headers for /api/member:', user.id, profile.role, profile.status);
-        }
+        return addSecurityHeaders(
+          createAuthenticatedContinuation(request, user.id, profile, authResponse),
+        );
       } else {
         if (process.env.NODE_ENV === 'development') {
           console.log('[Middleware] No profile for /api/member - no headers set, API will 401');
@@ -511,13 +555,9 @@ export async function middleware(request: NextRequest) {
       console.log('[DEV_MODE] Mock authentication bypass for user:', devMockUserId);
 
       // Add mock user info to headers for server components
-      const response = NextResponse.next();
-      response.headers.set('x-user-id', devMockUserId);
-      response.headers.set('x-user-role', 'MEMBER'); // Default role for DEV_MODE
-      response.headers.set('x-user-status', 'ACTIVE');
-      response.headers.set('x-dev-mode', 'true');
-
-      return addSecurityHeaders(response);
+      return addSecurityHeaders(
+        createDevModeContinuation(request, devMockUserId, 'MEMBER'),
+      );
     }
 
     // DEV_MODE but no mock cookie - DO NOT allow access without authentication
@@ -725,16 +765,20 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    // Designer is authenticated and active - allow access
-    authResponse.headers.set('x-user-id', user.id);
-    authResponse.headers.set('x-user-role', profile.role);
-    authResponse.headers.set('x-user-status', profile.status);
+    // Designer is authenticated and active - forward verified identity to the
+    // server request, never on the browser-facing response.
+    const authenticatedResponse = createAuthenticatedContinuation(
+      request,
+      user.id,
+      profile,
+      authResponse,
+    );
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] Designer authenticated and active, allowing access');
     }
 
-    return addSecurityHeaders(authResponse);
+    return addSecurityHeaders(authenticatedResponse);
   }
 
   // Member routes - require ACTIVE status
@@ -749,24 +793,31 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Add user info to headers for server components
-  // ✅ authResponseを使用してクッキー設定を保持
-  authResponse.headers.set('x-user-id', user.id);
-  authResponse.headers.set('x-user-role', profile.role);
-  authResponse.headers.set('x-user-status', profile.status);
+  // Forward verified identity to server components on the request. The
+  // browser response receives only refreshed Supabase auth cookies.
+  const authenticatedResponse = createAuthenticatedContinuation(
+    request,
+    user.id,
+    profile,
+    authResponse,
+  );
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('[Middleware] Setting auth headers for server components:', {
+    console.log('[Middleware] Forwarding verified auth headers to server request:', {
       'x-user-id': user.id,
       'x-user-role': profile.role,
       'x-user-status': profile.status,
+      hasTrustedProfile: authenticatedResponse.headers.has(
+        `x-middleware-request-${TRUSTED_PROFILE_HEADER}`,
+      ),
     });
   }
 
-  const finalResponse = addSecurityHeaders(authResponse, pathname);
+  const finalResponse = addSecurityHeaders(authenticatedResponse, pathname);
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('[Middleware] Final response headers (auth):', {
+    console.log('[Middleware] Final browser response headers (auth):', {
+      hasTrustedProfile: finalResponse.headers.has(TRUSTED_PROFILE_HEADER),
       hasUserId: finalResponse.headers.has('x-user-id'),
       hasUserRole: finalResponse.headers.has('x-user-role'),
       hasUserStatus: finalResponse.headers.has('x-user-status'),

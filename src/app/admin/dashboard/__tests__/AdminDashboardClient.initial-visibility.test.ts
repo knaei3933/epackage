@@ -29,4 +29,24 @@ describe('AdminDashboardClient initial visibility', () => {
     expect(componentSource.slice(h1Start, h1End)).not.toContain('initial=');
     expect(componentSource.slice(h2Start, h2End)).not.toContain('initial=');
   });
+
+  it('renders h1 and status KPI h2 before the data-dependent orderStats block', () => {
+    const headerStart = componentSource.indexOf('export default function AdminDashboardClient');
+    const dataBoundary = componentSource.indexOf(
+      '<Suspense fallback={<AdminStatsSkeleton />}>',
+      headerStart,
+    );
+    const h1 = componentSource.indexOf('<h1', headerStart);
+    const h2 = componentSource.indexOf('<h2', headerStart);
+    const shellBeforeData = componentSource.slice(headerStart, dataBoundary);
+
+    expect(headerStart).toBeGreaterThan(-1);
+    expect(dataBoundary).toBeGreaterThan(headerStart);
+    expect(h1).toBeGreaterThan(headerStart);
+    expect(h2).toBeGreaterThan(h1);
+    expect(h2).toBeLessThan(dataBoundary);
+    expect(shellBeforeData).toContain('管理ダッシュボード');
+    expect(shellBeforeData).toContain('ステータス別 KPI');
+    expect(shellBeforeData).not.toContain('{orderStats && (');
+  });
 });

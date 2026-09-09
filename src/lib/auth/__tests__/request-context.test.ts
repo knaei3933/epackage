@@ -3,6 +3,12 @@
  */
 
 import type { RBACContext } from '@/lib/rbac/rbac-helpers';
+import {
+  encodeTrustedProfileHeader,
+  PROFILE_COLUMNS,
+  TRUSTED_PROFILE_HEADER,
+  type TrustedProfilePayload,
+} from '@/lib/auth/profile-header';
 
 const mockGetRBACContext = jest.fn();
 const mockGetProfile = jest.fn();
@@ -10,6 +16,7 @@ const mockFrom = jest.fn();
 const mockRedirect = jest.fn((destination: string) => {
   throw new Error(`REDIRECT:${destination}`);
 });
+const mockHeaderGet = jest.fn();
 const requestCacheState = (() => {
   const key = Symbol.for('epac.request-context.test');
   if (!(globalThis as any)[key]) {
@@ -86,6 +93,10 @@ jest.mock('@/lib/supabase', () => ({
 
 jest.mock('next/navigation', () => ({
   redirect: mockRedirect,
+}));
+
+jest.mock('next/headers', () => ({
+  headers: jest.fn(async () => ({ get: mockHeaderGet })),
 }));
 
 jest.mock('@/app/member/orders/OrdersClient', () => ({
@@ -172,6 +183,7 @@ describe('request-scoped verified auth context', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHeaderGet.mockReturnValue(null);
     profileResult = {
       data: {
         id: 'user-a',
@@ -220,9 +232,7 @@ describe('request-scoped verified auth context', () => {
     expect(mockFrom).toHaveBeenCalledWith('profiles');
     const query = mockFrom.mock.results[0].value;
     expect(query.select).toHaveBeenCalledTimes(1);
-    expect(query.select).toHaveBeenCalledWith(
-      'id,email,role,status,kanji_last_name,kanji_first_name,kana_last_name,kana_first_name,corporate_phone,personal_phone,fax,company_name,position,department,company_url,postal_code,prefecture,city,street,product_category,business_type,created_at,last_login_at'
-    );
+    expect(query.select).toHaveBeenCalledWith(PROFILE_COLUMNS);
     expect(query.select).not.toHaveBeenCalledWith('*');
     expect(query.eq).toHaveBeenCalledWith('id', 'user-a');
     expect(mockGetProfile).not.toHaveBeenCalled();
@@ -515,12 +525,15 @@ describe('request-scoped verified auth context', () => {
         kanji_last_name: '山田',
         company_name: 'A株式会社',
       },
-      initialOrders: [{
-        id: 'order-a',
-        progress_percentage: 80,
-        items: [],
-      }],
+      initialOrdersPromise: expect.any(Promise),
     });
+    await expect(
+      (element as any).props.initialOrdersPromise,
+    ).resolves.toMatchObject([{
+      id: 'order-a',
+      progress_percentage: 80,
+      items: [],
+    }]);
   });
 
   it('uses the verified RBAC role to keep privileged /member/orders reads unscoped', async () => {
@@ -563,5 +576,99 @@ describe('request-scoped verified auth context', () => {
       '/auth/signin?redirect=/member/orders'
     );
     expect(mockFrom).not.toHaveBeenCalled();
+  });
+});
+
+describe('middleware profile header request context', () => {
+  let requestContext: typeof import('../request-context');
+
+  const trustedProfile = {
+    id: 'user-a',
+    email: 'a@example.com',
+    role: 'MEMBER',
+    status: 'ACTIVE',
+    kanji_last_name: '山田',
+    kanji_first_name: '太郎',
+    company_name: 'A株式会社',
+  } as TrustedProfilePayload;
+
+  function setTrustedProfile(
+    profile: TrustedProfilePayload = trustedProfile,
+  ) {
+    mockHeaderGet.mockImplementation(
+      (name: string) => (name === TRUSTED_PROFILE_HEADER
+        ? encodeTrustedProfileHeader(profile)
+        : null),
+    );
+  }
+
+  beforeAll(async () => {
+    requestContext = await import('../request-context');
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'member'));
+    mockFrom.mockImplementation(() => createProfileQuery());
+    mockHeaderGet.mockReturnValue(null);
+  });
+
+  it('prefers an identity-matched trusted profile header without querying profiles', async () => {
+    setTrustedProfile();
+
+    const profile = await inRequest(() => requestContext.getRequestProfile());
+
+    expect(profile).toEqual(trustedProfile);
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('fails closed on malformed Base64 and does not partially trust the payload', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockHeaderGet.mockImplementation(
+      (name: string) => (name === TRUSTED_PROFILE_HEADER ? '!!!not-base64' : null),
+    );
+
+    const profile = await inRequest(() => requestContext.getRequestProfile());
+
+    expect(profile).toBeNull();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      '[RequestContext] Invalid trusted profile header:',
+      expect.stringContaining('not valid'),
+    );
+    consoleError.mockRestore();
+  });
+
+  it.each([
+    ['id', { ...trustedProfile, id: 'different-user' } as TrustedProfilePayload],
+    ['role', { ...trustedProfile, role: 'ADMIN' } as TrustedProfilePayload],
+    ['status', { ...trustedProfile, status: 'PENDING' } as TrustedProfilePayload],
+  ])('rejects a trusted profile with mismatched %s and does not query profiles', async (_, profile) => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    setTrustedProfile(profile);
+
+    const result = await inRequest(() => requestContext.getRequestProfile());
+
+    expect(result).toBeNull();
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      '[RequestContext] Invalid trusted profile header:',
+      'identity does not match verified RBAC context',
+    );
+    consoleError.mockRestore();
+  });
+
+  it('falls back to the DB when the trusted profile header is absent', async () => {
+    const profile = await inRequest(() => requestContext.getRequestProfile());
+
+    expect(profile).toMatchObject({
+      id: 'user-a',
+      role: 'MEMBER',
+      status: 'ACTIVE',
+    });
+    expect(mockFrom).toHaveBeenCalledWith('profiles');
+    expect(mockFrom.mock.results[0]?.value.select).toHaveBeenCalledWith(
+      PROFILE_COLUMNS,
+    );
   });
 });
