@@ -21,7 +21,11 @@ import {
   CSRF_EXEMPT_API_PATHS,
 } from './lib/middleware/config';
 import { createMiddlewareClient } from './lib/middleware/client';
-import { getUserProfile, checkDesignerEmailList } from './lib/middleware/auth-utils';
+import {
+  checkDesignerEmailList,
+  getVerifiedAuthUser,
+  getUserProfile,
+} from './lib/middleware/auth-utils';
 import {
   encodeTrustedProfileHeader,
   TRUSTED_PROFILE_HEADER,
@@ -213,9 +217,9 @@ export async function middleware(request: NextRequest) {
     // authenticate and set verified headers.
     try {
       const { supabase, response: authResponse } = createMiddlewareClient(request);
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const user = await getVerifiedAuthUser(supabase);
 
-      if (user && !error) {
+      if (user) {
       const profile = await getUserProfile(supabase, user.id);
       // Only set headers when we have a verified ACTIVE profile.
       // Missing/inactive profile => no headers => downstream returns 401.
@@ -379,9 +383,9 @@ export async function middleware(request: NextRequest) {
 
     // Normal auth: extract user info and add to headers for the API route to use
     const { supabase, response: authResponse } = createMiddlewareClient(request);
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const user = await getVerifiedAuthUser(supabase);
 
-    if (user && !error) {
+    if (user) {
       // Get user profile for role and status
       const profile = await getUserProfile(supabase, user.id);
 
@@ -429,9 +433,9 @@ export async function middleware(request: NextRequest) {
 
     // Normal auth: extract user info and add to headers
     const { supabase, response: authResponse } = createMiddlewareClient(request);
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const user = await getVerifiedAuthUser(supabase);
 
-    if (user && !error) {
+    if (user) {
       const profile = await getUserProfile(supabase, user.id);
 
       // Only add headers for ACTIVE designer users
@@ -515,9 +519,9 @@ export async function middleware(request: NextRequest) {
 
     // Normal auth: extract user info and add to headers for the API route to use
     const { supabase, response: authResponse } = createMiddlewareClient(request);
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const user = await getVerifiedAuthUser(supabase);
 
-    if (user && !error) {
+    if (user) {
       // SECURITY (S2.0): only set headers when we have a VERIFIED profile from DB.
       // Previously fell back to role:'MEMBER'/status:'ACTIVE' on lookup failure,
       // which let a user with no/empty profile reach member APIs as ACTIVE.
@@ -633,18 +637,14 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next());
   }
 
-  // Check authentication (SECURE: using getUser() instead of getSession())
+  // Check authentication (SECURE: verified JWT claims instead of raw session)
   const { supabase, response: authResponse } = createMiddlewareClient(request);
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const user = await getVerifiedAuthUser(supabase);
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
     console.log('[Middleware] Path:', pathname);
     console.log('[Middleware] User found:', !!user);
-    console.log('[Middleware] User error:', error?.message);
     if (user) {
       console.log('[Middleware] User email:', user.email);
     }
@@ -655,9 +655,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // No user - redirect to login
-  if (!user || error) {
+  if (!user) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Middleware] No user or error, redirecting to signin. Error:', error?.message);
+      console.log('[Middleware] No verified user, redirecting to signin');
       console.log('[Middleware] Pathname:', pathname);
     }
     const url = new URL('/auth/signin', request.url);
