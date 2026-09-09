@@ -389,31 +389,23 @@ export default function AdminDashboardClient({
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Modern Header Section */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="mb-8"
-        >
-          <motion.div variants={itemVariants} className="mb-6">
+        <div className="mb-8">
+          <div className="mb-6">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div>
-                <motion.h1
+                <h1
                   className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-brixa-700 via-brixa-600 to-brixa-500 bg-clip-text text-transparent mb-2"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 400 }}
                 >
                   管理ダッシュボード
-                </motion.h1>
+                </h1>
                 <p className="text-base text-text-secondary flex items-center gap-2">
                   <span className="inline-block w-2 h-2 bg-brixa-500 rounded-full animate-pulse"></span>
                   ようこそ、{authContext.userName}さん
                 </p>
               </div>
 
-              <motion.div
+              <div
                 className="flex flex-wrap items-center gap-3"
-                variants={itemVariants}
               >
                 {/* Period Filter - Modern Design */}
                 <div className="relative group">
@@ -453,12 +445,12 @@ export default function AdminDashboardClient({
                   <Clock className="h-4 w-4" />
                   <span>{new Date().toLocaleString('ja-JP')}</span>
                 </div>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* KPI Cards - Premium Design (Status-based) */}
-          <motion.div variants={itemVariants}>
+          <div>
             {orderStats && (
               <div className="space-y-4">
                 {/* セクション見出し: ステータス別 KPI */}
@@ -706,8 +698,8 @@ export default function AdminDashboardClient({
                 </div>
               </div>
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Order Statistics Widget */}
         <motion.div

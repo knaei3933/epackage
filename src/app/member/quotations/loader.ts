@@ -71,6 +71,50 @@ export interface QuotationsData {
   };
 }
 
+const WORKFLOW_STATUSES = [
+  'QUOTATION_PENDING',
+  'QUOTATION_APPROVED',
+  'DATA_UPLOAD_PENDING',
+  'DATA_UPLOADED',
+  'CORRECTION_IN_PROGRESS',
+  'CORRECTION_COMPLETED',
+  'CUSTOMER_APPROVAL_PENDING',
+  'PRODUCTION',
+  'READY_TO_SHIP',
+  'SHIPPED',
+  'CANCELLED',
+] as const;
+
+// Keep the payload bounded to the quotation/item fields consumed by the list UI
+// and the transformation contract instead of selecting every wide table column.
+const QUOTATIONS_SELECT = `
+  id,
+  quotation_number,
+  status,
+  customer_name,
+  customer_email,
+  subtotal_amount,
+  tax_amount,
+  total_amount,
+  valid_until,
+  sent_at,
+  approved_at,
+  created_at,
+  updated_at,
+  pdf_url,
+  quotation_items (
+    id,
+    quotation_id,
+    product_id,
+    product_name,
+    quantity,
+    unit_price,
+    total_price,
+    specifications,
+    order_id
+  )
+`;
+
 /**
  * Fetch quotations for the authenticated user
  */
@@ -94,71 +138,31 @@ export async function fetchQuotationsServerSide(
   // Create service client for database operations
   const serviceClient = createServiceClient();
 
-  // Build query - countを取得するため、まずheadを使って総数を取得
-  const { count: totalCount } = await serviceClient
-    .from('quotations')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  // Apply status filter for count if specified
-  let countQuery = serviceClient
-    .from('quotations')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  if (status && status !== 'all') {
-    const statusLower = status.toLowerCase();
-    const statusUpper = status.toUpperCase();
-
-    const isWorkflowStatus = ['QUOTATION_PENDING', 'QUOTATION_APPROVED', 'DATA_UPLOAD_PENDING',
-                              'DATA_UPLOADED', 'CORRECTION_IN_PROGRESS', 'CORRECTION_COMPLETED',
-                              'CUSTOMER_APPROVAL_PENDING', 'PRODUCTION', 'READY_TO_SHIP',
-                              'SHIPPED', 'CANCELLED'].includes(statusUpper);
-
-    if (isWorkflowStatus) {
-      countQuery = countQuery.eq('status', statusUpper as QuotationStatus);
-    } else {
-      // IDOR-safe: .or() を .in() で回避（外側の .eq('user_id') と AND 結合・or 短絡リスクなし）
-      countQuery = countQuery.in('status', [statusLower, statusUpper] as QuotationStatus[]);
-    }
-  }
-
-  const { count: filteredCount } = await countQuery;
-
-  // Build main query for data
+  // One round trip returns the filtered page and the exact pagination total.
   let query = serviceClient
     .from('quotations')
-    .select(`
-      *,
-      quotation_items (*)
-    `)
+    .select(QUOTATIONS_SELECT, { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  // Apply status filter if specified (check lowercase, uppercase, and 10-step workflow statuses)
+  // Apply status filter once (check lowercase, uppercase, and workflow statuses)
   if (status && status !== 'all') {
     const statusLower = status.toLowerCase();
     const statusUpper = status.toUpperCase();
 
-    // For legacy statuses: check both lowercase and uppercase
-    // For 10-step workflow: use exact match (they're already uppercase)
-    const isWorkflowStatus = ['QUOTATION_PENDING', 'QUOTATION_APPROVED', 'DATA_UPLOAD_PENDING',
-                              'DATA_UPLOADED', 'CORRECTION_IN_PROGRESS', 'CORRECTION_COMPLETED',
-                              'CUSTOMER_APPROVAL_PENDING', 'PRODUCTION', 'READY_TO_SHIP',
-                              'SHIPPED', 'CANCELLED'].includes(statusUpper);
+    const isWorkflowStatus = (WORKFLOW_STATUSES as readonly string[]).includes(statusUpper);
 
     if (isWorkflowStatus) {
       // Exact match for workflow statuses
       query = query.eq('status', statusUpper as QuotationStatus);
     } else {
-      // Check both lowercase and uppercase for legacy statuses
       // IDOR-safe: .or() を .in() で回避（外側の .eq('user_id') と AND 結合・or 短絡リスクなし）
       query = query.in('status', [statusLower, statusUpper] as QuotationStatus[]);
     }
   }
 
-  const { data, error } = await query;
+  const { data, count, error } = await query;
 
   if (error) {
     console.error('[Loader] Fetch quotations error:', error);
@@ -222,7 +226,7 @@ export async function fetchQuotationsServerSide(
     pagination: {
       limit,
       offset,
-      total: filteredCount || 0,
+      total: count || 0,
     },
   };
 }
