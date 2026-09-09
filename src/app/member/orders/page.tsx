@@ -8,6 +8,7 @@
  * - 進捗状況表示
  */
 
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { getRequestRBACContext } from '@/lib/auth/request-context';
@@ -27,9 +28,31 @@ export const metadata = {
   description: 'Epackage Lab会員注文一覧ページ',
 };
 
-// =====================================================
-// Page Component (Server Component for Auth Check)
-// =====================================================
+function MemberOrdersRouteShell() {
+  return (
+    <div className="min-h-screen bg-bg-primary" aria-busy="true">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <div
+            aria-hidden="true"
+            className="h-7 w-40 bg-border-light rounded animate-pulse"
+          />
+          <p className="mt-2 text-sm text-text-muted">読み込み中です。</p>
+        </div>
+        <section aria-label="注文一覧を読み込み中" data-testid="member-orders-list-shell">
+          <div className="space-y-4" aria-hidden="true">
+            {Array.from({ length: 5 }, (_, index) => (
+              <div key={index} className="bg-white rounded-lg p-6 shadow-md border border-border-light">
+                <div className="h-4 w-32 bg-border-light rounded animate-pulse" />
+                <div className="mt-4 h-3 w-48 bg-border-light rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
 
 async function getInitialOrders(userId: string, canViewAllOrders: boolean): Promise<unknown[] | undefined> {
   // Mirror GET /api/member/orders for the initial payload so hydration does not
@@ -92,10 +115,7 @@ async function getInitialOrders(userId: string, canViewAllOrders: boolean): Prom
   }
 }
 
-export default async function OrdersPage() {
-  // =====================================================
-  // Server-side Authentication Check
-  // =====================================================
+export async function AuthenticatedOrders() {
   let user;
   try {
     console.log('[OrdersPage] Calling requireAuth...');
@@ -122,7 +142,6 @@ export default async function OrdersPage() {
   // header while the query remains in flight.
   const initialOrdersPromise = getInitialOrders(user.id, canViewAllOrders);
 
-  // Render the client component with user info
   return (
     <OrdersClient
       userId={user.id}
@@ -130,5 +149,13 @@ export default async function OrdersPage() {
       userProfile={user.user_metadata}
       initialOrdersPromise={initialOrdersPromise}
     />
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<MemberOrdersRouteShell />}>
+      <AuthenticatedOrders />
+    </Suspense>
   );
 }

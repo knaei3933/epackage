@@ -7,6 +7,7 @@
  * - 最近のアクティビティは UnifiedDashboardClient（NextActionList）に一本化済み
  */
 
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError, getUnifiedDashboardStats } from '@/lib/dashboard';
 import type { DashboardInitialStatsResult } from '@/types/dashboard-result';
@@ -17,6 +18,30 @@ import { UnifiedDashboardClient } from './UnifiedDashboardClient';
 // =====================================================
 
 type AuthenticatedUser = Awaited<ReturnType<typeof requireAuth>>;
+
+function MemberDashboardRouteShell() {
+  return (
+    <div className="min-h-screen bg-bg-primary" aria-busy="true">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-text-primary">マイページトップ</h1>
+          <p className="mt-2 text-sm text-text-muted">読み込み中です。</p>
+        </div>
+        <section aria-label="ダッシュボード読み込み状態">
+          <h2 className="text-lg font-semibold text-text-primary mb-4">クイックアクション</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-hidden="true">
+            {Array.from({ length: 4 }, (_, index) => (
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-md border border-border-light">
+                <div className="h-10 w-10 bg-border-light rounded-xl animate-pulse" />
+                <div className="mt-4 h-3 w-24 bg-border-light rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
 
 export function buildInitialStatsPromise(userId: string) {
   return getUnifiedDashboardStats(userId, 'MEMBER', 30)
@@ -53,15 +78,7 @@ async function DashboardContent({ user }: { user: AuthenticatedUser }) {
   );
 }
 
-// =====================================================
-// Page Component
-// =====================================================
-
-// Attempt 58: Remove Suspense wrapper for async Server Component (Next.js 15/16 compatibility)
-// async Server Components are automatically wrapped in Suspense by Next.js
-export default async function DashboardPage() {
-  // Complete verified auth in the route function so unauthorized requests keep
-  // today's exact redirect outcome and no shell can leak first.
+export async function AuthenticatedDashboard() {
   let user;
   try {
     user = await requireAuth();
@@ -74,6 +91,18 @@ export default async function DashboardPage() {
   }
 
   return <DashboardContent user={user} />;
+}
+
+// =====================================================
+// Page Component
+// =====================================================
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<MemberDashboardRouteShell />}>
+      <AuthenticatedDashboard />
+    </Suspense>
+  );
 }
 
 // =====================================================

@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 const redirect = jest.fn(() => {
   throw new Error('NEXT_REDIRECT');
 });
@@ -58,6 +60,11 @@ import AdminDashboardPage from '@/app/admin/dashboard/page';
 import { AuthRequiredError } from '@/lib/dashboard';
 
 describe('authenticated streaming route redirects', () => {
+  function serverChild(page: React.ReactElement) {
+    expect(page.type).toBe(Suspense);
+    return page.props.children;
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     redirect.mockImplementation(() => {
@@ -67,25 +74,29 @@ describe('authenticated streaming route redirects', () => {
   });
 
   it('redirects the member dashboard before starting or exposing dashboard data', async () => {
-    await expect(DashboardPage()).rejects.toThrow('NEXT_REDIRECT');
+    const child = serverChild(DashboardPage());
+    await expect(child.type(child.props)).rejects.toThrow('NEXT_REDIRECT');
     expect(redirect).toHaveBeenCalledWith('/auth/signin?redirect=/member/dashboard');
   });
 
   it('redirects member quotations before resolving search params or quotation data', async () => {
-    await expect(QuotationsPage({ searchParams: Promise.resolve({}) }))
-      .rejects.toThrow('NEXT_REDIRECT');
+    const child = serverChild(QuotationsPage({ searchParams: Promise.resolve({}) }));
+    await expect(child.type(child.props)).rejects.toThrow('NEXT_REDIRECT');
     expect(redirect).toHaveBeenCalledWith('/auth/signin?redirect=/member/quotations');
   });
 
   it('redirects member orders before RBAC resolution or order loading', async () => {
-    await expect(OrdersPage()).rejects.toThrow('NEXT_REDIRECT');
+    const child = serverChild(OrdersPage());
+    await expect(child.type(child.props)).rejects.toThrow('NEXT_REDIRECT');
     expect(redirect).toHaveBeenCalledWith('/auth/signin?redirect=/member/orders');
   });
 
   it('keeps the existing admin dashboard RBAC redirect', async () => {
     getAdminAuth.mockRejectedValue(new Error('NEXT_REDIRECT'));
-    await expect(AdminDashboardPage({ searchParams: Promise.resolve({}) }))
-      .rejects.toThrow('NEXT_REDIRECT');
+    const child = serverChild(
+      AdminDashboardPage({ searchParams: Promise.resolve({}) }),
+    );
+    await expect(child.type(child.props)).rejects.toThrow('NEXT_REDIRECT');
     expect(getAdminAuth).toHaveBeenCalledWith(
       ['order:read', 'quotation:read'],
       '/auth/signin?redirect=/admin/dashboard',

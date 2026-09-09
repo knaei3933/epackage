@@ -37,9 +37,10 @@ export async function requireAdminAuth(
     redirect('/auth/signin?redirect=/admin/dashboard');
   }
 
-  // admin/operator/salesのみアクセス可能 (RBAC contextは小文字を返す)
-  const adminRoles = ['admin', 'operator', 'sales'] as const;
-  if (!adminRoles.includes(context.role as any)) {
+  // Middleware is authoritative for non-customer /admin routes and allows the
+  // admin role only. Keep the server-side check aligned so defense-in-depth
+  // neither broadens nor relies on middleware as the sole authorization gate.
+  if (context.role !== 'admin') {
     // 権限なし → 会員ダッシュボードへ
     redirect('/member/dashboard?error=admin_required');
   }
@@ -75,7 +76,7 @@ export async function requireAdminAuth(
 
   return {
     userId: context.userId,
-    role: context.role as 'admin' | 'operator' | 'sales',
+    role: context.role as 'admin',
     userName,
     permissions: context.permissions,
     isDevMode: context.isDevMode,

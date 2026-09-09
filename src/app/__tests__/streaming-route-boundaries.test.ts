@@ -9,6 +9,8 @@ const quotationsPage = read('src/app/member/quotations/page.tsx');
 const quotationsClient = read('src/app/member/quotations/QuotationsClient.tsx');
 const ordersPage = read('src/app/member/orders/page.tsx');
 const ordersClient = read('src/app/member/orders/OrdersClient.tsx');
+const adminOrdersPage = read('src/app/admin/orders/page.tsx');
+const adminQuotationsPage = read('src/app/admin/quotations/page.tsx');
 const adminPage = read('src/app/admin/dashboard/page.tsx');
 const adminClient = read('src/app/admin/dashboard/AdminDashboardClient.tsx');
 
@@ -56,11 +58,27 @@ describe('bounded authenticated streaming boundaries', () => {
     );
     expect(read('src/app/member/orders/parts/OrderListSection.tsx'))
       .toContain('data-testid="member-orders-list"');
+    expect(ordersPage).toContain('data-testid="member-orders-list-shell"');
+    expect(ordersPage).not.toContain('data-testid="member-orders-list"');
+  });
+
+  it('keeps final-content selectors out of protected route skeleton shells', () => {
+    expect(quotationsPage).toContain('data-testid="member-quotations-list-shell"');
+    expect(quotationsPage).not.toContain('data-testid="member-quotations-list"');
+    expect(quotationsPage).not.toContain('見積一覧</h1>');
+
+    expect(adminOrdersPage).toContain('data-testid="admin-orders-list-shell"');
+    expect(adminOrdersPage).not.toContain('data-testid="admin-orders-list"');
+    expect(adminOrdersPage).not.toContain('注文管理</h1>');
+
+    expect(adminQuotationsPage).toContain('data-testid="admin-quotations-list-shell"');
+    expect(adminQuotationsPage).not.toContain('data-testid="admin-quotations-list"');
+    expect(adminQuotationsPage).not.toContain('見積もり管理</h1>');
   });
 
   it('streams the admin h1/KPI heading and dynamically loads Recharts after auth', () => {
     const authIndex = adminPage.indexOf('await getAdminAuth');
-    const childIndex = adminPage.indexOf('<DashboardContent authContext={authContext}');
+    const childIndex = adminPage.indexOf('<DashboardContent searchParams={searchParams} />');
     expect(authIndex).toBeGreaterThan(-1);
     expect(childIndex).toBeGreaterThan(authIndex);
     expect(adminPage).toContain('const initialStatsPromise = buildInitialStatsPromise(period);');

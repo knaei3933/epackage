@@ -401,8 +401,8 @@ describe('request-scoped verified auth context', () => {
     ).rejects.toThrow('REDIRECT:/?error=account_inactive');
   });
 
-  it('allows admin, operator, and sales but denies members in the admin loader', async () => {
-    for (const role of ['admin', 'operator', 'sales'] as const) {
+  it('requires middleware-aligned admin-only access in the admin loader', async () => {
+    for (const role of ['admin'] as const) {
       jest.clearAllMocks();
       mockGetRBACContext.mockResolvedValue(activeContext('user-a', role));
       profileResult = {
@@ -415,12 +415,14 @@ describe('request-scoped verified auth context', () => {
       expect(auth.role).toBe(role);
     }
 
-    jest.clearAllMocks();
-    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'member'));
-    profileResult = { data: { id: 'user-a', email: 'a@example.com' }, error: null };
-    await expect(
-      inRequest(() => adminLoader.requireAdminAuth())
-    ).rejects.toThrow('REDIRECT:/member/dashboard?error=admin_required');
+    for (const role of ['member', 'operator', 'sales'] as const) {
+      jest.clearAllMocks();
+      mockGetRBACContext.mockResolvedValue(activeContext('user-a', role));
+      profileResult = { data: { id: 'user-a', email: 'a@example.com' }, error: null };
+      await expect(
+        inRequest(() => adminLoader.requireAdminAuth())
+      ).rejects.toThrow('REDIRECT:/member/dashboard?error=admin_required');
+    }
   });
 
   it('requests the exact admin orders total and preserves scoped filters', async () => {
@@ -442,16 +444,18 @@ describe('request-scoped verified auth context', () => {
         ? createAdminOrderQuery(orderResult)
         : createProfileQuery()
     ));
-    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'operator'));
+    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'admin'));
 
-    const suspenseElement = await inRequest(() => adminOrdersPage.default({
-      searchParams: Promise.resolve({
-        status: 'PRODUCTION',
-        quotation: 'quotation-a',
-      }),
-    }));
-    const contentElement = (suspenseElement as any).props.children;
-    const element = await contentElement.type(contentElement.props);
+    const element = await inRequest(async () => {
+      const suspenseElement = adminOrdersPage.default({
+        searchParams: Promise.resolve({
+          status: 'PRODUCTION',
+          quotation: 'quotation-a',
+        }),
+      });
+      const contentElement = suspenseElement.props.children;
+      return contentElement.type(contentElement.props);
+    });
     expect(mockFrom).toHaveBeenCalledTimes(2);
     const orderQuery = mockFrom.mock.results[1].value;
     expect(orderQuery.select).toHaveBeenCalledWith(
@@ -470,7 +474,7 @@ describe('request-scoped verified auth context', () => {
     });
   });
 
-  it('preserves RBAC suspension and permission denial for admins', async () => {
+  it('preserves RBAC suspension and admin-only loader denial', async () => {
     jest.clearAllMocks();
     mockGetRBACContext.mockResolvedValue(
       activeContext('user-a', 'admin', 'SUSPENDED')
@@ -481,15 +485,11 @@ describe('request-scoped verified auth context', () => {
     ).rejects.toThrow('REDIRECT:/?error=account_inactive');
 
     jest.clearAllMocks();
-    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'sales'));
+    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'operator'));
     profileResult = { data: { id: 'user-a', email: 'a@example.com' }, error: null };
     await expect(
-      inRequest(() =>
-        adminLoader.requireAdminAuth(['order:write' as never])
-      )
-    ).rejects.toThrow(
-      'REDIRECT:/admin/dashboard?error=insufficient_permissions'
-    );
+      inRequest(() => adminLoader.requireAdminAuth())
+    ).rejects.toThrow('REDIRECT:/member/dashboard?error=admin_required');
   });
 
   it('uses the request auth user and does not call auth.getProfile in /member/orders', async () => {
@@ -507,7 +507,11 @@ describe('request-scoped verified auth context', () => {
         : createProfileQuery()
     ));
 
-    const element = await inRequest(() => ordersPage.default());
+    const element = await inRequest(async () => {
+      const suspenseElement = ordersPage.default();
+      const contentElement = suspenseElement.props.children;
+      return contentElement.type(contentElement.props);
+    });
 
     expect(mockGetProfile).not.toHaveBeenCalled();
     expect(mockFrom).toHaveBeenCalledTimes(2);
@@ -555,7 +559,11 @@ describe('request-scoped verified auth context', () => {
           : createProfileQuery()
       ));
 
-      await inRequest(() => ordersPage.default());
+      await inRequest(async () => {
+        const suspenseElement = ordersPage.default();
+        const contentElement = suspenseElement.props.children;
+        await contentElement.type(contentElement.props);
+      });
 
       expect(mockFrom).toHaveBeenCalledTimes(2);
       const orderQuery = mockFrom.mock.results[1].value;
@@ -569,7 +577,11 @@ describe('request-scoped verified auth context', () => {
     mockGetRBACContext.mockResolvedValue(null);
 
     await expect(
-      inRequest(() => ordersPage.default())
+      inRequest(async () => {
+        const suspenseElement = ordersPage.default();
+        const contentElement = suspenseElement.props.children;
+        return contentElement.type(contentElement.props);
+      })
     ).rejects.toThrow('REDIRECT:/auth/signin?redirect=/member/orders');
 
     expect(mockRedirect).toHaveBeenCalledWith(

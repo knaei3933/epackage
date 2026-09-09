@@ -10,7 +10,6 @@
 import { Suspense } from 'react';
 import { getAdminAuth } from '../loader';
 import AdminOrdersClient from './AdminOrdersClient';
-import { FullPageSpinner } from '@/components/ui';
 import { createServiceClient } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
@@ -35,13 +34,44 @@ interface Order {
 // Server-Side Data Fetching
 // ============================================================
 
-async function OrdersContent({ searchParams }: { searchParams: { status?: string; quotation?: string } }) {
-  // RBAC認証チェック
-  const authContext = await getAdminAuth(['order:read'], '/auth/signin?redirect=/admin/orders');
+function AdminOrdersRouteShell() {
+  return (
+    <div className="min-h-screen bg-gray-50" aria-busy="true">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div
+            aria-hidden="true"
+            className="h-8 w-48 bg-gray-200 rounded animate-pulse"
+          />
+          <p className="mt-2 text-sm text-gray-600">読み込み中です。</p>
+        </div>
+        <section aria-label="注文一覧を読み込み中" data-testid="admin-orders-list-shell">
+          <div className="space-y-4" aria-hidden="true">
+            {Array.from({ length: 5 }, (_, index) => (
+              <div key={index} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                <div className="mt-4 h-3 w-48 bg-gray-200 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export async function OrdersContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; quotation?: string }>;
+}) {
+  // Preserve server-side authorization and its exact redirect after the shell.
+  await getAdminAuth(['order:read'], '/auth/signin?redirect=/admin/orders');
+  const params = await searchParams;
 
   // URLパラメータからステータスと見積もりIDを取得
-  const initialStatus = searchParams.status || 'all';
-  const quotationId = searchParams.quotation;
+  const initialStatus = params.status || 'all';
+  const quotationId = params.quotation;
 
   // サーバーサイドで注文データを取得
   const supabaseService = createServiceClient();
@@ -81,15 +111,14 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
 // Page Component
 // ============================================================
 
-export default async function AdminOrdersPage({
+export default function AdminOrdersPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string; quotation?: string }>;
 }) {
-  const params = await searchParams;
   return (
-    <Suspense fallback={<FullPageSpinner label="注文リストを読み込み中..." />}>
-      <OrdersContent searchParams={params} />
+    <Suspense fallback={<AdminOrdersRouteShell />}>
+      <OrdersContent searchParams={searchParams} />
     </Suspense>
   );
 }
