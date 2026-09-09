@@ -8,7 +8,7 @@
  * - UI/インタラクションを担当
  */
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase-browser';
 import { OrderStatus, getStatusLabel, ORDER_STATUS_LABELS } from '@/types/order-status';
@@ -31,25 +31,37 @@ interface Order {
 interface AdminOrdersClientProps {
   initialStatus: string;
   initialOrders?: Order[];
+  initialTotal?: number;
   quotationFilter?: string;
 }
 
-function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotationFilter }: AdminOrdersClientProps) {
+function AdminOrdersClientContent({
+  initialStatus,
+  initialOrders,
+  initialTotal = 0,
+  quotationFilter,
+}: AdminOrdersClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const hasInitialOrders = initialOrders !== undefined;
+  const skipInitialFetchRef = useRef(hasInitialOrders);
+  const [orders, setOrders] = useState<Order[]>(initialOrders || []);
   const { showError, showSuccess } = useToastContext();
   const [loading, setLoading] = useState(false); // 初期データがあるのでロード中ではない
   const [selectedStatus, setSelectedStatus] = useState<string>(initialStatus);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10); // 1페이지당 10개씩 표시
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(hasInitialOrders ? initialTotal : 0);
   // Issue 4: order number / customer search
   const [searchTerm, setSearchTerm] = useState('');
 
   // 注文リスト取得
   useEffect(() => {
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      return;
+    }
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStatus, page, searchTerm]);
@@ -229,8 +241,9 @@ function AdminOrdersClientContent({ initialStatus, initialOrders = [], quotation
             {/* ステータスフィルター */}
             <div className="flex items-center gap-2">
               <label className="text-xs sm:text-sm font-medium text-gray-700">ステータス:</label>
-              <select
-                value={selectedStatus}
+            <select
+              aria-label="ステータスで絞り込み"
+              value={selectedStatus}
                 onChange={(e) => handleStatusChange(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               >

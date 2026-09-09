@@ -92,6 +92,10 @@ jest.mock('@/app/member/orders/OrdersClient', () => ({
   OrdersClient: () => null,
 }));
 
+jest.mock('@/app/admin/orders/AdminOrdersClient', () => ({
+  default: () => null,
+}));
+
 type ProfileResult = { data: unknown; error: { message: string } | null };
 let profileResult: ProfileResult = { data: null, error: null };
 
@@ -100,6 +104,34 @@ function createProfileQuery() {
     select: jest.fn(() => query),
     eq: jest.fn(() => query),
     maybeSingle: jest.fn(async () => profileResult),
+  };
+  return query;
+}
+
+function createMemberOrderQuery(result: { data: unknown[]; error: unknown }) {
+  const query: any = {
+    select: jest.fn(() => query),
+    eq: jest.fn(() => query),
+    order: jest.fn(() => query),
+    range: jest.fn(async () => result),
+  };
+  return query;
+}
+
+function createAdminOrderQuery(result: {
+  data: unknown[];
+  count: number | null;
+  error: unknown;
+}) {
+  const query: any = {
+    select: jest.fn(() => query),
+    eq: jest.fn(() => query),
+    order: jest.fn(() => query),
+    range: jest.fn(() => query),
+    then: jest.fn((
+      resolve: (value: unknown) => unknown,
+      reject?: (reason: unknown) => unknown,
+    ) => Promise.resolve(result).then(resolve, reject)),
   };
   return query;
 }
@@ -127,12 +159,14 @@ describe('request-scoped verified auth context', () => {
   let requestContext: typeof import('../request-context');
   let dashboard: typeof import('@/lib/dashboard');
   let adminLoader: typeof import('@/app/admin/loader');
+  let adminOrdersPage: typeof import('@/app/admin/orders/page');
   let ordersPage: typeof import('@/app/member/orders/page');
 
   beforeAll(async () => {
     requestContext = await import('../request-context');
     dashboard = await import('@/lib/dashboard');
     adminLoader = await import('@/app/admin/loader');
+    adminOrdersPage = await import('@/app/admin/orders/page');
     ordersPage = await import('@/app/member/orders/page');
   });
 
@@ -379,6 +413,53 @@ describe('request-scoped verified auth context', () => {
     ).rejects.toThrow('REDIRECT:/member/dashboard?error=admin_required');
   });
 
+  it('requests the exact admin orders total and preserves scoped filters', async () => {
+    const orderResult = {
+      data: [{
+        id: 'order-a',
+        order_number: 'ORD-001',
+        customer_name: 'Customer',
+        customer_email: 'customer@example.com',
+        status: 'PRODUCTION',
+        total_amount: 1000,
+        created_at: '2026-01-01T00:00:00.000Z',
+      }],
+      count: 41,
+      error: null,
+    };
+    mockFrom.mockImplementation((table: string) => (
+      table === 'orders'
+        ? createAdminOrderQuery(orderResult)
+        : createProfileQuery()
+    ));
+    mockGetRBACContext.mockResolvedValue(activeContext('user-a', 'operator'));
+
+    const suspenseElement = await inRequest(() => adminOrdersPage.default({
+      searchParams: Promise.resolve({
+        status: 'PRODUCTION',
+        quotation: 'quotation-a',
+      }),
+    }));
+    const contentElement = (suspenseElement as any).props.children;
+    const element = await contentElement.type(contentElement.props);
+    expect(mockFrom).toHaveBeenCalledTimes(2);
+    const orderQuery = mockFrom.mock.results[1].value;
+    expect(orderQuery.select).toHaveBeenCalledWith(
+      'id, order_number, customer_name, customer_email, status, total_amount, created_at',
+      { count: 'exact' },
+    );
+    expect(orderQuery.eq).toHaveBeenCalledWith('status', 'PRODUCTION');
+    expect(orderQuery.eq).toHaveBeenCalledWith('quotation_id', 'quotation-a');
+    expect(orderQuery.order).toHaveBeenCalledWith('created_at', { ascending: false });
+    expect(orderQuery.range).not.toHaveBeenCalled();
+    expect((element as any).props).toMatchObject({
+      initialOrders: [orderResult.data[0]],
+      initialTotal: 41,
+      initialStatus: 'PRODUCTION',
+      quotationFilter: 'quotation-a',
+    });
+  });
+
   it('preserves RBAC suspension and permission denial for admins', async () => {
     jest.clearAllMocks();
     mockGetRBACContext.mockResolvedValue(
@@ -402,10 +483,30 @@ describe('request-scoped verified auth context', () => {
   });
 
   it('uses the request auth user and does not call auth.getProfile in /member/orders', async () => {
+    const orderResult = {
+      data: [{
+        id: 'order-a',
+        status: 'PRODUCTION',
+        order_items: [],
+      }],
+      error: null,
+    };
+    mockFrom.mockImplementation((table: string) => (
+      table === 'orders'
+        ? createMemberOrderQuery(orderResult)
+        : createProfileQuery()
+    ));
+
     const element = await inRequest(() => ordersPage.default());
 
     expect(mockGetProfile).not.toHaveBeenCalled();
-    expect(mockFrom).toHaveBeenCalledTimes(1);
+    expect(mockFrom).toHaveBeenCalledTimes(2);
+    expect(mockFrom).toHaveBeenNthCalledWith(1, 'profiles');
+    expect(mockFrom).toHaveBeenNthCalledWith(2, 'orders');
+    const orderQuery = mockFrom.mock.results[1].value;
+    expect(orderQuery.eq).toHaveBeenCalledWith('user_id', 'user-a');
+    expect(orderQuery.order).toHaveBeenCalledWith('created_at', { ascending: false });
+    expect(orderQuery.range).toHaveBeenCalledWith(0, 19);
 
     expect((element as any).props).toMatchObject({
       userId: 'user-a',
@@ -414,7 +515,41 @@ describe('request-scoped verified auth context', () => {
         kanji_last_name: '山田',
         company_name: 'A株式会社',
       },
+      initialOrders: [{
+        id: 'order-a',
+        progress_percentage: 80,
+        items: [],
+      }],
     });
+  });
+
+  it('uses the verified RBAC role to keep privileged /member/orders reads unscoped', async () => {
+    const orderResult = {
+      data: [{
+        id: 'privileged-order',
+        status: 'PRODUCTION',
+        order_items: [],
+      }],
+      error: null,
+    };
+
+    for (const role of ['admin', 'operator', 'sales'] as const) {
+      jest.clearAllMocks();
+      mockGetRBACContext.mockResolvedValue(activeContext('user-a', role));
+      mockFrom.mockImplementation((table: string) => (
+        table === 'orders'
+          ? createMemberOrderQuery(orderResult)
+          : createProfileQuery()
+      ));
+
+      await inRequest(() => ordersPage.default());
+
+      expect(mockFrom).toHaveBeenCalledTimes(2);
+      const orderQuery = mockFrom.mock.results[1].value;
+      expect(orderQuery.eq).not.toHaveBeenCalled();
+      expect(orderQuery.order).toHaveBeenCalledWith('created_at', { ascending: false });
+      expect(orderQuery.range).toHaveBeenCalledWith(0, 19);
+    }
   });
 
   it('preserves the /member/orders unauthenticated redirect', async () => {

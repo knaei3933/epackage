@@ -8,6 +8,7 @@
 
 import { Suspense } from 'react';
 import { getAdminAuth } from '../loader';
+import { getInitialAdminQuotations } from './loader';
 import AdminQuotationsClient from './AdminQuotationsClient';
 import { FullPageSpinner } from '@/components/ui';
 
@@ -21,11 +22,14 @@ async function QuotationsContent({ searchParams }: { searchParams: { status?: st
 
   // URLパラメータからステータスを取得
   const initialStatus = searchParams.status || 'all';
+  const initialQuotationData = await getInitialAdminQuotations({ status: initialStatus });
 
-  // Pass auth context to client component for API calls
   return (
     <AdminQuotationsClient
-      {...({ authContext, initialStatus } as any)}
+      authContext={authContext}
+      initialStatus={initialStatus}
+      initialQuotations={initialQuotationData.quotations}
+      initialTotal={initialQuotationData.pagination.total}
     />
   );
 }

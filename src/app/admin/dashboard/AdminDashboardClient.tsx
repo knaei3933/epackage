@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -57,6 +57,32 @@ export default function AdminDashboardClient({
   // B2: ステータス軸セグメントコントロールの選択状態（初期値 'ALL' = 全件表示・既存挙動維持）
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
 
+  // The page already resolves both stat payloads on the server. Preserve those
+  // numbers for the first SWR revalidation instead of flashing zeroed fallbacks.
+  const initialStats = useMemo<AdminDashboardStats>(() => {
+    const orders = (initialOrderStats || null) as {
+      total?: number;
+      pending?: number;
+      totalRevenue?: number;
+      ordersByStatus?: AdminDashboardStats['ordersByStatus'];
+      monthlyRevenue?: AdminDashboardStats['monthlyRevenue'];
+    } | null;
+    const quotations = (initialQuotationStats || null) as {
+      draft?: number;
+      sent?: number;
+    } | null;
+
+    return {
+      ...defaultStats,
+      totalOrders: orders?.total ?? defaultStats.totalOrders,
+      pendingOrders: orders?.pending ?? defaultStats.pendingOrders,
+      totalRevenue: orders?.totalRevenue ?? defaultStats.totalRevenue,
+      ordersByStatus: orders?.ordersByStatus ?? defaultStats.ordersByStatus,
+      monthlyRevenue: orders?.monthlyRevenue ?? defaultStats.monthlyRevenue,
+      pendingQuotations: (quotations?.draft ?? 0) + (quotations?.sent ?? 0),
+    };
+  }, [initialOrderStats, initialQuotationStats]);
+
   // SWRによるデータフェッチ - 統合APIを使用
   // fetcher はジェネリック関数（fetcher<T>(url): Promise<T>）なので as any 不要・型安全
   const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR<AdminDashboardStats>(
@@ -67,7 +93,7 @@ export default function AdminDashboardClient({
      revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止
      shouldRetryOnError: false, // 自動再試行無効化 (手動再試行ボタン提供)
       errorRetryCount: 3,
-      fallbackData: defaultStats, // C1: 初回レンダー前に空状態を提供しローディングちらつき防止
+     fallbackData: initialStats, // C1: 初回レンダー前に空状態を提供しローディングちらつき防止
       onError: (err) => {
         // エラーはUIで表示するため、コンソールには出力しない
       }

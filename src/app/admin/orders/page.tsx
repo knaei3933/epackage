@@ -49,6 +49,7 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
     .from('orders')
     .select(
       'id, order_number, customer_name, customer_email, status, total_amount, created_at',
+      { count: 'exact' },
     )
     .order('created_at', { ascending: false });
 
@@ -61,7 +62,7 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
     query = query.eq('quotation_id', quotationId);
   }
 
-  const { data: orders } = await query;
+  const { data: orders, count } = await query;
 
   console.log('[AdminOrdersPage] Server-side fetched orders:', orders?.length || 0, 'quotation filter:', quotationId || 'none');
 
@@ -70,6 +71,7 @@ async function OrdersContent({ searchParams }: { searchParams: { status?: string
     <AdminOrdersClient
       initialStatus={initialStatus}
       initialOrders={(orders as any) || []}
+      initialTotal={count ?? 0}
       quotationFilter={quotationId}
     />
   );

@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Button, Input, PageLoadingState } from '@/components/ui';
 import { OrderListSection } from './parts/OrderListSection';
@@ -134,6 +134,7 @@ interface OrdersClientProps {
     personal_phone?: string;
     email?: string;
   };
+  initialOrders?: unknown[];
 }
 
 // =====================================================
@@ -274,13 +275,17 @@ function TabButton({ active, onClick, icon, label, count }: TabButtonProps) {
 // Page Component
 // =====================================================
 
-function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientProps) {
+function OrdersClientContent({ userId, userEmail, userProfile, initialOrders }: OrdersClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [orders, setOrders] = useState<Order[]>([]);
+  const hasInitialOrders = initialOrders !== undefined;
+  const skipInitialFetchRef = useRef(hasInitialOrders);
+  const [orders, setOrders] = useState<Order[]>(
+    (initialOrders || []) as unknown as Order[],
+  );
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!hasInitialOrders);
   const [error, setError] = useState<string | null>(null);
 
   // Tab state from URL or default to 'active'
@@ -329,6 +334,10 @@ function OrdersClientContent({ userId, userEmail, userProfile }: OrdersClientPro
   };
 
   useEffect(() => {
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      return;
+    }
     fetchOrders();
   }, [userId]);
 

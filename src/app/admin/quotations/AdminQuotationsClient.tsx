@@ -8,7 +8,7 @@
  * - UI/インタラクションを担当
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui';
 import nextDynamic from 'next/dynamic';
@@ -33,24 +33,34 @@ import { useToastContext } from '@/components/ui/Toast';
 import { fetchQuotations as fetchQuotationsAPI } from '@/lib/api/admin/quotations';
 
 interface AdminQuotationsClientProps {
+  authContext?: AdminAuthContext;
   initialStatus: string;
+  initialQuotations?: Quotation[];
+  initialTotal?: number;
 }
 
 /**
  * AdminQuotationsClient - メインの管理者用見積管理コンポーネント
  * 状態管理とデータフェッチ、コンポーネントの合成のみ担当
  */
-function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
+function AdminQuotationsClientContent({
+  authContext,
+  initialStatus,
+  initialQuotations,
+  initialTotal = 0,
+}: AdminQuotationsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const hasInitialData = initialQuotations !== undefined;
+  const skipInitialFetchRef = useRef(hasInitialData);
+  const [quotations, setQuotations] = useState<Quotation[]>(initialQuotations || []);
   const { showError, showSuccess } = useToastContext();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasInitialData);
   const [filterStatus, setFilterStatus] = useState<string>(initialStatus);
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(hasInitialData ? initialTotal : 0);
   const [emailComposerOpen, setEmailComposerOpen] = useState(false);
   const [selectedCustomersForEmail, setSelectedCustomersForEmail] = useState<Recipient[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,6 +69,10 @@ function AdminQuotationsClientContent({ authContext, initialStatus }: any) {
 
   // Fetch quotations
   useEffect(() => {
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      return;
+    }
     fetchQuotations();
   }, [filterStatus, page, searchTerm, dateFrom, dateTo]);
 

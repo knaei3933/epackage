@@ -60,6 +60,7 @@ export function AdminQuotationFilters({
 
       {/* Status filter */}
       <select
+        aria-label="見積ステータスで絞り込み"
         value={filterStatus}
         onChange={(e) => onStatusChange(e.target.value)}
         className="px-4 py-2 border border-gray-300 rounded-lg"
