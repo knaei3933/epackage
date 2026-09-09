@@ -10,7 +10,7 @@ import {
   TRUSTED_PROFILE_HEADER,
 } from '@/lib/auth/profile-header';
 
-const mockGetUser = jest.fn();
+const mockGetClaims = jest.fn();
 const mockFrom = jest.fn();
 const mockCreateMiddlewareClient = jest.fn();
 
@@ -77,38 +77,42 @@ function expectForwardedRequestHeader(
 
 describe('middleware trusted profile header', () => {
   beforeEach(() => {
+    jest.resetModules();
     jest.clearAllMocks();
     mockFrom.mockImplementation(() => createProfileQuery());
     mockCreateMiddlewareClient.mockImplementation(() => ({
-      supabase: { auth: { getUser: mockGetUser }, from: mockFrom },
+      supabase: { auth: { getClaims: mockGetClaims }, from: mockFrom },
       response: createCookieResponse(),
     }));
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: verifiedProfile.id, email: verifiedProfile.email } },
+    mockGetClaims.mockResolvedValue({
+      data: {
+        claims: { sub: verifiedProfile.id, email: verifiedProfile.email },
+      },
       error: null,
     });
   });
 
   it('strips attacker-supplied profile headers before authentication', async () => {
     const { middleware } = await import('./middleware');
-    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+    jest.resetModules();
+    mockGetClaims.mockResolvedValue({ data: null, error: null });
     const response = await middleware(
       createRequest('eyJyb2xlIjoiQURNSU4iLCJzdGF0dXMiOiJBQ1RJVkUifQ=='),
     );
 
     expect(response.headers.get(TRUSTED_PROFILE_HEADER)).toBeNull();
     expect(response.headers.get('x-middleware-request-' + TRUSTED_PROFILE_HEADER)).toBeNull();
-    expect(mockGetUser).toHaveBeenCalledTimes(1);
+    expect(mockGetClaims).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards an all-field trusted profile on the request only after getUser and DB lookup', async () => {
+  it('forwards an all-field trusted profile on the request only after claims and DB lookup', async () => {
     const { middleware } = await import('./middleware');
     const response = await middleware(createRequest());
     const encoded = response.headers.get(
       `x-middleware-request-${TRUSTED_PROFILE_HEADER}`,
     );
 
-    expect(mockGetUser).toHaveBeenCalledTimes(1);
+    expect(mockGetClaims).toHaveBeenCalledTimes(1);
     expect(mockFrom).toHaveBeenCalledWith('profiles');
     expect(mockFrom.mock.results[0]?.value.select).toHaveBeenCalledWith(
       PROFILE_COLUMNS,
@@ -154,8 +158,8 @@ describe('middleware trusted profile header', () => {
     const { middleware } = await import('./middleware');
     const verified = verifiedProfile;
     verified.role = role;
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: verified.id, email: verified.email } },
+    mockGetClaims.mockResolvedValue({
+      data: { claims: { sub: verified.id, email: verified.email } },
       error: null,
     });
 
