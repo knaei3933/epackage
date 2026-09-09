@@ -138,6 +138,8 @@ export interface DashboardStatistics {
 export type AdminDashboardStats = UnifiedDashboardStats & {
   // UnifiedDashboardStats では optional の、管理者ダッシュボード必須項目を required 化
   ordersByStatus: NonNullable<UnifiedDashboardStats['ordersByStatus']>;
+  processingOrders?: number;
+  completedOrders?: number;
   pendingQuotations: number;
   todayShipments: number;
   monthlyRevenue: NonNullable<UnifiedDashboardStats['monthlyRevenue']>;

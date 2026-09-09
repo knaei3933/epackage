@@ -9,9 +9,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { use, useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, Button, Input, PageLoadingState } from '@/components/ui';
+import { Card, Button, Input } from '@/components/ui';
 import { OrderListSection } from './parts/OrderListSection';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -134,7 +134,54 @@ interface OrdersClientProps {
     personal_phone?: string;
     email?: string;
   };
-  initialOrders?: unknown[];
+  initialOrdersPromise: Promise<unknown[] | undefined>;
+}
+
+// Header metadata is URL-derived so it can flush independently of order data.
+function OrdersHeader() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab');
+  const activeTab: TabType = tab === 'history' || tab === 'reorder' ? tab : 'active';
+  const pageTitle = activeTab === 'active' ? '処理中の注文' : activeTab === 'history' ? '注文履歴' : '再注文';
+  const pageDescription = activeTab === 'active'
+    ? '現在処理中の注文一覧'
+    : activeTab === 'history'
+    ? '全ての注文履歴'
+    : '過去の注文から再注文';
+
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl font-bold text-text-primary">{pageTitle}</h1>
+        <p className="text-text-muted mt-1">{pageDescription}</p>
+      </div>
+      {activeTab !== 'reorder' && (
+        <Button variant="primary" onClick={() => router.push('/quote-simulator')} data-testid="new-quotation-button">
+          <span className="mr-2">+</span>新規見積
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function OrdersListSkeleton() {
+  return (
+    <div className="space-y-4" aria-hidden="true">
+      {[...Array(3)].map((_, i) => (
+        <Card key={i} className="p-6 animate-pulse">
+          <div className="h-5 w-1/3 bg-gray-200 rounded mb-4" />
+          <div className="h-4 w-1/2 bg-gray-200 rounded mb-2" />
+          <div className="h-4 w-2/3 bg-gray-200 rounded mb-4" />
+          <div className="h-10 w-full bg-gray-100 rounded" />
+        </Card>
+      ))}
+      <div className="flex items-center justify-center gap-2 text-sm text-text-muted py-2">
+        <RefreshCw className="w-4 h-4 animate-spin" />
+        <span>注文一覧を読み込み中...</span>
+      </div>
+    </div>
+  );
 }
 
 // =====================================================
@@ -275,7 +322,8 @@ function TabButton({ active, onClick, icon, label, count }: TabButtonProps) {
 // Page Component
 // =====================================================
 
-function OrdersClientContent({ userId, userEmail, userProfile, initialOrders }: OrdersClientProps) {
+function OrdersClientContent({ userId, userEmail, userProfile, initialOrdersPromise }: OrdersClientProps) {
+  const initialOrders = use(initialOrdersPromise);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -435,28 +483,8 @@ function OrdersClientContent({ userId, userEmail, userProfile, initialOrders }: 
     );
   }
 
-  const pageTitle = activeTab === 'active' ? '処理中の注文' : activeTab === 'history' ? '注文履歴' : '再注文';
-  const pageDescription = activeTab === 'active'
-    ? '現在処理中の注文一覧'
-    : activeTab === 'history'
-    ? '全ての注文履歴'
-    : '過去の注文から再注文';
-
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">{pageTitle}</h1>
-          <p className="text-text-muted mt-1">{pageDescription}</p>
-        </div>
-        {activeTab !== 'reorder' && (
-          <Button variant="primary" onClick={() => router.push('/quote-simulator')} data-testid="new-quotation-button">
-            <span className="mr-2">+</span>新規見積
-          </Button>
-        )}
-      </div>
-
       {error && (
         <Card className="p-4 bg-red-50 border-red-200">
           <p className="text-red-700">{error}</p>
@@ -569,12 +597,18 @@ function OrdersClientContent({ userId, userEmail, userProfile, initialOrders }: 
   );
 }
 
-// Suspense boundary for useSearchParams
+// Header and list have independent boundaries: the header is URL-derived and
+// streams before the authorized server order payload resolves.
 export function OrdersClient(props: OrdersClientProps) {
   return (
-    <Suspense fallback={<PageLoadingState isLoading={true} message="注文一覧を読み込み中..." />}>
-      <OrdersClientContent {...props} />
-    </Suspense>
+    <div className="space-y-6">
+      <Suspense fallback={<OrdersHeader />}>
+        <OrdersHeader />
+      </Suspense>
+      <Suspense fallback={<OrdersListSkeleton />}>
+        <OrdersClientContent {...props} />
+      </Suspense>
+    </div>
   );
 }
 

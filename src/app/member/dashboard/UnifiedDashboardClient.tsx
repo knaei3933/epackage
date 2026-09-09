@@ -1,53 +1,124 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, use, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { RefreshCw } from 'lucide-react';
 import type { UnifiedDashboardStats } from '@/lib/dashboard';
-import { NextActionList, EmptyState } from '@/components/dashboard';
+import { NextActionList, EmptyState, AnnouncementCard } from '@/components/dashboard';
 import { fetcher } from '@/hooks/use-optimized-fetch';
+import type { DashboardInitialStatsResult } from '@/types/dashboard-result';
 
 // =====================================================
 // Types
 // =====================================================
 
 export interface UnifiedDashboardClientProps {
-  initialStats: UnifiedDashboardStats;
+  initialStatsPromise: Promise<DashboardInitialStatsResult<UnifiedDashboardStats>>;
   userId: string;
   userName: string;
+  initialPeriod: number;
+}
+
+export type { DashboardInitialStatsResult };
+
+// =====================================================
+// Streaming Stats Skeleton
+// =====================================================
+
+function DashboardStatsSkeleton() {
+  return (
+    <div className="space-y-6" aria-hidden="true">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+            <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mt-3 animate-pulse" />
+            <div className="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded mt-3 animate-pulse" />
+          </div>
+        ))}
+      </div>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+        <div className="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="mt-4 space-y-4">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // =====================================================
-// Main Component
+// Stats Content (suspends only on the server payload)
 // =====================================================
 
-export function UnifiedDashboardClient({
-  initialStats,
+function DashboardStatsContent({
+  initialStatsPromise,
   userId,
-  userName,
-}: UnifiedDashboardClientProps) {
+  period,
+  initialPeriod,
+}: {
+  initialStatsPromise: Promise<DashboardInitialStatsResult<UnifiedDashboardStats>>;
+  userId: string;
+  period: number;
+  initialPeriod: number;
+}) {
   const router = useRouter();
-  const [period, setPeriod] = useState(30);
+  const initialResult = use(initialStatsPromise);
+  const initialStats = initialResult.status === 'success' ? initialResult.stats : undefined;
+  const initialLoadError = initialResult.status === 'error'
+    ? new Error(initialResult.message)
+    : undefined;
 
   // SWRで統計データを自動更新
   // Include userId as query param for client-side auth fallback
-  const { data: stats, error, isValidating, mutate } = useSWR<UnifiedDashboardStats>(
+  const { data: stats, error, mutate } = useSWR<UnifiedDashboardStats>(
     `/api/member/dashboard/unified-stats?period=${period}&userId=${userId}`,
     fetcher,
    {
-     fallbackData: initialStats,
+     fallbackData: initialResult.status === 'success' ? initialResult.stats : undefined,
+     // SWR 2.4 only treats an actual mount as revalidateOnMount. A new period
+     // key is a changed stale key, so enable stale revalidation just for it.
+     revalidateIfStale: period !== initialPeriod,
+     // Suppress only the duplicate fetch for the server-rendered key. Changed
+     // period keys still revalidate, and later mounts of those keys do too.
+     revalidateOnMount: period !== initialPeriod,
      refreshInterval: 60000, // 60秒自動更新（負荷低減）
      revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止
      shouldRetryOnError: true,
-      errorRetryCount: 3,
+     errorRetryCount: 3,
     }
   );
 
-  // 表示用統計データの変換
-  //見積の total も実データ（quotations.total）から供給・L109 のモック計算は廃止
+  const loadError = initialLoadError ?? error;
+
+  // Keep this hook before the error return: retry can change this boundary from
+  // failed to successful, and hook order must not change with that transition.
   const displayStats = useMemo(() => {
-    const s = stats || initialStats;
+    const s = stats ?? initialStats;
+    if (!s) {
+      return {
+        totalOrders: 0,
+        pendingOrders: 0,
+        pendingQuotations: 0,
+        totalQuotations: 0,
+        totalSamples: 0,
+        processingSamples: 0,
+        totalInquiries: 0,
+        respondedInquiries: 0,
+        totalContracts: 0,
+        signedContracts: 0,
+        pendingContracts: 0,
+      };
+    }
+
     return {
       totalOrders: s.totalOrders,
       pendingOrders: s.pendingOrders,
@@ -63,44 +134,44 @@ export function UnifiedDashboardClient({
     };
   }, [stats, initialStats]);
 
+  if (loadError && !stats) {
+    return (
+      <div
+        role="alert"
+        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6"
+      >
+        <h2 className="text-lg font-bold text-red-900 dark:text-red-400">
+          ダッシュボードデータの読み込みエラー
+        </h2>
+        <p className="mt-2 text-sm text-red-800 dark:text-red-400">
+          {loadError.message || 'データの取得に失敗しました。'}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => mutate()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
+          >
+            再試行
+          </button>
+          <button
+            type="button"
+            onClick={() => router.refresh()}
+            className="px-4 py-2 bg-white text-red-600 border border-red-300 rounded-lg text-sm font-semibold hover:bg-red-50"
+          >
+            ページを再読み込み
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // 次の行動の有無（空状態切り替え用）
   const nextActions = stats?.nextActions ?? [];
+  const announcements = stats?.announcements ?? [];
 
   return (
     <div className="space-y-6">
-      {/* ヘッダー */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">
-            ようこそ、{userName}様
-          </h1>
-          <p className="text-text-muted mt-1">
-            マイページの概要をご確認いただけます。
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          {/* 期間フィルター */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">期間:</label>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(parseInt(e.target.value))}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value={7}>最近7日</option>
-              <option value={30}>最近30日</option>
-              <option value={90}>最近90日</option>
-            </select>
-          </div>
-          {isValidating && (
-            <div className="flex items-center text-sm text-blue-600">
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              更新中...
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* 統計カード（数字 ＋ 次のステップ導線） */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <DashboardStatsCard
@@ -222,8 +293,72 @@ export function UnifiedDashboardClient({
           <p className="text-sm text-red-800 dark:text-red-400">
             データの取得に失敗しました。もうしばらくお待ちください。
           </p>
+          <button
+            type="button"
+            onClick={() => mutate()}
+            className="mt-2 px-3 py-1.5 bg-red-600 text-white rounded-md text-xs font-semibold hover:bg-red-700"
+          >
+            再試行
+          </button>
         </div>
       )}
+
+      {announcements.length > 0 && (
+        <AnnouncementCard announcements={announcements} />
+      )}
+    </div>
+  );
+}
+
+// =====================================================
+// Main Component
+// =====================================================
+
+export function UnifiedDashboardClient({
+  initialStatsPromise,
+  userId,
+  userName,
+  initialPeriod,
+}: UnifiedDashboardClientProps) {
+  const [period, setPeriod] = useState(initialPeriod);
+
+  return (
+    <div className="space-y-6">
+      {/* Auth has already completed on the server before this shell streams. */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">
+            ようこそ、{userName}様
+          </h1>
+          <p className="text-text-muted mt-1">
+            マイページの概要をご確認いただけます。
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="member-dashboard-period" className="text-sm text-gray-600">期間:</label>
+            <select
+              id="member-dashboard-period"
+              value={period}
+              onChange={(e) => setPeriod(parseInt(e.target.value))}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value={7}>最近7日</option>
+              <option value={30}>最近30日</option>
+              <option value={90}>最近90日</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <Suspense fallback={<DashboardStatsSkeleton />}>
+        <DashboardStatsContent
+          initialStatsPromise={initialStatsPromise}
+          userId={userId}
+          period={period}
+          initialPeriod={initialPeriod}
+        />
+      </Suspense>
     </div>
   );
 }

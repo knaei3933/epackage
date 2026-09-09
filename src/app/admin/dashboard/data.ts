@@ -7,11 +7,22 @@
  */
 
 import { createServiceClient } from '@/lib/supabase';
+import type { AdminDashboardStats } from '@/types/admin';
 
 /**
  * 注文統計取得
  */
-export async function fetchOrderStats(period: number = 30) {
+export interface AdminOrderStats {
+  total: number;
+  pending: number;
+  processing: number;
+  completed: number;
+  totalRevenue: number;
+  ordersByStatus: Array<{ status: string; count: number }>;
+  monthlyRevenue: Array<{ month: string; revenue: number }>;
+}
+
+export async function fetchOrderStats(period: number = 30): Promise<AdminOrderStats | null> {
   const supabase = createServiceClient();
 
   const startDate = new Date();
@@ -63,6 +74,35 @@ export async function fetchOrderStats(period: number = 30) {
   };
 
   return stats;
+}
+
+export function normalizeAdminInitialStats(
+  orderStats: AdminOrderStats,
+  quotationStats: NonNullable<Awaited<ReturnType<typeof fetchQuotationStats>>>,
+): AdminDashboardStats {
+  return {
+    // fetchOrderStats uses total/pending; the dashboard contract uses
+    // totalOrders/pendingOrders. Keep this mapping explicit and type-checked.
+    totalOrders: orderStats.total,
+    pendingOrders: orderStats.pending,
+    processingOrders: orderStats.processing,
+    completedOrders: orderStats.completed,
+    totalRevenue: orderStats.totalRevenue,
+    activeUsers: 0,
+    todayShipments: 0,
+    ordersByStatus: orderStats.ordersByStatus,
+    monthlyRevenue: orderStats.monthlyRevenue,
+    activeCustomers: 0,
+    pendingQuotations: quotationStats.draft + quotationStats.sent,
+    quotations: {
+      total: quotationStats.total,
+      approved: quotationStats.approved,
+      conversionRate:
+        quotationStats.total > 0
+          ? Math.round((quotationStats.approved / quotationStats.total) * 100)
+          : 0,
+    },
+  };
 }
 
 /**

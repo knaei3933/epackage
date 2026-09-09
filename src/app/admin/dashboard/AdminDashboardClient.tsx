@@ -1,100 +1,87 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase-browser';
+import dynamic from 'next/dynamic';
 import { OrderStatus, OrderStatusLabels } from '@/types/database';
 import { cn } from '@/lib/utils';
 import type { AdminDashboardStats, RecentActivity } from '@/types/admin';
-import {
-  OrderStatisticsWidget,
-  RecentActivityWidget,
-  QuickActionsWidget,
-  AlertsWidget
-} from '@/components/admin/dashboard-widgets';
-import { DashboardSkeleton } from '@/components/ui/SkeletonLoader';
+import { RecentActivityWidget } from '@/components/admin/dashboard-widgets/RecentActivityWidget';
+import { QuickActionsWidget } from '@/components/admin/dashboard-widgets/QuickActionsWidget';
+import { AlertsWidget } from '@/components/admin/dashboard-widgets/AlertsWidget';
+
+// Recharts is browser-oriented and adds a large hydration cost. Load the widget
+// only when the authorized dashboard data boundary reaches the client.
+const OrderStatisticsWidget = dynamic(
+  () => import('@/components/admin/dashboard-widgets/OrderStatisticsWidget').then(
+    (mod) => mod.OrderStatisticsWidget
+  ),
+  {
+    ssr: false,
+    loading: () => (
+      <Card className="p-6">
+        <div className="h-6 w-40 bg-border-light animate-pulse rounded mb-4" aria-hidden="true" />
+        <div className="h-[250px] bg-border-light animate-pulse rounded" aria-hidden="true" />
+      </Card>
+    ),
+  }
+);
 import { AlertCircle, TrendingUp, Package, FileText, Activity, BarChart3, Users, Zap, Clock, ArrowRight, Upload, Edit, UserCheck, Settings, Truck } from 'lucide-react';
 import { Card } from '@/components/ui';
+import type { DashboardInitialStatsResult } from '@/types/dashboard-result';
 
 // データフェッチャー - エラーハンドリング強化
 // fetcher imported from use-optimized-fetch
 
-// デフォルト統計データ（フォールバック用・AdminDashboardStats に完全適合）
-const defaultStats: AdminDashboardStats = {
-  totalOrders: 0,
-  pendingOrders: 0,
-  totalRevenue: 0,
-  activeUsers: 0,
-  ordersByStatus: [],
-  pendingQuotations: 0,
-  todayShipments: 0,
-  monthlyRevenue: [],
-  activeCustomers: 0,
-};
+export type { DashboardInitialStatsResult };
 
 import type { AdminAuthContext } from '@/types/admin';
 import { fetcher } from '@/hooks/use-optimized-fetch';
 
 interface AdminDashboardClientProps {
   authContext: AdminAuthContext;
-  initialOrderStats: unknown; // C6: any → unknown（未使用・page.tsx から渡される初期データ）
-  initialQuotationStats: unknown; // C6: any → unknown（未使用・page.tsx から渡される初期データ）
+  initialStatsPromise: Promise<DashboardInitialStatsResult<AdminDashboardStats>>;
   initialPeriod: number;
 }
 
-export default function AdminDashboardClient({
-  authContext,
-  initialOrderStats,
-  initialQuotationStats,
+function AdminDashboardStatsContent({
+  initialStatsPromise,
   initialPeriod,
-}: AdminDashboardClientProps) {
-  const [realtimeOrders, setRealtimeOrders] = useState<RecentActivity[]>([]); // C6: any[] → RecentActivity[]
+  period,
+}: Omit<AdminDashboardClientProps, 'initialStatsPromise'> & {
+  initialStatsPromise: AdminDashboardClientProps['initialStatsPromise'];
+  period: number;
+}) {
+  const [realtimeOrders, setRealtimeOrders] = useState<RecentActivity[]>([]);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [period, setPeriod] = useState(initialPeriod); // 期間フィルター (日)
   // B2: ステータス軸セグメントコントロールの選択状態（初期値 'ALL' = 全件表示・既存挙動維持）
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-
-  // The page already resolves both stat payloads on the server. Preserve those
-  // numbers for the first SWR revalidation instead of flashing zeroed fallbacks.
-  const initialStats = useMemo<AdminDashboardStats>(() => {
-    const orders = (initialOrderStats || null) as {
-      total?: number;
-      pending?: number;
-      totalRevenue?: number;
-      ordersByStatus?: AdminDashboardStats['ordersByStatus'];
-      monthlyRevenue?: AdminDashboardStats['monthlyRevenue'];
-    } | null;
-    const quotations = (initialQuotationStats || null) as {
-      draft?: number;
-      sent?: number;
-    } | null;
-
-    return {
-      ...defaultStats,
-      totalOrders: orders?.total ?? defaultStats.totalOrders,
-      pendingOrders: orders?.pending ?? defaultStats.pendingOrders,
-      totalRevenue: orders?.totalRevenue ?? defaultStats.totalRevenue,
-      ordersByStatus: orders?.ordersByStatus ?? defaultStats.ordersByStatus,
-      monthlyRevenue: orders?.monthlyRevenue ?? defaultStats.monthlyRevenue,
-      pendingQuotations: (quotations?.draft ?? 0) + (quotations?.sent ?? 0),
-    };
-  }, [initialOrderStats, initialQuotationStats]);
+  const initialStats = use(initialStatsPromise);
+  const initialLoadError = initialStats.status === 'error'
+    ? new Error(initialStats.message)
+    : undefined;
 
   // SWRによるデータフェッチ - 統合APIを使用
   // fetcher はジェネリック関数（fetcher<T>(url): Promise<T>）なので as any 不要・型安全
-  const { data: orderStats, error, isLoading, isValidating, mutate } = useSWR<AdminDashboardStats>(
+  const { data: orderStats, error, isLoading, mutate } = useSWR<AdminDashboardStats>(
     `/api/admin/dashboard/unified-stats?period=${period}`,
     fetcher,
    {
      refreshInterval: 60000, // 60秒ごとに更新（リアルタイム性よりメインスレッド負荷低減）
      revalidateOnFocus: false, // タブフォーカス時のリフェッチ暴発を防止
      shouldRetryOnError: false, // 自動再試行無効化 (手動再試行ボタン提供)
-      errorRetryCount: 3,
-     fallbackData: initialStats, // C1: 初回レンダー前に空状態を提供しローディングちらつき防止
-      onError: (err) => {
+     errorRetryCount: 3,
+     fallbackData: initialStats.status === 'success' ? initialStats.stats : undefined,
+     // A changed period key is stale and must fetch; only the server key is passive.
+     revalidateIfStale: period !== initialPeriod,
+     // Suppress only the duplicate fetch for the server-rendered key. A changed
+     // key is a new request and must revalidate even after the initial mount.
+     revalidateOnMount: period !== initialPeriod,
+     onError: (err) => {
         // エラーはUIで表示するため、コンソールには出力しない
       }
     }
@@ -138,33 +125,13 @@ export default function AdminDashboardClient({
 
   // ローディング状態 - Modern Design
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-accent to-bg-primary">
-        {/* Animated background */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            className="absolute top-0 right-0 w-96 h-96 bg-brixa-400/5 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <DashboardSkeleton />
-        </div>
-      </div>
-    );
+    return <AdminStatsSkeleton />;
   }
 
   // エラー状態 - Modern Design
-  if (error) {
+  const loadError = error ?? initialLoadError;
+  // A successful manual retry supersedes the initial server-result failure.
+  if (loadError && !orderStats) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-accent to-bg-primary">
         {/* Animated background */}
@@ -214,7 +181,7 @@ export default function AdminDashboardClient({
                       ダッシュボードデータの読み込みエラー
                     </h3>
                     <p className="text-error-700">
-                      {error instanceof Error ? error.message : '不明なエラーが発生しました'}
+                      {loadError.message || '不明なエラーが発生しました'}
                     </p>
                   </div>
 
@@ -267,45 +234,6 @@ export default function AdminDashboardClient({
             </Card>
           </motion.div>
 
-          {/* Warning Banner */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6"
-          >
-            <Card variant="warning" rounded="2xl" className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="h-6 w-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-warning-900">
-                  一部のデータを表示できません。最新情報は手動で更新してください。
-                </p>
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Fallback Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-6"
-          >
-            <OrderStatisticsWidget statistics={defaultStats} error={error.message} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <RecentActivityWidget orders={[]} />
-              </div>
-              <div className="space-y-6">
-                <QuickActionsWidget />
-                <AlertsWidget />
-              </div>
-            </div>
-          </motion.div>
         </div>
       </div>
     );
@@ -357,110 +285,9 @@ export default function AdminDashboardClient({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-accent to-bg-primary">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-0 right-0 w-96 h-96 bg-brixa-400/5 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute bottom-0 left-0 w-96 h-96 bg-navy-400/5 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Modern Header Section */}
-        <div className="mb-8">
-          <div className="mb-6">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div>
-                <h1
-                  className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-brixa-700 via-brixa-600 to-brixa-500 bg-clip-text text-transparent mb-2"
-                >
-                  管理ダッシュボード
-                </h1>
-                <p className="text-base text-text-secondary flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 bg-brixa-500 rounded-full animate-pulse"></span>
-                  ようこそ、{authContext.userName}さん
-                </p>
-              </div>
-
-              <div
-                className="flex flex-wrap items-center gap-3"
-              >
-                {/* Period Filter - Modern Design */}
-                <div className="relative group">
-                  <select
-                    value={period}
-                    onChange={(e) => setPeriod(parseInt(e.target.value))}
-                    className="appearance-none bg-white/90 backdrop-blur-sm border-2 border-brixa-200 text-text-primary px-5 py-2.5 pr-10 rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:border-brixa-500 transition-all duration-200 hover:border-brixa-300 hover:shadow-md cursor-pointer"
-                  >
-                    <option value="7">最近7日</option>
-                    <option value="30">最近30日</option>
-                    <option value="90">最近90日</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-brixa-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Update Indicator */}
-                {isValidating && (
-                  <motion.div
-                    className="flex items-center gap-2 px-4 py-2.5 bg-brixa-50 border border-brixa-200 rounded-xl text-brixa-700 text-sm font-medium"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    更新中...
-                  </motion.div>
-                )}
-
-                {/* Last Update Time */}
-                <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-sm border border-border-medium rounded-xl text-text-secondary text-sm">
-                  <Clock className="h-4 w-4" />
-                  <span>{new Date().toLocaleString('ja-JP')}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* KPI Cards - Premium Design (Status-based) */}
-          <div>
-            {orderStats && (
-              <div className="space-y-4">
-                {/* セクション見出し: ステータス別 KPI */}
-                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-6 bg-gradient-to-b from-brixa-500 to-brixa-700 rounded-full" />
-                  <div>
-                    <h2 className="text-lg font-bold text-text-primary leading-tight">ステータス別 KPI</h2>
-                    <p className="text-xs text-text-tertiary">対応が必要な注文の現状サマリー</p>
-                  </div>
-                </div>
+    <>
+      {orderStats && (
+        <div className="space-y-4">
                 {/* B2: ステータス軸セグメントコントロール（選択ステータスで KPI を連動） */}
                 <div
                   role="group"
@@ -698,8 +525,6 @@ export default function AdminDashboardClient({
                 </div>
               </div>
             )}
-          </div>
-        </div>
 
         {/* Order Statistics Widget */}
         <motion.div
@@ -891,6 +716,108 @@ export default function AdminDashboardClient({
             <AlertsWidget />
           </motion.div>
         </motion.div>
+    </>
+  );
+}
+
+function AdminStatsSkeleton() {
+  return (
+    <div className="space-y-6" aria-hidden="true">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }, (_, index) => (
+          <div key={index} className="bg-white rounded-2xl p-6 shadow-md border border-border-light">
+            <div className="h-10 w-10 bg-border-light rounded-xl animate-pulse" />
+            <div className="mt-4 h-3 w-24 bg-border-light rounded animate-pulse" />
+            <div className="mt-3 h-8 w-20 bg-border-light rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+      <div className="bg-bg-primary rounded-2xl p-6 shadow-md border border-border-light">
+        <div className="h-[250px] bg-border-light rounded animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+export default function AdminDashboardClient({
+  authContext,
+  initialStatsPromise,
+  initialPeriod,
+}: AdminDashboardClientProps) {
+  const [period, setPeriod] = useState(initialPeriod);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-accent to-bg-primary">
+      {/* Animated background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-0 right-0 w-96 h-96 bg-brixa-400/5 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute bottom-0 left-0 w-96 h-96 bg-navy-400/5 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-brixa-700 via-brixa-600 to-brixa-500 bg-clip-text text-transparent mb-2">
+                管理ダッシュボード
+              </h1>
+              <p className="text-base text-text-secondary flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-brixa-500 rounded-full animate-pulse" />
+                ようこそ、{authContext.userName}さん
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative group">
+                <select
+                  value={period}
+                  onChange={(e) => setPeriod(parseInt(e.target.value))}
+                  className="appearance-none bg-white/90 backdrop-blur-sm border-2 border-brixa-200 text-text-primary px-5 py-2.5 pr-10 rounded-xl font-medium text-sm focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:border-brixa-500 transition-all duration-200 hover:border-brixa-300 hover:shadow-md cursor-pointer"
+                >
+                  <option value="7">最近7日</option>
+                  <option value="30">最近30日</option>
+                  <option value="90">最近90日</option>
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-brixa-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-sm border border-border-medium rounded-xl text-text-secondary text-sm">
+                <Clock className="h-4 w-4" />
+                <span>{new Date().toLocaleString('ja-JP')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Required KPI heading streams before the authorized data boundary. */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-gradient-to-b from-brixa-500 to-brixa-700 rounded-full" />
+            <div>
+              <h2 className="text-lg font-bold text-text-primary leading-tight">ステータス別 KPI</h2>
+              <p className="text-xs text-text-tertiary">対応が必要な注文の現状サマリー</p>
+            </div>
+          </div>
+        </div>
+
+        <Suspense fallback={<AdminStatsSkeleton />}>
+          <AdminDashboardStatsContent
+            authContext={authContext}
+            initialStatsPromise={initialStatsPromise}
+            initialPeriod={initialPeriod}
+            period={period}
+          />
+        </Suspense>
       </div>
     </div>
   );

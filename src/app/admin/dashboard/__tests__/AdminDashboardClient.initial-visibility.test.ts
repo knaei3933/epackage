@@ -8,9 +8,9 @@ const componentSource = readFileSync(
 
 describe('AdminDashboardClient initial visibility', () => {
   it('renders h1 and status KPI h2 outside initial-hidden animated wrappers', () => {
-    const headerStart = componentSource.indexOf('Modern Header Section');
+    const headerStart = componentSource.indexOf('export default function AdminDashboardClient');
     const statusHeading = componentSource.indexOf('ステータス別 KPI', headerStart);
-    const statusHeadingElement = componentSource.indexOf('<h2', statusHeading);
+    const statusHeadingElement = componentSource.lastIndexOf('<h2', statusHeading);
 
     expect(headerStart).toBeGreaterThan(-1);
     expect(statusHeading).toBeGreaterThan(headerStart);

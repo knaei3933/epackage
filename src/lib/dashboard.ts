@@ -1760,7 +1760,9 @@ export async function getUnifiedDashboardStats(
     return result;
   } catch (error) {
     console.error('[getUnifiedDashboardStats] Error:', error);
-    return getEmptyUnifiedStats();
+    // Route boundaries own failure presentation. Returning an empty payload here
+    // would make a server failure indistinguishable from authoritative zeros.
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 

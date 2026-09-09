@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { use, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Badge, PageLoadingState, Button } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
@@ -30,6 +30,7 @@ import { getEffectiveValidUntil } from '@/lib/quotation-utils';
 import { MemberSpecificationDisplay } from '@/components/member/quotations/MemberSpecificationDisplay';
 import { PostProcessingPreview } from '@/components/quote-simulator/PostProcessingPreview';
 import { useToastContext } from '@/components/ui/Toast';
+import type { QuotationsData } from './loader';
 import { fetchDocumentHistory as fetchDocumentHistoryAPI, logDocumentAction as logDocumentActionAPI, deleteQuotation as deleteQuotationAPI, convertQuotationToOrder as convertQuotationToOrderAPI, downloadPdfBlob as downloadPdfBlobAPI } from '@/lib/api/member/quotations';
 import type { OrderAgreementInput } from '@/lib/order-consent-terms';
 
@@ -40,7 +41,47 @@ function safeMap<T, U>(array: T[] | null | undefined, fn: (item: T, index: numbe
 
 // Types for props from Server Component
 interface QuotationsClientProps {
-  initialData: {
+  initialDataPromise: Promise<QuotationsData>;
+  initialStatus: string;
+  currentPage: number;
+}
+
+function QuotationsListSkeleton() {
+  return (
+    <div className="space-y-4" aria-hidden="true">
+      {Array.from({ length: 5 }, (_, index) => (
+        <Card key={index} className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="h-4 w-4 rounded bg-gray-200 animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-48 bg-gray-200 animate-pulse rounded" />
+              <div className="h-3 w-32 bg-gray-200 animate-pulse rounded" />
+            </div>
+            <div className="h-8 w-20 bg-gray-200 animate-pulse rounded" />
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * QuotationsClientContent - メインのメンバー用見積管理コンポーネント
+ * 状態管理とデータフェッチ、コンポーネントの合成のみ担当
+ */
+function QuotationsClientContent({
+  initialDataPromise,
+  currentPage,
+  onPageChange,
+}: {
+  initialDataPromise: Promise<QuotationsData>;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}) {
+  const router = useRouter();
+  // The loader intentionally returns the narrower database projection consumed
+  // by this list; normalize it to the client entity view used by the UI.
+  const initialData = use(initialDataPromise) as unknown as {
     quotations: Quotation[];
     pagination: {
       limit: number;
@@ -48,25 +89,12 @@ interface QuotationsClientProps {
       total: number;
     };
   };
-  initialStatus: string;
-  currentPage: number;
-  totalPages: number;
-}
-
-/**
- * QuotationsClientContent - メインのメンバー用見積管理コンポーネント
- * 状態管理とデータフェッチ、コンポーネントの合成のみ担当
- */
-function QuotationsClientContent({ initialData, initialStatus, currentPage, totalPages }: QuotationsClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const totalPages = Math.ceil(initialData.pagination.total / 5);
 
   // Initialize state from Server Component props
   const [quotations, setQuotations] = useState<Quotation[]>(initialData.quotations);
   const { showError, showSuccess } = useToastContext();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<QuotationStatus | 'all'>(initialStatus as QuotationStatus | 'all');
   const [error, setError] = useState<string | null>(null);
   const [downloadingQuoteId, setDownloadingQuoteId] = useState<string | null>(null);
   const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null);
@@ -74,6 +102,14 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
 
   // Pagination state
   const [page, setPage] = useState(currentPage);
+
+  // The authoritative total is available only at this boundary. Validate here,
+  // then let the shell-owned callback issue the existing full-page navigation.
+  const handleValidatedPageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+    onPageChange(newPage);
+  };
 
   // Card expand/collapse state
   // Page 1: all expanded by default; Page 2+: all collapsed
@@ -99,36 +135,6 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
   // Spec approval modal state
   const [showSpecModal, setShowSpecModal] = useState(false);
   const [quotationForSpec, setQuotationForSpec] = useState<Quotation | null>(null);
-
-  // Handle status filter change by updating URL (triggers server-side fetch)
-  const handleStatusChange = (newStatus: QuotationStatus | 'all') => {
-    setSelectedStatus(newStatus);
-    const params = new URLSearchParams(searchParams.toString());
-    if (newStatus === 'all') {
-      params.delete('status');
-    } else {
-      params.set('status', newStatus);
-    }
-    params.delete('page');
-    window.location.href = `/member/quotations?${params.toString()}`;
-  };
-
-  // Handle page change
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    setPage(newPage);
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (selectedStatus !== 'all') {
-      params.set('status', selectedStatus);
-    }
-    if (newPage > 1) {
-      params.set('page', newPage.toString());
-    } else {
-      params.delete('page');
-    }
-    window.location.href = `/member/quotations?${params.toString()}`;
-  };
 
   // Fetch download statistics for all quotations
   const fetchDownloadStats = async () => {
@@ -235,22 +241,6 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
   return (
     <div className="min-h-screen bg-bg-primary p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-text-primary">見積一覧</h1>
-          <p className="text-sm text-text-muted mt-1">
-            ようこそ、{profile?.company_name || user?.email}さん
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="mb-6">
-          <QuotationFilters
-            selectedStatus={selectedStatus}
-            onStatusChange={handleStatusChange}
-          />
-        </div>
-
         {/* Loading State */}
         {isLoading ? (
           <PageLoadingState />
@@ -477,7 +467,7 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
               currentPage={page}
               totalPages={totalPages}
               totalItems={initialData.pagination.total}
-              onPageChange={handlePageChange}
+              onPageChange={handleValidatedPageChange}
             />
 
             {/* Spec Approval Modal */}
@@ -519,10 +509,68 @@ function QuotationsClientContent({ initialData, initialStatus, currentPage, tota
   );
 }
 
-export default function QuotationsClient(props: QuotationsClientProps) {
+export default function QuotationsClient({
+  initialDataPromise,
+  initialStatus,
+  currentPage,
+}: QuotationsClientProps) {
+  const searchParams = useSearchParams();
+  const { user, profile } = useAuth();
+  const [selectedStatus, setSelectedStatus] = useState<QuotationStatus | 'all'>(initialStatus as QuotationStatus | 'all');
+
+  // Keep the meaningful h1 and filter selector in the post-auth streamed shell.
+  const handleStatusChange = (newStatus: QuotationStatus | 'all') => {
+    setSelectedStatus(newStatus);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newStatus === 'all') {
+      params.delete('status');
+    } else {
+      params.set('status', newStatus);
+    }
+    params.delete('page');
+    window.location.href = `/member/quotations?${params.toString()}`;
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (selectedStatus !== 'all') {
+      params.set('status', selectedStatus);
+    }
+    if (newPage > 1) {
+      params.set('page', newPage.toString());
+    } else {
+      params.delete('page');
+    }
+    window.location.href = `/member/quotations?${params.toString()}`;
+  };
+
   return (
     <Suspense fallback={<PageLoadingState />}>
-      <QuotationsClientContent {...props} />
+      <div className="min-h-screen bg-bg-primary p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-text-primary">見積一覧</h1>
+            <p className="text-sm text-text-muted mt-1">
+              ようこそ、{profile?.company_name || user?.email}さん
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <QuotationFilters
+              selectedStatus={selectedStatus}
+              onStatusChange={handleStatusChange}
+            />
+          </div>
+
+          <Suspense fallback={<QuotationsListSkeleton />}>
+            <QuotationsClientContent
+              initialDataPromise={initialDataPromise}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+            />
+          </Suspense>
+        </div>
+      </div>
     </Suspense>
   );
 }

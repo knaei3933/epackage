@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AdminOrdersClient from '@/app/admin/orders/AdminOrdersClient';
 import AdminQuotationsClient from '@/app/admin/quotations/AdminQuotationsClient';
 import { OrdersClient } from '@/app/member/orders/OrdersClient';
@@ -146,12 +146,14 @@ describe('bounded hydration fetch waterfalls', () => {
 
   it('hydrates member orders from server data without a duplicate initial fetch and keeps client filters local', async () => {
     mockFetchOrders.mockReset();
-    render(
-      <OrdersClient
-        userId="member-1"
-        initialOrders={[memberOrder]}
-      />,
-    );
+    await act(async () => {
+      render(
+        <OrdersClient
+          userId="member-1"
+          initialOrdersPromise={Promise.resolve([memberOrder])}
+        />,
+      );
+    });
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('処理中の注文');
     expect(screen.getByText('MEM-001')).toBeInTheDocument();
@@ -176,7 +178,13 @@ describe('bounded hydration fetch waterfalls', () => {
     expect(adminQuotationsPage).toContain('getInitialAdminQuotations');
     expect(adminQuotationsPage).toContain('initialQuotations={initialQuotationData.quotations}');
     expect(memberOrdersPage).toMatch(/rbacContext\?\.role === '(?:admin|operator|sales)'/);
-    expect(memberOrdersPage).toMatch(/if\s*\(!canViewAllOrders\)\s*\{\s*query\s*=\s*query\.eq\('user_id',\s*user\.id\);/);
-    expect(memberOrdersPage).toContain('initialOrders={initialOrders}');
+    const ordersQueryScope = memberOrdersPage.slice(
+      memberOrdersPage.indexOf('async function getInitialOrders'),
+      memberOrdersPage.indexOf('export default async function OrdersPage'),
+    );
+    expect(ordersQueryScope).toMatch(
+      /if\s*\(!canViewAllOrders\)\s*\{\s*query\s*=\s*query\.eq\('user_id',\s*userId\);/,
+    );
+    expect(memberOrdersPage).toContain('initialOrdersPromise={initialOrdersPromise}');
   });
 });

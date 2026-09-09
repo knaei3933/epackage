@@ -8,28 +8,47 @@
  */
 
 import { getAdminAuth } from '../loader';
-import { fetchOrderStats, fetchQuotationStats } from './data';
+import { fetchOrderStats, fetchQuotationStats, normalizeAdminInitialStats } from './data';
 import AdminDashboardClient from './AdminDashboardClient';
+import type { AdminAuthContext } from '@/types/admin';
+import type { AdminDashboardStats } from '@/types/admin';
+import type { DashboardInitialStatsResult } from '@/types/dashboard-result';
 
 interface PageProps {
   searchParams: Promise<{ period?: string }>;
 }
 
-async function DashboardContent({ period }: { period?: string }) {
-  // RBAC認証チェック（管理者権限必須）
-  const authContext = await getAdminAuth(['order:read', 'quotation:read'], '/auth/signin?redirect=/admin/dashboard');
-
-  // 並列データフェッチ
-  const [orderStats, quotationStats] = await Promise.all([
+export function buildInitialStatsPromise(period?: string) {
+  return Promise.all([
     fetchOrderStats(parseInt(period) || 30),
     fetchQuotationStats(parseInt(period) || 30),
-  ]);
+  ]).then(([orderStats, quotationStats]): DashboardInitialStatsResult<AdminDashboardStats> => {
+    if (!orderStats || !quotationStats) {
+      throw new Error('ダッシュボードデータの取得に失敗しました');
+    }
+
+    return { status: 'success' as const, stats: normalizeAdminInitialStats(orderStats, quotationStats) };
+  }).catch((error): DashboardInitialStatsResult<AdminDashboardStats> => ({
+    status: 'error',
+    message: error instanceof Error ? error.message : '不明なエラーが発生しました',
+  }));
+}
+
+async function DashboardContent({
+  authContext,
+  period,
+}: {
+  authContext: AdminAuthContext;
+  period?: string;
+}) {
+  // Start both user-authorized queries after RBAC. Promise.all is passed to the
+  // client boundary so the h1/KPI heading can flush before either query lands.
+  const initialStatsPromise = buildInitialStatsPromise(period);
 
   return (
     <AdminDashboardClient
       authContext={authContext}
-      initialOrderStats={orderStats}
-      initialQuotationStats={quotationStats}
+      initialStatsPromise={initialStatsPromise}
       initialPeriod={parseInt(period) || 30}
     />
   );
@@ -38,11 +57,13 @@ async function DashboardContent({ period }: { period?: string }) {
 export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const period = params.period;
+  const authContext = await getAdminAuth(
+    ['order:read', 'quotation:read'],
+    '/auth/signin?redirect=/admin/dashboard',
+  );
 
   return (
-    // Next.js 16 では loading.tsx（DashboardLoading）が同セグメントの自動 Suspense boundary として機能するため、
-    // ここでは手動 Suspense ではなく DashboardContent を直接レンダリング（Suspense 境界の二重化を回避）
-    <DashboardContent period={period} />
+    <DashboardContent authContext={authContext} period={period} />
   );
 }
 

@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { requireAuth, AuthRequiredError } from '@/lib/dashboard';
 import { fetchQuotationsServerSide } from './loader';
+import type { QuotationsData } from './loader';
 import QuotationsClient from './QuotationsClient';
 
 interface PageProps {
@@ -38,19 +39,16 @@ export default async function QuotationsPage({ searchParams }: PageProps) {
   const currentPage = parseInt(pageParam, 10);
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  // Fetch quotations on server side
-  const data = await fetchQuotationsServerSide(user.id, status, ITEMS_PER_PAGE, offset);
-
-  // Calculate total pages
-  const totalPages = Math.ceil(data.pagination.total / ITEMS_PER_PAGE);
+  // Begin the user-scoped fetch after authorization, but let the shell and
+  // selector flush while it is still in flight.
+  const initialDataPromise = fetchQuotationsServerSide(user.id, status, ITEMS_PER_PAGE, offset);
 
   // Pass data to client component
   return (
     <QuotationsClient
-      initialData={data as any}
+      initialDataPromise={initialDataPromise as Promise<QuotationsData>}
       initialStatus={status}
       currentPage={currentPage}
-      totalPages={totalPages}
     />
   );
 }
