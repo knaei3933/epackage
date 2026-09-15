@@ -44,6 +44,7 @@ function getStatusVariant(status: string): 'warning' | 'info' | 'success' | 'sec
     PRODUCTION: 'secondary',
     READY_TO_SHIP: 'success',
     SHIPPED: 'success',
+    DELIVERED: 'success',
     CANCELLED: 'error',
 
     // レガシー互換 (古いB2Bワークフロー)
@@ -54,7 +55,6 @@ function getStatusVariant(status: string): 'warning' | 'info' | 'success' | 'sec
     CONTRACT_SENT: 'info',
     CONTRACT_SIGNED: 'info',
     STOCK_IN: 'secondary',
-    DELIVERED: 'default',
 
     // Legacy lowercase support
     pending: 'warning',

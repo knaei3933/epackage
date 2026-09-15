@@ -96,41 +96,24 @@ export default function GlobalError({ error, reset }: ErrorProps) {
   const uiConfig = getErrorUIConfig(error);
 
   useEffect(() => {
+    // 에러 에어백 — 관리자 통지 (실패 무시, rate-limit은 서버측)
+    fetch('/api/error-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        digest: error.digest,
+        message: error.message,
+        stack: error.stack,
+        url: window.location.href,
+      }),
+    }).catch(() => {});
     // エラーログ記録
     console.error('Global error caught:', error);
 
-    // 外部ログサービスへの送信（本番環境）
-    if (process.env.NODE_ENV === 'production') {
-      logErrorToService(error);
-    }
+    // 외부 로그 서비스 — 에어백으로 통일 (prod에서만)
+    // (fetch는 위 에어백 POST에서 이미 수행됨)
   }, [error]);
 
-  const logErrorToService = async (error: Error) => {
-    try {
-      await fetch('/api/errors/log', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          error: {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-            digest: (error as any).digest,
-          },
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href,
-          global: true,
-        }),
-      }).catch(() => {
-        // Silently fail if error logging fails
-      });
-    } catch (e) {
-      // Silently fail if error logging fails
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">

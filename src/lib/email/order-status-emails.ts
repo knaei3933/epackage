@@ -8,6 +8,8 @@
  */
 
 import { epackMailer, type EpackEmailData } from './epack-mailer'
+import { createServiceClient } from '@/lib/supabase'
+import type { OrderStatus } from '@/types/order-status'
 
 // ============================================================
 // Type Definitions
@@ -20,7 +22,7 @@ export interface OrderStatusEmailConfig {
   customerName: string
   productName?: string
   companyName?: string
-  viewUrl: string
+  viewUrl?: string
 }
 
 export interface QuotationStatusEmailConfig {
@@ -608,4 +610,136 @@ export const orderStatusEmails = {
   // Status Dispatcher
   sendForStatus: sendEmailForOrderStatus,
   sendBatch: sendBatchOrderStatusEmails,
+}
+
+
+// ============================================================
+// 상태 전이 중앙 알림 (RALPLAN STEP4 — Option A 중앙 매핑)
+// ============================================================
+
+export interface NotifyStatusChangeConfig extends OrderStatusEmailConfig {
+  trackingNumber?: string
+}
+
+export interface NotifyStatusChangeResult {
+  sent: boolean
+  templateId?: string
+  error?: string
+}
+
+/**
+ * 주문 상태 전이 시 고객에게 맞는 이메일을 발송하는 중앙 진입점.
+ *
+ * - A4: 내부 오류가 상태 변경 자체를 롤백시키지 않도록 catch 후 boolean 반환
+ * - A5: 매핑되지 않은 상태는 조용히 생략 + warn 로그
+ * - A6: view_url 미전달 시 NEXT_PUBLIC_SITE_URL 기반 폴백
+ */
+export async function notifyStatusChange(
+  config: NotifyStatusChangeConfig,
+  targetStatus: OrderStatus
+): Promise<NotifyStatusChangeResult> {
+  try {
+    const viewUrl =
+      config.viewUrl ||
+      `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/member/orders/${config.orderId}`
+
+    const baseData: EpackEmailData = {
+      order_id: config.orderId,
+      order_number: config.orderNumber,
+      customer_email: config.customerEmail,
+      customer_name: config.customerName,
+      product_name: config.productName,
+      view_url: viewUrl,
+    }
+
+    // SHIPPED: 운송장 번호를 delivery_tracking에서 조회 (호출자가 미전달 시)
+    let trackingNumber = config.trackingNumber
+    if (targetStatus === 'SHIPPED' && !trackingNumber) {
+      try {
+        const supabase = createServiceClient() as any // delivery_tracking 미정의 타입 우회
+        const { data } = await supabase
+          .from('delivery_tracking')
+          .select('tracking_number')
+          .eq('order_id', config.orderId)
+          .maybeSingle()
+        trackingNumber = data?.tracking_number ?? undefined
+      } catch {
+        // 조회 실패 시에도 운송장 없는 발송 안내로 진행
+      }
+    }
+
+    let result: { success: boolean; error?: string } | null = null
+    let templateId: string | undefined
+
+    switch (targetStatus) {
+      case 'DATA_UPLOADED':
+        templateId = 'dataReceived'
+        result = await epackMailer.dataReceived(baseData)
+        break
+      case 'MODIFICATION_APPROVED':
+        templateId = 'modificationApproved'
+        result = await epackMailer.modificationApproved(baseData)
+        break
+      case 'CORRECTION_COMPLETED':
+      case 'CUSTOMER_APPROVAL_PENDING':
+        templateId = 'approvalRequest'
+        result = await epackMailer.approvalRequest(baseData)
+        break
+      case 'PRODUCTION':
+        templateId = 'productionStarted'
+        result = await epackMailer.productionStarted({ ...baseData, estimated_completion: '—' })
+        break
+      case 'WORK_ORDER':
+        templateId = 'workOrderStartedEmail'
+        result = await epackMailer.workOrderStarted(baseData)
+        break
+      case 'READY_TO_SHIP':
+        templateId = 'readyToShip'
+        result = await epackMailer.readyToShip({ ...baseData, quantity: '—' })
+        break
+      case 'SHIPPED':
+        templateId = 'shipped'
+        result = await epackMailer.shipped({
+          ...baseData,
+          tracking_number: trackingNumber,
+          tracking_url: trackingNumber
+            ? `https://trackings.post.japanpost.jp/services/srv/search/?requestNo1=${trackingNumber}`
+            : undefined,
+          estimated_delivery: '—',
+        })
+        break
+      case 'DELIVERED':
+        templateId = 'deliveredEmail'
+        result = await epackMailer.delivered({
+          ...baseData,
+          delivered_at: new Date().toISOString(),
+          tracking_number: trackingNumber,
+        })
+        break
+      case 'QUOTATION_PENDING':
+      case 'QUOTATION_APPROVED':
+      case 'DATA_UPLOAD_PENDING':
+      case 'MODIFICATION_REQUESTED':
+      case 'CORRECTION_IN_PROGRESS':
+      case 'CANCELLED':
+        // 별도 전용 흐름이 있는 상태 — 이 중앙 매핑에서는 발송하지 않음
+        return { sent: false, error: `no mapped template for ${targetStatus}` }
+      default:
+        // A5: 미지 상태 — 조용히 생략하지만 로그로 추적
+        console.warn(`[notifyStatusChange] Unmapped status: ${targetStatus}`)
+        return { sent: false, error: `unmapped status: ${targetStatus}` }
+    }
+
+    if (!result?.success) {
+      // A4: 발송 실패는 로그만 남기고 호출자에게 보고 (상태 변경은 이미 완료됨)
+      console.warn(`[notifyStatusChange] Send failed (${templateId}):`, result?.error)
+      return { sent: false, templateId, error: result?.error }
+    }
+
+    return { sent: true, templateId }
+  } catch (error) {
+    // A4: 어떤 경우에도 throw하지 않는다
+    console.error('[notifyStatusChange] Unexpected error:', error)
+    return { sent: false, error: error instanceof Error ? error.message : 'unexpected error' }
+  }
 }

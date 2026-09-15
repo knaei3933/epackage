@@ -71,6 +71,32 @@ interface ShippingStatus {
   japanPostURL?: string;
 }
 
+
+// ============================================================
+// Helper: Resolve recipient from orders.user_id → profiles
+// (customers 테이블은 현행 스키마에 없음 — profiles로 대체)
+// ============================================================
+
+interface RecipientInfo {
+  name: string;
+  email: string;
+}
+
+async function resolveRecipient(
+  supabase: ReturnType<typeof createAuthenticatedServiceClient>,
+  userId: string
+): Promise<RecipientInfo> {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('email, kanji_last_name, kanji_first_name')
+    .eq('id', userId)
+    .maybeSingle();
+  const name =
+    [profile?.kanji_last_name, profile?.kanji_first_name].filter(Boolean).join(' ') ||
+    'お客様';
+  return { name, email: profile?.email || '' };
+}
+
 // ============================================================
 // POST: Generate Tracking Number
 // ============================================================
@@ -112,7 +138,7 @@ export async function POST(request: NextRequest) {
     // Get order info
     const { data: order } = await supabaseAdmin
       .from('orders')
-      .select('*, customers!inner(*)')
+      .select('*')
       .eq('id', orderId)
       .single();
 
@@ -126,27 +152,37 @@ export async function POST(request: NextRequest) {
     // Update or create delivery tracking
     const { data: tracking, error: trackingError } = await supabaseAdmin
       .from('delivery_tracking')
-      .upsert({
-        order_id: orderId,
-        tracking_number: trackingNumber,
-        carrier: carrier,
-        status: 'processing',
-        updated_at: new Date().toISOString(),
-      })
+      .upsert(
+        {
+          order_id: orderId,
+          // approval_date NOT NULL — 운송장 등록 시점을 기준일로 사용
+          approval_date: new Date().toISOString(),
+          tracking_number: trackingNumber,
+          carrier: carrier,
+          status: 'tracking_assigned',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'order_id' }
+      )
       .select()
       .single();
 
     if (trackingError) {
+      // 저장 실패는 고객 화면(운송장 카드)에 영향을 주므로 에러로 반환한다
       console.error('[Shipping Tracking] Upsert error:', trackingError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to save tracking information', details: trackingError.message },
+        { status: 500 }
+      );
     }
 
-    // Send notification email to customer
-    if (order.customers) {
-      const customer = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+    // Send notification email to customer (profiles 기반)
+    if (order?.user_id) {
+      const recipient = await resolveRecipient(supabaseAdmin, order.user_id);
       await sendShippingStatusEmail({
         recipient: {
-          name: customer?.full_name || customer?.name || 'お客様',
-          email: customer?.email || '',
+          name: recipient.name,
+          email: recipient.email,
         },
         orderNumber: order.order_number,
         trackingNumber,
@@ -270,12 +306,13 @@ export async function PATCH(request: NextRequest) {
     // Get order info for notification
     const { data: order } = await supabaseAdmin
       .from('orders')
-      .select('order_number, customers!inner(*)')
+      .select('order_number, user_id')
       .eq('id', orderId)
       .single();
 
-    // Send status update notification
-    if (status && order?.customers) {
+    // Send status update notification (profiles 기반)
+    if (status && order?.user_id) {
+      const recipient = await resolveRecipient(supabaseAdmin, order.user_id);
       const statusMessages: Record<string, string> = {
         shipped: '商品が発送されました。',
         in_transit: '商品が輸送中です。',
@@ -285,10 +322,8 @@ export async function PATCH(request: NextRequest) {
         returned: '商品が返送されました。',
       };
 
-      // Extract customer data (handle both array and single object)
-      const customerData = Array.isArray(order.customers) ? order.customers[0] : order.customers;
-      const customerName = customerData?.full_name || customerData?.name || 'お客様';
-      const customerEmail = customerData?.email || '';
+      const customerName = recipient.name;
+      const customerEmail = recipient.email;
 
       // Validate carrier type
       const validCarriers = ['ems', 'surface_mail', 'sea_freight', 'air_freight', 'other'] as const;

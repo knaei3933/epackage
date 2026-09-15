@@ -51,7 +51,7 @@ export async function PUT(
     const { id: orderId } = params;
 
     const body = await request.json() as UpdateStatusRequest;
-    const { status, reason } = body;
+    const { status, reason, notifyCustomer } = body;
 
     // 新ステータスの必須チェック
     if (!status) {
@@ -110,8 +110,7 @@ export async function PUT(
     // ステータス更新
     // Bug3: SHIPPED 到達時に shipped_at を記録。旧: update文に shipped_at を含まず、
     // SHIPPED に遷移しても shipped_at が null のままだった（実機検証で確認）。
-    // SHIPPED は終端（VALID_STATUS_TRANSITIONS で遷移先なし）なので shipped_at は1回だけセットされる。
-    // ※OrderStatus に DELIVERED/COMPLETED は存在せず最終は SHIPPED のため delivered_at は対象外。
+    // DELIVERED 追加に伴い: DELIVERED 遷移時に delivery_tracking.actual_delivery_date も記録する。
     const now = new Date().toISOString();
     const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
@@ -131,6 +130,72 @@ export async function PUT(
         { error: 'ステータスの更新に失敗しました。' },
         { status: 500 }
       );
+    }
+
+    // DELIVERED 遷移時: delivery_tracking に実配送日を記録（顧客画面の「配達しました」表示用）
+    if (status === 'DELIVERED') {
+      // delivery_tracking은 Database types에 미정의 — runtime에서만 존재
+      const { error: deliveryUpdateError } = await (supabase as any)
+        .from('delivery_tracking')
+        .upsert({
+          order_id: orderId,
+          approval_date: now,
+          actual_delivery_date: now,
+          status: 'delivered',
+          updated_at: now,
+        });
+      if (deliveryUpdateError) {
+        console.warn('[Admin Order Status] Failed to record actual delivery date:', deliveryUpdateError);
+      }
+    }
+
+    // 고객 알림 (notifyCustomer=true인 경우에만 발송 — 스팸 방지 기본값 false)
+    if (notifyCustomer && updatedOrder) {
+      try {
+        const { notifyStatusChange } = await import('@/lib/email/order-status-emails')
+        const updated = updatedOrder as { order_number?: string; user_id?: string }
+
+        // 주문자 정보 + 대표 상품명 조회
+        let customerEmail = ''
+        let customerName = 'お客様'
+        if (updated.user_id) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, kanji_last_name, kanji_first_name, company_name')
+            .eq('id', updated.user_id)
+            .maybeSingle()
+          customerEmail = profile?.email || ''
+          customerName =
+            profile?.company_name ||
+            [profile?.kanji_last_name, profile?.kanji_first_name].filter(Boolean).join(' ') ||
+            'お客様'
+        }
+        const { data: firstItem } = await supabase
+          .from('order_items')
+          .select('product_name, sku_name')
+          .eq('order_id', orderId)
+          .limit(1)
+          .maybeSingle()
+
+        const result = await notifyStatusChange(
+          {
+            orderId,
+            orderNumber: updated.order_number || '',
+            customerEmail,
+            customerName,
+            productName: firstItem?.sku_name || firstItem?.product_name || undefined,
+          },
+          status
+        )
+        console.log(
+          `[Admin Order Status] Customer notification: ${result.sent ? 'sent' : 'skipped'}` +
+            (result.templateId ? ` (${result.templateId})` : '') +
+            (result.error ? ` error=${result.error}` : '')
+        )
+      } catch (notifyError) {
+        // 메일 실패는 상태 변경 성공에 영향을 주지 않는다 (A4)
+        console.warn('[Admin Order Status] Customer notification failed:', notifyError)
+      }
     }
 
     // ダッシュボード統計の即時反映（C2・Phase 4-3）

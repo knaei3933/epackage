@@ -77,6 +77,9 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
   const [loadingPostProcessing, setLoadingPostProcessing] = useState<string | null>(null);
   // Rejection modal state
   const [showRejectionModal, setShowRejectionModal] = useState(false);
+  // 승인 확인 모달 상태 (승인 후 제조 전환·취소 불가 고지)
+  const [approvalConfirmRevisionId, setApprovalConfirmRevisionId] = useState<string | null>(null);
+  const [approvalTermsAccepted, setApprovalTermsAccepted] = useState(false);
   const [rejectingRevisionId, setRejectingRevisionId] = useState<string | null>(null);
   const [rejectingRevisionName, setRejectingRevisionName] = useState<string | null>(null);
   // Retry translation state
@@ -501,6 +504,16 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
     return `${appUrl}/api/designer/orders/${orderId}/correction/${revision.id}/preview`;
   };
 
+  // Google Drive 表示 URL → サムネイル画像 URL 変換
+  // （/view ページは <img> に埋め込めないため、thumbnail エンドポイントを使用する）
+  const getDriveImageUrl = (url: string): string => {
+    const match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+    if (match) {
+      return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1500`;
+    }
+    return url;
+  };
+
   // Filter pending revisions
   const pendingRevisions = revisions.filter((r) => r.approval_status === 'pending');
   const hasPendingRevisions = pendingRevisions.length > 0;
@@ -698,7 +711,7 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                         >
                           <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 group-hover:border-blue-400 transition-colors">
                             <img
-                              src={getPreviewUrl(revision)}
+                              src={getDriveImageUrl(revision.preview_image_url)}
                               alt="プレビュー"
                               className="w-full h-auto bg-gray-100 aspect-[4/3] object-cover transition-transform duration-200 group-hover:scale-105"
                             />
@@ -798,7 +811,10 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
                         {/* Action buttons - Improved styling */}
                         <div className="flex gap-3 pt-2">
                           <Button
-                            onClick={() => handleRespond(revision.id, 'approved')}
+                            onClick={() => {
+                              setApprovalConfirmRevisionId(revision.id);
+                              setApprovalTermsAccepted(false);
+                            }}
                             disabled={submitting === revision.id}
                             className="flex-1 h-14 text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:shadow-md"
                           >
@@ -835,6 +851,84 @@ export function DesignRevisionsSection({ orderId, onRevisionResponded }: DesignR
       )}
 
       {/* Rejection Reason Modal */}
+      {/* 승인 확인 모달: 승인 후 제조 전환·취소 불가 고지 */}
+      {approvalConfirmRevisionId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="承認確認"
+        >
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">承認前にご確認ください</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  承認するとデザイン校正が確定し、製造工程が開始されます。
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-4">
+              <ul className="space-y-2 text-sm text-gray-800">
+                <li className="flex gap-2">
+                  <span className="flex-shrink-0">•</span>
+                  <span>承認後は直ちに<strong>製造工程へ移行</strong>するため、データの修正はできません。</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="flex-shrink-0">•</span>
+                  <span>製造開始後は、理由を問わず<strong>キャンセル・返金はできません</strong>（利用規約第7条に基づく）。</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="flex-shrink-0">•</span>
+                  <span>製造完了後は注文ページで<strong>追跡番号</strong>をご確認いただけます。発行時にはメールでもご案内します。</span>
+                </li>
+              </ul>
+            </div>
+
+            <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border-2 border-gray-200 cursor-pointer mb-5 hover:border-gray-300 transition-colors">
+              <input
+                type="checkbox"
+                checked={approvalTermsAccepted}
+                onChange={(e) => setApprovalTermsAccepted(e.target.checked)}
+                className="mt-0.5 w-5 h-5 flex-shrink-0 accent-blue-600"
+              />
+              <span className="text-sm text-gray-800">
+                上記の内容を確認し、利用規約に基づき承認後のキャンセル・返金ができないことに<strong>同意します</strong>。
+              </span>
+            </label>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setApprovalConfirmRevisionId(null);
+                  setApprovalTermsAccepted(false);
+                }}
+                className="flex-1"
+                disabled={submitting === approvalConfirmRevisionId}
+              >
+                戻る
+              </Button>
+              <Button
+                onClick={() => {
+                  const id = approvalConfirmRevisionId;
+                  setApprovalConfirmRevisionId(null);
+                  if (id) handleRespond(id, 'approved');
+                }}
+                disabled={!approvalTermsAccepted || submitting === approvalConfirmRevisionId}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                同意して承認する
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <RejectionReasonModal
         isOpen={showRejectionModal}
         onClose={handleRejectionModalClose}

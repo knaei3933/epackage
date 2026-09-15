@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { order_ids, status } = body;
+    const { order_ids, status, notifyCustomer } = body;
 
     // Validate required fields
     if (!Array.isArray(order_ids) || order_ids.length === 0) {
@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest) {
     // current_stage も更新しなかった（単一 status API と保護レベルが異なる欠陥）。
     const { data: currentOrders, error: fetchError } = await supabase
       .from('orders')
-      .select('id, status')
+      .select('id, status, order_number, user_id')
       .in('id', order_ids);
 
     if (fetchError) {
@@ -139,6 +139,44 @@ export async function PUT(request: NextRequest) {
             error: designerCancelError,
           });
         }
+      }
+    }
+
+
+    // 고객 알림 (notifyCustomer=true인 경우에만 발송 — 스팸 방지 기본값 false)
+    if (notifyCustomer && validIds.length > 0) {
+      try {
+        const { notifyStatusChange } = await import('@/lib/email/order-status-emails')
+        // 주문자 정보 조회 (user_id → profiles)
+        const userIds = [...new Set((currentOrders || []).filter((o: any) => validIds.includes(o.id)).map((o: any) => o.user_id).filter(Boolean))]
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email, kanji_last_name, kanji_first_name, company_name')
+          .in('id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000'])
+        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
+
+        let sentCount = 0
+        for (const oid of validIds) {
+          try {
+            const orderRow = (currentOrders || []).find((o: any) => o.id === oid)
+            const profile = orderRow?.user_id ? profileMap.get(orderRow.user_id) : null
+            const customerEmail = profile?.email || ''
+            const customerName =
+              profile?.company_name ||
+              [profile?.kanji_last_name, profile?.kanji_first_name].filter(Boolean).join(' ') ||
+              'お客様'
+            const result = await notifyStatusChange(
+              { orderId: oid, orderNumber: orderRow?.order_number || '', customerEmail, customerName },
+              targetStatus
+            )
+            if (result.sent) sentCount++
+          } catch (perOrderError) {
+            console.warn('[BulkStatusUpdate] notification error for', oid, perOrderError)
+          }
+        }
+        console.log(`[BulkStatusUpdate] Customer notifications: ${sentCount}/${validIds.length} sent`)
+      } catch (notifyError) {
+        console.warn('[BulkStatusUpdate] notification failed:', notifyError)
       }
     }
 

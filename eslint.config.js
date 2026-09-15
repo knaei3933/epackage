@@ -3,19 +3,15 @@
  * Next.js 16 + TypeScript + React 19
  */
 
-const { FlatCompat } = require('@eslint/eslintrc')
 const js = require('@eslint/js')
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+const nextConfig = require('eslint-config-next')
 
 module.exports = [
   // Base JavaScript rules
   js.configs.recommended,
 
-  // Next.js config (using compat to convert the old config)
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  // Next.js 16 flat config (배열 export를 직접 spread)
+  ...nextConfig,
 
   {
     ignores: [

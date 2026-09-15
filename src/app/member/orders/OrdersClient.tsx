@@ -206,11 +206,13 @@ const ACTIVE_STATUSES: (OrderStatus | string)[] = [
 
 const HISTORY_STATUSES: (OrderStatus | string)[] = [
   'SHIPPED',                   // 출하 완료
+  'DELIVERED',                 // 납품 완료 (주문 완료)
   'CANCELLED',                 // 취소됨
 ];
 
 const REORDER_STATUSES: (OrderStatus | string)[] = [
   'SHIPPED',                   // 출하 완료 재주문 가능
+  'DELIVERED',                 // 납품 완료 재주문 가능
 ];
 
 const DATE_RANGE_FILTERS = [

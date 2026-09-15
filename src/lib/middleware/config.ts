@@ -48,6 +48,7 @@ export const CSRF_EXEMPT_API_PATHS = [
   '/api/upload', // Phase 4: Token-based designer upload API (public, token-based auth)
   '/api/chat', // Chatbot API - public customer support chat (LM Studio via Cloudflare Tunnel)
   '/api/health', // Health check API - public LM Studio availability check
+  '/api/error-report', // Error airbag — 인증 없는 고객 에러 수집 (rate-limit은 서버 내부)
   '/api/test-knowledge', // Test API for knowledge base debugging
   '/api/pricing/settings', // Public pricing settings API for quotation calculation
 ];

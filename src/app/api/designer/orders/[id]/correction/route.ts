@@ -282,7 +282,7 @@ export async function POST(
         order_id: orderId,
         order_item_id: orderItemId || null,
         revision_number: revisionNumber,
-        revision_name: `リビジョン ${revisionNumber}`,
+        revision_name: `교정 ${revisionNumber}`,
         approval_status: 'pending',
         partner_comment: partnerComment || null,
         comment_ko: commentKo || null,

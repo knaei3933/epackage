@@ -83,6 +83,26 @@ function getBankInfoHtmlSync(bankInfo: BankInfo = DEFAULT_BANK_INFO): string {
 const BANK_INFO = getBankInfoTextSync()
 
 // ============================================================
+// Date/Text Helpers (JST 표시 + undefined 방지)
+// ============================================================
+
+/** 날짜를 일본 표준시(ja-JP)로 표시 — 서버 타임존 무관 */
+function formatJst(date?: Date | string | null): string {
+  const d = date ? new Date(date) : new Date();
+  if (isNaN(d.getTime())) return '—';
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  }).format(d) + ' (JST)';
+}
+
+/** undefined/null/빈 문자열을 fallback으로 대체 (메일 본문 undefined 노출 방지) */
+function safeText(value?: string | null, fallback: string = '—'): string {
+  return value && String(value).trim() !== '' ? String(value) : fallback;
+}
+
+// ============================================================
 // Common Email Components
 // ============================================================
 
@@ -112,15 +132,23 @@ const createHeader = (title: string, gradient: string = 'linear-gradient(135deg,
     <h1 style="margin: 0; font-size: 24px; font-weight: bold;">${title}</h1>
   </div>`
 
+const createInfoRow = (label: string, value: string, valueStyle: string = '', borderBottom: boolean = true) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="${borderBottom ? 'border-bottom: 1px solid #e5e7eb; ' : ''}padding: 10px 0;">
+        <tr>
+          <td style="font-weight: bold; width: 140px; color: #666; padding: 0; vertical-align: top;">${label}</td>
+          <td style="padding: 0; text-align: right; ${valueStyle}">${value}</td>
+        </tr>
+      </table>`
+
 const createInfoBox = (title: string, rows: Array<{label: string, value: string, highlight?: boolean}>) => `
   <div class="info-box" style="background: white; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 0 4px 4px 0;">
     <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold;">${title}</h3>
-    ${rows.map(row => `
-      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-        <span class="info-label" style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;">${row.label}</span>
-        <span class="info-value" style="${row.highlight ? 'font-weight: bold; color: #667eea; font-size: 18px;' : ''}">${row.value}</span>
-      </div>
-    `).join('')}
+    ${rows.map((row, i) => createInfoRow(
+      row.label,
+      row.value,
+      row.highlight ? 'font-weight: bold; color: #667eea; font-size: 18px;' : '',
+      i < rows.length - 1
+    )).join('')}
   </div>`
 
 const createButton = (text: string, url: string, style: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)') => `
@@ -128,12 +156,18 @@ const createButton = (text: string, url: string, style: string = 'linear-gradien
     <a href="${url}" class="button" style="display: inline-block; background: ${style}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">${text}</a>
   </div>`
 
-const createBaseHtml = (content: string, headerColor: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)') => `
+const createBaseHtml = (
+  content: string,
+  headerColor: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  preheader?: string
+) => `
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <style>
     body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -145,7 +179,8 @@ const createBaseHtml = (content: string, headerColor: string = 'linear-gradient(
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    ${preheader ? `<div style="display: none; max-height: 0; overflow: hidden;">${preheader}</div>` : ''}
     ${content}
     <div class="footer">
       <p style="margin: 5px 0;"><strong>Epackage Lab (EPackage Lab)</strong></p>
@@ -181,12 +216,12 @@ Epackage Labでございます。
 【見積案内】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-見積番号：${data.quotation_number}
+見積番号：${safeText(data.quotation_number)}
 お客様名：${data.customer_name}
 ${data.company_name ? `会社名：${data.company_name}` : ''}
 
 見積金額：¥${Number(data.total_amount || 0).toLocaleString('ja-JP')}（税込）
-有効期限：${data.valid_until}
+有効期限：${safeText(data.valid_until)}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -216,7 +251,7 @@ ${FOOTER}
           { label: 'お客様名', value: data.customer_name },
           ...(data.company_name ? [{ label: '会社名', value: data.company_name }] : []),
           { label: '見積金額', value: `¥${Number(data.total_amount || 0).toLocaleString('ja-JP')}（税込）`, highlight: true },
-          { label: '有効期限', value: data.valid_until || '' },
+          { label: '有効期限', value: safeText(data.valid_until) },
         ])}
 
         ${createButton('見積を確認する', data.view_url)}
@@ -257,8 +292,8 @@ Epackage Labでございます。
 【見積承認完了】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-見積番号：${data.quotation_number}
-承認日時：${new Date().toLocaleString('ja-JP')}
+見積番号：${safeText(data.quotation_number)}
+承認日時：${formatJst()}
 見積金額：¥${Number(data.total_amount || 0).toLocaleString('ja-JP')}（税込）
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -287,7 +322,7 @@ ${FOOTER}
 
         ${createInfoBox('見積承認完了', [
           { label: '見積番号', value: data.quotation_number || '' },
-          { label: '承認日時', value: new Date().toLocaleString('ja-JP') },
+          { label: '承認日時', value: formatJst() },
           { label: '見積金額', value: `¥${Number(data.total_amount || 0).toLocaleString('ja-JP')}（税込）`, highlight: true },
         ])}
 
@@ -331,14 +366,14 @@ Epackage Labでございます。
 
 注文番号：${data.order_number}
 商品名：${data.product_name || ''}
-入稿期限：${data.upload_deadline}
+入稿期限：${safeText(data.upload_deadline, '指定なし')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 【入稿データの仕様】
 ・ファイル形式：AI（Illustrator）、PDF、EPS
 ・文字のアウトライン化：必須
-・画像解像度：350dpi以上
+・画像解像度：300dpi以上
 ・カラーモード：CMYKモード
 ・トリムマーク・トンボ：必須
 ・塗り足し：各辺3mm以上
@@ -374,7 +409,7 @@ ${FOOTER}
           <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
             <li>ファイル形式：AI（Illustrator）、PDF、EPS</li>
             <li>文字のアウトライン化：<strong>必須</strong></li>
-            <li>画像解像度：350dpi以上</li>
+            <li>画像解像度：300dpi以上</li>
             <li>カラーモード：CMYKモード</li>
             <li>トリムマーク・トンボ：<strong>必須</strong></li>
             <li>塗り足し：各辺3mm以上</li>
@@ -414,7 +449,7 @@ Epackage Labでございます。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 注文番号：${data.order_number}
-受領日時：${new Date().toLocaleString('ja-JP')}
+受領日時：${formatJst()}
 ファイル名：${data.file_name || ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -440,7 +475,7 @@ ${FOOTER}
 
         ${createInfoBox('データ受領確認', [
           { label: '注文番号', value: data.order_number || '' },
-          { label: '受領日時', value: new Date().toLocaleString('ja-JP') },
+          { label: '受領日時', value: formatJst() },
           { label: 'ファイル名', value: data.file_name || '' },
         ])}
 
@@ -516,14 +551,8 @@ ${FOOTER()}
     const progressPercent = totalSkus > 0 ? Math.round((submittedSkus / totalSkus) * 100) : 0
 
     const pendingSkuRows = pendingSkusList.map((sku: any) => `
-      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-        <span class="info-label" style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;">製品名</span>
-        <span class="info-value" style="font-weight: bold; color: #dc2626;">${sku.productName}</span>
-      </div>
-      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-        <span class="info-label" style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;">数量</span>
-        <span class="info-value">${sku.quantity}枚</span>
-      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;; padding: 0; vertical-align: top;">製品名</td><td style="padding: 0; text-align: right; style="font-weight: bold; color: #dc2626;"">${sku.productName}</td></tr></table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666; flex-shrink: 0;; padding: 0; vertical-align: top;">数量</td><td style="padding: 0; text-align: right; ">${sku.quantity}枚</td></tr></table>
     `).join('')
 
     const content = `
@@ -663,7 +692,7 @@ Epackage Labでございます。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 注文番号：${data.order_number}
-承認日時：${new Date().toLocaleString('ja-JP')}
+承認日時：${formatJst()}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -685,7 +714,7 @@ ${FOOTER}
 
         ${createInfoBox('修正承認完了', [
           { label: '注文番号', value: data.order_number || '' },
-          { label: '承認日時', value: new Date().toLocaleString('ja-JP') },
+          { label: '承認日時', value: formatJst() },
         ])}
 
         <div class="success">
@@ -724,7 +753,7 @@ Epackage Labでございます。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 注文番号：${data.order_number}
-却下日時：${new Date().toLocaleString('ja-JP')}
+却下日時：${formatJst()}
 却下理由：${data.rejection_reason || 'お客様のご意向によるものです'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -748,7 +777,7 @@ ${FOOTER}
 
         ${createInfoBox('修正却下確認', [
           { label: '注文番号', value: data.order_number || '' },
-          { label: '却下日時', value: new Date().toLocaleString('ja-JP') },
+          { label: '却下日時', value: formatJst() },
           { label: '却下理由', value: data.rejection_reason || 'お客様のご意向によるものです' },
         ])}
 
@@ -788,7 +817,7 @@ Epackage Labでございます。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 注文番号：${data.order_number}
-完了日時：${new Date().toLocaleString('ja-JP')}
+完了日時：${formatJst()}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -815,7 +844,7 @@ ${FOOTER}
 
         ${createInfoBox('校正完了', [
           { label: '注文番号', value: data.order_number || '' },
-          { label: '完了日時', value: new Date().toLocaleString('ja-JP') },
+          { label: '完了日時', value: formatJst() },
         ])}
 
         ${createButton('校正データを確認する', data.view_url, 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
@@ -857,7 +886,7 @@ Epackage Labでございます。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 注文番号：${data.order_number}
-承認期限：${data.approval_deadline}
+承認期限：${safeText(data.approval_deadline, '指定なし')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -866,8 +895,7 @@ Epackage Labでございます。
 ${data.view_url}
 
 ご確認いただき、承認ボタンよりお手続きをお願いいたします。
-期限までにご返答がない場合は、了解とみなして製造を進めさせて
-いただく場合がございます。
+ご不明な点がございましたら、承認前にお気軽にお問い合わせください。
 
 何卒よろしくお願い申し上げます。
 
@@ -885,15 +913,14 @@ ${FOOTER}
 
         ${createInfoBox('承認依頼', [
           { label: '注文番号', value: data.order_number || '' },
-          { label: '承認期限', value: data.approval_deadline || '' },
+          { label: '承認期限', value: safeText(data.approval_deadline, '指定なし') },
         ])}
 
         ${createButton('校正データを確認・承認する', data.view_url, 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)')}
 
         <div class="alert">
           <strong>⚠️ ご注意ください</strong><br>
-          期限までにご返答がない場合は、了解とみなして製造を進めさせて<br>
-          いただく場合がございます。予めご了承ください。
+          ご不明な点がございましたら、承認前にお気軽にお問い合わせください。予めご了承ください。
         </div>
 
         <p style="margin-bottom: 0;">何卒よろしくお願い申し上げます。</p>
@@ -928,8 +955,8 @@ Epackage Labでございます。
 
 注文番号：${data.order_number}
 商品名：${data.product_name || ''}
-開始日時：${new Date().toLocaleString('ja-JP')}
-予定完了日：${data.estimated_completion}
+開始日時：${formatJst()}
+予定完了日：${safeText(data.estimated_completion, '調整中')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -953,7 +980,7 @@ ${FOOTER}
         ${createInfoBox('製造開始', [
           { label: '注文番号', value: data.order_number || '' },
           { label: '商品名', value: data.product_name || '' },
-          { label: '開始日時', value: new Date().toLocaleString('ja-JP') },
+          { label: '開始日時', value: formatJst() },
           { label: '予定完了日', value: data.estimated_completion || '', highlight: true },
         ])}
 
@@ -996,7 +1023,7 @@ Epackage Labでございます。
 注文番号：${data.order_number}
 商品名：${data.product_name || ''}
 数量：${data.quantity || ''}
-準備完了日：${new Date().toLocaleString('ja-JP')}
+準備完了日：${formatJst()}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1021,7 +1048,7 @@ ${FOOTER}
           { label: '注文番号', value: data.order_number || '' },
           { label: '商品名', value: data.product_name || '' },
           { label: '数量', value: data.quantity || '' },
-          { label: '準備完了日', value: new Date().toLocaleString('ja-JP') },
+          { label: '準備完了日', value: formatJst() },
         ])}
 
         <div class="info">
@@ -1067,8 +1094,8 @@ Epackage Labでございます。
 
 注文番号：${data.order_number}
 商品名：${data.product_name || ''}
-発送日：${new Date().toLocaleString('ja-JP')}
-${trackingInfo}お届け予定日：${data.estimated_delivery}
+発送日：${formatJst()}
+${trackingInfo}お届け予定日：${safeText(data.estimated_delivery)}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1091,14 +1118,8 @@ ${FOOTER}
 
   html: (data: EpackEmailData): string => {
     const trackingSection = data.tracking_number ? `
-      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-        <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">配送業者</span>
-        <span class="info-value">${data.carrier || '-'}</span>
-      </div>
-      <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-        <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">追跡番号</span>
-        <span class="info-value"><strong>${data.tracking_number}</strong></span>
-      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">配送業者</td><td style="padding: 0; text-align: right; ">${data.carrier || '-'}</td></tr></table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">追跡番号</td><td style="padding: 0; text-align: right; "><strong>${data.tracking_number}</strong></td></tr></table>
     ` : ''
 
     const trackingButton = data.tracking_url ? `
@@ -1119,23 +1140,11 @@ ${FOOTER}
 
         <div class="info-box" style="background: white; border-left: 4px solid #06b6d4; padding: 20px; margin: 20px 0; border-radius: 0 4px 4px 0;">
           <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold;">発送情報</h3>
-          <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">注文番号</span>
-            <span class="info-value">${data.order_number}</span>
-          </div>
-          <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">商品名</span>
-            <span class="info-value">${data.product_name || ''}</span>
-          </div>
-          <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">発送日</span>
-            <span class="info-value">${new Date().toLocaleString('ja-JP')}</span>
-          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">注文番号</td><td style="padding: 0; text-align: right; ">${data.order_number}</td></tr></table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">商品名</td><td style="padding: 0; text-align: right; ">${data.product_name || ''}</td></tr></table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">発送日</td><td style="padding: 0; text-align: right; ">${formatJst()}</td></tr></table>
           ${trackingSection}
-          <div class="info-row" style="display: flex; padding: 10px 0;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">お届け予定日</span>
-            <span class="info-value" style="color: #06b6d4; font-weight: bold;">${data.estimated_delivery}</span>
-          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">お届け予定日</td><td style="padding: 0; text-align: right; color: #06b6d4; font-weight: bold;">${safeText(data.estimated_delivery)}</td></tr></table>
         </div>
 
         <div style="text-align: center;">
@@ -1174,7 +1183,7 @@ Epackage Labでございます。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 注文番号：${data.order_number}
-キャンセル日時：${new Date().toLocaleString('ja-JP')}
+キャンセル日時：${formatJst()}
 キャンセル理由：${data.cancellation_reason || 'お客様のご依頼によるものです'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1197,14 +1206,8 @@ ${FOOTER}
     const refundSection = data.refund_amount ? `
       <div class="info-box" style="background: white; border-left: 4px solid #6b7280; padding: 20px; margin: 20px 0; border-radius: 0 4px 4px 0;">
         <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold;">返金について</h3>
-        <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-          <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">返金金額</span>
-          <span class="info-value" style="font-weight: bold; color: #6b7280; font-size: 18px;">¥${Number(data.refund_amount).toLocaleString('ja-JP')}</span>
-        </div>
-        <div class="info-row" style="display: flex; padding: 10px 0;">
-          <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">返金方法</span>
-          <span class="info-value">${data.refund_method || 'ご指定の支払方法にて返金いたします'}</span>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">返金金額</td><td style="padding: 0; text-align: right; style="font-weight: bold; color: #6b7280; font-size: 18px;"">¥${Number(data.refund_amount).toLocaleString('ja-JP')}</td></tr></table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">返金方法</td><td style="padding: 0; text-align: right; ">${data.refund_method || 'ご指定の支払方法にて返金いたします'}</td></tr></table>
       </div>
 
       ${getBankInfoHtmlSync()}
@@ -1219,7 +1222,7 @@ ${FOOTER}
 
         ${createInfoBox('キャンセル完了', [
           { label: '注文番号', value: data.order_number || '' },
-          { label: 'キャンセル日時', value: new Date().toLocaleString('ja-JP') },
+          { label: 'キャンセル日時', value: formatJst() },
           { label: 'キャンセル理由', value: data.cancellation_reason || 'お客様のご依頼によるものです' },
         ])}
 
@@ -1291,18 +1294,9 @@ Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.
 
         <div class="info-box" style="background: white; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 0 4px 4px 0;">
           <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold;">교정 요청</h3>
-          <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">주문 번호</span>
-            <span class="info-value">${data.order_number}</span>
-          </div>
-          <div class="info-row" style="display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">요청 일시</span>
-            <span class="info-value">${new Date().toLocaleString('ko-KR')}</span>
-          </div>
-          <div class="info-row" style="display: flex; padding: 10px 0;">
-            <span class="info-label" style="font-weight: bold; width: 140px; color: #666;">수정 사항</span>
-            <span class="info-value">${data.correction_details || '상세 내용은 아래 URL에서 확인해주세요.'}</span>
-          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">주문 번호</td><td style="padding: 0; text-align: right; ">${data.order_number}</td></tr></table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">요청 일시</td><td style="padding: 0; text-align: right; ">${new Date().toLocaleString('ko-KR')}</td></tr></table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 10px 0;"><tr><td style="font-weight: bold; width: 140px; color: #666;; padding: 0; vertical-align: top;">수정 사항</td><td style="padding: 0; text-align: right; ">${data.correction_details || '상세 내용은 아래 URL에서 확인해주세요.'}</td></tr></table>
         </div>
 
         <div style="text-align: center; margin: 20px 0;">
@@ -1332,6 +1326,135 @@ Copyright © ${new Date().getFullYear()} Epackage Lab. All rights reserved.
 // Template Export
 // ============================================================
 
+
+// ============================================================
+// Template 16: Delivered (配達完了・取引完了)
+// ============================================================
+
+export const deliveredEmail = {
+  subject: (data: EpackEmailData): string => {
+    return `【Epackage Lab】配達完了 — お取引ありがとうございました (${data.order_number})`
+  },
+
+  plainText: (data: EpackEmailData): string => {
+    return `
+${data.customer_name} 様
+
+平素より格別のご愛顧を賜り、厚く御礼申し上げます。
+Epackage Labでございます。
+
+この度、ご注文いただきました商品の配達が完了いたしました。
+本案件はこれをもって完了いたします。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【配達完了】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+注文番号：${data.order_number}
+商品名：${safeText(data.product_name)}
+配達日：${formatJst(data.delivered_at)}
+${data.tracking_number ? `追跡番号：${data.tracking_number}\n` : ''}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+商品に不備等がございましたら、お早めに下記連絡先までご一報ください。
+再注文の際は、注文履歴から簡単にご注文いただけます。
+
+今後とも変わらぬご愛顧のほど、よろしくお願い申し上げます。
+
+${FOOTER}
+`.trim()
+  },
+
+  html: (data: EpackEmailData): string => {
+    const content = `
+      ${createHeader('📦 配達完了 — ありがとうございました', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
+      <div class="content">
+        <p style="margin-top: 0;">${data.customer_name} 様</p>
+        <p>平素より格別のご愛顧を賜り、厚く御礼申し上げます。<br>Epackage Labでございます。</p>
+        <p>この度、ご注文いただきました商品の配達が完了いたしました。<br>本案件はこれをもって完了いたします。</p>
+
+        ${createInfoBox('配達情報', [
+          { label: '注文番号', value: data.order_number },
+          { label: '商品名', value: safeText(data.product_name) },
+          { label: '配達日', value: formatJst(data.delivered_at), highlight: true },
+          ...(data.tracking_number ? [{ label: '追跡番号', value: data.tracking_number }] : []),
+        ])}
+
+        <div class="success">
+          <strong>📌 商品に不備等がございましたら</strong><br>
+          お早めに design@package-lab.com までご一報ください。<br>
+          再注文の際は、マイページの注文履歴から簡単にご注文いただけます。
+        </div>
+
+        ${createButton('注文履歴を見る', data.view_url)}
+
+        <p style="margin-bottom: 0;">今後とも変わらぬご愛顧のほど、よろしくお願い申し上げます。</p>
+      </div>
+    `
+    return createBaseHtml(content, 'linear-gradient(135deg, #10b981 0%, #059669 100%)')
+  }
+}
+
+// ============================================================
+// Template 17: Work Order Started (作業指示書発行)
+// ============================================================
+
+export const workOrderStartedEmail = {
+  subject: (data: EpackEmailData): string => {
+    return `【Epackage Lab】作業指示書を発行いたしました (${data.order_number})`
+  },
+
+  plainText: (data: EpackEmailData): string => {
+    return `
+${data.customer_name} 様
+
+お世話になっております。
+Epackage Labでございます。
+
+ご承認いただきましたデザインに基づき、作業指示書を発行いたしました。
+製造工程を順次進めてまいります。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【製造進捗】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+注文番号：${data.order_number}
+商品名：${safeText(data.product_name)}
+状況：作業指示書発行済 → 製造中
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+完成まで今しばらくお待ちくださいませ。
+進捗は注文詳細ページよりご確認いただけます。
+
+${FOOTER}
+`.trim()
+  },
+
+  html: (data: EpackEmailData): string => {
+    const content = `
+      ${createHeader('作業指示書を発行いたしました', 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
+      <div class="content">
+        <p style="margin-top: 0;">${data.customer_name} 様</p>
+        <p>お世話になっております。Epackage Labでございます。</p>
+        <p>ご承認いただきましたデザインに基づき、<strong>作業指示書を発行いたしました</strong>。<br>製造工程を順次進めてまいります。</p>
+
+        ${createInfoBox('製造進捗', [
+          { label: '注文番号', value: data.order_number },
+          { label: '商品名', value: safeText(data.product_name) },
+          { label: '状況', value: '作業指示書発行済 → 製造中', highlight: true },
+        ])}
+
+        ${createButton('注文詳細を見る', data.view_url)}
+
+        <p style="margin-bottom: 0;">完成まで今しばらくお待ちくださいませ。</p>
+      </div>
+    `
+    return createBaseHtml(content, 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')
+  }
+}
+
+
 export const epackEmailTemplates = {
   quoteReady: quoteReadyEmail,
   quoteApproved: quoteApprovedEmail,
@@ -1348,6 +1471,8 @@ export const epackEmailTemplates = {
   shipped: shippedEmail,
   orderCancelled: orderCancelledEmail,
   koreaCorrectionRequest: koreaCorrectionRequestEmail,
+  deliveredEmail,
+  workOrderStartedEmail,
 } as const
 
 export type EpackTemplateId = keyof typeof epackEmailTemplates
