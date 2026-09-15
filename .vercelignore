@@ -1,15 +1,57 @@
-# Exclude large images for deployment to meet 100MB limit
-# NOTE: Temporarily disabled to allow images in production
-# public/images/main/main*.png
-# public/images/hero-*.png
-# public/images/processing-icons/*.png
-# public/images/products/*.png
-# public/images/real-products/*.png
-# public/images/about/*.jpg
-# public/images/portfolio/*.png
-# public/images/flow/*.jpg
-# public/images/flow/*.png
-# public/images/process/*.png
+# 빌드 불필요 대용량 디렉터리
+design/
+docs/
+server/
+coverage/
+outputs/
+screenshots/
+scripts/
+logs/
+results/
+playwright-report/
+tests/
+tmp/
+.omx/
+.claude/
+.claudedocs/
+cache/
+customer-lists/
+dist/
+.e2e-screenshots/
+debug-screenshots/
+.supabase/
+.next_stale_*
+.next_old_*
 
-# Keep only essential images
-!public/images/epackage-lab-logo.png
+# 개인정보·설정
+.env
+.env.local
+.env.production
+.dev-server.log
+.dev-restart.log
+.vercel
+
+# 루트 레벨 기타 문서·스크립트
+*.md
+!README.md
+*.log
+analyze-price.js
+auto_pdf_test.js
+check-*.ts
+check-*.mjs
+create-*.ts
+fix-*.js
+fix-*.mjs
+verify-*.mjs
+trace-*.mjs
+list-*.mjs
+update-*.mjs
+refresh-*.mjs
+generate-*.js
+get-*.js
+publish-*.mjs
+final-*.js
+e2e-*.js
+e2e_*.js
+test-*.ts
+test-*.js
