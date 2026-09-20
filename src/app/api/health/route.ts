@@ -1,19 +1,30 @@
 /**
- * Health Check API for LM Studio
+ * Health Check API for Hermes / LM Studio
  *
- * LM Studio用ヘルスチェックAPI
- * Checks if LM Studio service is available
+ * Hermes mode uses the same authenticated serving preflight as chat requests.
  */
 
-/**
- * GET /api/health
- * LM Studioサービスの稼働状態を確認
- */
-export async function GET() {
+import {
+  isHermesPreflightFailure,
+  preflightHermesConnection,
+} from '@/lib/ai/providers';
+
+const createJsonResponse = (
+  payload: Record<string, string>,
+  cacheControl?: string,
+) =>
+  new Response(JSON.stringify(payload), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(cacheControl ? { 'Cache-Control': cacheControl } : {}),
+    },
+  });
+
+const getLMStudioHealth = async () => {
   const baseURL = process.env.LMSTUDIO_BASE_URL || 'http://localhost:1234/v1';
 
   try {
-    // LM Studioの/modelsエンドポイントを確認（5秒タイムアウト）
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -28,56 +39,68 @@ export async function GET() {
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      return new Response(
-        JSON.stringify({
+      return createJsonResponse(
+        {
           status: 'ok',
           message: 'LM Studio is available',
           service: 'lmstudio',
-          baseURL: baseURL,
-        }),
-        {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store',
-          },
-        }
-      );
-    } else {
-      // Return 200 with offline status instead of 503
-      return new Response(
-        JSON.stringify({
-          status: 'offline',
-          message: 'LM Studio returned an error',
-          service: 'lmstudio',
-          baseURL: baseURL,
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }
+          baseURL,
+        },
+        'no-store',
       );
     }
+
+    return createJsonResponse(
+      {
+        status: 'offline',
+        message: 'LM Studio returned an error',
+        service: 'lmstudio',
+        baseURL,
+      },
+      'no-store',
+    );
   } catch (error) {
     const isTimeout = error instanceof Error && error.name === 'AbortError';
     const errorMessage = isTimeout
       ? 'LM Studio connection timeout'
-      : error instanceof Error
-        ? error.message
-        : 'Unknown error';
+      : 'LM Studio is unavailable';
 
-    // Return 200 with offline status instead of 503
-    return new Response(
-      JSON.stringify({
+    return createJsonResponse(
+      {
         status: 'offline',
         message: errorMessage,
         service: 'lmstudio',
-        baseURL: baseURL,
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
+        baseURL,
+      },
+      'no-store',
     );
   }
+};
+
+export async function GET() {
+  if (process.env.CHAT_PROVIDER === 'hermes') {
+    const preflight = await preflightHermesConnection();
+
+    if (isHermesPreflightFailure(preflight)) {
+      return createJsonResponse(
+        {
+          status: 'degraded',
+          service: 'hermes',
+          reasonCode: preflight.reasonCode,
+        },
+        'no-store',
+      );
+    }
+
+    return createJsonResponse(
+      {
+        status: 'ok',
+        service: 'hermes',
+        reasonCode: 'hermes_available',
+      },
+      'no-store',
+    );
+  }
+
+  return getLMStudioHealth();
 }

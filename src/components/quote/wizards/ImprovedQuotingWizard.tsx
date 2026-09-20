@@ -560,7 +560,12 @@ export function ImprovedQuotingWizard() {
       {/* Error Toast Notifications */}
       <ErrorToast toasts={toasts} onDismiss={dismissToast} />
 
-      <div ref={wizardRef} className="max-w-7xl mx-auto p-4 lg:p-8" id="quote-wizard-content">
+      <div
+        ref={wizardRef}
+        className="max-w-7xl mx-auto p-4 lg:p-8"
+        id="quote-wizard-content"
+        data-quote-step={currentStepId}
+      >
 
         {/* Step Indicators - Responsive (横型ステッパー + 進捗バー) */}
         <ResponsiveStepIndicators
@@ -607,7 +612,11 @@ export function ImprovedQuotingWizard() {
               {currentStepId === 'specs' && <SpecsStep />}
               {currentStepId === 'post-processing' && <PostProcessingStep />}
               {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep patternQuantities={patternQuantities} onPatternQuantitiesChange={setPatternQuantities} />}
-              {currentStepId === 'result' && result && <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} />}
+              {currentStepId === 'result' && result && (
+                <div data-chat-field="result">
+                  <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} />
+                </div>
+              )}
 
               {/* Navigation Block Error - Displayed when user cannot proceed due to validation */}
               {/* Specs step validation errors */}

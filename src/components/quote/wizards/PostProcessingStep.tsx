@@ -309,6 +309,7 @@ export function PostProcessingStep() {
                     <div key={option.id} className="relative flex-shrink-0">
                       <button
                         type="button"
+                        data-chat-field="post-processing"
                         onClick={() => handleToggleOption(option.id, option.multiplier)}
                         onMouseEnter={(e) => setHoveredOption({ option, element: e.currentTarget })}
                         onMouseLeave={() => setHoveredOption(null)}

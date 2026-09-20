@@ -186,6 +186,7 @@ export function SpecsStep() {
             <div>
               <label className="block text-base text-gray-700 mb-1">内容物の形態</label>
               <select
+                data-chat-field="contents"
                 value={selectedType}
                 onChange={(e) => updateField('contentsType', e.target.value as typeof selectedType)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
@@ -260,6 +261,7 @@ export function SpecsStep() {
               {BAG_TYPE_OPTIONS.map(type => (
                 <button
                   key={type.id}
+                  data-chat-field="product-type"
                   onClick={() => {                    updateBasicSpecs({                      bagTypeId: type.id,                      ...(type.id === 'lap_seal' ? { depth: 0 } : {})                    })                  }}
                   className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${state.bagTypeId === type.id
                     ? 'border-green-500 bg-green-50 shadow-md transform scale-[1.01]'
@@ -362,6 +364,7 @@ export function SpecsStep() {
                 <label className="block text-base text-gray-700 mb-1">幅</label>
                 <input
                   type="number"
+                  data-chat-field="width"
                   min="50"
                   data-testid="width-input"
                   value={state.width ?? ''}
@@ -389,6 +392,7 @@ export function SpecsStep() {
                   <label className="block text-base text-gray-700 mb-1">ピッチ (デザイン周期)</label>
                   <input
                     type="number"
+                    data-chat-field="pitch"
                     min="50"
                     max="1000"
                     data-testid="pitch-input"
@@ -413,6 +417,7 @@ export function SpecsStep() {
                     <label className="block text-base text-gray-700 mb-1">高さ</label>
                     <input
                       type="number"
+                      data-chat-field="height"
                       min="50"
                       data-testid="height-input"
                       value={state.height ?? ''}
@@ -458,6 +463,7 @@ export function SpecsStep() {
                   <div>
                     <label className="block text-base text-gray-700 mb-1">マチ (底)</label>
                     <select
+                      data-chat-field="depth-gusset"
                       data-testid="gusset-depth-input"
                       value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                       onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
@@ -543,6 +549,7 @@ export function SpecsStep() {
                     <span className="ml-1 text-xs text-gray-400 font-normal">袋の底を広げて自立させる部分</span>
                   </label>
                   <select
+                    data-chat-field="depth-gusset"
                     data-testid="depth-input"
                     value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                     onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
@@ -596,6 +603,7 @@ export function SpecsStep() {
                   <label className="block text-base text-gray-700 mb-1">側面</label>
                   <input
                     type="number"
+                    data-chat-field="side"
                     min="0"
                     value={state.sideWidth ?? ''}
                     onChange={(e) => updateBasicSpecs({ sideWidth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
@@ -642,8 +650,9 @@ export function SpecsStep() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {categoryMaterials.map(material => (
                         <button
-                          key={material.id}
-                          data-testid="material-card"
+	                          key={material.id}
+	                          data-testid="material-card"
+	                          data-chat-field="material"
                           onClick={() => updateBasicSpecs({ materialId: material.id })}
                           className={`p-2 border-2 rounded-lg text-left transition-all relative overflow-hidden ${
                             state.materialId === material.id
@@ -721,7 +730,8 @@ export function SpecsStep() {
                 )}
               </div>
               <div>
-                <select
+	                <select
+	                  data-chat-field="thickness"
                   value={state.thicknessSelection || ''}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -792,9 +802,10 @@ export function SpecsStep() {
           </label>
           <div className="flex flex-wrap gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-              <button
-                key={num}
-                data-testid={`color-btn-${num}`}
+	              <button
+	                key={num}
+	                data-testid={`color-btn-${num}`}
+	                data-chat-field="printing"
                 onClick={() => updateQuantityOptions({ printingColors: num })}
                 className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                   state.printingColors === num

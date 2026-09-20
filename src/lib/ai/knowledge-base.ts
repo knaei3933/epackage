@@ -2,54 +2,28 @@
  * Knowledge Base for Epackage Lab Chatbot
  *
  * ナレッジベース管理モジュール
- * Static knowledge base loader with keyword-based relevance filtering
+ * Tracked corpus with keyword-based relevance filtering
  */
 
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import {
+  KNOWLEDGE_CORPUS,
+  getKnowledgeEntry as getCorpusEntry,
+  type KnowledgeCorpusEntry,
+} from './knowledge-corpus';
 
 // =====================================================
 // Type Definitions
 // =====================================================
 
-interface KnowledgeFile {
-  id: string;
-  keywords: string[];
-  content: string;
-}
+type KnowledgeFile = KnowledgeCorpusEntry;
 
 interface KeywordMapping {
   [keyword: string]: string[]; // keyword -> file IDs
 }
 
-interface KnowledgeFileConfig {
-  dir: 'products' | 'general';
-  filename: string;
-}
-
-// =====================================================
-// Constants - File Paths
-// =====================================================
-
-const KNOWLEDGE_BASE_DIRS = {
-  products: join(process.cwd(), '.omc', 'knowledge-base', 'products'),
-  general: join(process.cwd(), '.omc', 'knowledge-base', 'general'),
-} as const;
-
-const KNOWLEDGE_FILES: Record<string, KnowledgeFileConfig> = {
-  '01-flat-pouch': { dir: 'products', filename: '01-flat-pouch.md' },
-  '02-stand-pouch': { dir: 'products', filename: '02-stand-pouch.md' },
-  '03-gazette-pouch': { dir: 'products', filename: '03-gazette-pouch.md' },
-  '04-spout-pouch': { dir: 'products', filename: '04-spout-pouch.md' },
-  '05-chojiu-bag': { dir: 'products', filename: '05-chojiu-bag.md' },
-  '06-roll-film': { dir: 'products', filename: '06-roll-film.md' },
-  '07-die-cut-package': { dir: 'products', filename: '07-die-cut-package.md' },
-  '08-white-plate': { dir: 'products', filename: '08-white-plate.md' },
-  '09-product-selection-guide': { dir: 'products', filename: '09-product-selection-guide.md' },
-  '10-printing-guide': { dir: 'products', filename: '10-printing-guide.md' },
-  '11-user-flows': { dir: 'general', filename: '11-user-flows.md' },
-  '12-pricing-tips': { dir: 'general', filename: '12-pricing-tips.md' },
-};
+const KNOWLEDGE_FILES = new Map<string, KnowledgeFile>(
+  KNOWLEDGE_CORPUS.map((entry) => [entry.id, entry]),
+);
 
 // =====================================================
 // Constants - Keyword Mappings
@@ -157,67 +131,6 @@ const KEYWORD_MAPPING: KeywordMapping = {
   'おトク': ['12-pricing-tips'],
 };
 
-// =====================================================
-// Cache for loaded knowledge files
-// =====================================================
-
-let knowledgeCache: Map<string, KnowledgeFile> | null = null;
-
-// =====================================================
-// Helper Functions
-// =====================================================
-
-/**
- * Load a single knowledge file from disk
- */
-function loadKnowledgeFile(fileId: string, config: KnowledgeFileConfig): KnowledgeFile | null {
-  try {
-    const dirPath = KNOWLEDGE_BASE_DIRS[config.dir];
-    const filePath = join(dirPath, config.filename);
-
-    if (!existsSync(filePath)) {
-      console.warn(`Knowledge file not found: ${filePath}`);
-      return null;
-    }
-
-    const content = readFileSync(filePath, 'utf-8');
-
-    // Extract keywords from KEYWORD_MAPPING
-    const keywords = Object.entries(KEYWORD_MAPPING)
-      .filter(([_, fileIds]) => fileIds.includes(fileId))
-      .map(([keyword]) => keyword);
-
-    return {
-      id: fileId,
-      keywords,
-      content,
-    };
-  } catch (error) {
-    console.error(`Error loading knowledge file ${config.filename}:`, error);
-    return null;
-  }
-}
-
-/**
- * Load all knowledge files into cache
- */
-function loadKnowledgeBase(): Map<string, KnowledgeFile> {
-  if (knowledgeCache) {
-    return knowledgeCache;
-  }
-
-  knowledgeCache = new Map();
-
-  for (const [fileId, config] of Object.entries(KNOWLEDGE_FILES)) {
-    const knowledgeFile = loadKnowledgeFile(fileId, config);
-    if (knowledgeFile) {
-      knowledgeCache.set(fileId, knowledgeFile);
-    }
-  }
-
-  return knowledgeCache;
-}
-
 /**
  * Extract keywords from user query
  */
@@ -261,6 +174,27 @@ const SEPARATOR = '\n\n---\n\n';
 const TRUNCATION_MARKER = '...\n[要約済み]';
 
 /**
+ * Resolve selected knowledge entries without flattening them into prompt text.
+ * Callers can use this surface to distinguish unmatched queries from missing data.
+ */
+export function getRelevantKnowledgeEntries(query: string): KnowledgeFile[] {
+  const keywords = extractKeywords(query);
+  const relevantFileIds = getRelevantFileIds(keywords);
+
+  const entries: KnowledgeFile[] = [];
+  for (const fileId of relevantFileIds) {
+    if (entries.length >= MAX_KNOWLEDGE_FILES) break;
+
+    const knowledgeFile = KNOWLEDGE_FILES.get(fileId);
+    if (knowledgeFile) {
+      entries.push(knowledgeFile);
+    }
+  }
+
+  return entries;
+}
+
+/**
  * Get relevant knowledge base content based on user query
  *
  * @param query - User's question/input
@@ -273,39 +207,18 @@ const TRUNCATION_MARKER = '...\n[要約済み]';
  * ```
  */
 export function getRelevantKnowledge(query: string): string {
-  const knowledgeBase = loadKnowledgeBase();
-  const keywords = extractKeywords(query);
-  const relevantFileIds = getRelevantFileIds(keywords);
+  const content = getRelevantKnowledgeEntries(query).map((knowledgeFile) => {
+    return knowledgeFile.content.length > MAX_CHARS_PER_FILE
+      ? knowledgeFile.content.substring(0, MAX_CHARS_PER_FILE) + TRUNCATION_MARKER
+      : knowledgeFile.content;
+  });
 
-  if (relevantFileIds.size === 0) {
-    return '';
+  const result = content.join(SEPARATOR);
+  if (result.length > MAX_TOTAL_CHARS) {
+    return result.substring(0, MAX_TOTAL_CHARS) + TRUNCATION_MARKER;
   }
 
-  // Build result efficiently without intermediate array allocation
-  let result = '';
-  let fileCount = 0;
-
-  for (const fileId of relevantFileIds) {
-    if (fileCount >= MAX_KNOWLEDGE_FILES) break;
-
-    const knowledgeFile = knowledgeBase.get(fileId);
-    if (knowledgeFile) {
-      const content = knowledgeFile.content.length > MAX_CHARS_PER_FILE
-        ? knowledgeFile.content.substring(0, MAX_CHARS_PER_FILE) + TRUNCATION_MARKER
-        : knowledgeFile.content;
-
-      if (result) {
-        result += SEPARATOR;
-      }
-      result += content;
-      fileCount++;
-    }
-  }
-
-  // Single final truncation check
-  return result.length > MAX_TOTAL_CHARS
-    ? result.substring(0, MAX_TOTAL_CHARS) + TRUNCATION_MARKER
-    : result;
+  return result;
 }
 
 /**
@@ -313,33 +226,31 @@ export function getRelevantKnowledge(query: string): string {
  * Useful for complete context when needed
  */
 export function getAllKnowledge(): string {
-  const knowledgeBase = loadKnowledgeBase();
-  const allContent: string[] = [];
-
-  Array.from(knowledgeBase.values()).forEach((knowledgeFile) => {
-    allContent.push(knowledgeFile.content);
-  });
-
-  return allContent.join('\n\n---\n\n');
+  return KNOWLEDGE_CORPUS.map((knowledgeFile) => knowledgeFile.content).join(SEPARATOR);
 }
 
 /**
  * Clear the knowledge base cache
- * Useful for testing or hot-reload scenarios
+ * Compatibility no-op; the tracked corpus is immutable at import time.
  */
 export function clearKnowledgeCache(): void {
-  knowledgeCache = null;
 }
 
 /**
  * Get statistics about the knowledge base
  */
 export function getKnowledgeStats() {
-  const knowledgeBase = loadKnowledgeBase();
-
   return {
-    totalFiles: knowledgeBase.size,
+    totalFiles: KNOWLEDGE_CORPUS.length,
     totalKeywords: Object.keys(KEYWORD_MAPPING).length,
-    fileIds: Array.from(knowledgeBase.keys()),
+    fileIds: KNOWLEDGE_CORPUS.map((knowledgeFile) => knowledgeFile.id),
   };
+}
+
+/**
+ * Resolve one tracked entry by ID. Missing IDs return undefined so callers can
+ * fail closed instead of treating absent grounding as an empty matched answer.
+ */
+export function getKnowledgeEntry(id: string): KnowledgeFile | undefined {
+  return getCorpusEntry(id);
 }

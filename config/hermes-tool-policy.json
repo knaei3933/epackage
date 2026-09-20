@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "profile": "website-chatbot",
+  "platform": "api_server",
+  "minimum_hermes_version": "0.21.3",
+  "policy": "empty-external-tool-first-implementation",
+  "expected_enabled_toolset_names": [],
+  "expected_enabled_concrete_tools": [],
+  "hard_blocked_toolset_names": [
+    "browser",
+    "code_execution",
+    "coding",
+    "computer_use",
+    "connections",
+    "cronjob",
+    "debugging",
+    "delegation",
+    "desktop_ui",
+    "file",
+    "homeassistant",
+    "image_gen",
+    "memory",
+    "safe",
+    "search",
+    "session_search",
+    "skills",
+    "terminal",
+    "vision",
+    "web"
+  ],
+  "audit": {
+    "endpoint": "/v1/toolsets",
+    "required_envelope": {
+      "object": "list",
+      "platform": "api_server"
+    },
+    "normalization": [
+      "Require the exact list envelope and an array data field.",
+      "Require every row to have a non-empty string name, boolean enabled, and optional non-empty string tools array.",
+      "Ignore rows whose enabled value is not exactly true, including their configured state and tools.",
+      "Reject malformed rows, duplicate enabled names, hard-blocked enabled names, unknown enabled names, and enabled concrete tools.",
+      "The policy passes only when enabled toolset names and concrete tools are exactly empty."
+    ]
+  }
+}

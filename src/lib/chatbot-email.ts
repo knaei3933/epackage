@@ -127,6 +127,23 @@ export function formatConversationForEmail(messages: UIMessage[]): string {
   return lines.join('\n');
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * HTMLメール用に会話履歴をエスケープして整形する。
+ * チャット本文は外部入力のため、HTMLメールへ直接挿入する前に必ずエスケープする。
+ */
+export function formatConversationForEmailHtml(messages: UIMessage[]): string {
+  return escapeHtml(formatConversationForEmail(messages)).replace(/\n/g, '<br>');
+}
+
 // =====================================================
 // Email Sending Functions
 // =====================================================
@@ -186,12 +203,12 @@ ${formatConversationForEmail(data.conversationHistory)}
   </div>
 
   <div class="section">
-    <span class="label">電話番号：</span>${data.phoneNumber}
+    <span class="label">電話番号：</span>${escapeHtml(data.phoneNumber)}
   </div>
 
   <div class="section">
     <span class="label">会話履歴：</span>
-    <div class="conversation">${formatConversationForEmail(data.conversationHistory).replace(/\n/g, '<br>')}</div>
+    <div class="conversation">${formatConversationForEmailHtml(data.conversationHistory)}</div>
   </div>
 </body>
 </html>
@@ -202,7 +219,8 @@ ${formatConversationForEmail(data.conversationHistory)}
     logger.info('Console mode - Email content', {
       to: ADMIN_EMAIL,
       subject: '【チャットボット】有人切り替えリクエスト',
-      emailBody
+      contentLength: emailBody.length,
+      phoneNumberIncluded: true
     });
     return {
       success: true,

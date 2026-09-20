@@ -665,6 +665,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
             <div className="flex items-center gap-3">
               <input
                 type="number"
+                data-chat-field="quantity"
                 min={isRollFilm ? (quoteState.skuCount === 1 ? "500" : "300") : "500"}
                 max="1000000"
                 step={isRollFilm ? "0.1" : "1"}
@@ -845,6 +846,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                             <td key={patternIndex} className="px-1 py-1 border border-gray-200 min-w-[80px] max-w-[110px]">
                               <input
                                 type="number"
+                                data-chat-field="quantity"
                                 min={minQtyPerCell}
                                 max="1000000"
                                 step={isRollFilm ? '0.1' : '1'}
@@ -873,6 +875,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                         <td colSpan={patternColumnCount + 1 + (hasAddPatternColumn ? 1 : 0)} className="border border-gray-200 bg-gray-50">
                           <button
                             type="button"
+                            data-chat-field="sku-count"
                             onClick={() => handlePatternSKUCountChange(quoteState.skuCount + 1)}
                             className="w-full py-2 m-1 text-sm text-gray-500 hover:text-info-600 hover:bg-info-50 flex items-center justify-center gap-1 transition-colors border-2 border-dashed border-gray-300 rounded-lg"
                             title="SKU行を追加（最大10）"
@@ -942,6 +945,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                     <div className="relative">
                       <input
                         type="number"
+                        data-chat-field="quantity"
                         min={isRollFilm ? (quoteState.skuCount === 1 ? "500" : "300") : "500"}
                         max="1000000"
                         step={isRollFilm ? "0.1" : "1"}
@@ -1002,6 +1006,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                         <td className="px-4 py-3 whitespace-nowrap">
                           <input
                             type="number"
+                            data-chat-field="quantity"
                             min={isRollFilm ? (quoteState.skuCount === 1 ? "500" : "300") : "500"}
                             max="1000000"
                             value={(tempQuantities[skuIndex] ?? quoteState.skuQuantities[skuIndex]) && (tempQuantities[skuIndex] ?? quoteState.skuQuantities[skuIndex]) !== 0 ? (tempQuantities[skuIndex] ?? quoteState.skuQuantities[skuIndex]) : ''}

@@ -3,23 +3,59 @@ import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
 import { sendHandoffEmail } from '@/lib/chatbot-email';
 import { PHONE_REGEX, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 import { loggers } from '@/lib/logger';
-import type { UIMessage } from 'ai';
+import { validateChatMessages } from '@/lib/chat/chat-messages';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
-interface HandoffRequest {
-  phoneNumber: string;
-  conversationHistory: UIMessage[];
-}
-
 const logger = loggers.api('/api/chat/human-handoff');
+const MAX_HANDOFF_REQUEST_BYTES = 128 * 1024;
+const ALLOWED_BODY_KEYS = new Set(['phoneNumber', 'conversationHistory']);
+
+const createBadRequestResponse = (error: string) => NextResponse.json(
+  { error },
+  { status: 400 },
+);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isSameOriginRequest = (req: NextRequest): boolean => {
+  const origin = req.headers.get('origin');
+  if (origin) {
+    try {
+      return new URL(origin).origin === req.nextUrl.origin;
+    } catch {
+      return false;
+    }
+  }
+
+  return req.headers.get('sec-fetch-site') === 'same-origin';
+};
 
 export async function POST(req: NextRequest) {
   try {
+    if (!isSameOriginRequest(req)) {
+      return NextResponse.json(
+        { error: 'リクエスト元が不正です' },
+        { status: 403 },
+      );
+    }
+
+    const contentLength = Number(req.headers.get('content-length'));
+    if (!Number.isSafeInteger(contentLength) || contentLength < 0) {
+      return createBadRequestResponse('リクエストサイズが不正です');
+    }
+    if (contentLength > MAX_HANDOFF_REQUEST_BYTES) {
+      return NextResponse.json(
+        { error: 'リクエストサイズが上限を超えました' },
+        { status: 413 },
+      );
+    }
+
     // Rate limit check
     const clientId = getClientIdentifier(req);
-    const rateLimitResult = await checkRateLimit(clientId);
+    const rateLimitResult = await checkRateLimit(clientId, 'human-handoff');
 
     if (!rateLimitResult.success) {
       return NextResponse.json(
@@ -36,27 +72,41 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse request body
-    const body: HandoffRequest = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return createBadRequestResponse('リクエスト形式が正しくありません');
+    }
+    if (
+      !isRecord(body) ||
+      Object.keys(body).some((key) => !ALLOWED_BODY_KEYS.has(key))
+    ) {
+      return createBadRequestResponse('リクエスト形式が正しくありません');
+    }
+
     const { phoneNumber, conversationHistory } = body;
 
     // Validate phone number
-    if (!phoneNumber || !PHONE_REGEX.test(phoneNumber)) {
+    if (
+      typeof phoneNumber !== 'string' ||
+      !phoneNumber ||
+      !PHONE_REGEX.test(phoneNumber)
+    ) {
       return NextResponse.json(
         { error: '電話番号の形式が正しくありません（例: 050-1793-6500）' },
         { status: 400 }
       );
     }
 
-    // Validate conversation history
-    if (!Array.isArray(conversationHistory) || conversationHistory.length === 0) {
-      return NextResponse.json(
-        { error: '会話履歴が必要です' },
-        { status: 400 }
-      );
+    const validatedConversation = validateChatMessages(conversationHistory);
+    if (!validatedConversation.success) {
+      return createBadRequestResponse('会話履歴の形式が正しくありません');
     }
+    const validatedHistory = validatedConversation.messages;
 
     // Validate conversation history contains handoff trigger
-    const lastAssistantMessage = conversationHistory
+    const lastAssistantMessage = validatedHistory
       .filter(m => m.role === 'assistant')
       .pop();
 
@@ -88,7 +138,7 @@ export async function POST(req: NextRequest) {
     // Send email
     const emailResult = await sendHandoffEmail({
       phoneNumber,
-      conversationHistory,
+      conversationHistory: validatedHistory,
       timestamp: new Date(),
     });
 

@@ -8,11 +8,14 @@
 'use client';
 
 import { useState, useEffect, useRef, FormEvent } from 'react';
+import { usePathname } from 'next/navigation';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { MessageCircle, X, Send, Minimize2, Loader2 } from 'lucide-react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
+import { MessageCircle, X, Send, Minimize2, Loader2, Trash2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { markdownToHtml } from '@/lib/markdown-renderer';
+import { parseChatPageContext, type ChatLocale, type ChatPageContext } from '@/lib/chat/page-context';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 
 // ============================================================
@@ -21,28 +24,108 @@ import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation'
 
 type ConnectionStatus = 'checking' | 'online' | 'offline' | 'maintenance';
 
+const HEALTH_POLL_INTERVAL_MS = 60000;
+const CHAT_HISTORY_STORAGE_KEY = 'epackage-lab-chat-history-v1';
+
+const loadChatHistory = (): UIMessage[] => {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const serialized = window.sessionStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
+    if (!serialized) return [];
+
+    const parsed = JSON.parse(serialized);
+    return Array.isArray(parsed) ? parsed as UIMessage[] : [];
+  } catch (error) {
+    console.warn('Failed to restore chat history:', error);
+    return [];
+  }
+};
+
+const saveChatHistory = (messages: UIMessage[]) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if (messages.length === 0) {
+      window.sessionStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+      return;
+    }
+    window.sessionStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(messages));
+  } catch (error) {
+    console.warn('Failed to persist chat history:', error);
+  }
+};
+
 // ============================================================
 // Component
 // ============================================================
 
 export function ChatWidget() {
+  const pathname = usePathname();
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking');
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [renderedHtml, setRenderedHtml] = useState<Record<string, string>>({});
+  const initialMessagesRef = useRef<UIMessage[]>(loadChatHistory());
   // 有人切り替え関連の状態
   const [showHandoffButton, setShowHandoffButton] = useState(false);
   const [showPhoneInput, setShowPhoneInput] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [handoffSuccess, setHandoffSuccess] = useState(false);
+  const pathnameRef = useRef(pathname);
+  const languageRef = useRef<ChatLocale>(language === 'ja' ? 'ja' : 'ja');
+  const focusedFieldIdRef = useRef<string | null>(null);
+
+  // ページ文脈はリクエスト時にのみ DOM から解決し、入力値は一切読まない。
+  const buildPageContext = (): ChatPageContext => {
+    const quoteStep = document
+      .querySelector('[data-quote-step]')
+      ?.getAttribute('data-quote-step') ?? undefined;
+    const fieldId = focusedFieldIdRef.current ?? undefined;
+    const result = parseChatPageContext({
+      pathname: pathnameRef.current,
+      locale: languageRef.current,
+      quoteStep,
+      fieldId,
+    });
+
+    return result.success
+      ? result.context
+      : { pathname: '/', locale: 'ja' };
+  };
+
+  // useChat は初回 transport を保持するため、callback は ref 経由で常に最新文脈を読む。
+  const transportRef = useRef<DefaultChatTransport<UIMessage> | null>(null);
+  if (!transportRef.current) {
+    transportRef.current = new DefaultChatTransport<UIMessage>({
+      api: '/api/chat',
+      prepareSendMessagesRequest: (options) => ({
+        body: {
+          id: options.id,
+          messages: options.messages,
+          trigger: options.trigger,
+          messageId: options.messageId,
+          pageContext: buildPageContext(),
+        },
+      }),
+    });
+  }
 
   // チャットフック（AI SDK v6 - DefaultChatTransport）
-  const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  const { messages, setMessages, sendMessage, status, error } = useChat({
+    id: 'epackage-lab-site-chat',
+    messages: initialMessagesRef.current,
+    transport: transportRef.current,
   });
+
+  // App Router の画面遷移やウィジェット再マウントでも、同一タブ内の会話を保持する。
+  useEffect(() => {
+    saveChatHistory(messages);
+  }, [messages]);
 
   // ステータスからローディング状態を判定
   const isLoading = status === 'submitted' || status === 'streaming';
@@ -55,6 +138,34 @@ export function ChatWidget() {
     sendMessage({ text: input });
     setInput('');
   };
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+    focusedFieldIdRef.current = null;
+  }, [pathname]);
+
+  useEffect(() => {
+    languageRef.current = language === 'ja' ? 'ja' : 'ja';
+  }, [language]);
+
+  useEffect(() => {
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const field = target.closest('[data-chat-field]');
+      focusedFieldIdRef.current = field?.getAttribute('data-chat-field') ?? null;
+    };
+
+    document.addEventListener('focusin', handleFocusIn);
+    return () => document.removeEventListener('focusin', handleFocusIn);
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      setConnectionStatus('offline');
+    }
+  }, [error]);
 
   // 自動スクロール
   useEffect(() => {
@@ -106,25 +217,43 @@ export function ChatWidget() {
       }
     };
 
-    // 初回チェック
-    const initializeStatus = async () => {
-      const isMaintenance = await checkMaintenance();
-      if (!isMaintenance) {
-        await checkHealth();
+    // 初回チェック後、同一チェーンで60秒ごとに確認する（重複リクエストを防ぐ）。
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let polling = false;
+
+    const scheduleNext = () => {
+      if (!cancelled) {
+        timeoutId = setTimeout(() => {
+          void poll();
+        }, HEALTH_POLL_INTERVAL_MS);
       }
     };
 
-    initializeStatus();
+    const poll = async () => {
+      if (polling || cancelled) return;
+      polling = true;
 
-    // 5分ごとにメンテナンス状態をチェック（APIキャッシュ60秒と合わせてCPU削減）
-    const intervalId = setInterval(async () => {
-      const isMaintenance = await checkMaintenance();
-      if (isMaintenance) {
-        setConnectionStatus('maintenance');
+      try {
+        const isMaintenance = await checkMaintenance();
+        if (isMaintenance) {
+          return;
+        }
+        await checkHealth();
+      } finally {
+        polling = false;
+        scheduleNext();
       }
-    }, 300000); // 5分 = 300秒 = 300000ms
+    };
 
-    return () => clearInterval(intervalId);
+    void poll();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   // メッセージが更新されたらHTMLを生成
@@ -184,9 +313,17 @@ export function ChatWidget() {
       } else {
         setPhoneError(data.error || 'エラーが発生しました');
       }
-    } catch (error) {
+    } catch {
       setPhoneError('エラーが発生しました。しばらく待ってから再試行してください。');
     }
+  };
+
+  const handleClearConversation = () => {
+    setMessages([]);
+    setRenderedHtml({});
+    setShowHandoffButton(false);
+    setShowPhoneInput(false);
+    setHandoffSuccess(false);
   };
 
   // 接続ステータスの色
@@ -269,10 +406,19 @@ export function ChatWidget() {
                   className={`w-2 h-2 rounded-full ${getStatusColor()}`}
                   aria-label={getStatusText()}
                 />
-                <span className="text-xs opacity-80">{getStatusText()}</span>
+                <span className="text-xs opacity-80" data-testid="connection-status">{getStatusText()}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {messages.length > 0 && (
+                <button
+                  onClick={handleClearConversation}
+                  className="p-1 hover:bg-white/10 rounded transition-colors"
+                  aria-label="会話を削除"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
                 className="p-1 hover:bg-white/10 rounded transition-colors"
@@ -314,6 +460,11 @@ export function ChatWidget() {
                     }`}
                   >
                     <div
+                      data-testid={
+                        message.role === 'assistant'
+                          ? 'assistant-message'
+                          : undefined
+                      }
                       className={`max-w-[80%] px-4 py-2 rounded-lg ${
                         message.role === 'user'
                           ? 'bg-brixa text-white'
@@ -358,7 +509,11 @@ export function ChatWidget() {
                 {connectionStatus === 'offline' && (
                   <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-2 rounded-lg text-sm">
                     <p>
-                      現在チャットサービスは利用できません。しばらく待ってから再試行してください。
+                      現在チャットサービスは利用できません。お急ぎの場合は、
+                      <a href="/contact" className="text-brixa hover:underline">お問い合わせフォーム</a>
+                      または
+                      <a href="tel:050-1793-6500" className="text-brixa hover:underline">お電話（050-1793-6500）</a>
+                      でご連絡ください。
                     </p>
                   </div>
                 )}
@@ -457,12 +612,14 @@ export function ChatWidget() {
 
               {/* 入力エリア */}
               <form
+                data-testid="chat-form"
                 onSubmit={handleSubmit}
                 className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl"
               >
                 <div className="flex gap-2">
                   <input
                     type="text"
+                    data-testid="chat-input"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="メッセージを入力..."
