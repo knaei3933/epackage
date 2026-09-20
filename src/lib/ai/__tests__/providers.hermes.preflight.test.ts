@@ -34,8 +34,24 @@ const successResponses = () => {
     new Response(JSON.stringify(emptyToolsets()), { status: 200 }),
   );
 };
-const healthPayload = (payload: Record<string, unknown> = { status: 'ok' }) =>
-  new Response(JSON.stringify(payload), { status: 200 });
+const healthyDetailedPayload = () => ({
+  status: 'ok',
+  readiness: {
+    status: 'ok',
+    checks: {
+      model: { status: 'ok' },
+    },
+  },
+  version: HERMES_TOOL_POLICY.minimum_hermes_version,
+});
+const healthPayload = (payload: Record<string, unknown> = healthyDetailedPayload()) => {
+  const base = healthyDetailedPayload();
+  return new Response(JSON.stringify({
+    ...base,
+    ...payload,
+    readiness: payload.readiness ?? base.readiness,
+  }), { status: 200 });
+};
 const leakAssertions = async (promise: Promise<unknown>) => {
   const result = await promise;
   const serialized = JSON.stringify(result);
@@ -62,7 +78,7 @@ describe('Hermes request preflight', () => {
     fetchMock.mockReset();
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url === 'https://hermes.example.test/health') {
+      if (url === 'https://hermes.example.test/health/detailed') {
         return healthPayload();
       }
       throw new TypeError('unexpected preflight request');
@@ -95,8 +111,9 @@ describe('Hermes request preflight', () => {
       },
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://hermes.example.test/health',
+      'https://hermes.example.test/health/detailed',
       {
+        headers: { Authorization: `Bearer ${API_KEY}` },
         signal: expect.any(AbortSignal),
       },
     );
@@ -144,6 +161,22 @@ describe('Hermes request preflight', () => {
     fetchMock.mockResolvedValueOnce(healthPayload({
       status: 'ok',
       version: '0.21.2',
+    }));
+    await expect(leakAssertions(preflightHermesConnection(10))).resolves
+      .toMatchObject({ ok: false, reasonCode: 'hermes_invalid_response' });
+
+    resetHermesPreflightCacheForTests();
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify(modelPayload()), { status: 200 }),
+    );
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify(emptyToolsets()), { status: 200 }),
+    );
+    fetchMock.mockResolvedValueOnce(healthPayload({
+      readiness: {
+        status: 'ok',
+        checks: { model: { status: 'error' } },
+      },
     }));
     await expect(leakAssertions(preflightHermesConnection(10))).resolves
       .toMatchObject({ ok: false, reasonCode: 'hermes_invalid_response' });

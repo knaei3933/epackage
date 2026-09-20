@@ -304,12 +304,10 @@ async function auditHermesConnection(
     const [modelsResponse, toolsetsResponse, healthResponse] = await Promise.all([
       fetch(`${baseURL}/models`, requestInit),
       fetch(`${serviceRoot}${HERMES_TOOL_POLICY.audit.endpoint}`, requestInit),
-      fetch(`${serviceRoot}/health`, {
-        signal: controller.signal,
-      }),
+      fetch(`${serviceRoot}/health/detailed`, requestInit),
     ]);
 
-    for (const response of [modelsResponse, toolsetsResponse]) {
+    for (const response of [modelsResponse, toolsetsResponse, healthResponse]) {
       if (response.status === 401 || response.status === 403) {
         return hermesPreflightFailure('hermes_auth_error');
       }
@@ -344,7 +342,20 @@ async function auditHermesConnection(
       return hermesPreflightFailure('hermes_invalid_response');
     }
 
-    if (!isRecord(healthPayload) || healthPayload.status !== 'ok') {
+    const readiness = isRecord(healthPayload)
+      ? healthPayload.readiness
+      : undefined;
+    const modelCheck = isRecord(readiness) && isRecord(readiness.checks)
+      ? readiness.checks.model
+      : undefined;
+    if (
+      !isRecord(healthPayload) ||
+      healthPayload.status !== 'ok' ||
+      !isRecord(readiness) ||
+      readiness.status !== 'ok' ||
+      !isRecord(modelCheck) ||
+      modelCheck.status !== 'ok'
+    ) {
       return hermesPreflightFailure('hermes_invalid_response');
     }
     if (healthPayload.version !== undefined &&

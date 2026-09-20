@@ -127,6 +127,7 @@ Current host baseline (`hermes-gateway-website-chatbot.service`):
 
 - dedicated `hermes-www:hermes-www` account with no login shell;
 - profile at `/var/lib/hermes-website-chatbot/.hermes/profiles/website-chatbot`, owned mode `0700`, with `.env` mode `0600`;
+- isolated `/var/lib/hermes-website-chatbot/.hermes/auth.json`, owned mode `0600`, containing only the `zai` credential-pool entries needed by this runtime; do not copy the broader root/global authentication file;
 - loopback-only `127.0.0.1:8642`;
 - `NoNewPrivileges`, private tmp/devices, strict home/system protection, empty capability/ambient sets, network address-family restriction, and write access limited to `/var/lib/hermes-website-chatbot`;
 - restart/recovery and authenticated model/toolset checks must pass after any service change.
@@ -205,8 +206,8 @@ HERMES_MODEL=<model id returned by /v1/models>
 Current behavior:
 
 - `HERMES_BASE_URL` must use HTTPS for Vercel production and preview. Plain HTTP is accepted only in local, non-production/preview development when the host is exactly `127.0.0.1`, `localhost`, or `[::1]`; a `.local` hostname is not a loopback exemption.
-- Before streaming, Hermes mode performs an authenticated model audit and the exact-empty toolset audit from `config/hermes-tool-policy.json -> audit.endpoint`; it also requires `/health` JSON `status:"ok"` and rejects an exposed version below `minimum_hermes_version`. Success is cached for 30 seconds and failure for 5 seconds in each serving process, so this is bounded local caching rather than continuous monitoring or a global enforcement guarantee. The provider never falls back to LM Studio or a commercial provider.
-- `/api/health` performs the same authenticated serving preflight. Authentication, model advertisement, health, or tool-policy failure reports `status:"degraded"` with a stable reason code and never exposes provider details.
+- Before streaming, Hermes mode performs an authenticated model audit and the exact-empty toolset audit from `config/hermes-tool-policy.json -> audit.endpoint`; it also requires authenticated `/health/detailed` readiness (`status`, `readiness.status`, and `readiness.checks.model.status`) and rejects an exposed version below `minimum_hermes_version`. Success is cached for 30 seconds and failure for 5 seconds in each serving process, so this is bounded local caching rather than continuous monitoring or a global enforcement guarantee. The provider never falls back to LM Studio or a commercial provider.
+- `/api/health` performs the same authenticated serving preflight. Authentication, model advertisement, health, or tool-policy failure reports `status:"degraded"` with a stable reason code and never exposes provider details. It intentionally avoids a billable completion request, so operator smoke tests must also send one small direct chat completion after credential or host migration.
 - the BFF sends only validated page context, never form values, files, tokens, or personal identifiers.
 
 Rollback keeps LM Studio intact: restore the prior `LMSTUDIO_BASE_URL` and model settings, change `CHAT_PROVIDER` to `lmstudio`, redeploy, and verify `/api/health`. Do not delete the Hermes preview or prior rollback values until the post-rollback check succeeds.
