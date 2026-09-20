@@ -211,6 +211,31 @@ Current behavior:
 - `CHAT_PROVIDER` accepts only `hermes` or `lmstudio`; an unknown or misspelled value fails closed instead of silently entering LM Studio or commercial failover.
 - the BFF sends only validated page context, never form values, files, tokens, or personal identifiers.
 
+## Page-aware suggestion questions
+
+The global widget posts a same-origin JSON request to `/api/chat/suggestions` only after it is opened. The endpoint:
+
+- validates pathname/locale and, on `/quote-simulator`, the wizard step and focused field ID;
+- resolves the participant audience from the verified Supabase server session and `profiles` lookup, never caller identity headers;
+- returns only public suggestions to anonymous/inactive users;
+- adds member, staff/admin, or designer suggestions only for the matching active role;
+- responds with `Cache-Control: private, no-store`;
+- rate-limits abuse with the `suggestions` policy.
+
+The browser bundle contains only a generic public fallback. Detailed and protected suggestion labels stay in the server catalog. `pnpm run verify:chat-suggestions` scans `.next/static` after a production build and fails if protected member/staff/designer question text leaks into public client chunks.
+
+When a suggestion is selected, the widget sends the displayed question as a normal user message plus a bounded `suggestionId`. `/api/chat` resolves that ID from the server catalog and validates its route, audience, and quote context before using its grounding. Invalid, cross-route, or cross-role IDs are rejected. Free-text input remains available and clears any selected suggestion ID.
+
+### Lead capture boundary
+
+Requirements for progressive guest/member lead capture are specified in `.omx/specs/deep-interview-page-chat-suggestions.md`, but contact/PII persistence is intentionally not enabled yet. Before implementation:
+
+1. add server-issued `chat_sessions`;
+2. add exact structured lead/contact tables with RLS and audit coverage;
+3. prove the `CHAT_LEAD_CAPTURE_ENABLED=false` disabled behavior;
+4. obtain privacy-policy and retention approval;
+5. complete an independent architecture review.
+
 Rollback keeps LM Studio intact: restore the prior `LMSTUDIO_BASE_URL` and model settings, change `CHAT_PROVIDER` to `lmstudio`, redeploy, and verify `/api/health`. Do not delete the Hermes preview or prior rollback values until the post-rollback check succeeds.
 
 ## Production hard stop (remaining M6 gates)

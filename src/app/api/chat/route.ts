@@ -12,12 +12,17 @@ import {
   isHermesPreflightFailure,
   preflightHermesConnection,
 } from '@/lib/ai/providers';
-import { getRelevantKnowledge } from '@/lib/ai/knowledge-base';
+import { getKnowledgeEntry, getRelevantKnowledge } from '@/lib/ai/knowledge-base';
 import {
   buildChatSystemPrompt,
   resolveChatPromptContext,
 } from '@/lib/chat/chat-prompt';
 import { validateChatMessages } from '@/lib/chat/chat-messages';
+import {
+  getChatSuggestion,
+  validateChatSuggestionForContext,
+} from '@/lib/chat/page-suggestions';
+import { resolveChatParticipant } from '@/lib/chat/participant-context';
 import { loggers } from '@/lib/logger';
 import {
   checkRateLimit,
@@ -31,7 +36,15 @@ const logger = loggers.api('/api/chat');
 export const maxDuration = 30;
 
 const MAX_CHAT_REQUEST_BYTES = 128 * 1024;
-const allowedBodyKeys = new Set(['messages', 'pageContext', 'id', 'trigger', 'messageId']);
+const allowedBodyKeys = new Set([
+  'messages',
+  'pageContext',
+  'id',
+  'trigger',
+  'messageId',
+  'suggestionId',
+]);
+const SUGGESTION_ID_PATTERN = /^[a-z0-9.-]{1,128}$/;
 
 /**
  * UIMessageを標準的なメッセージ形式に変換
@@ -221,7 +234,7 @@ export async function POST(req: Request) {
       return createBadRequestResponse('invalid-body');
     }
 
-    const { messages, pageContext } = body;
+    const { messages, pageContext, suggestionId } = body;
 
     const validatedMessages = validateChatMessages(messages);
     if (!validatedMessages.success) {
@@ -235,9 +248,34 @@ export async function POST(req: Request) {
       return createBadRequestResponse('invalid-page-context');
     }
 
+    let selectedSuggestion;
+    if (suggestionId !== undefined) {
+      if (
+        typeof suggestionId !== 'string' ||
+        !SUGGESTION_ID_PATTERN.test(suggestionId)
+      ) {
+        return createBadRequestResponse('invalid-suggestion');
+      }
+
+      const participant = await resolveChatParticipant(req);
+      const suggestionFailure = validateChatSuggestionForContext(
+        suggestionId,
+        pageContextResult.context ?? { pathname: '/', locale: 'ja' },
+        participant?.audience ?? 'public',
+      );
+      if (suggestionFailure) {
+        return createBadRequestResponse('invalid-suggestion');
+      }
+      selectedSuggestion = getChatSuggestion(suggestionId);
+      if (!selectedSuggestion) {
+        return createBadRequestResponse('invalid-suggestion');
+      }
+    }
+
     if (process.env.CHAT_PROVIDER === 'hermes') {
       const userQuery = getLastUserQuery(chatMessages);
-      const hasGrounding = Boolean(getRelevantKnowledge(userQuery)) ||
+      const hasGrounding = Boolean(selectedSuggestion && selectedSuggestion.grounding.kind !== 'navigation') ||
+        Boolean(getRelevantKnowledge(userQuery)) ||
         Boolean(
           pageContextResult.context?.quoteStep &&
           pageContextResult.context?.fieldId &&
@@ -270,7 +308,16 @@ export async function POST(req: Request) {
     // ユーザーの最新メッセージからナレッジベースを取得
     const userQuery = getLastUserQuery(chatMessages);
 
-    const relevantKnowledge = getRelevantKnowledge(userQuery);
+    const selectedKnowledge = selectedSuggestion?.grounding.kind === 'knowledge'
+      ? selectedSuggestion.grounding.ids
+        .map((id) => getKnowledgeEntry(id)?.content)
+        .filter((content): content is string => Boolean(content))
+        .join('\n\n')
+      : undefined;
+    const relevantKnowledge = [
+      selectedKnowledge,
+      getRelevantKnowledge(userQuery),
+    ].filter((section): section is string => Boolean(section)).join('\n\n');
 
     // システムプロンプト取得（フェイルオーバー時は短縮版）
     const systemPrompt = getSystemPrompt(modelConfig.isFailover);
@@ -279,6 +326,7 @@ export async function POST(req: Request) {
     const finalSystemPrompt = buildChatSystemPrompt({
       basePrompt: systemPrompt,
       pageContext: pageContextResult.context,
+      selectedSuggestion,
       relevantKnowledge: relevantKnowledge && !modelConfig.isFailover ? relevantKnowledge : undefined,
     });
 

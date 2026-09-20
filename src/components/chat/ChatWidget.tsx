@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
 import { usePathname } from 'next/navigation';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
@@ -18,6 +18,8 @@ import { parseChatPageContext, type ChatLocale, type ChatPageContext } from '@/l
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 import { validateChatMessages } from '@/lib/chat/chat-messages';
+import { PUBLIC_CHAT_FALLBACK_SUGGESTIONS } from '@/lib/chat/public-chat-suggestions';
+import type { ChatSuggestionView } from '@/lib/chat/chat-suggestion-types';
 
 // ============================================================
 // Types
@@ -27,6 +29,7 @@ type ConnectionStatus = 'checking' | 'online' | 'offline' | 'maintenance';
 
 const HEALTH_POLL_INTERVAL_MS = 60000;
 const CHAT_HISTORY_STORAGE_KEY = 'epackage-lab-chat-history-v1';
+const VISIBLE_SUGGESTION_COUNT = 3;
 
 const loadChatHistory = (): UIMessage[] => {
   if (typeof window === 'undefined') return [];
@@ -73,25 +76,31 @@ export function ChatWidget() {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [renderedHtml, setRenderedHtml] = useState<Record<string, string>>({});
+  const [suggestions, setSuggestions] = useState<readonly ChatSuggestionView[]>(
+    PUBLIC_CHAT_FALLBACK_SUGGESTIONS,
+  );
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+  const [focusedFieldId, setFocusedFieldId] = useState<string | null>(null);
   const initialMessagesRef = useRef<UIMessage[]>(loadChatHistory());
+  const selectedSuggestionRef = useRef<string | null>(null);
+  const loadedSuggestionKeyRef = useRef('');
   // 有人切り替え関連の状態
   const [showHandoffButton, setShowHandoffButton] = useState(false);
   const [showPhoneInput, setShowPhoneInput] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [handoffSuccess, setHandoffSuccess] = useState(false);
-  const pathnameRef = useRef(pathname);
   const languageRef = useRef<ChatLocale>(language === 'ja' ? 'ja' : 'ja');
   const focusedFieldIdRef = useRef<string | null>(null);
 
   // ページ文脈はリクエスト時にのみ DOM から解決し、入力値は一切読まない。
-  const buildPageContext = (): ChatPageContext => {
+  const buildPageContext = useCallback((): ChatPageContext => {
     const quoteStep = document
       .querySelector('[data-quote-step]')
       ?.getAttribute('data-quote-step') ?? undefined;
     const fieldId = focusedFieldIdRef.current ?? undefined;
     const result = parseChatPageContext({
-      pathname: pathnameRef.current,
+      pathname,
       locale: languageRef.current,
       quoteStep,
       fieldId,
@@ -100,9 +109,11 @@ export function ChatWidget() {
     return result.success
       ? result.context
       : { pathname: '/', locale: 'ja' };
-  };
+  }, [language, pathname]);
 
   // useChat は初回 transport を保持するため、callback は ref 経由で常に最新文脈を読む。
+  const buildPageContextRef = useRef(buildPageContext);
+  buildPageContextRef.current = buildPageContext;
   const transportRef = useRef<DefaultChatTransport<UIMessage> | null>(null);
   if (!transportRef.current) {
     transportRef.current = new DefaultChatTransport<UIMessage>({
@@ -113,7 +124,8 @@ export function ChatWidget() {
           messages: options.messages,
           trigger: options.trigger,
           messageId: options.messageId,
-          pageContext: buildPageContext(),
+          pageContext: buildPageContextRef.current(),
+          suggestionId: selectedSuggestionRef.current ?? undefined,
         },
       }),
     });
@@ -139,13 +151,20 @@ export function ChatWidget() {
     e.preventDefault();
     if (!input.trim() || connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading) return;
 
+    selectedSuggestionRef.current = null;
     sendMessage({ text: input });
     setInput('');
   };
 
+  const handleSuggestionSelect = (suggestion: ChatSuggestionView) => {
+    if (connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading) return;
+    selectedSuggestionRef.current = suggestion.id;
+    sendMessage({ text: suggestion.questionJa });
+  };
+
   useEffect(() => {
-    pathnameRef.current = pathname;
     focusedFieldIdRef.current = null;
+    setFocusedFieldId(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -157,13 +176,85 @@ export function ChatWidget() {
       const target = event.target;
       if (!(target instanceof Element)) return;
 
-      const field = target.closest('[data-chat-field]');
-      focusedFieldIdRef.current = field?.getAttribute('data-chat-field') ?? null;
+    const field = target.closest('[data-chat-field]');
+    const nextFieldId = field?.getAttribute('data-chat-field') ?? null;
+    focusedFieldIdRef.current = nextFieldId;
+    setFocusedFieldId(nextFieldId);
     };
 
     document.addEventListener('focusin', handleFocusIn);
     return () => document.removeEventListener('focusin', handleFocusIn);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+    const context = buildPageContext();
+    const loadSuggestions = async () => {
+      try {
+        const response = await fetch('/api/chat/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(context),
+        });
+        const contentType = response.headers.get('content-type');
+        if (!response.ok || !contentType?.includes('application/json')) {
+          throw new Error('suggestions unavailable');
+        }
+        const payload: unknown = await response.json();
+        const rows = typeof payload === 'object' && payload !== null && Array.isArray(
+          (payload as { suggestions?: unknown }).suggestions
+        )
+          ? (payload as { suggestions: unknown[] }).suggestions
+          : [];
+        const validSuggestions = rows.flatMap((row) => {
+          if (
+            typeof row !== 'object' ||
+            row === null ||
+            typeof (row as { id?: unknown }).id !== 'string' ||
+            typeof (row as { labelJa?: unknown }).labelJa !== 'string' ||
+            typeof (row as { questionJa?: unknown }).questionJa !== 'string'
+          ) {
+            return [];
+          }
+          return [{
+            id: (row as { id: string }).id,
+            labelJa: (row as { labelJa: string }).labelJa,
+            questionJa: (row as { questionJa: string }).questionJa,
+            audience: 'public' as const,
+          }];
+        });
+        if (!cancelled) {
+          const nextSuggestions = validSuggestions.slice(0, 8).length > 0
+            ? validSuggestions.slice(0, 8)
+            : PUBLIC_CHAT_FALLBACK_SUGGESTIONS;
+          const nextKey = nextSuggestions.map((suggestion) => suggestion.id).join('\n');
+          if (loadedSuggestionKeyRef.current !== nextKey) {
+            loadedSuggestionKeyRef.current = nextKey;
+            setSuggestions(nextSuggestions);
+            setShowAllSuggestions(false);
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          const nextKey = PUBLIC_CHAT_FALLBACK_SUGGESTIONS
+            .map((suggestion) => suggestion.id)
+            .join('\n');
+          if (loadedSuggestionKeyRef.current !== nextKey) {
+            loadedSuggestionKeyRef.current = nextKey;
+            setSuggestions(PUBLIC_CHAT_FALLBACK_SUGGESTIONS);
+            setShowAllSuggestions(false);
+          }
+        }
+      }
+    };
+
+    void loadSuggestions();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, focusedFieldId, buildPageContext]);
 
   useEffect(() => {
     if (error) {
@@ -614,6 +705,38 @@ export function ChatWidget() {
                 )}
 
                 <div ref={messagesEndRef} />
+              </div>
+
+              {/* ページ別の質問提案。自由入力は常に併用する。 */}
+              <div className="px-4 pt-3 border-t border-gray-200 bg-gray-50">
+                <p className="text-xs text-gray-500 mb-2">
+                  このページのよくある質問（自由に入力しても構いません）
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(showAllSuggestions
+                    ? suggestions
+                    : suggestions.slice(0, VISIBLE_SUGGESTION_COUNT)
+                  ).map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      type="button"
+                      onClick={() => handleSuggestionSelect(suggestion)}
+                      disabled={connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
+                      className="max-w-full truncate px-3 py-1.5 text-left text-xs rounded-full border border-gray-300 bg-white text-gray-700 hover:border-brixa hover:text-brixa disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {suggestion.questionJa}
+                    </button>
+                  ))}
+                  {suggestions.length > VISIBLE_SUGGESTION_COUNT && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllSuggestions((current) => !current)}
+                      className="px-3 py-1.5 text-xs rounded-full text-brixa hover:underline"
+                    >
+                      {showAllSuggestions ? '閉じる' : `他${suggestions.length - VISIBLE_SUGGESTION_COUNT}件`}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* 入力エリア */}

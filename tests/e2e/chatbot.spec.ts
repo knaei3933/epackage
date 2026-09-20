@@ -23,6 +23,12 @@ test.describe('ChatBot E2E Tests', () => {
     // 接続ステータスが「オンライン」であることを確認
     const statusText = page.getByTestId('connection-status');
     await expect(statusText).toHaveText('オンライン', { timeout: 5000 });
+
+    // 페이지별 제안 질문과 자유 입력이 동시에 제공되는지 확인한다.
+    await expect(page.getByText('このページのよくある質問（自由に入力しても構いません）')).toBeVisible();
+    await expect(page.getByRole('button', {
+      name: '包装材の種類はどう選べばよいですか？',
+    })).toBeVisible();
     
     // 入力フィールドにメッセージを入力
     const input = page.locator('input[placeholder="メッセージを入力..."]');

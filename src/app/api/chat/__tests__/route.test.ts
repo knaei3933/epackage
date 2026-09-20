@@ -21,6 +21,15 @@ jest.mock('@/lib/ai/providers', () => ({
 
 jest.mock('@/lib/ai/knowledge-base', () => ({
   getRelevantKnowledge: jest.fn(() => ''),
+  getKnowledgeEntry: jest.fn(() => ({
+    id: '09-product-selection-guide',
+    keywords: ['包装'],
+    content: '選択ガイド',
+  })),
+}));
+
+jest.mock('@/lib/chat/participant-context', () => ({
+  resolveChatParticipant: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('ai', () => ({
@@ -148,6 +157,58 @@ describe('/api/chat Hermes integration', () => {
     expect(mockedGetChatModel).not.toHaveBeenCalled();
     expect(provider).not.toHaveBeenCalled();
     expect(mockedStreamText).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unknown suggestion ID before preflight and model work', async () => {
+    mockHermesSelection();
+    mockStream();
+
+    const response = await POST(createRequest(crypto.randomUUID(), {
+      suggestionId: 'unknown-suggestion',
+      pageContext: { pathname: '/', locale: 'ja' },
+    }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ reasonCode: 'invalid-suggestion' });
+    expect(mockedPreflight).not.toHaveBeenCalled();
+    expect(mockedGetChatModel).not.toHaveBeenCalled();
+    expect(mockedStreamText).not.toHaveBeenCalled();
+  });
+
+  it('uses a valid public suggestion as deterministic grounding', async () => {
+    mockHermesSelection();
+    mockStream();
+
+    const response = await POST(createRequest(crypto.randomUUID(), {
+      messages: [{
+        id: 'suggestion-message',
+        role: 'user',
+        parts: [{ type: 'text', text: '包装材の種類はどう選べばよいですか？' }],
+      }],
+      pageContext: { pathname: '/', locale: 'ja' },
+      suggestionId: 'public.home.selection',
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mockedPreflight).toHaveBeenCalledTimes(1);
+    const systemMessage = mockedStreamText.mock.calls[0][0].messages.find(
+      (message: { role: string }) => message.role === 'system',
+    );
+    expect(systemMessage.content).toContain('【選択された質問】');
+    expect(systemMessage.content).toContain('包装材の種類はどう選べばよいですか？');
+  });
+
+  it('accepts a rendered public fallback suggestion ID', async () => {
+    mockHermesSelection();
+    mockStream();
+
+    const response = await POST(createRequest(crypto.randomUUID(), {
+      pageContext: { pathname: '/unknown-preview-page', locale: 'ja' },
+      suggestionId: 'public.fallback.selection',
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mockedPreflight).toHaveBeenCalledTimes(1);
   });
 
   it.each([

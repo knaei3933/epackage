@@ -1,6 +1,7 @@
 import type { ChatPageContext } from '@/lib/chat/page-context';
 import { parseChatPageContext } from '@/lib/chat/page-context';
 import { getQuoteFieldHelp, type QuoteFieldBounds } from '@/lib/chat/quote-field-help';
+import type { ServerChatSuggestion } from '@/lib/chat/page-suggestions';
 
 const PAGE_LABELS: Record<string, string> = {
   '/quote-simulator': '見積シミュレーター',
@@ -103,16 +104,52 @@ export interface ChatSystemPromptInput {
   basePrompt: string;
   pageContext?: ChatPageContext;
   relevantKnowledge?: string;
+  selectedSuggestion?: ServerChatSuggestion;
 }
+
+const buildSelectedSuggestionPrompt = (
+  suggestion: ServerChatSuggestion,
+): string => {
+  const lines = [
+    '【選択された質問】',
+    `表示された質問: ${suggestion.questionJa}`,
+  ];
+
+  if (suggestion.grounding.kind === 'quoteField') {
+    const help = getQuoteFieldHelp(
+      suggestion.grounding.step,
+      suggestion.grounding.fieldId,
+    );
+    if (help) {
+      lines.push(
+        `フィールド: ${help.labelJa}`,
+        `目的: ${help.purposeJa}`,
+        `許容範囲: ${formatQuoteFieldBounds(help.bounds)}`,
+        `確認ポイント: ${help.escalationJa}`,
+      );
+    }
+  } else if (suggestion.grounding.kind === 'contact') {
+    lines.push(
+      'この質問は担当者確認・相談案内を目的とします。',
+      '確定できない業務条件は推測せず、お問い合わせ・電話・有人切り替えの案内のみを使用してください。',
+    );
+  } else if (suggestion.grounding.kind === 'navigation') {
+    lines.push('画面遷移や操作手順の一般案内のみを扱い、内部業務条件は推測しないでください。');
+  }
+
+  return lines.join('\n');
+};
 
 export const buildChatSystemPrompt = ({
   basePrompt,
   pageContext,
   relevantKnowledge,
+  selectedSuggestion,
 }: ChatSystemPromptInput): string => {
   const sections = [
     basePrompt,
     pageContext ? buildChatPageContextPrompt(pageContext) : undefined,
+    selectedSuggestion ? buildSelectedSuggestionPrompt(selectedSuggestion) : undefined,
     relevantKnowledge,
   ].filter((section): section is string => Boolean(section));
 
