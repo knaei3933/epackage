@@ -12,9 +12,10 @@ import {
 const createJsonResponse = (
   payload: Record<string, string>,
   cacheControl?: string,
+  status = 200,
 ) =>
   new Response(JSON.stringify(payload), {
-    status: 200,
+    status,
     headers: {
       'Content-Type': 'application/json',
       ...(cacheControl ? { 'Cache-Control': cacheControl } : {}),
@@ -44,7 +45,6 @@ const getLMStudioHealth = async () => {
           status: 'ok',
           message: 'LM Studio is available',
           service: 'lmstudio',
-          baseURL,
         },
         'no-store',
       );
@@ -52,10 +52,9 @@ const getLMStudioHealth = async () => {
 
     return createJsonResponse(
       {
-        status: 'offline',
-        message: 'LM Studio returned an error',
-        service: 'lmstudio',
-        baseURL,
+          status: 'offline',
+          message: 'LM Studio returned an error',
+          service: 'lmstudio',
       },
       'no-store',
     );
@@ -70,7 +69,6 @@ const getLMStudioHealth = async () => {
         status: 'offline',
         message: errorMessage,
         service: 'lmstudio',
-        baseURL,
       },
       'no-store',
     );
@@ -89,6 +87,7 @@ export async function GET() {
           reasonCode: preflight.reasonCode,
         },
         'no-store',
+        503,
       );
     }
 

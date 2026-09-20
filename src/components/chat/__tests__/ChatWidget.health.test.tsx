@@ -99,6 +99,24 @@ describe('ChatWidget health lifecycle', () => {
     expect(screen.getByTestId('connection-status')).toHaveTextContent('メンテナンス中');
   });
 
+  it('does not poll health while the widget is closed and polls once after opening', async () => {
+    const view = render(
+      <LanguageProvider>
+        <ChatWidget />
+      </LanguageProvider>,
+    );
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(180000);
+    });
+    expect(healthCallCount()).toBe(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'チャットを開く' }));
+    await act(async () => {});
+    expect(healthCallCount()).toBe(1);
+
+    view.unmount();
+  });
+
   it('recovers from offline to online and stops polling after cleanup', async () => {
     const { open, view } = renderOpenWidget();
     await open();

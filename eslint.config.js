@@ -3,19 +3,17 @@
  * Next.js 16 + TypeScript + React 19
  */
 
-const { FlatCompat } = require('@eslint/eslintrc')
 const js = require('@eslint/js')
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+const nextCoreWebVitals = require('eslint-config-next/core-web-vitals')
+const nextTypeScript = require('eslint-config-next/typescript')
 
 module.exports = [
   // Base JavaScript rules
   js.configs.recommended,
 
-  // Next.js config (using compat to convert the old config)
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  // Next.js 16 publishes ESLint flat config directly.
+  ...nextCoreWebVitals,
+  ...nextTypeScript,
 
   {
     ignores: [
@@ -60,6 +58,16 @@ module.exports = [
       'react/react-in-jsx-scope': 'off',
       'react-hooks/rules-of-hooks': 'warn',
       'react-hooks/exhaustive-deps': 'warn',
+      // React Hooks v7 adds stricter compiler diagnostics. The repository has
+      // pre-existing violations across legacy pages; keep the gate loadable
+      // while tracking these as warnings instead of blocking security releases.
+      'react-hooks/purity': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/static-components': 'warn',
+      'react-hooks/use-memo': 'warn',
 
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],

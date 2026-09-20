@@ -311,6 +311,17 @@ describe('LM Studio rollback provider selection', () => {
     });
   });
 
+  it('fails closed for an unknown provider instead of silently selecting LM Studio', () => {
+    process.env = {
+      ...originalEnv,
+      CHAT_PROVIDER: 'hermes-typo',
+      NODE_ENV: 'development',
+      VERCEL_ENV: undefined,
+    };
+
+    expect(getChatModel).toThrow('CHAT_PROVIDER must be either "hermes" or "lmstudio"');
+  });
+
   it('still applies the existing production LM Studio base URL requirement', () => {
     process.env = {
       ...originalEnv,

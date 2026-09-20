@@ -80,7 +80,7 @@ describe('Hermes health route contract', () => {
     const response = await GET();
     const serialized = await response.text();
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(503);
     expect(JSON.parse(serialized)).toEqual({
       status: 'degraded',
       service: 'hermes',
@@ -108,11 +108,12 @@ describe('Hermes health route contract', () => {
       `${OLD_LMSTUDIO_BASE_URL}/models`,
       expect.objectContaining({ method: 'GET' }),
     );
-    expect(await response.json()).toEqual({
+    const payload = await response.json();
+    expect(payload).toEqual({
       status: 'ok',
       message: 'LM Studio is available',
       service: 'lmstudio',
-      baseURL: OLD_LMSTUDIO_BASE_URL,
     });
+    expect(JSON.stringify(payload)).not.toContain(OLD_LMSTUDIO_BASE_URL);
   });
 });

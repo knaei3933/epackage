@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIdentifier, getRateLimitHeaders } from '@/lib/rate-limit';
 import { sendHandoffEmail } from '@/lib/chatbot-email';
 import { PHONE_REGEX, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 import { loggers } from '@/lib/logger';
@@ -63,9 +63,7 @@ export async function POST(req: NextRequest) {
         {
           status: 429,
           headers: {
-            'X-RateLimit-Limit': '5',
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': rateLimitResult.resetAt.toISOString(),
+            ...getRateLimitHeaders(rateLimitResult),
           }
         }
       );
@@ -153,7 +151,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: '担当者より折り返しご連絡いたします。',
-      remaining: rateLimitResult.remaining - 1,
+      remaining: rateLimitResult.remaining,
     });
 
   } catch (error) {

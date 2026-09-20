@@ -17,6 +17,7 @@ import { markdownToHtml } from '@/lib/markdown-renderer';
 import { parseChatPageContext, type ChatLocale, type ChatPageContext } from '@/lib/chat/page-context';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
+import { validateChatMessages } from '@/lib/chat/chat-messages';
 
 // ============================================================
 // Types
@@ -35,7 +36,10 @@ const loadChatHistory = (): UIMessage[] => {
     if (!serialized) return [];
 
     const parsed = JSON.parse(serialized);
-    return Array.isArray(parsed) ? parsed as UIMessage[] : [];
+    const validated = validateChatMessages(parsed);
+    if (validated.success) return validated.messages;
+    window.sessionStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+    return [];
   } catch (error) {
     console.warn('Failed to restore chat history:', error);
     return [];
@@ -174,8 +178,10 @@ export function ChatWidget() {
     }
   }, [messages, isLoading]);
 
-  // メンテナンスチェック（5分ごとにポーリング - CPU使用量削減）
+  // メンテナンスチェック（ウィジェットが開いている間のみ60秒ごとにポーリング）
   useEffect(() => {
+    if (!isOpen) return;
+
     const checkMaintenance = async () => {
       try {
         const response = await fetch('/api/config');
@@ -254,7 +260,7 @@ export function ChatWidget() {
         clearTimeout(timeoutId);
       }
     };
-  }, []);
+  }, [isOpen]);
 
   // メッセージが更新されたらHTMLを生成
   useEffect(() => {

@@ -472,6 +472,13 @@ export function getChatModel() {
     return getHermesChatModel();
   }
 
+  const configuredProvider = process.env.CHAT_PROVIDER;
+  if (configuredProvider !== undefined && configuredProvider !== 'lmstudio') {
+    throw new Error(
+      `CHAT_PROVIDER must be either "hermes" or "lmstudio"; received ${JSON.stringify(configuredProvider)}.`,
+    );
+  }
+
   const env = detectEnvironment();
   const baseURL = getBaseURL();
 

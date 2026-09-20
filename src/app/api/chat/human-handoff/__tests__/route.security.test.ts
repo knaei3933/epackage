@@ -65,6 +65,7 @@ describe('human handoff security contract', () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
+    expect(payload.remaining).toBe(5);
     expect(mockedSendEmail).toHaveBeenCalledWith(expect.objectContaining({
       phoneNumber: '050-1793-6500',
       conversationHistory: validBody().conversationHistory,
