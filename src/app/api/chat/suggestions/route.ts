@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { resolveChatPageSuggestions } from '@/lib/chat/page-suggestions';
 import { resolveChatParticipant } from '@/lib/chat/participant-context';
 import { parseChatPageContext } from '@/lib/chat/page-context';
+import { ensureChatSession } from '@/lib/chat/chat-analytics';
 import {
   checkRateLimit,
   getClientIdentifier,
@@ -10,6 +11,8 @@ import {
 export const dynamic = 'force-dynamic';
 
 const MAX_SUGGESTIONS_REQUEST_BYTES = 4 * 1024;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const ALLOWED_BODY_KEYS = new Set(['pathname', 'locale', 'quoteStep', 'fieldId', 'sessionId']);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -65,6 +68,21 @@ export async function POST(req: NextRequest) {
   if (!isRecord(body)) {
     return createBadRequestResponse();
   }
+  if (Object.keys(body).some((key) => !ALLOWED_BODY_KEYS.has(key))) {
+    return createBadRequestResponse();
+  }
+  if (
+    body.sessionId !== undefined &&
+    (
+      typeof body.sessionId !== 'string' ||
+      !UUID_PATTERN.test(body.sessionId)
+    )
+  ) {
+    return createBadRequestResponse();
+  }
+  const existingSessionId = typeof body.sessionId === 'string'
+    ? body.sessionId
+    : undefined;
 
   const contextResult = parseChatPageContext({
     pathname: body.pathname,
@@ -81,9 +99,15 @@ export async function POST(req: NextRequest) {
     ...contextResult.context,
     audience: participant?.audience ?? 'public',
   });
+  const sessionId = await ensureChatSession({
+    audience: participant?.audience ?? 'public',
+    routeFamily: resolution.routeFamily,
+    existingSessionId,
+  });
 
   return NextResponse.json(
     {
+      sessionId,
       suggestions: resolution.suggestions.map((suggestion) => ({
         id: suggestion.id,
         labelJa: suggestion.labelJa,

@@ -34,6 +34,7 @@
     "test:all": "pnpm run lint && pnpm run test:unit && pnpm run test:performance:harness && pnpm run test:e2e && pnpm run test:performance",
     "test:performance:harness": "jest -c tests/performance/jest.config.js --runInBand",
     "verify:chat-suggestions": "node scripts/chat-suggestions/verify-public-bundle.mjs",
+    "test:chat-analytics-rls": "node scripts/chat-suggestions/test-non-pii-rls.mjs",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "sync:blog": "ts-node scripts/sync-blog.ts",
     "sync:blog:verbose": "ts-node scripts/sync-blog.ts --verbose",

@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { resolveChatParticipant } from '@/lib/chat/participant-context';
+import { ensureChatSession } from '@/lib/chat/chat-analytics';
 
 jest.mock('@/lib/rate-limit', () => ({
   checkRateLimit: jest.fn(),
@@ -17,8 +18,14 @@ jest.mock('@/lib/chat/participant-context', () => ({
   resolveChatParticipant: jest.fn(),
 }));
 
+jest.mock('@/lib/chat/chat-analytics', () => ({
+  ensureChatSession: jest.fn(),
+}));
+
 const mockedCheckRateLimit = checkRateLimit as jest.Mock;
 const mockedResolveParticipant = resolveChatParticipant as jest.Mock;
+const mockedEnsureSession = ensureChatSession as jest.Mock;
+const sessionId = '123e4567-e89b-42d3-a456-426614174000';
 
 const createRequest = (pathname: string) => new NextRequest(
   'https://www.package-lab.com/api/chat/suggestions',
@@ -35,6 +42,7 @@ const createRequest = (pathname: string) => new NextRequest(
 describe('/api/chat/suggestions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedEnsureSession.mockResolvedValue(sessionId);
     mockedCheckRateLimit.mockResolvedValue({
       success: true,
       remaining: 59,
@@ -55,8 +63,38 @@ describe('/api/chat/suggestions', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toContain('no-store');
     expect(payload.suggestions.length).toBeGreaterThan(0);
+    expect(payload.sessionId).toBe(sessionId);
     expect(payload.suggestions.every((suggestion: { audience: string }) =>
       suggestion.audience === 'public')).toBe(true);
+  });
+
+  it('reuses a valid tab-scoped session and sends only normalized route family', async () => {
+    mockedResolveParticipant.mockResolvedValue(null);
+    mockedEnsureSession.mockResolvedValue(sessionId);
+
+    const response = await POST(new NextRequest(
+      'https://www.package-lab.com/api/chat/suggestions',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'https://www.package-lab.com',
+        },
+        body: JSON.stringify({
+          pathname: '/catalog/product-token',
+          locale: 'ja',
+          sessionId,
+        }),
+      },
+    ));
+    const serialized = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(serialized).not.toContain('product-token');
+    expect(mockedEnsureSession).toHaveBeenCalledWith(expect.objectContaining({
+      routeFamily: 'catalog',
+      existingSessionId: sessionId,
+    }));
   });
 
   it.each([

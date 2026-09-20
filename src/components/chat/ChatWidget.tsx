@@ -30,6 +30,15 @@ type ConnectionStatus = 'checking' | 'online' | 'offline' | 'maintenance';
 const HEALTH_POLL_INTERVAL_MS = 60000;
 const CHAT_HISTORY_STORAGE_KEY = 'epackage-lab-chat-history-v1';
 const VISIBLE_SUGGESTION_COUNT = 3;
+const CHAT_FUNNEL_EVENT_TYPES = [
+  'suggestions_shown',
+  'suggestion_selected',
+  'answer_completed',
+  'chat_closed',
+  'handoff_requested',
+] as const;
+
+type ClientChatFunnelEventType = (typeof CHAT_FUNNEL_EVENT_TYPES)[number];
 
 const loadChatHistory = (): UIMessage[] => {
   if (typeof window === 'undefined') return [];
@@ -84,6 +93,8 @@ export function ChatWidget() {
   const initialMessagesRef = useRef<UIMessage[]>(loadChatHistory());
   const selectedSuggestionRef = useRef<string | null>(null);
   const loadedSuggestionKeyRef = useRef('');
+  const analyticsSessionIdRef = useRef<string | null>(null);
+  const previousStatusRef = useRef<typeof status | null>(null);
   // 有人切り替え関連の状態
   const [showHandoffButton, setShowHandoffButton] = useState(false);
   const [showPhoneInput, setShowPhoneInput] = useState(false);
@@ -159,8 +170,39 @@ export function ChatWidget() {
   const handleSuggestionSelect = (suggestion: ChatSuggestionView) => {
     if (connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading) return;
     selectedSuggestionRef.current = suggestion.id;
+    void recordFunnelEvent('suggestion_selected', suggestion.id);
     sendMessage({ text: suggestion.questionJa });
   };
+
+  const recordFunnelEvent = useCallback(async (
+    eventType: ClientChatFunnelEventType,
+    suggestionId?: string,
+  ) => {
+    const sessionId = analyticsSessionIdRef.current;
+    if (!sessionId) return;
+
+    try {
+      const response = await fetch('/api/chat/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          events: [{ eventType, ...(suggestionId ? { suggestionId } : {}) }],
+        }),
+      });
+      if (!response.ok) return;
+    } catch {
+      // Analytics is best-effort and must never interfere with chat help.
+    }
+  }, []);
+
+  useEffect(() => {
+    const previousStatus = previousStatusRef.current;
+    previousStatusRef.current = status;
+    if (previousStatus === 'streaming' && status === 'ready') {
+      void recordFunnelEvent('answer_completed');
+    }
+  }, [recordFunnelEvent, status]);
 
   useEffect(() => {
     focusedFieldIdRef.current = null;
@@ -194,15 +236,25 @@ export function ChatWidget() {
     const loadSuggestions = async () => {
       try {
         const response = await fetch('/api/chat/suggestions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(context),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...context,
+          sessionId: analyticsSessionIdRef.current ?? undefined,
+        }),
         });
         const contentType = response.headers.get('content-type');
         if (!response.ok || !contentType?.includes('application/json')) {
           throw new Error('suggestions unavailable');
         }
         const payload: unknown = await response.json();
+        if (
+          typeof payload === 'object' &&
+          payload !== null &&
+          typeof (payload as { sessionId?: unknown }).sessionId === 'string'
+        ) {
+          analyticsSessionIdRef.current = (payload as { sessionId: string }).sessionId;
+        }
         const rows = typeof payload === 'object' && payload !== null && Array.isArray(
           (payload as { suggestions?: unknown }).suggestions
         )
@@ -235,6 +287,7 @@ export function ChatWidget() {
             setSuggestions(nextSuggestions);
             setShowAllSuggestions(false);
           }
+          void recordFunnelEvent('suggestions_shown');
         }
       } catch {
         if (!cancelled) {
@@ -254,7 +307,7 @@ export function ChatWidget() {
     return () => {
       cancelled = true;
     };
-  }, [isOpen, focusedFieldId, buildPageContext]);
+  }, [isOpen, focusedFieldId, buildPageContext, recordFunnelEvent]);
 
   useEffect(() => {
     if (error) {
@@ -405,6 +458,7 @@ export function ChatWidget() {
       const data = await response.json();
 
       if (response.ok) {
+        void recordFunnelEvent('handoff_requested');
         setHandoffSuccess(true);
         setShowPhoneInput(false);
       } else {
@@ -421,6 +475,11 @@ export function ChatWidget() {
     setShowHandoffButton(false);
     setShowPhoneInput(false);
     setHandoffSuccess(false);
+  };
+
+  const handleClose = () => {
+    void recordFunnelEvent('chat_closed');
+    setIsOpen(false);
   };
 
   // 接続ステータスの色
@@ -524,7 +583,7 @@ export function ChatWidget() {
                 <Minimize2 className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="p-1 hover:bg-white/10 rounded transition-colors"
                 aria-label="閉じる"
               >
@@ -696,7 +755,7 @@ export function ChatWidget() {
                 {handoffSuccess && (
                   <div className="flex justify-center">
                     <button
-                      onClick={() => setIsOpen(false)}
+                      onClick={handleClose}
                       className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                     >
                       閉じる

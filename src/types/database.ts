@@ -912,6 +912,104 @@ Tables: {
         }
         Relationships: []
       }
+      chat_sessions: {
+        Row: {
+          id: string
+          audience: 'public' | 'member' | 'staff' | 'designer'
+          initial_route_family: string
+          last_route_family: string | null
+          created_at: string
+          last_seen_at: string
+          expires_at: string
+          closed_at: string | null
+        }
+        Insert: {
+          id?: string
+          audience: 'public' | 'member' | 'staff' | 'designer'
+          initial_route_family: string
+          last_route_family?: string | null
+          created_at?: string
+          last_seen_at?: string
+          expires_at: string
+          closed_at?: string | null
+        }
+        Update: {
+          id?: string
+          audience?: 'public' | 'member' | 'staff' | 'designer'
+          initial_route_family?: string
+          last_route_family?: string | null
+          created_at?: string
+          last_seen_at?: string
+          expires_at?: string
+          closed_at?: string | null
+        }
+        Relationships: []
+      }
+      chat_funnel_events: {
+        Row: {
+          id: number
+          session_id: string
+          event_type:
+            | 'suggestions_shown'
+            | 'suggestion_selected'
+            | 'answer_completed'
+            | 'lead_form_shown'
+            | 'contact_submitted'
+            | 'contact_skipped'
+            | 'linkage_accepted'
+            | 'linkage_declined'
+            | 'handoff_requested'
+            | 'chat_closed'
+          route_family: string
+          suggestion_id: string | null
+          occurred_at: string
+        }
+        Insert: {
+          id?: never
+          session_id: string
+          event_type:
+            | 'suggestions_shown'
+            | 'suggestion_selected'
+            | 'answer_completed'
+            | 'lead_form_shown'
+            | 'contact_submitted'
+            | 'contact_skipped'
+            | 'linkage_accepted'
+            | 'linkage_declined'
+            | 'handoff_requested'
+            | 'chat_closed'
+          route_family: string
+          suggestion_id?: string | null
+          occurred_at?: string
+        }
+        Update: {
+          id?: never
+          session_id?: string
+          event_type?:
+            | 'suggestions_shown'
+            | 'suggestion_selected'
+            | 'answer_completed'
+            | 'lead_form_shown'
+            | 'contact_submitted'
+            | 'contact_skipped'
+            | 'linkage_accepted'
+            | 'linkage_declined'
+            | 'handoff_requested'
+            | 'chat_closed'
+          route_family?: string
+          suggestion_id?: string | null
+          occurred_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'chat_funnel_events_session_id_fkey'
+            columns: ['session_id']
+            isOneToOne: false
+            referencedRelation: 'chat_sessions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       companies: {
         Row: {
           business_type: string | null

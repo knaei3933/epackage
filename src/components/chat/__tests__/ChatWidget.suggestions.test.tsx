@@ -34,6 +34,7 @@ const fetchMock = jest.fn((input: RequestInfo | URL) => {
   }
   if (url === '/api/chat/suggestions') {
     return Promise.resolve(new Response(JSON.stringify({
+      sessionId: '123e4567-e89b-42d3-a456-426614174000',
       suggestions: [{
         id: 'public.home.selection',
         labelJa: '製品選択',
@@ -79,6 +80,7 @@ describe('ChatWidget suggestions', () => {
     expect(fetchMock.mock.calls.some(([input]) => String(input).startsWith('/api/chat/suggestions'))).toBe(true);
 
     fireEvent.click(screen.getByRole('button', { name: '包装材の種類はどう選べばよいですか？' }));
+    await act(async () => {});
     expect(sendMessageMock).toHaveBeenCalledWith({
       text: '包装材の種類はどう選べばよいですか？',
     });
@@ -91,6 +93,10 @@ describe('ChatWidget suggestions', () => {
       abortSignal: new AbortController().signal,
     }).body as Record<string, unknown>;
     expect(body.suggestionId).toBe('public.home.selection');
+    expect(fetchMock.mock.calls.some(([input, init]) =>
+      String(input) === '/api/chat/events' &&
+      String((init as RequestInit | undefined)?.body).includes('"eventType":"suggestion_selected"')
+    )).toBe(true);
     expect(screen.getByTestId('chat-input')).toBeVisible();
     view.unmount();
   });

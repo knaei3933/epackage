@@ -14,6 +14,7 @@ export const RATE_LIMIT_POLICIES = {
   'human-handoff': { maxRequests: 5, windowMs: 60 * 60 * 1000 },
   chat: { maxRequests: 20, windowMs: 15 * 60 * 1000 },
   suggestions: { maxRequests: 60, windowMs: 15 * 60 * 1000 },
+  events: { maxRequests: 120, windowMs: 15 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export type RateLimitPolicyName = keyof typeof RATE_LIMIT_POLICIES;

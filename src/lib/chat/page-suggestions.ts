@@ -257,15 +257,15 @@ const STATIC_SUGGESTIONS: readonly ServerChatSuggestion[] = [
   ),
   suggestion(
     'member.dashboard.overview',
-    '会員機能',
-    '会員登録後はどのような機能を利用できますか？',
+    'マイページ基本',
+    '会員ページで確認できる基本機能を教えてください。',
     'member',
     { type: 'family', routeFamily: 'member', priority: 0 },
     { kind: 'knowledge', ids: ['11-user-flows'] },
   ),
   suggestion(
     'member.account.flow',
-    'アカウント',
+    'アカウント（内部案内）',
     'マイページでは何を確認できますか？',
     'member',
     { type: 'family', routeFamily: 'member', priority: 0 },

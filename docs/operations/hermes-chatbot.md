@@ -226,6 +226,32 @@ The browser bundle contains only a generic public fallback. Detailed and protect
 
 When a suggestion is selected, the widget sends the displayed question as a normal user message plus a bounded `suggestionId`. `/api/chat` resolves that ID from the server catalog and validates its route, audience, and quote context before using its grounding. Invalid, cross-route, or cross-role IDs are rejected. Free-text input remains available and clears any selected suggestion ID.
 
+### Aggregate non-PII analytics
+
+The suggestion endpoint issues or reuses a server-side `chat_sessions` ID and returns it only to the current tab. The session contains audience and normalized route family—not user ID, raw pathname, IP address, User-Agent, fingerprint, or conversation text.
+
+`/api/chat/events` accepts only:
+
+- a UUID session ID;
+- a bounded enum event type;
+- an optional allowlisted suggestion ID.
+
+It rejects message text, contact fields, form values, and unknown keys. The database stores aggregate `chat_funnel_events` with service-role-only access; direct `anon` and `authenticated` policies/grants are intentionally absent.
+
+Retention:
+
+- default operational retention is 180 days;
+- `purge_expired_chat_analytics` deletes in bounded batches;
+- `/api/cron/purge-chat-analytics` runs weekly and requires `CRON_SECRET` in production.
+
+After `next build`, run:
+
+```bash
+pnpm run verify:chat-suggestions
+```
+
+The scanner generates the complete non-public suggestion manifest, rejects protected/public text overlap, and scans client-observable static/RSC/HTML/JSON build output.
+
 ### Lead capture boundary
 
 Requirements for progressive guest/member lead capture are specified in `.omx/specs/deep-interview-page-chat-suggestions.md`, but contact/PII persistence is intentionally not enabled yet. Before implementation:
