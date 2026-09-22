@@ -20,6 +20,9 @@ import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation'
 import { validateChatMessages } from '@/lib/chat/chat-messages';
 import { PUBLIC_CHAT_FALLBACK_SUGGESTIONS } from '@/lib/chat/public-chat-suggestions';
 import type { ChatSuggestionView } from '@/lib/chat/chat-suggestion-types';
+import type { ChatLeadSubmission } from '@/lib/chat/lead-schema';
+import { ChatLeadForm } from '@/components/chat/ChatLeadForm';
+import type { ChatLeadIntent } from '@/lib/chat/lead-schema';
 
 // ============================================================
 // Types
@@ -33,6 +36,9 @@ const VISIBLE_SUGGESTION_COUNT = 3;
 const CHAT_FUNNEL_EVENT_TYPES = [
   'suggestions_shown',
   'suggestion_selected',
+  'lead_form_shown',
+  'contact_submitted',
+  'contact_skipped',
   'answer_completed',
   'chat_closed',
   'handoff_requested',
@@ -90,13 +96,20 @@ export function ChatWidget() {
   );
   const [leadCaptureEnabled, setLeadCaptureEnabled] = useState(false);
   const [legacyHandoffEnabled, setLegacyHandoffEnabled] = useState(false);
+  const [leadConsentVersion, setLeadConsentVersion] = useState<number | null>(null);
+  const [leadPrivacyPolicyVersion, setLeadPrivacyPolicyVersion] = useState<number | null>(null);
+  const [memberLinkageAvailable, setMemberLinkageAvailable] = useState(false);
+  const [leadCaptureIntent, setLeadCaptureIntent] = useState<ChatLeadIntent | null>(null);
+  const [leadSubmitting, setLeadSubmitting] = useState(false);
+  const [leadSubmitted, setLeadSubmitted] = useState(false);
+  const [leadError, setLeadError] = useState('');
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
   const [focusedFieldId, setFocusedFieldId] = useState<string | null>(null);
   const initialMessagesRef = useRef<UIMessage[]>(loadChatHistory());
   const selectedSuggestionRef = useRef<string | null>(null);
   const loadedSuggestionKeyRef = useRef('');
   const analyticsSessionIdRef = useRef<string | null>(null);
-  const loadedCapabilityKeyRef = useRef('false:false');
+  const loadedCapabilityKeyRef = useRef('false:false:false');
   const previousStatusRef = useRef<typeof status | null>(null);
   // 有人切り替え関連の状態
   const [showHandoffButton, setShowHandoffButton] = useState(false);
@@ -170,17 +183,67 @@ export function ChatWidget() {
     setInput('');
   };
 
+  const submitLead = useCallback(async (
+    intent: ChatLeadIntent,
+    lead: Omit<ChatLeadSubmission, 'sessionId'>,
+  ): Promise<boolean> => {
+    const sessionId = analyticsSessionIdRef.current;
+    if (!sessionId) return false;
+
+    setLeadSubmitting(true);
+    setLeadError('');
+    try {
+      const response = await fetch('/api/chat/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...lead,
+          sessionId,
+          pageContext: buildPageContextRef.current(),
+        }),
+      });
+      const accepted = response.ok;
+      if (accepted) {
+        setLeadSubmitted(true);
+        setLeadCaptureIntent(null);
+        void recordFunnelEvent('contact_submitted');
+      } else {
+        setLeadError('ただいま保存できませんでした。');
+      }
+      return accepted;
+    } catch {
+      setLeadError('ただいま保存できませんでした。');
+      return false;
+    } finally {
+      setLeadSubmitting(false);
+    }
+  }, [recordFunnelEvent]);
+
   const handleSuggestionSelect = (suggestion: ChatSuggestionView) => {
     if (connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading) return;
+
+    if (leadCaptureEnabled && suggestion.leadIntent) {
+      setLeadCaptureIntent(suggestion.leadIntent);
+      setLeadSubmitted(false);
+      setLeadError('');
+      void recordFunnelEvent('lead_form_shown');
+      return;
+    }
+
     selectedSuggestionRef.current = suggestion.id;
     void recordFunnelEvent('suggestion_selected', suggestion.id);
     sendMessage({ text: suggestion.questionJa });
   };
 
-  const recordFunnelEvent = useCallback(async (
+  const skipLeadForm = () => {
+    void recordFunnelEvent('contact_skipped');
+    setLeadCaptureIntent(null);
+  };
+
+  async function recordFunnelEvent(
     eventType: ClientChatFunnelEventType,
     suggestionId?: string,
-  ) => {
+  ) {
     const sessionId = analyticsSessionIdRef.current;
     if (!sessionId) return;
 
@@ -197,7 +260,7 @@ export function ChatWidget() {
     } catch {
       // Analytics is best-effort and must never interfere with chat help.
     }
-  }, []);
+  }
 
   useEffect(() => {
     const previousStatus = previousStatusRef.current;
@@ -266,11 +329,33 @@ export function ChatWidget() {
           typeof payload === 'object' &&
           payload !== null &&
           (payload as { legacyHandoffEnabled?: unknown }).legacyHandoffEnabled === true;
-        const capabilityKey = `${nextLeadCaptureEnabled}:${nextLegacyHandoffEnabled}`;
+        const capability = payload as {
+          consentVersion?: unknown;
+          leadIntents?: unknown;
+          memberLinkageAvailable?: unknown;
+          privacyPolicyVersion?: unknown;
+        };
+        const validCapability = nextLeadCaptureEnabled &&
+          Number.isSafeInteger(capability.consentVersion) &&
+          Number.isSafeInteger(capability.privacyPolicyVersion) &&
+          Array.isArray(capability.leadIntents);
+        const nextLeadCaptureAccepted = validCapability;
+        const nextConsentVersion = nextLeadCaptureAccepted
+          ? capability.consentVersion as number
+          : null;
+        const nextPrivacyPolicyVersion = nextLeadCaptureAccepted
+          ? capability.privacyPolicyVersion as number
+          : null;
+        const nextMemberLinkageAvailable = nextLeadCaptureAccepted &&
+          capability.memberLinkageAvailable === true;
+        const capabilityKey = `${nextLeadCaptureAccepted}:${nextLegacyHandoffEnabled}:${nextMemberLinkageAvailable}`;
         if (loadedCapabilityKeyRef.current !== capabilityKey) {
           loadedCapabilityKeyRef.current = capabilityKey;
-          setLeadCaptureEnabled(nextLeadCaptureEnabled);
+          setLeadCaptureEnabled(nextLeadCaptureAccepted);
           setLegacyHandoffEnabled(nextLegacyHandoffEnabled);
+          setLeadConsentVersion(nextConsentVersion);
+          setLeadPrivacyPolicyVersion(nextPrivacyPolicyVersion);
+          setMemberLinkageAvailable(nextMemberLinkageAvailable);
         }
         const rows = typeof payload === 'object' && payload !== null && Array.isArray(
           (payload as { suggestions?: unknown }).suggestions
@@ -292,6 +377,9 @@ export function ChatWidget() {
             labelJa: (row as { labelJa: string }).labelJa,
             questionJa: (row as { questionJa: string }).questionJa,
             audience: 'public' as const,
+            leadIntent: typeof (row as { leadIntent?: unknown }).leadIntent === 'string'
+              ? (row as { leadIntent: string }).leadIntent as ChatSuggestionView['leadIntent']
+              : undefined,
           }];
         });
         if (!cancelled) {
@@ -308,10 +396,13 @@ export function ChatWidget() {
         }
       } catch {
         if (!cancelled) {
-          if (loadedCapabilityKeyRef.current !== 'false:false') {
-            loadedCapabilityKeyRef.current = 'false:false';
+          if (loadedCapabilityKeyRef.current !== 'false:false:false') {
+            loadedCapabilityKeyRef.current = 'false:false:false';
             setLeadCaptureEnabled(false);
             setLegacyHandoffEnabled(false);
+            setLeadConsentVersion(null);
+            setLeadPrivacyPolicyVersion(null);
+            setMemberLinkageAvailable(false);
           }
           const nextKey = PUBLIC_CHAT_FALLBACK_SUGGESTIONS
             .map((suggestion) => suggestion.id)
@@ -728,6 +819,32 @@ export function ChatWidget() {
                     >
                       担当者に相談する
                     </button>
+                  </div>
+                )}
+
+                {/* 同意つきリードフォーム（サーバー機能が有効な場合のみ） */}
+                {leadCaptureEnabled && leadCaptureIntent && !leadSubmitted && !showPhoneInput && (
+                  <ChatLeadForm
+                    intent={leadCaptureIntent}
+                    disabled={leadSubmitting || connectionStatus !== 'online'}
+                    consentVersion={leadConsentVersion}
+                    privacyPolicyVersion={leadPrivacyPolicyVersion}
+                    memberLinkageAvailable={memberLinkageAvailable}
+                    onSubmit={async (lead) => await submitLead(leadCaptureIntent, lead)}
+                    onSkip={() => {
+                      void recordFunnelEvent('contact_skipped');
+                      setLeadCaptureIntent(null);
+                    }}
+                  />
+                )}
+
+                {leadError && (
+                  <div className="mx-4 mb-3 text-xs text-red-600">{leadError}</div>
+                )}
+
+                {leadSubmitted && (
+                  <div className="mx-4 mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700">
+                    承知いたしました。担当者より確認いたします。
                   </div>
                 )}
 

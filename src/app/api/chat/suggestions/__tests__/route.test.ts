@@ -7,6 +7,10 @@ import { POST } from '../route';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { resolveChatParticipant } from '@/lib/chat/participant-context';
 import { ensureChatSession } from '@/lib/chat/chat-analytics';
+import {
+  getChatLeadCapability,
+  isLegacyHumanHandoffEnabled,
+} from '@/lib/chat/lead-capture';
 
 jest.mock('@/lib/rate-limit', () => ({
   checkRateLimit: jest.fn(),
@@ -22,9 +26,16 @@ jest.mock('@/lib/chat/chat-analytics', () => ({
   ensureChatSession: jest.fn(),
 }));
 
+jest.mock('@/lib/chat/lead-capture', () => ({
+  getChatLeadCapability: jest.fn(),
+  isLegacyHumanHandoffEnabled: jest.fn(),
+}));
+
 const mockedCheckRateLimit = checkRateLimit as jest.Mock;
 const mockedResolveParticipant = resolveChatParticipant as jest.Mock;
 const mockedEnsureSession = ensureChatSession as jest.Mock;
+const mockedCapability = getChatLeadCapability as jest.Mock;
+const mockedLegacyHandoff = isLegacyHumanHandoffEnabled as jest.Mock;
 const sessionId = '123e4567-e89b-42d3-a456-426614174000';
 
 const createRequest = (pathname: string) => new NextRequest(
@@ -42,6 +53,13 @@ const createRequest = (pathname: string) => new NextRequest(
 describe('/api/chat/suggestions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedCapability.mockResolvedValue({
+      enabled: false,
+      leadIntents: [],
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
+    mockedLegacyHandoff.mockReturnValue(false);
     mockedEnsureSession.mockResolvedValue(sessionId);
     mockedCheckRateLimit.mockResolvedValue({
       success: true,
@@ -66,6 +84,10 @@ describe('/api/chat/suggestions', () => {
     expect(payload.sessionId).toBe(sessionId);
     expect(payload.leadCaptureEnabled).toBe(false);
     expect(payload.legacyHandoffEnabled).toBe(false);
+    expect(payload.memberLinkageAvailable).toBe(false);
+    expect(payload.leadIntents).toBeUndefined();
+    expect(payload.consentVersion).toBeUndefined();
+    expect(payload.privacyPolicyVersion).toBeUndefined();
     expect(payload.suggestions.every((suggestion: { audience: string }) =>
       suggestion.audience === 'public')).toBe(true);
   });
@@ -97,6 +119,31 @@ describe('/api/chat/suggestions', () => {
       routeFamily: 'catalog',
       existingSessionId: sessionId,
     }));
+  });
+
+  it('returns full lead capability only when server readiness accepts it', async () => {
+    mockedCapability.mockResolvedValueOnce({
+      enabled: true,
+      leadIntents: ['quote', 'sample', 'technical', 'human'],
+      consentVersion: 1,
+      privacyPolicyVersion: 1,
+    });
+    mockedResolveParticipant.mockResolvedValueOnce({
+      userId: 'member-user',
+      role: 'MEMBER',
+      status: 'ACTIVE',
+      audience: 'member',
+    });
+
+    const response = await POST(createRequest('/member'));
+    const payload = await response.json();
+
+    expect(payload.leadCaptureEnabled).toBe(true);
+    expect(payload.memberLinkageAvailable).toBe(true);
+    expect(payload.leadIntents).toEqual(['quote', 'sample', 'technical', 'human']);
+    expect(payload.consentVersion).toBe(1);
+    expect(payload.privacyPolicyVersion).toBe(1);
+    expect(JSON.stringify(payload)).not.toContain('privacy_approval');
   });
 
   it.each([

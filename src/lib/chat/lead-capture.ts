@@ -3,7 +3,10 @@ import 'server-only';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
 
 export interface ChatLeadCapability {
-  readonly enabled: false;
+  readonly enabled: boolean;
+  readonly leadIntents: readonly string[];
+  readonly consentVersion: number | null;
+  readonly privacyPolicyVersion: number | null;
 }
 
 interface ChatLeadReadinessRow {
@@ -56,9 +59,19 @@ const matchesLegacyState = (readiness: ChatLeadReadinessRow): boolean => {
  * Resolve whether the approved server/DB readiness values agree. This remains
  * testable for rollout preparation but does not by itself authorize PII.
  */
-export async function isChatLeadReadinessApproved(): Promise<boolean> {
+export interface ChatLeadReadinessApproval {
+  readonly approved: boolean;
+  readonly consentVersion: number | null;
+  readonly privacyPolicyVersion: number | null;
+}
+
+export async function isChatLeadReadinessApproved(): Promise<ChatLeadReadinessApproval> {
   if (process.env.CHAT_LEAD_CAPTURE_ENABLED !== 'true') {
-    return false;
+    return {
+      approved: false,
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    };
   }
 
   const privacyApprovalRecord = parseUUID(
@@ -93,7 +106,11 @@ export async function isChatLeadReadinessApproved(): Promise<boolean> {
     contactRetentionDays > summaryRetentionDays ||
     summaryRetentionDays > auditRetentionDays
   ) {
-    return false;
+    return {
+      approved: false,
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    };
   }
 
   try {
@@ -102,11 +119,21 @@ export async function isChatLeadReadinessApproved(): Promise<boolean> {
       route: '/api/chat/suggestions',
     });
     const { data, error } = await client.rpc('verify_chat_lead_readiness');
-    if (error || !data) return false;
+    if (error || !data) {
+      return {
+        approved: false,
+        consentVersion: null,
+        privacyPolicyVersion: null,
+      };
+    }
 
     const readiness = Array.isArray(data) ? data[0] : data;
     if (typeof readiness !== 'object' || readiness === null) {
-      return false;
+      return {
+        approved: false,
+        consentVersion: null,
+        privacyPolicyVersion: null,
+      };
     }
 
     const row = readiness as ChatLeadReadinessRow;
@@ -121,9 +148,17 @@ export async function isChatLeadReadinessApproved(): Promise<boolean> {
       row.schema_version === schemaVersion &&
       matchesLegacyState(row);
 
-    return approved;
+    return {
+      approved,
+      consentVersion: approved ? consentVersion : null,
+      privacyPolicyVersion: approved ? privacyPolicyVersion : null,
+    };
   } catch {
-    return false;
+      return {
+        approved: false,
+        consentVersion: null,
+        privacyPolicyVersion: null,
+      };
   }
 }
 
@@ -132,7 +167,22 @@ export async function isChatLeadReadinessApproved(): Promise<boolean> {
  * exists. Readiness is deliberately not sufficient to advertise capability.
  */
 export async function getChatLeadCapability(): Promise<ChatLeadCapability> {
-  return { enabled: false };
+  const readiness = await isChatLeadReadinessApproved();
+  if (!readiness.approved) {
+    return {
+      enabled: false,
+      leadIntents: [],
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    };
+  }
+
+  return {
+    enabled: true,
+    leadIntents: ['quote', 'sample', 'technical', 'human'],
+    consentVersion: readiness.consentVersion,
+    privacyPolicyVersion: readiness.privacyPolicyVersion,
+  };
 }
 
 export function isLegacyHumanHandoffEnabled(): boolean {

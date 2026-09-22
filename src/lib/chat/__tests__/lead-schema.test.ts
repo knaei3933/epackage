@@ -1,6 +1,5 @@
 import {
   validateChatLeadSubmission,
-  type ChatLeadSubmission,
 } from '@/lib/chat/lead-schema';
 
 const validLead = (): Record<string, unknown> => ({
@@ -24,6 +23,13 @@ const validLead = (): Record<string, unknown> => ({
     privacy: true,
     marketing: false,
     memberLinkage: false,
+  },
+  memberLinkage: false,
+  pageContext: {
+    pathname: '/quote-simulator',
+    locale: 'ja',
+    quoteStep: 'specs',
+    fieldId: 'contents',
   },
 });
 
@@ -52,6 +58,10 @@ describe('chat lead schema', () => {
     const badIntent = validLead();
     badIntent.intent = 'marketing';
     expect(validateChatLeadSubmission(badIntent)).toMatchObject({ reason: 'invalid-intent' });
+
+    const badContext = validLead();
+    badContext.pageContext = { pathname: '/quote-simulator', locale: 'ja', extra: true };
+    expect(validateChatLeadSubmission(badContext)).toMatchObject({ reason: 'invalid-page-context' });
   });
 
   it('rejects PII-like requirement text and requires one field', () => {

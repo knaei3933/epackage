@@ -6,6 +6,7 @@ import type {
   ChatSuggestionGrounding,
   ChatSuggestionView,
 } from '@/lib/chat/chat-suggestion-types';
+import type { ChatSuggestionLeadIntent } from '@/lib/chat/chat-suggestion-types';
 import type { ChatPageContext } from '@/lib/chat/page-context';
 
 type SuggestionTarget =
@@ -17,6 +18,7 @@ export interface ServerChatSuggestion extends ChatSuggestionView {
   target: SuggestionTarget;
   quoteStep?: string;
   fieldId?: string;
+  leadIntent?: ChatSuggestionLeadIntent;
   grounding: ChatSuggestionGrounding;
 }
 
@@ -99,6 +101,19 @@ const suggestion = (
   grounding,
 });
 
+const leadSuggestion = (
+  id: string,
+  labelJa: string,
+  questionJa: string,
+  audience: ChatSuggestionAudience,
+  target: SuggestionTarget,
+  grounding: ChatSuggestionGrounding,
+  leadIntent: ChatSuggestionLeadIntent,
+): ServerChatSuggestion => ({
+  ...suggestion(id, labelJa, questionJa, audience, target, grounding),
+  leadIntent,
+});
+
 const quoteFieldSuggestions: readonly ServerChatSuggestion[] = QUOTE_FIELD_HELP.map((item) => ({
   id: item.id,
   labelJa: item.labelJa,
@@ -127,6 +142,15 @@ const STATIC_SUGGESTIONS: readonly ServerChatSuggestion[] = [
     { type: 'route', routePattern: '/', priority: 0 },
     { kind: 'knowledge', ids: ['11-user-flows'] },
   ),
+  leadSuggestion(
+    'public.home.consultation',
+    '相談',
+    '要件を整理して相談したいです。',
+    'public',
+    { type: 'route', routePattern: '/', priority: 1 },
+    { kind: 'contact' },
+    'human',
+  ),
   suggestion(
     'public.quote-simulator.start',
     '見積準備',
@@ -134,6 +158,15 @@ const STATIC_SUGGESTIONS: readonly ServerChatSuggestion[] = [
     'public',
     { type: 'route', routePattern: '/quote-simulator', priority: 0 },
     { kind: 'knowledge', ids: ['11-user-flows'] },
+  ),
+  leadSuggestion(
+    'public.quote-simulator.consultation',
+    '見積相談',
+    '見積条件を相談したいです。',
+    'public',
+    { type: 'route', routePattern: '/quote-simulator', priority: 1 },
+    { kind: 'contact' },
+    'quote',
   ),
   suggestion(
     'public.pricing.cost-factors',
@@ -175,6 +208,15 @@ const STATIC_SUGGESTIONS: readonly ServerChatSuggestion[] = [
     { type: 'route', routePattern: '/samples', priority: 0 },
     { kind: 'knowledge', ids: ['11-user-flows'] },
   ),
+  leadSuggestion(
+    'public.samples.consultation',
+    'サンプル相談',
+    'サンプル依頼について相談したいです。',
+    'public',
+    { type: 'route', routePattern: '/samples', priority: 1 },
+    { kind: 'contact' },
+    'sample',
+  ),
   suggestion(
     'public.contact.staff',
     '担当者相談',
@@ -182,6 +224,15 @@ const STATIC_SUGGESTIONS: readonly ServerChatSuggestion[] = [
     'public',
     { type: 'route', routePattern: '/contact', priority: 0 },
     { kind: 'contact' },
+  ),
+  leadSuggestion(
+    'public.contact.consultation',
+    '担当者相談',
+    '担当者に要件を相談したいです。',
+    'public',
+    { type: 'route', routePattern: '/contact', priority: 1 },
+    { kind: 'contact' },
+    'human',
   ),
   suggestion(
     'public.inquiry.staff',

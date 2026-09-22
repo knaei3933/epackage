@@ -132,4 +132,80 @@ describe('ChatWidget suggestions', () => {
     expect(view.container.querySelector('[data-lead-capture-enabled]'))
       .toHaveAttribute('data-lead-capture-enabled', 'false');
   });
+
+  it('sends structured lead data with the current page context and no transcript', async () => {
+    const sessionId = '123e4567-e89b-42d3-a456-426614174000';
+    let leadBody: Record<string, unknown> | undefined;
+    fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === '/api/config') {
+        return Promise.resolve(new Response(JSON.stringify({
+          success: true,
+          data: { maintenance_mode: { enabled: false } },
+        }), { headers: { 'content-type': 'application/json' } }));
+      }
+      if (url === '/api/chat/suggestions') {
+        return Promise.resolve(new Response(JSON.stringify({
+          sessionId,
+          leadCaptureEnabled: true,
+          legacyHandoffEnabled: false,
+          memberLinkageAvailable: false,
+          leadIntents: ['quote', 'sample', 'technical', 'human'],
+          consentVersion: 1,
+          privacyPolicyVersion: 1,
+          suggestions: [{
+            id: 'public.home.consultation',
+            labelJa: '相談',
+            questionJa: '要件を整理して相談したいです。',
+            audience: 'public',
+            leadIntent: 'human',
+          }],
+        }), { headers: { 'content-type': 'application/json' } }));
+      }
+      if (url === '/api/chat/lead') {
+        leadBody = JSON.parse(String(init?.body));
+        return Promise.resolve(new Response(JSON.stringify({ accepted: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }));
+      }
+      return Promise.resolve(new Response(JSON.stringify({ status: 'ok' }), {
+        headers: { 'content-type': 'application/json' },
+      }));
+    });
+
+    render(
+      <LanguageProvider>
+        <ChatWidget />
+      </LanguageProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'チャットを開く' }));
+    await act(async () => {});
+    fireEvent.click(screen.getByRole('button', { name: '要件を整理して相談したいです。' }));
+    await act(async () => {});
+
+    fireEvent.change(screen.getByLabelText('内容・用途'), {
+      target: { value: '包装材の選定について相談したい' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('example@example.com'), {
+      target: { value: 'customer@example.jp' },
+    });
+    for (const checkbox of screen.getAllByRole('checkbox').slice(0, 3)) {
+      fireEvent.click(checkbox);
+    }
+    fireEvent.click(screen.getByRole('button', { name: '内容を保存する' }));
+    await act(async () => {});
+
+    expect(leadBody).toMatchObject({
+      sessionId,
+      intent: 'human',
+      requirements: { contentsDescription: '包装材の選定について相談したい' },
+      contact: { email: 'customer@example.jp' },
+      consent: { contact: true, privacy: true, marketing: true },
+      memberLinkage: false,
+      pageContext: { pathname: '/', locale: 'ja' },
+    });
+    expect(Object.keys(leadBody ?? {})).not.toContain('messages');
+    expect(screen.getByText('承知いたしました。担当者より確認いたします。')).toBeVisible();
+  });
 });

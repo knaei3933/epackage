@@ -64,27 +64,49 @@ describe('chat lead capability gate', () => {
   it('does not query readiness when the feature flag is false', async () => {
     process.env = { ...originalEnv, CHAT_LEAD_CAPTURE_ENABLED: undefined };
 
-    await expect(getChatLeadCapability()).resolves.toEqual({ enabled: false });
+    await expect(getChatLeadCapability()).resolves.toEqual({
+      enabled: false,
+      leadIntents: [],
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
     expect(mockedCreateClient).not.toHaveBeenCalled();
   });
 
   it('fails closed on invalid or unordered environment retention values', async () => {
     setValidEnv();
     process.env.CHAT_LEAD_CONTACT_RETENTION_DAYS = '366';
-    await expect(isChatLeadReadinessApproved()).resolves.toBe(false);
+    await expect(isChatLeadReadinessApproved()).resolves.toEqual({
+      approved: false,
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
 
     setValidEnv();
     process.env.CHAT_LEAD_SUMMARY_CONSENT_RETENTION_DAYS = '100';
-    await expect(isChatLeadReadinessApproved()).resolves.toBe(false);
+    await expect(isChatLeadReadinessApproved()).resolves.toEqual({
+      approved: false,
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
     expect(mockedCreateClient).not.toHaveBeenCalled();
   });
 
   it('enables only when DB approval, versions, retention, schema, and legacy state match', async () => {
     setValidEnv();
-    rpcMock.mockResolvedValueOnce(validReadiness());
+    rpcMock.mockResolvedValue(validReadiness());
 
-    await expect(isChatLeadReadinessApproved()).resolves.toBe(true);
-    await expect(getChatLeadCapability()).resolves.toEqual({ enabled: false });
+    await expect(isChatLeadReadinessApproved()).resolves.toEqual({
+      approved: true,
+      consentVersion: 1,
+      privacyPolicyVersion: 1,
+    });
+    await expect(getChatLeadCapability()).resolves.toEqual({
+      enabled: true,
+      leadIntents: ['quote', 'sample', 'technical', 'human'],
+      consentVersion: 1,
+      privacyPolicyVersion: 1,
+    });
   });
 
   it.each([
@@ -99,15 +121,28 @@ describe('chat lead capability gate', () => {
     Object.assign(result.data[0], overrides);
     rpcMock.mockResolvedValueOnce(result);
 
-    await expect(isChatLeadReadinessApproved()).resolves.toBe(false);
+    await expect(isChatLeadReadinessApproved()).resolves.toEqual({
+      approved: false,
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
   });
 
   it('fails closed on readiness RPC error or infrastructure failure', async () => {
     setValidEnv();
     rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'limiter failed' } });
-    await expect(isChatLeadReadinessApproved()).resolves.toBe(false);
+    await expect(isChatLeadReadinessApproved()).resolves.toEqual({
+      approved: false,
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
 
     rpcMock.mockRejectedValueOnce(new Error('database unavailable'));
-    await expect(getChatLeadCapability()).resolves.toEqual({ enabled: false });
+    await expect(getChatLeadCapability()).resolves.toEqual({
+      enabled: false,
+      leadIntents: [],
+      consentVersion: null,
+      privacyPolicyVersion: null,
+    });
   });
 });

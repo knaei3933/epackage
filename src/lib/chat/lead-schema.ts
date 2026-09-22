@@ -46,6 +46,8 @@ export interface ChatLeadSubmission {
   requirements: ChatLeadRequirements;
   contact: ChatLeadContact;
   consent: ChatLeadConsent;
+  memberLinkage: boolean;
+  pageContext: Record<string, unknown>;
 }
 
 export type ChatLeadSchemaFailure =
@@ -55,7 +57,8 @@ export type ChatLeadSchemaFailure =
   | 'invalid-intent'
   | 'invalid-requirements'
   | 'invalid-contact'
-  | 'invalid-consent';
+  | 'invalid-consent'
+  | 'invalid-page-context';
 
 export type ChatLeadSchemaResult =
   | { success: true; lead: ChatLeadSubmission }
@@ -97,7 +100,10 @@ const requirement = (
 
 export function validateChatLeadSubmission(input: unknown): ChatLeadSchemaResult {
   if (!isRecord(input)) return { success: false, reason: 'malformed' };
-  if (!hasOnly(input, ['sessionId', 'intent', 'requirements', 'contact', 'consent'])) {
+  if (!hasOnly(input, [
+    'sessionId', 'intent', 'requirements', 'contact', 'consent',
+    'memberLinkage', 'pageContext',
+  ])) {
     return { success: false, reason: 'extra-input' };
   }
   if (typeof input.sessionId !== 'string' || !UUID_PATTERN.test(input.sessionId)) {
@@ -105,6 +111,13 @@ export function validateChatLeadSubmission(input: unknown): ChatLeadSchemaResult
   }
   if (!CHAT_LEAD_INTENTS.includes(input.intent as ChatLeadIntent)) {
     return { success: false, reason: 'invalid-intent' };
+  }
+
+  if (
+    !isRecord(input.pageContext) ||
+    Object.keys(input.pageContext).some((key) => !['pathname', 'locale', 'quoteStep', 'fieldId'].includes(key))
+  ) {
+    return { success: false, reason: 'invalid-page-context' };
   }
 
   const requirementsInput = input.requirements;
@@ -204,6 +217,9 @@ export function validateChatLeadSubmission(input: unknown): ChatLeadSchemaResult
   if (!consentInput.contact || !consentInput.privacy) {
     return { success: false, reason: 'invalid-consent' };
   }
+  if (typeof input.memberLinkage !== 'boolean') {
+    return { success: false, reason: 'invalid-consent' };
+  }
 
   return {
     success: true,
@@ -232,6 +248,8 @@ export function validateChatLeadSubmission(input: unknown): ChatLeadSchemaResult
         marketing: consentInput.marketing,
         memberLinkage: consentInput.memberLinkage,
       },
+      memberLinkage: input.memberLinkage,
+      pageContext: input.pageContext,
     },
   };
 }

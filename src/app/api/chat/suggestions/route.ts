@@ -115,11 +115,21 @@ export async function POST(req: NextRequest) {
       sessionId,
       leadCaptureEnabled: leadCapability.enabled,
       legacyHandoffEnabled: isLegacyHumanHandoffEnabled(),
+      memberLinkageAvailable:
+        leadCapability.enabled && participant?.audience === 'member',
+      ...(leadCapability.enabled
+        ? {
+            leadIntents: leadCapability.leadIntents,
+            consentVersion: leadCapability.consentVersion,
+            privacyPolicyVersion: leadCapability.privacyPolicyVersion,
+          }
+        : {}),
       suggestions: resolution.suggestions.map((suggestion) => ({
         id: suggestion.id,
         labelJa: suggestion.labelJa,
         questionJa: suggestion.questionJa,
         audience: suggestion.audience,
+        leadIntent: suggestion.leadIntent,
       })),
     },
     {
