@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendHandoffEmail } from '@/lib/chatbot-email';
+import { isLegacyHumanHandoffEnabled } from '@/lib/chat/lead-capture';
 
 jest.mock('@/lib/rate-limit', () => ({
   checkRateLimit: jest.fn(),
@@ -16,8 +17,13 @@ jest.mock('@/lib/chatbot-email', () => ({
   sendHandoffEmail: jest.fn(),
 }));
 
+jest.mock('@/lib/chat/lead-capture', () => ({
+  isLegacyHumanHandoffEnabled: jest.fn(),
+}));
+
 const mockedCheckRateLimit = checkRateLimit as jest.Mock;
 const mockedSendEmail = sendHandoffEmail as jest.Mock;
+const mockedLegacyEnabled = isLegacyHumanHandoffEnabled as jest.Mock;
 
 const createRequest = (
   body: unknown,
@@ -51,6 +57,7 @@ const validBody = () => ({
 describe('human handoff security contract', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedLegacyEnabled.mockReturnValue(true);
     mockedCheckRateLimit.mockResolvedValue({
       success: true,
       remaining: 5,
@@ -78,6 +85,21 @@ describe('human handoff security contract', () => {
     }));
 
     expect(response.status).toBe(403);
+    expect(mockedCheckRateLimit).not.toHaveBeenCalled();
+    expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('returns disabled before rate limiting, parsing, or email work', async () => {
+    mockedLegacyEnabled.mockReturnValue(false);
+    const request = createRequest(validBody());
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: 'この機能は現在利用できません。',
+      reasonCode: 'legacy_handoff_disabled',
+    });
     expect(mockedCheckRateLimit).not.toHaveBeenCalled();
     expect(mockedSendEmail).not.toHaveBeenCalled();
   });

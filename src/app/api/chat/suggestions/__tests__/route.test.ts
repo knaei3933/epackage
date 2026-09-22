@@ -64,6 +64,8 @@ describe('/api/chat/suggestions', () => {
     expect(response.headers.get('Cache-Control')).toContain('no-store');
     expect(payload.suggestions.length).toBeGreaterThan(0);
     expect(payload.sessionId).toBe(sessionId);
+    expect(payload.leadCaptureEnabled).toBe(false);
+    expect(payload.legacyHandoffEnabled).toBe(false);
     expect(payload.suggestions.every((suggestion: { audience: string }) =>
       suggestion.audience === 'public')).toBe(true);
   });

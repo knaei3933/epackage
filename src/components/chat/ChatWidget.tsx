@@ -88,12 +88,15 @@ export function ChatWidget() {
   const [suggestions, setSuggestions] = useState<readonly ChatSuggestionView[]>(
     PUBLIC_CHAT_FALLBACK_SUGGESTIONS,
   );
+  const [leadCaptureEnabled, setLeadCaptureEnabled] = useState(false);
+  const [legacyHandoffEnabled, setLegacyHandoffEnabled] = useState(false);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
   const [focusedFieldId, setFocusedFieldId] = useState<string | null>(null);
   const initialMessagesRef = useRef<UIMessage[]>(loadChatHistory());
   const selectedSuggestionRef = useRef<string | null>(null);
   const loadedSuggestionKeyRef = useRef('');
   const analyticsSessionIdRef = useRef<string | null>(null);
+  const loadedCapabilityKeyRef = useRef('false:false');
   const previousStatusRef = useRef<typeof status | null>(null);
   // 有人切り替え関連の状態
   const [showHandoffButton, setShowHandoffButton] = useState(false);
@@ -255,6 +258,20 @@ export function ChatWidget() {
         ) {
           analyticsSessionIdRef.current = (payload as { sessionId: string }).sessionId;
         }
+        const nextLeadCaptureEnabled =
+          typeof payload === 'object' &&
+          payload !== null &&
+          (payload as { leadCaptureEnabled?: unknown }).leadCaptureEnabled === true;
+        const nextLegacyHandoffEnabled =
+          typeof payload === 'object' &&
+          payload !== null &&
+          (payload as { legacyHandoffEnabled?: unknown }).legacyHandoffEnabled === true;
+        const capabilityKey = `${nextLeadCaptureEnabled}:${nextLegacyHandoffEnabled}`;
+        if (loadedCapabilityKeyRef.current !== capabilityKey) {
+          loadedCapabilityKeyRef.current = capabilityKey;
+          setLeadCaptureEnabled(nextLeadCaptureEnabled);
+          setLegacyHandoffEnabled(nextLegacyHandoffEnabled);
+        }
         const rows = typeof payload === 'object' && payload !== null && Array.isArray(
           (payload as { suggestions?: unknown }).suggestions
         )
@@ -291,6 +308,11 @@ export function ChatWidget() {
         }
       } catch {
         if (!cancelled) {
+          if (loadedCapabilityKeyRef.current !== 'false:false') {
+            loadedCapabilityKeyRef.current = 'false:false';
+            setLeadCaptureEnabled(false);
+            setLegacyHandoffEnabled(false);
+          }
           const nextKey = PUBLIC_CHAT_FALLBACK_SUGGESTIONS
             .map((suggestion) => suggestion.id)
             .join('\n');
@@ -698,7 +720,7 @@ export function ChatWidget() {
                 )}
 
                 {/* 有人切り替えボタン */}
-                {showHandoffButton && !handoffSuccess && !showPhoneInput && (
+                {showHandoffButton && legacyHandoffEnabled && !handoffSuccess && !showPhoneInput && (
                   <div className="flex justify-start">
                     <button
                       onClick={() => setShowPhoneInput(true)}
@@ -767,7 +789,10 @@ export function ChatWidget() {
               </div>
 
               {/* ページ別の質問提案。自由入力は常に併用する。 */}
-              <div className="px-4 pt-3 border-t border-gray-200 bg-gray-50">
+              <div
+                data-lead-capture-enabled={leadCaptureEnabled}
+                className="px-4 pt-3 border-t border-gray-200 bg-gray-50"
+              >
                 <p className="text-xs text-gray-500 mb-2">
                   このページのよくある質問（自由に入力しても構いません）
                 </p>

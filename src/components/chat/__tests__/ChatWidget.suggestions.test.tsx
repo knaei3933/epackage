@@ -40,6 +40,7 @@ const fetchMock = jest.fn((input: RequestInfo | URL) => {
         labelJa: '製品選択',
         questionJa: '包装材の種類はどう選べばよいですか？',
       }],
+      leadCaptureEnabled: false,
     }), { headers: { 'content-type': 'application/json' } }));
   }
   return Promise.resolve(new Response(JSON.stringify({ status: 'ok' }), {
@@ -98,6 +99,7 @@ describe('ChatWidget suggestions', () => {
       String((init as RequestInit | undefined)?.body).includes('"eventType":"suggestion_selected"')
     )).toBe(true);
     expect(screen.getByTestId('chat-input')).toBeVisible();
+    expect(screen.queryByTestId('chat-lead-form')).toBeNull();
     view.unmount();
   });
 
@@ -116,7 +118,7 @@ describe('ChatWidget suggestions', () => {
       return Promise.resolve(new Response(JSON.stringify({ status: 'ok' })));
     });
 
-    render(
+    const view = render(
       <LanguageProvider>
         <ChatWidget />
       </LanguageProvider>,
@@ -127,5 +129,7 @@ describe('ChatWidget suggestions', () => {
     for (const suggestion of PUBLIC_CHAT_FALLBACK_SUGGESTIONS.slice(0, 3)) {
       expect(screen.getByRole('button', { name: suggestion.questionJa })).toBeInTheDocument();
     }
+    expect(view.container.querySelector('[data-lead-capture-enabled]'))
+      .toHaveAttribute('data-lead-capture-enabled', 'false');
   });
 });

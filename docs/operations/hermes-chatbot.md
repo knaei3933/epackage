@@ -262,6 +262,38 @@ Requirements for progressive guest/member lead capture are specified in `.omx/sp
 4. obtain privacy-policy and retention approval;
 5. complete an independent architecture review.
 
+### Local consent-gated lead preparation
+
+Commit `supabase/migrations/20260921120000_create_chat_leads_and_contacts.sql` is a **local design migration only**. It defines:
+
+- exact lead/contact/audit enums and tables;
+- member-safe column-level status access;
+- service-role-only transactional submit/reveal/workflow/redaction/status RPCs;
+- a composite-key durable rate-limit table and atomic limiter RPC;
+- machine-checked privacy readiness;
+- readiness-controlled bounded retention/purge;
+- idempotent account-deletion unlink/redaction.
+
+It must not be applied to production until:
+
+1. privacy wording and retention periods are approved;
+2. the final privacy approval record and production retention values are recorded;
+3. Architect/Critic review the executable implementation and rollout plan;
+4. durable cross-instance limiter behavior and account-deletion lifecycle are revalidated in the target environment;
+5. rollout is explicitly authorized.
+
+`CHAT_LEAD_CAPTURE_ENABLED` is false and `/api/chat/lead` returns a stable disabled response before reading or parsing any request body. The suggestions response exposes only boolean capability state and never approval secrets.
+
+`CHAT_LEGACY_HUMAN_HANDOFF_ENABLED` independently governs the legacy email-only phone handoff. It defaults to false in example configuration, is not consent for the new lead system, and must never write phone/conversation data into analytics or lead tables.
+
+`CHAT_LEAD_SCHEMA_READY` is a separate local-schema lifecycle gate used by account deletion. It stays false until the lead migration is actually present in that environment. The lead capture capability itself remains false independently.
+
+The local lead migration also defines a bounded, service-role-only `purge_expired_chat_rate_limits` RPC. `/api/cron/purge-chat-rate-limits` runs daily with `CRON_SECRET`, deletes expired windows and oldest overflow rows in bounded batches, and reports whether more work remains. The repeatable local proof command is:
+
+```bash
+pnpm run test:chat-lead-rls
+```
+
 Rollback keeps LM Studio intact: restore the prior `LMSTUDIO_BASE_URL` and model settings, change `CHAT_PROVIDER` to `lmstudio`, redeploy, and verify `/api/health`. Do not delete the Hermes preview or prior rollback values until the post-rollback check succeeds.
 
 ## Production hard stop (remaining M6 gates)

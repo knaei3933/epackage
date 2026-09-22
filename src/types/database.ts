@@ -340,6 +340,31 @@ export interface Order {
 // Database Types (Supabase generated)
 // ============================================================
 
+type ChatLeadIntent =
+  | 'quote' | 'sample' | 'technical' | 'general' | 'human';
+type ChatLeadStatus =
+  | 'new' | 'contacted' | 'qualified' | 'in_progress'
+  | 'closed_won' | 'closed_lost' | 'invalid';
+type ChatLeadOutcome =
+  | 'pending' | 'self_resolved' | 'human_followup' | 'converted' | 'abandoned';
+type ChatLeadHandoffState = 'none' | 'requested' | 'completed';
+type ChatContactChannel = 'email' | 'phone';
+type ChatPreferredChannel = 'email' | 'phone' | 'any';
+type ChatContactWindow =
+  | 'unspecified' | 'weekday_daytime' | 'weekday_evening' | 'weekend';
+type ChatContactDisposition = 'active' | 'completed' | 'redacted' | 'archived';
+type ChatLeadAuditAction =
+  | 'lead_created' | 'contact_revealed' | 'contact_reveal_denied'
+  | 'lead_updated' | 'contact_redacted' | 'requirements_redacted'
+  | 'lead_deleted' | 'linkage_accepted' | 'linkage_declined' | 'linkage_removed';
+type ChatRedactionReason = 'retention' | 'user_request' | 'privacy_approval';
+type ChatRateLimitAction =
+  | 'guest_lead_submit' | 'member_lead_submit' | 'contact_reveal';
+type ChatConsentLocale = 'ja';
+type ChatLinkageState = 'not_applicable' | 'linked' | 'declined' | 'unlinked';
+type ChatLegacyResolution =
+  | 'unresolved' | 'disabled' | 'replaced' | 'approved_exception';
+
 export type Database = {
     public: {
 Tables: {
@@ -1009,6 +1034,298 @@ Tables: {
             referencedColumns: ['id']
           },
         ]
+      }
+      chat_leads: {
+        Row: {
+          id: string
+          chat_session_id: string | null
+          member_user_id: string | null
+          member_linkage_state: ChatLinkageState
+          member_linkage_consented_at: string | null
+          member_linkage_consent_version: number | null
+          member_linkage_updated_at: string | null
+          intent: ChatLeadIntent
+          contents_description: string | null
+          quantity_description: string | null
+          size_spec_state: string | null
+          material_printing_needs: string | null
+          deadline_text: string | null
+          requirements_redacted_at: string | null
+          route_family: string
+          status: ChatLeadStatus
+          outcome: ChatLeadOutcome
+          handoff_state: ChatLeadHandoffState
+          created_at: string
+          updated_at: string
+          closed_at: string | null
+        }
+        Insert: {
+          id?: string
+          chat_session_id?: string | null
+          member_user_id?: string | null
+          member_linkage_state?: ChatLinkageState
+          member_linkage_consented_at?: string | null
+          member_linkage_consent_version?: number | null
+          member_linkage_updated_at?: string | null
+          intent: ChatLeadIntent
+          contents_description?: string | null
+          quantity_description?: string | null
+          size_spec_state?: string | null
+          material_printing_needs?: string | null
+          deadline_text?: string | null
+          requirements_redacted_at?: string | null
+          route_family: string
+          status?: ChatLeadStatus
+          outcome?: ChatLeadOutcome
+          handoff_state?: ChatLeadHandoffState
+          created_at?: string
+          updated_at?: string
+          closed_at?: string | null
+        }
+        Update: {
+          id?: string
+          chat_session_id?: string | null
+          member_user_id?: string | null
+          member_linkage_state?: ChatLinkageState
+          member_linkage_consented_at?: string | null
+          member_linkage_consent_version?: number | null
+          member_linkage_updated_at?: string | null
+          intent?: ChatLeadIntent
+          contents_description?: string | null
+          quantity_description?: string | null
+          size_spec_state?: string | null
+          material_printing_needs?: string | null
+          deadline_text?: string | null
+          requirements_redacted_at?: string | null
+          route_family?: string
+          status?: ChatLeadStatus
+          outcome?: ChatLeadOutcome
+          handoff_state?: ChatLeadHandoffState
+          created_at?: string
+          updated_at?: string
+          closed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'chat_leads_chat_session_id_fkey'
+            columns: ['chat_session_id']
+            isOneToOne: true
+            referencedRelation: 'chat_sessions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      chat_lead_contacts: {
+        Row: {
+          lead_id: string
+          contact_channel: ChatContactChannel
+          email: string | null
+          phone: string | null
+          company_name: string | null
+          contact_name: string | null
+          preferred_channel: ChatPreferredChannel
+          contact_window: ChatContactWindow
+          contact_consent: boolean
+          privacy_consent: boolean
+          marketing_consent: boolean
+          contact_consented_at: string
+          privacy_consented_at: string
+          marketing_consented_at: string | null
+          consent_version: number
+          privacy_policy_version: number
+          consent_locale: ChatConsentLocale
+          retention_due_at: string
+          disposition: ChatContactDisposition
+          contact_data_redacted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          lead_id: string
+          contact_channel: ChatContactChannel
+          email?: string | null
+          phone?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          preferred_channel: ChatPreferredChannel
+          contact_window: ChatContactWindow
+          contact_consent: boolean
+          privacy_consent: boolean
+          marketing_consent?: boolean
+          contact_consented_at: string
+          privacy_consented_at: string
+          marketing_consented_at?: string | null
+          consent_version: number
+          privacy_policy_version: number
+          consent_locale?: ChatConsentLocale
+          retention_due_at: string
+          disposition?: ChatContactDisposition
+          contact_data_redacted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          lead_id?: string
+          contact_channel?: ChatContactChannel
+          email?: string | null
+          phone?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          preferred_channel?: ChatPreferredChannel
+          contact_window?: ChatContactWindow
+          contact_consent?: boolean
+          privacy_consent?: boolean
+          marketing_consent?: boolean
+          contact_consented_at?: string
+          privacy_consented_at?: string
+          marketing_consented_at?: string | null
+          consent_version?: number
+          privacy_policy_version?: number
+          consent_locale?: ChatConsentLocale
+          retention_due_at?: string
+          disposition?: ChatContactDisposition
+          contact_data_redacted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'chat_lead_contacts_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: true
+            referencedRelation: 'chat_leads'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      chat_lead_audit_events: {
+        Row: {
+          id: number
+          lead_id: string
+          actor_user_id: string | null
+          action: ChatLeadAuditAction
+          request_id: string
+          from_status: ChatLeadStatus | null
+          to_status: ChatLeadStatus | null
+          from_outcome: ChatLeadOutcome | null
+          to_outcome: ChatLeadOutcome | null
+          from_disposition: ChatContactDisposition | null
+          to_disposition: ChatContactDisposition | null
+          from_handoff_state: ChatLeadHandoffState | null
+          to_handoff_state: ChatLeadHandoffState | null
+          from_linkage_state: ChatLinkageState | null
+          to_linkage_state: ChatLinkageState | null
+          redaction_reason: ChatRedactionReason | null
+          created_at: string
+        }
+        Insert: {
+          id?: never
+          lead_id: string
+          actor_user_id?: string | null
+          action: ChatLeadAuditAction
+          request_id: string
+          from_status?: ChatLeadStatus | null
+          to_status?: ChatLeadStatus | null
+          from_outcome?: ChatLeadOutcome | null
+          to_outcome?: ChatLeadOutcome | null
+          from_disposition?: ChatContactDisposition | null
+          to_disposition?: ChatContactDisposition | null
+          from_handoff_state?: ChatLeadHandoffState | null
+          to_handoff_state?: ChatLeadHandoffState | null
+          from_linkage_state?: ChatLinkageState | null
+          to_linkage_state?: ChatLinkageState | null
+          redaction_reason?: ChatRedactionReason | null
+          created_at?: string
+        }
+        Update: {
+          id?: never
+          lead_id?: string
+          actor_user_id?: string | null
+          action?: ChatLeadAuditAction
+          request_id?: string
+          from_status?: ChatLeadStatus | null
+          to_status?: ChatLeadStatus | null
+          from_outcome?: ChatLeadOutcome | null
+          to_outcome?: ChatLeadOutcome | null
+          from_disposition?: ChatContactDisposition | null
+          to_disposition?: ChatContactDisposition | null
+          from_handoff_state?: ChatLeadHandoffState | null
+          to_handoff_state?: ChatLeadHandoffState | null
+          from_linkage_state?: ChatLinkageState | null
+          to_linkage_state?: ChatLinkageState | null
+          redaction_reason?: ChatRedactionReason | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      chat_rate_limits: {
+        Row: {
+          identifier_hash: string
+          action: ChatRateLimitAction
+          window_started_at: string
+          count: number
+          expires_at: string
+        }
+        Insert: {
+          identifier_hash: string
+          action: ChatRateLimitAction
+          window_started_at: string
+          count: number
+          expires_at: string
+        }
+        Update: {
+          identifier_hash?: string
+          action?: ChatRateLimitAction
+          window_started_at?: string
+          count?: number
+          expires_at?: string
+        }
+        Relationships: []
+      }
+      chat_lead_privacy_readiness: {
+        Row: {
+          id: number
+          privacy_approval_record: string
+          privacy_policy_version: number
+          consent_version: number
+          contact_retention_days: number
+          summary_consent_retention_days: number
+          audit_retention_days: number
+          legacy_resolution: ChatLegacyResolution
+          legacy_approval_record: string | null
+          legacy_replacement_version: number | null
+          approved_at: string
+          schema_version: number
+        }
+        Insert: {
+          id: number
+          privacy_approval_record: string
+          privacy_policy_version: number
+          consent_version: number
+          contact_retention_days: number
+          summary_consent_retention_days: number
+          audit_retention_days: number
+          legacy_resolution?: ChatLegacyResolution
+          legacy_approval_record?: string | null
+          legacy_replacement_version?: number | null
+          approved_at: string
+          schema_version: number
+        }
+        Update: {
+          id?: number
+          privacy_approval_record?: string
+          privacy_policy_version?: number
+          consent_version?: number
+          contact_retention_days?: number
+          summary_consent_retention_days?: number
+          audit_retention_days?: number
+          legacy_resolution?: ChatLegacyResolution
+          legacy_approval_record?: string | null
+          legacy_replacement_version?: number | null
+          approved_at?: string
+          schema_version?: number
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -4866,6 +5183,19 @@ Functions: {
                     order_id: string | null
                     order_number: string | null
                     error_message: string | null
+                }[]
+            }
+
+            // ローカル設計段階のチャットリード氏名解除/赤除去。
+            // Production migration/enablement remains privacy-gated.
+            redact_and_unlink_chat_leads_for_member: {
+                Args: {
+                    p_member_user_id: string
+                    p_request_id: string
+                    p_batch_limit?: number
+                }
+                Returns: {
+                    unlinked_count: number
                 }[]
             }
 

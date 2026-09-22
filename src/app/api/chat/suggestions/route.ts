@@ -4,6 +4,10 @@ import { resolveChatParticipant } from '@/lib/chat/participant-context';
 import { parseChatPageContext } from '@/lib/chat/page-context';
 import { ensureChatSession } from '@/lib/chat/chat-analytics';
 import {
+  getChatLeadCapability,
+  isLegacyHumanHandoffEnabled,
+} from '@/lib/chat/lead-capture';
+import {
   checkRateLimit,
   getClientIdentifier,
 } from '@/lib/rate-limit';
@@ -95,6 +99,7 @@ export async function POST(req: NextRequest) {
   }
 
   const participant = await resolveChatParticipant(req);
+  const leadCapability = await getChatLeadCapability();
   const resolution = resolveChatPageSuggestions({
     ...contextResult.context,
     audience: participant?.audience ?? 'public',
@@ -108,6 +113,8 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(
     {
       sessionId,
+      leadCaptureEnabled: leadCapability.enabled,
+      legacyHandoffEnabled: isLegacyHumanHandoffEnabled(),
       suggestions: resolution.suggestions.map((suggestion) => ({
         id: suggestion.id,
         labelJa: suggestion.labelJa,

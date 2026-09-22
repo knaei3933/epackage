@@ -11,6 +11,23 @@ export interface ChatParticipant {
   audience: ChatSuggestionAudience;
 }
 
+export type StrictChatParticipantRole =
+  | 'MEMBER'
+  | 'ADMIN'
+  | 'OPERATOR'
+  | 'SALES'
+  | 'KOREA_DESIGNER';
+
+export type StrictChatParticipantResolution =
+  | { status: 'anonymous' }
+  | {
+      status: 'active';
+      userId: string;
+      role: StrictChatParticipantRole;
+    }
+  | { status: 'inactive' }
+  | { status: 'infrastructure-error' };
+
 const audienceForProfile = (
   role?: string,
   status?: string,
@@ -51,4 +68,63 @@ export async function resolveChatParticipant(
   } catch {
     return null;
   }
+}
+
+/**
+ * Strict identity resolution for privacy-sensitive chat flows.
+ * Unlike the non-PII suggestion fallback, infrastructure failures never
+ * silently downgrade an authenticated user to a guest.
+ */
+export async function resolveChatParticipantStrict(
+  request: Request,
+): Promise<StrictChatParticipantResolution> {
+  try {
+    const { client } = await createSupabaseSSRClient(request as NextRequest);
+    const {
+      data: { user },
+      error: authError,
+    } = await client.auth.getUser();
+
+    if (authError) return { status: 'infrastructure-error' };
+    if (!user) return { status: 'anonymous' };
+
+    const { data: profile, error: profileError } = await client
+      .from('profiles')
+      .select('role, status')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profileError) return { status: 'infrastructure-error' };
+
+    const role = (profile as { role?: string } | null)?.role;
+    const status = (profile as { status?: string } | null)?.status;
+    if (
+      status !== 'ACTIVE' ||
+      !role ||
+      !['MEMBER', 'ADMIN', 'OPERATOR', 'SALES', 'KOREA_DESIGNER'].includes(role)
+    ) {
+      return { status: 'inactive' };
+    }
+
+    return {
+      status: 'active',
+      userId: user.id,
+      role: role as StrictChatParticipantRole,
+    };
+  } catch {
+    return { status: 'infrastructure-error' };
+  }
+}
+
+export function isChatLeadStaffParticipant(
+  participant: StrictChatParticipantResolution,
+): participant is {
+  status: 'active';
+  userId: string;
+  role: 'ADMIN' | 'OPERATOR' | 'SALES';
+} {
+  return (
+    participant.status === 'active' &&
+    ['ADMIN', 'OPERATOR', 'SALES'].includes(participant.role)
+  );
 }

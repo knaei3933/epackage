@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, getClientIdentifier, getRateLimitHeaders } from '@/lib/rate-limit';
+import { isLegacyHumanHandoffEnabled } from '@/lib/chat/lead-capture';
 import { sendHandoffEmail } from '@/lib/chatbot-email';
 import { PHONE_REGEX, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 import { loggers } from '@/lib/logger';
@@ -35,6 +36,18 @@ const isSameOriginRequest = (req: NextRequest): boolean => {
 
 export async function POST(req: NextRequest) {
   try {
+    // Legacy email-only handoff is independently governed. It is disabled by
+    // default and must never be treated as consent for the new lead system.
+    if (!isLegacyHumanHandoffEnabled()) {
+      return NextResponse.json(
+        {
+          error: 'この機能は現在利用できません。',
+          reasonCode: 'legacy_handoff_disabled',
+        },
+        { status: 503 },
+      );
+    }
+
     if (!isSameOriginRequest(req)) {
       return NextResponse.json(
         { error: 'リクエスト元が不正です' },

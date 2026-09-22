@@ -34,6 +34,7 @@ export interface DeletionResult {
     designRevisions?: number
     koreaCorrections?: number
     koreaTransferLog?: number
+    chatLeads?: number
     profile?: number
   }
 }
@@ -165,7 +166,32 @@ export async function deleteAccount(
     deletedCounts.sampleRequests = sampleRequestsCount || 0
 
     // ============================================
-    // Phase 5: Profile (will cascade to admin_notifications)
+    // Phase 5: Consent-gated chat lead lifecycle
+    // ============================================
+
+    // Chat lead linkage is cleaned up before auth-user deletion so the durable
+    // linked-state invariant cannot block account removal. The schema gate is
+    // enabled only after the local-only lead migration has been applied.
+    if (process.env.CHAT_LEAD_SCHEMA_READY === 'true') {
+      const { data, error: chatLeadError } = await supabase.rpc(
+        'redact_and_unlink_chat_leads_for_member',
+        {
+          p_member_user_id: userId,
+          p_request_id: crypto.randomUUID(),
+          p_batch_limit: 10000,
+        }
+      )
+      const unlinkedCount = data?.[0]?.unlinked_count
+
+      if (chatLeadError || typeof unlinkedCount !== 'number') {
+        console.error('Failed to unlink and redact chat leads:', chatLeadError)
+        throw new Error('チャット連携データの削除に失敗しました')
+      }
+      deletedCounts.chatLeads = unlinkedCount
+    }
+
+    // ============================================
+    // Phase 6: Profile (will cascade to admin_notifications)
     // ============================================
 
     // 8. Profile
@@ -177,10 +203,10 @@ export async function deleteAccount(
     deletedCounts.profile = profileCount || 0
 
     // ============================================
-    // Phase 6: Delete from Supabase Auth
+    // Phase 7: Delete from Supabase Auth
     // ============================================
 
-    // 9. Delete from Supabase Auth
+    // Delete from Supabase Auth
     const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId)
 
     if (authDeleteError) {
