@@ -101,12 +101,18 @@ export async function POST(req: NextRequest) {
   // Privacy/capability gate runs before participant resolution, rate limiting,
   // and any request-body access. Production remains disabled by default.
   const capability = await getChatLeadCapability();
+  console.log('[LEAD_CAPABILITY]', JSON.stringify(capability));
   if (!capability.enabled) return disabled();
 
   const participant: StrictChatParticipantResolution =
     await resolveChatParticipantStrict(req);
 
-  if (participant.status === 'infrastructure-error') return serverError();
+  if (participant.status === 'infrastructure-error') {
+    return NextResponse.json(
+      { error: 'server error', reasonCode: 'lead_save_unavailable', debug_step: 'participant_infrastructure_error' },
+      { status: 503, headers: { 'Cache-Control': 'private, no-store' } },
+    );
+  }
   if (
     participant.status === 'active' &&
     (participant.role === 'ADMIN' ||
@@ -132,7 +138,13 @@ export async function POST(req: NextRequest) {
     sessionId: 'pending-request',
     forwardedFor,
   });
-  if (!rateLimit?.allowed) return serverError();
+  console.log('[LEAD_RATE_LIMIT_RESULT]', JSON.stringify(rateLimit));
+  if (!rateLimit?.allowed) {
+    return NextResponse.json(
+      { error: 'server error', reasonCode: 'lead_save_unavailable', debug_step: 'rate_limit', has_pepper: !!process.env.CHAT_LEAD_RATE_LIMIT_PEPPER, pepper_len: (process.env.CHAT_LEAD_RATE_LIMIT_PEPPER || '').length },
+      { status: 503, headers: { 'Cache-Control': 'private, no-store' } },
+    );
+  }
 
   let body: unknown;
   try {
@@ -161,7 +173,13 @@ export async function POST(req: NextRequest) {
     pageContext: contextResult.context,
     memberUserId,
   });
-  if (!result?.accepted) return serverError();
+  console.log('[LEAD_SUBMIT_RESULT]', JSON.stringify(result));
+  if (!result?.accepted) {
+    return NextResponse.json(
+      { error: 'server error', reasonCode: 'lead_save_unavailable', debug_step: 'submit', result: JSON.stringify(result) },
+      { status: 503, headers: { 'Cache-Control': 'private, no-store' } },
+    );
+  }
 
   await recordChatFunnelEvents(validatedLead.lead.sessionId, [
     { eventType: 'contact_submitted' },

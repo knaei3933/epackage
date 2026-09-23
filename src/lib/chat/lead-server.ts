@@ -72,7 +72,10 @@ export async function checkChatLeadRateLimit({
       p_limit: memberUserId ? 10 : 5,
       p_window_seconds: 3600,
     });
-    if (error || !data) return null;
+    if (error || !data) {
+      console.error('[LEAD_RATE_LIMIT_ERROR]', JSON.stringify({ error: error?.message, data }));
+      return null;
+    }
 
     const row = Array.isArray(data) ? data[0] : data;
     if (typeof row !== 'object' || row === null || typeof row.allowed !== 'boolean') {
@@ -147,7 +150,10 @@ export async function submitChatLead({
       p_contact_retention_days: contactRetentionDays,
       p_request_id: crypto.randomUUID(),
     });
-    if (error || !data) return null;
+    if (error || !data) {
+      console.error('[LEAD_SUBMIT_ERROR]', JSON.stringify({ error: error?.message, data }));
+      return null;
+    }
 
     const row = Array.isArray(data) ? data[0] : data;
     const leadId = row?.lead_id;

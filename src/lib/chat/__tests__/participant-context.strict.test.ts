@@ -43,6 +43,11 @@ describe('strict chat participant resolution', () => {
     authGetUser.mockResolvedValueOnce({ data: { user: null }, error: null });
     await expect(resolveChatParticipantStrict(request)).resolves.toEqual({ status: 'anonymous' });
 
+    authGetUser.mockRejectedValueOnce(new Error('network unreachable'));
+    await expect(resolveChatParticipantStrict(request)).resolves.toEqual({
+      status: 'infrastructure-error',
+    });
+
     authGetUser.mockResolvedValueOnce({
       data: { user: { id: 'user-member' } },
       error: null,
@@ -55,11 +60,16 @@ describe('strict chat participant resolution', () => {
     });
   });
 
-  it('never silently downgrades infrastructure failures to guest', async () => {
+  it('treats auth session errors with null user as anonymous', async () => {
     authGetUser.mockResolvedValueOnce({
       data: { user: null },
-      error: { message: 'auth unavailable' },
+      error: { message: 'Auth session missing' },
     });
+    await expect(resolveChatParticipantStrict(request)).resolves.toEqual({
+      status: 'anonymous',
+    });
+
+    authGetUser.mockRejectedValueOnce(new Error('network unreachable'));
     await expect(resolveChatParticipantStrict(request)).resolves.toEqual({
       status: 'infrastructure-error',
     });

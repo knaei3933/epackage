@@ -85,7 +85,10 @@ export async function resolveChatParticipantStrict(
       error: authError,
     } = await client.auth.getUser();
 
-    if (authError) return { status: 'infrastructure-error' };
+    // Auth session errors (no session, expired JWT) mean the user is
+    // anonymous, not that infrastructure is broken. Only treat thrown
+    // exceptions (network failures, config errors) as infrastructure issues.
+    if (authError && !user) return { status: 'anonymous' };
     if (!user) return { status: 'anonymous' };
 
     const { data: profile, error: profileError } = await client
