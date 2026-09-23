@@ -1,15 +1,21 @@
-# Exclude large images for deployment to meet 100MB limit
-# NOTE: Temporarily disabled to allow images in production
-# public/images/main/main*.png
-# public/images/hero-*.png
-# public/images/processing-icons/*.png
-# public/images/products/*.png
-# public/images/real-products/*.png
-# public/images/about/*.jpg
-# public/images/portfolio/*.png
-# public/images/flow/*.jpg
-# public/images/flow/*.png
-# public/images/process/*.png
-
-# Keep only essential images
-!public/images/epackage-lab-logo.png
+design
+docs
+server
+coverage
+outputs
+screenshots
+scripts
+logs
+results
+playwright-report
+tests
+tmp
+.omx
+.claude
+.claudedocs
+cache
+customer-lists
+dist
+node_modules
+.next
+.git

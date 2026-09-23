@@ -13,6 +13,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase';
 import { createAuthenticatedServiceClient } from '@/lib/supabase-authenticated';
+import { epackMailer } from '@/lib/email/epack-mailer';
 import { DESIGN_REVISION_ERRORS, createErrorResponse } from '@/lib/api-error-codes';
 
 // Env vars checked at runtime in handler function
@@ -185,7 +186,7 @@ export async function PATCH(
     // Verify order belongs to user
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, user_id')
+      .select('id, user_id, order_number')
       .eq('id', orderId)
       .single();
 
@@ -338,11 +339,40 @@ export async function PATCH(
       }
     }
 
-    // Notification infrastructure intentionally not implemented. Response is explicit about this.
+    // ============================================================
+    // 접수 확인 메일 (RALPLAN STEP6 — 승인/거절 모두 고객에게 발송)
+    // ============================================================
+    let notificationSent = false
+    try {
+      const orderNumber = (order as { order_number?: string }).order_number || ''
+      const isApproved = status === 'approved'
+      const subject = isApproved
+        ? `【Epackage Lab】校正データの承認を受付けました (${orderNumber})`
+        : `【Epackage Lab】修正依頼を受付けました (${orderNumber})`
+      const text = isApproved
+        ? '承認を受付けました。製造工程を開始いたします。\n製造開始後のキャンセル・返金は利用規約に基づき承ることができませんので、あらかじめご了承ください。'
+        : '修正依頼を受付けました。韓国デザインチームにて再校正を行い、改めてご連絡いたします。'
+      const html =
+        '<div style="font-family: \'Hiragino Kaku Gothic ProN\', Meiryo, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">' +
+        '<p>お客様</p>' +
+        `<p>${subject.replace('【Epackage Lab】', '')}</p>` +
+        `<div style="background:#f9fafb;border-left:4px solid #3b82f6;padding:15px;margin:20px 0;font-size:13px;">注文番号：${orderNumber}</div>` +
+        '<p style="font-size:12px;color:#666;">本メールはシステムにより自動送信されています。</p></div>'
+      const sendResult = await epackMailer.sendCustom(
+        user.email || '',
+        subject,
+        { html, text }
+      )
+      notificationSent = sendResult.success
+    } catch (mailError) {
+      // メール失敗はレスポンス成功に影響させない
+      console.error('[Design Revisions PATCH] Receipt email failed:', mailError)
+    }
+
     return NextResponse.json({
       success: true,
       revision: updatedRevision,
-      notificationSent: false,
+      notificationSent,
     });
 
   } catch (error) {

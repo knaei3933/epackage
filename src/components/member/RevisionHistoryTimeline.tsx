@@ -83,12 +83,6 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Get preview URL via proxy to avoid CORS issues
-  const getPreviewUrl = (revisionId: string) => {
-    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.package-lab.com';
-    return `${appUrl}/api/designer/orders/${orderId}/correction/${revisionId}/preview`;
-  };
-
   // Load revision history
   const loadHistory = useCallback(async () => {
     try {
@@ -439,7 +433,7 @@ export function RevisionHistoryTimeline({ orderId }: RevisionHistoryTimelineProp
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {entry.revision.preview_image_url && (
                             <a
-                              href={getPreviewUrl(entry.revision.id)}
+                              href={entry.revision.preview_image_url || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-2 p-3 rounded-lg border border-border-secondary hover:bg-muted/50 transition-colors"

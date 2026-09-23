@@ -72,12 +72,12 @@ export function PostProcessingPositionInput({
       <div className="space-y-3">
         <h4 className="font-semibold text-gray-800 flex items-center gap-2">
           <Scissors className="w-4 h-4 text-gray-600" />
-          ノッチ位置 / 노치 위치
+          노치 위치
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              上から / 위에서
+              위에서
             </label>
             <input
               type="text"
@@ -90,7 +90,7 @@ export function PostProcessingPositionInput({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              下から / 아래에서
+              아래에서
             </label>
             <input
               type="text"
@@ -108,12 +108,12 @@ export function PostProcessingPositionInput({
       <div className="space-y-3">
         <h4 className="font-semibold text-gray-800 flex items-center gap-2">
           <Circle className="w-4 h-4 text-gray-600" />
-          吊り下げ加工 / 현수공加工
+          현수공加工
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              穴径 / 구멍 지름
+              구멍 지름
             </label>
             <select
               value={formData.hang_hole_diameter || ''}
@@ -121,11 +121,11 @@ export function PostProcessingPositionInput({
               disabled={disabled}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
             >
-              <option value="">選択してください / 선택하세요</option>
+              <option value="">선택하세요</option>
               <option value="6mm">6mm / 6mm</option>
               <option value="8mm">8mm / 8mm</option>
               <option value="10mm">10mm / 10mm</option>
-              <option value="その他 / 기타">その他 / 기타</option>
+              <option value="기타">기타</option>
             </select>
           </div>
           <div>
@@ -136,7 +136,7 @@ export function PostProcessingPositionInput({
               type="text"
               value={formData.hang_hole_position || ''}
               onChange={(e) => handleChange('hang_hole_position', e.target.value)}
-              placeholder="例: 上から15mm / 예: 위에서 15mm"
+              placeholder="예: 위에서 15mm"
               disabled={disabled}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
             />
@@ -148,7 +148,7 @@ export function PostProcessingPositionInput({
       <div className="space-y-3">
         <h4 className="font-semibold text-gray-800 flex items-center gap-2">
           <Package className="w-4 h-4 text-gray-600" />
-          チャック位置 / 지퍼 위치
+          지퍼 위치
         </h4>
         <div>
           <input
@@ -183,7 +183,7 @@ export function PostProcessingPositionInput({
       {/* その他特殊加工 */}
       <div className="space-y-3">
         <h4 className="font-semibold text-gray-800">
-          その他特殊加工 / 기타 특수가공
+          기타 특수가공
         </h4>
         <div>
           <textarea
@@ -204,7 +204,7 @@ export function PostProcessingPositionInput({
             onClick={handleSubmit}
             className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
-            保存する / 저장하기
+            저장하기
           </button>
         </div>
       )}

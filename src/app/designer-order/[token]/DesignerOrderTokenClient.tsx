@@ -27,7 +27,6 @@ import {
   User,
   Package,
 } from 'lucide-react';
-import { useTranslation } from '@/contexts/LanguageContext';
 import { PostProcessingPositionInput } from '@/components/designer/PostProcessingPositionInput';
 
 // =====================================================
@@ -143,7 +142,6 @@ export function DesignerOrderTokenClient({
   initialComments,
   initialCustomerUploads,
 }: DesignerOrderTokenClientProps): ReactNode {
-  const { tn } = useTranslation();
   const previewInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -162,10 +160,9 @@ export function DesignerOrderTokenClient({
   const [customerUploads, setCustomerUploads] = useState<CustomerFileUpload[]>(initialCustomerUploads);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
 
-  // 後加工位置情報State / 후가공 위치 정보 상태
-  const [showPostProcessingInput, setShowPostProcessingInput] = useState(false);
+  // 후가공 위치 정보 상태 (업로드 전에 입력 → 업로드 시 리비전 생성 후 함께 저장)
+  const [postProcessingData, setPostProcessingData] = useState<any>(null); // PostProcessingPositionData — 순환 참조 타입 우회
   const [currentRevisionId, setCurrentRevisionId] = useState<string | null>(null);
-  const [postProcessingSaved, setPostProcessingSaved] = useState(false);
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -373,7 +370,7 @@ export function DesignerOrderTokenClient({
 
   // Handle file deletion
   const handleDeleteFile = async (fileId: string) => {
-    if (!confirm('このファイルを削除してもよろしいですか？')) {
+    if (!confirm('이 파일을 삭제하시겠습니까?')) {
       return;
     }
 
@@ -476,11 +473,35 @@ export function DesignerOrderTokenClient({
           const newRevisions = revisionsData.revisions || [];
           setRevisions(newRevisions);
 
-          // Show post-processing input for the latest revision
+          // 업로드로 생성된 최신 리비전에 후가공 위치 정보를 함께 저장
           if (newRevisions.length > 0) {
             const latestRevision = newRevisions[0]; // Most recent first
             setCurrentRevisionId(latestRevision.id);
-            setShowPostProcessingInput(true);
+
+            if (postProcessingData) {
+              const hasAnyValue = Object.values(postProcessingData).some((v) => v && String(v || '').trim() !== '');
+              if (hasAnyValue) {
+                const ppResponse = await fetch(
+                  `/api/design-revisions/${latestRevision.id}/postprocessing-positions`,
+                  {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      sku_name:
+                        order.items.find((item) => item.id === selectedOrderItemId)?.sku_name ||
+                        order.items.find((item) => item.id === selectedOrderItemId)?.product_name ||
+                        '미입력',
+                      ...postProcessingData,
+                    }),
+                  }
+                );
+                if (!ppResponse.ok) {
+                  const ppError = await ppResponse.json().catch(() => ({}));
+                  setError(ppError.error || '후가공 위치 정보 저장에 실패했습니다');
+                }
+              }
+              setPostProcessingData(null);
+            }
           }
         }
       }
@@ -506,7 +527,7 @@ export function DesignerOrderTokenClient({
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {tn('designer', 'order.details')}
+                  주문 상세
                 </h1>
                 <span className={`
                   px-3 py-1 rounded-full text-sm font-medium border
@@ -516,7 +537,7 @@ export function DesignerOrderTokenClient({
                 </span>
               </div>
               <p className="text-gray-600">
-                {tn('designer', 'order.orderNumber')}: {order.order_number}
+                주문 번호: {order.order_number}
               </p>
             </div>
           </div>
@@ -565,20 +586,20 @@ export function DesignerOrderTokenClient({
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <Package className="w-5 h-5 text-blue-600" />
-            {tn('designer', 'order.orderInfo')}
+            주문 정보
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-slate-400" />
               <div>
-                <p className="text-xs text-slate-500">{tn('designer', 'dashboard.customerName')}</p>
+                <p className="text-xs text-slate-500">고객명</p>
                 <p className="font-medium text-slate-900">{order.customer_name}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-slate-400" />
               <div>
-                <p className="text-xs text-slate-500">{tn('designer', 'order.createdAt')}</p>
+                <p className="text-xs text-slate-500">생성일</p>
                 <p className="font-medium text-slate-900">{formatDate(order.created_at)}</p>
               </div>
             </div>
@@ -588,7 +609,7 @@ export function DesignerOrderTokenClient({
         {/* Items */}
         {order.items && order.items.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">{tn('designer', 'order.orderItems')}</h2>
+            <h2 className="text-xl font-semibold mb-4">주문 항목</h2>
             <ul className="space-y-2">
               {order.items.map((item, index) => (
                 <li key={item.id} className="border-b pb-2">
@@ -658,6 +679,24 @@ export function DesignerOrderTokenClient({
             </div>
           </div>
         )}
+
+          {/* 후가공 위치 입력 (수정사항이 있을 때만 입력, 없으면 공백으로 업로드 진행) */}
+          {selectedOrderItemId && (() => {
+            const selectedItem = order.items.find((item) => item.id === selectedOrderItemId);
+            const skuLabel = selectedItem?.sku_name || selectedItem?.product_name || '미입력';
+            return (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <PostProcessingPositionInput
+                  skuName={skuLabel}
+                  initialData={{}}
+                  onSave={(data) => {
+                    setPostProcessingData(data);
+                    setSuccessMessage('후가공 위치 정보가 저장되었습니다 (교정 데이터 업로드 시 함께 제출됩니다)');
+                  }}
+                />
+              </div>
+            );
+          })()}
 
         {/* Upload Form */}
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -834,47 +873,6 @@ export function DesignerOrderTokenClient({
               수정 내용에 대한 설명을 고객에게 한국어로 입력해주세요 (선택 사항)
             </p>
           </div>
-
-          {/* 後加工位置入力フォーム / 후가공 위치 입력 폼 */}
-          {showPostProcessingInput && currentRevisionId && selectedOrderItemId && (
-            <div className="mt-6">
-              <PostProcessingPositionInput
-                skuName={
-                  order.items.find(item => item.id === selectedOrderItemId)?.sku_name ||
-                  order.items.find(item => item.id === selectedOrderItemId)?.product_name ||
-                  '미입력'
-                }
-                initialData={{}}
-                onSave={async (data) => {
-                  // 後加工位置情報を保存
-                  const response = await fetch(
-                    `/api/design-revisions/${currentRevisionId}/postprocessing-positions`,
-                    {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        sku_name: order.items.find(item => item.id === selectedOrderItemId)?.sku_name ||
-                                   order.items.find(item => item.id === selectedOrderItemId)?.product_name ||
-                                   '미입력',
-                        ...data,
-                      }),
-                    }
-                  );
-
-                  if (response.ok) {
-                    setSuccessMessage('후가공 위치 정보를 저장했습니다 / 後加工位置情報を保存しました');
-                    setPostProcessingSaved(true);
-                    setTimeout(() => setPostProcessingSaved(false), 3000);
-                  } else {
-                    const error = await response.json();
-                    setError(error.error || '저장에 실패했습니다 / 保存に失敗しました');
-                  }
-                }}
-                disabled={postProcessingSaved}
-              />
-            </div>
-          )}
-
           {/* Upload Progress */}
           {isUploading && (
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
@@ -940,14 +938,17 @@ export function DesignerOrderTokenClient({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-slate-900">
-                          리비전 #{revision.revision_number}
+                          {revision.order_item_id && (() => {
+                            const item = order.items.find(i => i.id === revision.order_item_id);
+                            const index = order.items.findIndex(i => i.id === revision.order_item_id);
+                            return item ? formatSkuName(item, index) : '교정 데이터';
+                          })()}
                         </h3>
                         {revision.order_item_id && (() => {
                           const item = order.items.find(i => i.id === revision.order_item_id);
-                          const index = order.items.findIndex(i => i.id === revision.order_item_id);
                           return item ? (
-                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
-                              {formatSkuName(item, index)}
+                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium">
+                              교정 #{revision.revision_number}
                             </span>
                           ) : null;
                         })()}
@@ -1011,7 +1012,7 @@ export function DesignerOrderTokenClient({
         {/* Comments */}
         {initialComments.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">{tn('designer', 'order.comments')}</h2>
+            <h2 className="text-xl font-semibold mb-4">코멘트</h2>
             <ul className="space-y-3">
               {initialComments.map((comment) => (
                 <li key={comment.id} className="border-b pb-3">
@@ -1029,15 +1030,15 @@ export function DesignerOrderTokenClient({
 
         {/* Assignment Status */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">{tn('designer', 'order.assignmentStatus')}</h2>
+          <h2 className="text-xl font-semibold mb-4">배정 상태</h2>
           <div className="space-y-2">
-            <p><strong>{tn('designer', 'dashboard.status')}:</strong> {assignmentData.status}</p>
-            <p><strong>{tn('designer', 'dashboard.assignedAt')}:</strong> {formatDate(assignmentData.assigned_at)}</p>
+            <p><strong>상태:</strong> {assignmentData.status}</p>
+            <p><strong>배정일:</strong> {formatDate(assignmentData.assigned_at)}</p>
             {assignmentData.completed_at && (
-              <p><strong>{tn('designer', 'order.completedAt')}:</strong> {formatDate(assignmentData.completed_at)}</p>
+              <p><strong>완료일:</strong> {formatDate(assignmentData.completed_at)}</p>
             )}
             {assignmentData.last_accessed_at && (
-              <p><strong>{tn('designer', 'order.lastAccess')}:</strong> {formatDate(assignmentData.last_accessed_at)}</p>
+              <p><strong>마지막 접속:</strong> {formatDate(assignmentData.last_accessed_at)}</p>
             )}
           </div>
         </div>

@@ -26,6 +26,11 @@ import { OrderActions } from './OrderActions';
 import { CustomerApprovalSection, OrderStatusBadge } from '@/components/orders';
 import { OrderInfoAccordion, DesignWorkflowSection, OrderItemsSummary, ModificationApprovalSection, RevisionHistoryTimeline } from '@/components/member';
 import { OrderInquirySection } from '@/components/orders/OrderInquirySection';
+import { JourneyStepper } from '@/components/member/JourneyStepper';
+import { NextActionBanner } from '@/components/member/NextActionBanner';
+import { getOrderJourneyStage } from '@/lib/journey-stage';
+import { getOrderDeliveryTracking } from '@/lib/delivery-tracking';
+import { DeliveryTrackingCard } from '@/components/member/DeliveryTrackingCard';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
@@ -36,7 +41,7 @@ export const dynamic = 'force-dynamic';
 
 async function OrderDetailContent({ orderId }: { orderId: string }) {
   // Check authentication using middleware headers
-  await requireAuth();
+  const authUser = await requireAuth();
 
   // 注文詳細を取得
   const order = await getOrderById(orderId);
@@ -47,6 +52,10 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
 
   // ステータス履歴を取得（WS-3: order.id の UUID を渡す・orderId は URL param で order_number の可能性があるため）
   const statusHistory = await getOrderStatusHistory(order.id);
+  // ジャーニー進行状態（見積→注文→入稿→校正→承認）の単一データソース
+  const journey = getOrderJourneyStage(order.status);
+  // 配送追跡情報（自分の注文のみ・追跡レコード未作成なら null）
+  const deliveryTracking = await getOrderDeliveryTracking(order.id, authUser.id);
 
   return (
     <div className="space-y-6">
@@ -63,187 +72,125 @@ async function OrderDetailContent({ orderId }: { orderId: string }) {
         <OrderStatusBadge status={order.status} locale="ja" />
       </div>
 
+      {/* ジャーニーステッパー＋ステータスバナー（スクロール中も上部に固定表示） */}
+      {!journey.isCancelled && (
+        <div className="sticky top-16 z-30 space-y-3">
+          <Card className="p-4 shadow-md">
+            <JourneyStepper journey={journey} />
+          </Card>
+
       {/* =====================================================
-          状態別ガイダンスメッセージ
+          状態別ガイダンスメッセージ（NextActionBanner 統合版）
+          - テキストは従来のインラインバナーから変更なし
           ===================================================== */}
       {order.status === 'CUSTOMER_APPROVAL_PENDING' && (
-        <div className="p-4 bg-orange-50 border-2 border-orange-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-orange-900">
-              📋 教正データの承認待ちです
-            </p>
-            <p className="text-sm text-orange-700 mt-1">
-              下記「デザインワークフロー」Step 2でプレビューをご確認の上、承認ボタンを押してください
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="action"
+          iconKey="clipboard"
+          title="📋 教正データの承認待ちです"
+          description="下記「デザインワークフロー」Step 2でプレビューをご確認の上、承認ボタンを押してください"
+        />
       )}
 
       {order.status === 'MODIFICATION_REQUESTED' && (
-        <div className="p-4 bg-orange-50 border-2 border-orange-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-orange-900">
-              ⚠️ 修正承認待ちです
-            </p>
-            <p className="text-sm text-orange-700 mt-1">
-              管理者が注文内容を修正しました。下部の「修正承認待ち」セクションで修正内容をご確認の上、承認または拒否を選択してください
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="action"
+          iconKey="filePen"
+          title="⚠️ 修正承認待ちです"
+          description="管理者が注文内容を修正しました。下部の「修正承認待ち」セクションで修正内容をご確認の上、承認または拒否を選択してください"
+        />
       )}
 
       {order.status === 'MODIFICATION_APPROVED' && (
-        <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-green-900">
-              ✓ 修正が承認されました
-            </p>
-            <p className="text-sm text-green-700 mt-1">
-              管理者の修正内容が承認されました。校正作業に進みます
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="success"
+          title="✓ 修正が承認されました"
+          description="管理者の修正内容が承認されました。校正作業に進みます"
+        />
       )}
 
       {order.status === 'MODIFICATION_REJECTED' && (
-        <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-red-900">
-              ✕ 修正が拒否されました
-            </p>
-            <p className="text-sm text-red-700 mt-1">
-              管理者の修正内容が拒否されました。管理者が再検討します
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="error"
+          title="✕ 修正が拒否されました"
+          description="管理者の修正内容が拒否されました。管理者が再検討します"
+        />
       )}
 
-     {order.status === 'CORRECTION_IN_PROGRESS' && (
-       <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center gap-3">
-         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-           <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-           </svg>
-         </div>
-         <div className="flex-1">
-           <p className="font-medium text-blue-900">
-             ⏳ 教正作業中です
-           </p>
-           <p className="text-sm text-blue-700 mt-1">
-             現在、デザイナーが教正データを作成中です。完成次第、ここで通知いたします
-           </p>
-         </div>
-       </div>
-     )}
+      {order.status === 'CORRECTION_IN_PROGRESS' && (
+        <NextActionBanner
+          sticky={false}
+          tone="info"
+          title="⏳ 教正作業中です"
+          description="現在、デザイナーが教正データを作成中です。完成次第、ここで通知いたします"
+        />
+      )}
 
       {order.status === 'DATA_UPLOAD_PENDING' && (
-        <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-amber-900">
-              📤 製造データの入稿をお願いします
-            </p>
-            <p className="text-sm text-amber-700 mt-1">
-              下記「デザインワークフロー」Step 1から製造データ（AI・PDF等）をアップロードしてください
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="action"
+          title="📤 製造データの入稿をお願いします"
+          description="下記「デザインワークフロー」Step 1から製造データ（AI・PDF等）をアップロードしてください"
+        />
       )}
 
       {order.status === 'DATA_UPLOADED' && (
-        <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-blue-900">
-              ✓ データ入稿を確認しました
-            </p>
-            <p className="text-sm text-blue-700 mt-1">
-              入稿データを韓国デザイナーに送信しました。教正データの作成を待っています
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="info"
+          title="✓ データ入稿を確認しました"
+          description="入稿データを韓国デザイナーに送信しました。教正データの作成を待っています"
+        />
       )}
 
       {order.status === 'PRODUCTION' && (
-        <div className="p-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-indigo-900">
-              🏭 製造中です
-            </p>
-            <p className="text-sm text-indigo-700 mt-1">
-              現在、パッケージの製造を行っています。完成まで2〜3週間程度かかります
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="info"
+          iconKey="factory"
+          title="🏭 製造中です"
+          description="現在、パッケージの製造を行っています。完成まで2〜3週間程度かかります"
+        />
       )}
 
       {order.status === 'READY_TO_SHIP' && (
-        <div className="p-4 bg-teal-50 border-2 border-teal-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-teal-900">
-              📦 出荷準備完了
-            </p>
-            <p className="text-sm text-teal-700 mt-1">
-              製造が完了し、出荷準備が整いました。まもなく発送いたします
-            </p>
-          </div>
-        </div>
+        <NextActionBanner
+          sticky={false}
+          tone="info"
+          title="📦 出荷準備完了"
+          description="製造が完了し、出荷準備が整いました。まもなく発送いたします"
+        />
       )}
 
       {order.status === 'SHIPPED' && (
-        <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-green-900">
-              🚚 発送完了
-            </p>
-            <p className="text-sm text-green-700 mt-1">
-              商品を発送しました。配送状況は追跡情報をご確認ください
-            </p>
-          </div>
+        <NextActionBanner
+          sticky={false}
+          tone="success"
+          title="🚚 発送完了"
+          description="商品を発送しました。下記の配送追跡カードから配送状況をご確認いただけます"
+        />
+      )}
+
+      {order.status === 'DELIVERED' && (
+        <NextActionBanner
+          sticky={false}
+          tone="success"
+          title="🎉 お取引が完了しました"
+          description="商品の配達が完了しました。この度はご利用いただき、誠にありがとうございました。"
+        />
+      )}
+
+      {/* =====================================================
+          配送追跡カード（出荷以降・追跡レコード存在時のみ）
+          ===================================================== */}
+      {deliveryTracking && (
+        <DeliveryTrackingCard tracking={deliveryTracking} />
+      )}
         </div>
       )}
 

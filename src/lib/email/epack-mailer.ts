@@ -721,6 +721,20 @@ export async function sendOrderCancelledEmail(data: EpackEmailData): Promise<Epa
 /**
  * 韓国チーム校正依頼メール
  */
+export async function sendDeliveredEmail(data: EpackEmailData): Promise<EpackSendResult> {
+  return sendEpackEmail('deliveredEmail', data)
+}
+
+/**
+ * 作業指示書発行メール
+ */
+export async function sendWorkOrderStartedEmail(data: EpackEmailData): Promise<EpackSendResult> {
+  return sendEpackEmail('workOrderStartedEmail', data)
+}
+
+/**
+ * 韓国チーム校正依頼メール
+ */
 export async function sendKoreaCorrectionRequestEmail(data: EpackEmailData): Promise<EpackSendResult> {
   return sendEpackEmail('koreaCorrectionRequest', data)
 }
@@ -988,6 +1002,8 @@ export const epackMailer = {
   readyToShip: sendReadyToShipEmail,
   shipped: sendShippedEmail,
   orderCancelled: sendOrderCancelledEmail,
+  delivered: sendDeliveredEmail,
+  workOrderStarted: sendWorkOrderStartedEmail,
   koreaCorrectionRequest: sendKoreaCorrectionRequestEmail,
 
   // Contact form

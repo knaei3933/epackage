@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui';
+import { IntakeChecklistModal } from '@/components/member/IntakeChecklistModal';
 import { UploadedFilesList } from './parts/UploadedFilesList';
 import { Card } from '@/components/ui';
 import { ConfirmModal, useConfirmModal } from '@/components/ui/ConfirmModal';
@@ -91,6 +92,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { showError, showSuccess } = useToastContext();
   const [currentPage, setCurrentPage] = useState(0);
+  const [showIntakeChecklist, setShowIntakeChecklist] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -674,7 +676,7 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
               </Button>
               <Button
                 variant="primary"
-                onClick={handleUpload}
+                onClick={() => setShowIntakeChecklist(true)}
                 disabled={isUploading}
               >
                 入稿データをアップロード
@@ -692,6 +694,16 @@ export function OrderFileUploadSection({ order, fetchFn = fetch, onFileUploaded 
               <li>• 最大ファイルサイズ: 100MB</li>
             </ul>
           </div>
+
+          {/* 入稿前チェックリスト（免責事項同意後にアップロード実行） */}
+          <IntakeChecklistModal
+            isOpen={showIntakeChecklist}
+            onConfirm={() => {
+              setShowIntakeChecklist(false);
+              handleUpload();
+            }}
+            onCancel={() => setShowIntakeChecklist(false)}
+          />
         </div>
 
         {/* Uploaded Files List */}

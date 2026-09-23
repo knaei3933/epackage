@@ -222,10 +222,12 @@ export function DesignWorkflowSection({ order }: DesignWorkflowSectionProps) {
 
   // 初期状態：現在のステップを展開
   useEffect(() => {
-    if (expandedStep === null) {
+    // ローディング中は currentStep が未確定（=1 扱い）のため、
+    // 実データ取得後に正しいステップを展開する
+    if (!loading && expandedStep === null) {
       setExpandedStep(Math.ceil(currentStep));
     }
-  }, [currentStep, expandedStep]);
+  }, [currentStep, expandedStep, loading]);
 
   const toggleStep = (stepNumber: number) => {
     setExpandedStep(expandedStep === stepNumber ? null : stepNumber);

@@ -124,7 +124,7 @@ function AdminOrdersClientContent({
       const response = await adminFetch(`/api/admin/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, notifyCustomer: true }),
       });
 
       if (!response.ok) {
@@ -161,6 +161,7 @@ function AdminOrdersClientContent({
         body: JSON.stringify({
           order_ids: Array.from(selectedOrders),
           status: newStatus,
+          notifyCustomer: true,
         }),
       });
 

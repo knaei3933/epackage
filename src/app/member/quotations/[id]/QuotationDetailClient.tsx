@@ -41,6 +41,9 @@ import type { Quotation } from '@/types/dashboard';
 import type { Profile } from '@/lib/supabase';
 import { formatPrice, formatDate } from '@/utils/formatters';
 import { useToastContext } from '@/components/ui/Toast';
+import { JourneyStepper } from '@/components/member/JourneyStepper';
+import { NextActionBanner } from '@/components/member/NextActionBanner';
+import { getQuotationJourneyStage } from '@/lib/journey-stage';
 import { CommonSpecifications } from './parts/CommonSpecifications';
 import { LineItems } from './parts/LineItems';
 import { DownloadHistoryAndStatus } from './parts/DownloadHistoryAndStatus';
@@ -286,6 +289,8 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
   // 全パターン注文済（isAllOrdered）でも期限内なら再注文可能（補助メッセージで案内）。
   const rawStatus = (quotation?.status as string) || '';
   const statusUpper = rawStatus.toUpperCase();
+  // ジャーニー進行状態（見積→注文→入稿→校正→承認）
+  const journey = getQuotationJourneyStage(statusUpper);
   const isCancelled = statusUpper === 'CANCELLED';
   const isExpired = getEffectiveValidUntil(quotation) < new Date();
   const hasUnorderedItem = (quotation?.items || []).some((i: any) => !(i as any).orderId);
@@ -315,7 +320,26 @@ export function QuotationDetailClient({ userId, userEmail, userProfile, quotatio
         </Badge>
       </div>
 
-      {/* Quotation Information */}
+      {/* ジャーニーステッパー＋次アクション（スクロール中も上部に固定表示） */}
+      {(!journey.isCancelled || (statusUpper === 'APPROVED' && canConvert)) && (
+        <div className="sticky top-16 z-30 space-y-3">
+          {!journey.isCancelled && (
+            <Card className="p-4 shadow-md">
+              <JourneyStepper journey={journey} />
+            </Card>
+          )}
+          {statusUpper === 'APPROVED' && canConvert && (
+            <NextActionBanner
+              sticky={false}
+              tone="action"
+              title="📋 見積が承認されました。次は注文です"
+              description="下記の明細を確認して、注文に進んでください"
+            />
+          )}
+        </div>
+      )}
+
+{/* Quotation Information */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-4">見積情報</h2>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
