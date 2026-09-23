@@ -167,8 +167,14 @@ export async function POST(req: NextRequest) {
     { eventType: 'contact_submitted' },
   ]);
 
+  // Return leadId only to authenticated linked members so they can query status.
+  const response: { accepted: boolean; leadId?: string } = { accepted: true };
+  if (memberUserId && result.leadId) {
+    response.leadId = result.leadId;
+  }
+
   return NextResponse.json(
-    { accepted: true },
+    response,
     { headers: { 'Cache-Control': 'private, no-store' } },
   );
 }

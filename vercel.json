@@ -108,6 +108,10 @@
     {
       "path": "/api/cron/purge-chat-rate-limits",
       "schedule": "40 16 * * *"
+    },
+    {
+      "path": "/api/cron/purge-chat-leads",
+      "schedule": "0 3 * * *"
     }
   ]
 }
