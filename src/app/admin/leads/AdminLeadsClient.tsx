@@ -1,117 +1,115 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
-  Users, TrendingUp, Calendar, DollarSign,
+  Users, TrendingUp, Calendar,
   Filter, Search, Download, Eye,
-  Star, Award, AlertCircle, CheckCircle
+  AlertCircle, CheckCircle, Loader2, X, Mail, Phone, Building, User
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Badge } from '@/components/ui/Badge'
 import { PageLoadingState } from '@/components/ui'
-import { fetchLeads as fetchLeadsAPI } from '@/lib/api/admin/leads';
+import {
+  fetchLeads,
+  updateLeadStatus,
+  revealLeadContact,
+  type ChatLeadListItem,
+  type ChatLeadRevealResponse,
+} from '@/lib/api/admin/leads';
 
-interface Lead {
-  id: string
-  name: string
-  company: string
-  email: string
-  phone: string
-  leadScore: number
-  leadQuality: 'High' | 'Medium' | 'Standard'
-  priorityLevel: 'High' | 'Medium' | 'Normal'
-  source: string
-  inquiryType: string
-  submissionDate: string
-  status: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost'
-  calculatedValue?: number
-  assignedTo?: string
-  followUpDate?: string
-  notes: string
+const STATUS_OPTIONS = [
+  { value: 'new', label: '新規' },
+  { value: 'contacted', label: '連絡済み' },
+  { value: 'qualified', label: '有見込' },
+  { value: 'in_progress', label: '対応中' },
+  { value: 'closed_won', label: '成約' },
+  { value: 'closed_lost', label: '失注' },
+  { value: 'invalid', label: '無効' },
+] as const;
+
+const OUTCOME_OPTIONS = [
+  { value: 'pending', label: '保留' },
+  { value: 'self_resolved', label: '自己解決' },
+  { value: 'human_followup', label: '要対応' },
+  { value: 'converted', label: '成約' },
+  { value: 'abandoned', label: '放棄' },
+] as const;
+
+const INTENT_OPTIONS = [
+  { value: 'quote', label: '見積相談' },
+  { value: 'sample', label: 'サンプル相談' },
+  { value: 'technical', label: '技術相談' },
+  { value: 'general', label: '一般' },
+  { value: 'human', label: '担当者相談' },
+] as const;
+
+interface ContactRevealData {
+  readonly redacted: boolean;
+  readonly contact: {
+    readonly contactChannel: string;
+    readonly email: string | null;
+    readonly phone: string | null;
+    readonly companyName: string | null;
+    readonly contactName: string | null;
+    readonly preferredChannel: string;
+    readonly contactWindow: string;
+  } | null;
 }
 
 export default function AdminLeadsClient() {
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([])
+  const [leads, setLeads] = useState<readonly ChatLeadListItem[]>([])
+  const [filteredLeads, setFilteredLeads] = useState<readonly ChatLeadListItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState<string | null>(null)
+  const [revealing, setRevealing] = useState<string | null>(null)
+  const [contactModal, setContactModal] = useState<ContactRevealData | null>(null)
   const [filter, setFilter] = useState({
     status: 'all',
-    quality: 'all',
-    source: 'all',
-    dateRange: '7days'
+    intent: 'all',
   })
   const [searchTerm, setSearchTerm] = useState('')
 
-  // /api/admin/leads からリード一覧を取得（テーブル未作成時は空配列が返る）
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const json = await fetchLeadsAPI();
-        if (cancelled) return;
-        const rows = (json && json.data) || [];
-        // DBカラム(snake_case) → UI型(camelCase) へのマッピング
-        const mapped: Lead[] = rows.map((r: Record<string, unknown>) => ({
-          id: String(r.id ?? ''),
-          name: String(r.contact_name ?? r.name ?? ''),
-          company: String(r.company_name ?? r.company ?? ''),
-          email: String(r.email ?? ''),
-          phone: String(r.phone ?? ''),
-          leadScore: Number(r.lead_score ?? 0),
-          leadQuality: (r.lead_quality as Lead['leadQuality']) ?? 'Standard',
-          priorityLevel: (r.priority_level as Lead['priorityLevel']) ?? 'Normal',
-          source: String(r.source ?? ''),
-          inquiryType: String(r.inquiry_type ?? ''),
-          submissionDate: String(r.created_at ?? r.submission_date ?? ''),
-          status: (r.status as Lead['status']) ?? 'new',
-          calculatedValue: r.calculated_value != null ? Number(r.calculated_value) : undefined,
-          assignedTo: r.assigned_to != null ? String(r.assigned_to) : undefined,
-          followUpDate: r.follow_up_date != null ? String(r.follow_up_date) : undefined,
-          notes: String(r.notes ?? ''),
-        }));
-        if (cancelled) return;
-        setLeads(mapped);
-        setFilteredLeads(mapped);
-      } catch (err) {
-        console.error('[AdminLeadsClient] Failed to fetch leads:', err);
-        if (!cancelled) {
-          setLeads([]);
-          setFilteredLeads([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+  const loadLeads = useCallback(async (cancelled = false) => {
+    try {
+      const json = await fetchLeads();
+      if (cancelled) return;
+      setLeads(json.data ?? []);
+      setFilteredLeads(json.data ?? []);
+    } catch (err) {
+      console.error('[AdminLeadsClient] Failed to fetch leads:', err);
+      if (!cancelled) {
+        setLeads([]);
+        setFilteredLeads([]);
       }
-    })();
-    return () => { cancelled = true; };
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
   }, [])
 
-  // Apply filters
   useEffect(() => {
-    let filtered = leads
+    let cancelled = false;
+    void loadLeads(cancelled);
+    return () => { cancelled = true; };
+  }, [loadLeads])
 
-    // Status filter
+  useEffect(() => {
+    let filtered = [...leads]
+
     if (filter.status !== 'all') {
       filtered = filtered.filter(lead => lead.status === filter.status)
     }
-
-    // Quality filter
-    if (filter.quality !== 'all') {
-      filtered = filtered.filter(lead => lead.leadQuality === filter.quality)
+    if (filter.intent !== 'all') {
+      filtered = filtered.filter(lead => lead.intent === filter.intent)
     }
-
-    // Source filter
-    if (filter.source !== 'all') {
-      filtered = filtered.filter(lead => lead.source === filter.source)
-    }
-
-    // Search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(lead =>
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.email.toLowerCase().includes(searchTerm.toLowerCase())
+        lead.id.toLowerCase().includes(term) ||
+        lead.intent.toLowerCase().includes(term) ||
+        lead.routeFamily.toLowerCase().includes(term) ||
+        lead.status.toLowerCase().includes(term)
       )
     }
 
@@ -119,187 +117,141 @@ export default function AdminLeadsClient() {
   }, [leads, filter, searchTerm])
 
   const calculateStats = () => {
-    const totalLeads = filteredLeads.length
-    const highQualityLeads = filteredLeads.filter(l => l.leadQuality === 'High').length
+    const total = filteredLeads.length
     const newLeads = filteredLeads.filter(l => l.status === 'new').length
-    const totalValue = filteredLeads.reduce((sum, l) => sum + (l.calculatedValue || 0), 0)
-    const avgLeadScore = filteredLeads.length > 0
-      ? Math.round(filteredLeads.reduce((sum, l) => sum + l.leadScore, 0) / filteredLeads.length)
-      : 0
+    const inProgress = filteredLeads.filter(l => l.status === 'in_progress').length
+    const won = filteredLeads.filter(l => l.status === 'closed_won').length
+    const linked = filteredLeads.filter(l => l.memberLinkageState === 'linked').length
 
-    return {
-      totalLeads,
-      highQualityLeads,
-      newLeads,
-      totalValue,
-      avgLeadScore,
-      conversionRate: filteredLeads.filter(l => l.status === 'converted').length / totalLeads * 100
-    }
+    return { total, newLeads, inProgress, won, linked }
   }
 
   const stats = calculateStats()
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      new: 'bg-navy-600 text-navy-600',
+      new: 'bg-blue-100 text-blue-800',
       contacted: 'bg-yellow-100 text-yellow-800',
       qualified: 'bg-purple-100 text-purple-800',
-      converted: 'bg-green-100 text-green-800',
-      lost: 'bg-red-100 text-red-800'
+      in_progress: 'bg-indigo-100 text-indigo-800',
+      closed_won: 'bg-green-100 text-green-800',
+      closed_lost: 'bg-red-100 text-red-800',
+      invalid: 'bg-gray-100 text-gray-500',
     }
-    return styles[status] || 'bg-gray-100 text-gray-800'
+    return styles[status] ?? 'bg-gray-100 text-gray-600'
   }
 
-  const getQualityBadge = (quality: string) => {
-    const styles: Record<string, string> = {
-      High: 'bg-red-100 text-red-800',
-      Medium: 'bg-brixa-600 text-brixa-600',
-      Standard: 'bg-gray-100 text-gray-800'
+  const getIntentLabel = (intent: string) => {
+    return INTENT_OPTIONS.find(o => o.value === intent)?.label ?? intent
+  }
+
+  const handleStatusChange = async (leadId: string, newStatus: string) => {
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+    setUpdating(leadId)
+    try {
+      await updateLeadStatus(leadId, {
+        status: newStatus,
+        outcome: lead.outcome,
+        handoffState: lead.handoffState,
+      })
+      setLeads(prev => prev.map(l =>
+        l.id === leadId ? { ...l, status: newStatus } : l
+      ))
+    } catch (err) {
+      console.error('[AdminLeadsClient] Failed to update status:', err)
+    } finally {
+      setUpdating(null)
     }
-    return styles[quality] || 'bg-gray-100 text-gray-800'
   }
 
-  const getLeadScoreColor = (score: number) => {
-    if (score >= 70) return 'text-red-600'
-    if (score >= 40) return 'text-brixa-600'
-    return 'text-green-600'
-  }
-
-  const exportLeads = () => {
-    // In real app, this would generate and download a CSV/Excel file
-    console.log('Exporting leads...', filteredLeads)
+  const handleReveal = async (leadId: string) => {
+    setRevealing(leadId)
+    try {
+      const result = await revealLeadContact(leadId)
+      setContactModal({
+        redacted: result.redacted,
+        contact: result.contact,
+      })
+    } catch (err) {
+      console.error('[AdminLeadsClient] Failed to reveal contact:', err)
+      setContactModal({ redacted: false, contact: null })
+    } finally {
+      setRevealing(null)
+    }
   }
 
   return (
-    <PageLoadingState isLoading={loading} error={null} message="読み込み中...">
-      <div className="min-h-screen bg-gray-50 py-8">
-      <Container size="7xl">
+    <PageLoadingState isLoading={loading} message="リードを読み込み中...">
+    <div className="min-h-screen bg-gray-50">
+      <Container className="py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Lead Management Dashboard
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <Users className="w-7 h-7 mr-3 text-navy-600" />
+            チャットリード管理
           </h1>
-          <p className="text-gray-600">
-            Track and manage all incoming leads from multiple channels
+          <p className="text-gray-600 mt-1">
+            チャットボット経由の相談リードを管理します。
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-navy-600 mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Total Leads</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalLeads}</p>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          {[
+            { label: '総リード', value: stats.total, icon: Users, color: 'text-navy-600' },
+            { label: '新規', value: stats.newLeads, icon: AlertCircle, color: 'text-blue-600' },
+            { label: '対応中', value: stats.inProgress, icon: TrendingUp, color: 'text-indigo-600' },
+            { label: '成約', value: stats.won, icon: CheckCircle, color: 'text-green-600' },
+            { label: '会員連携', value: stats.linked, icon: User, color: 'text-purple-600' },
+          ].map((stat) => (
+            <Card key={stat.label} className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+                <stat.icon className={`w-8 h-8 ${stat.color}`} />
               </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <Star className="w-8 h-8 text-red-600 mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">High Quality</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.highQualityLeads}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <Calendar className="w-8 h-8 text-navy-600 mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">New Leads</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.newLeads}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <DollarSign className="w-8 h-8 text-green-600 mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  ¥{(stats.totalValue / 1000000).toFixed(1)}M
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-purple-600 mr-3" />
-              <div>
-                <p className="text-sm text-gray-600">Avg Score</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.avgLeadScore}</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          ))}
         </div>
 
-        {/* Filters and Search */}
-        <Card className="p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
+        {/* Filters */}
+        <Card className="p-6 mb-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search leads by name, company, or email..."
+                  placeholder="ID・インテント・ページで検索..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
             </div>
-
-            <div className="flex gap-4">
-              <select
-                value={filter.status}
-                onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-600 focus:border-transparent"
-              >
-                <option value="all">All Status</option>
-                <option value="new">New</option>
-                <option value="contacted">Contacted</option>
-                <option value="qualified">Qualified</option>
-                <option value="converted">Converted</option>
-              </select>
-
-              <select
-                value={filter.quality}
-                onChange={(e) => setFilter({ ...filter, quality: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-600 focus:border-transparent"
-              >
-                <option value="all">All Quality</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Standard">Standard</option>
-              </select>
-
-              <select
-                value={filter.source}
-                onChange={(e) => setFilter({ ...filter, source: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-600 focus:border-transparent"
-              >
-                <option value="all">All Sources</option>
-                <option value="詳細お問い合わせ">Detailed Inquiry</option>
-                <option value="ROI計算">ROI Calculator</option>
-                <option value="プレミアムコンテンツ">Premium Content</option>
-                <option value="お問い合わせ">General Contact</option>
-              </select>
-
-              <Button
-                onClick={exportLeads}
-                variant="outline"
-                className="flex items-center"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
+            <select
+              value={filter.status}
+              onChange={(e) => setFilter(prev => ({ ...prev, status: e.target.value }))}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            >
+              <option value="all">全ステータス</option>
+              {STATUS_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <select
+              value={filter.intent}
+              onChange={(e) => setFilter(prev => ({ ...prev, intent: e.target.value }))}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            >
+              <option value="all">全インテント</option>
+              {INTENT_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </div>
         </Card>
 
@@ -309,77 +261,92 @@ export default function AdminLeadsClient() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Lead</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Score</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Source</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Value</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Status</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Assigned</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Follow-up</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Actions</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">リードID</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">インテント</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">ページ</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">連携</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">連絡方法</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">ステータス</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">作成日</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">アクション</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredLeads.map((lead) => (
                   <tr key={lead.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 px-4">
-                      <div>
-                        <div className="font-medium text-gray-900">{lead.name}</div>
-                        <div className="text-gray-600">{lead.company}</div>
-                        <div className="text-xs text-gray-500">{lead.email}</div>
+                    <td className="py-3 px-4">
+                      <div className="font-mono text-xs text-gray-600">
+                        {lead.id.slice(0, 8)}...
                       </div>
                     </td>
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col items-center">
-                        <div className={`text-lg font-bold ${getLeadScoreColor(lead.leadScore)}`}>
-                          {lead.leadScore}
-                        </div>
-                        <Badge className={getQualityBadge(lead.leadQuality)} variant="secondary">
-                          {lead.leadQuality}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="text-gray-900">{lead.source}</div>
-                      <div className="text-xs text-gray-500">{lead.inquiryType}</div>
-                    </td>
-                    <td className="py-4 px-4">
-                      {lead.calculatedValue ? (
-                        <div className="font-medium text-gray-900">
-                          ¥{(lead.calculatedValue / 1000000).toFixed(1)}M
-                        </div>
-                      ) : (
-                        <div className="text-gray-400">-</div>
-                      )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge className={getStatusBadge(lead.status)} variant="secondary">
-                        {lead.status}
+                    <td className="py-3 px-4">
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                        {getIntentLabel(lead.intent)}
                       </Badge>
                     </td>
-                    <td className="py-4 px-4">
-                      <div className="text-gray-900">{lead.assignedTo || '-'}</div>
+                    <td className="py-3 px-4">
+                      <div className="text-xs text-gray-600">{lead.routeFamily}</div>
                     </td>
-                    <td className="py-4 px-4">
-                      {lead.followUpDate ? (
-                        <div className="text-gray-900">
-                          {new Date(lead.followUpDate).toLocaleDateString('ja-JP')}
-                        </div>
+                    <td className="py-3 px-4">
+                      {lead.memberLinkageState === 'linked' ? (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">連携済み</Badge>
+                      ) : lead.memberLinkageState === 'declined' ? (
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-500">辞退</Badge>
+                      ) : lead.memberLinkageState === 'not_applicable' ? (
+                        <span className="text-xs text-gray-400">ゲスト</span>
                       ) : (
-                        <div className="text-gray-400">-</div>
+                        <span className="text-xs text-gray-400">{lead.memberLinkageState}</span>
                       )}
                     </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {lead.status === 'new' && (
-                          <Button size="sm" className="bg-navy-600 hover:bg-navy-600">
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                        )}
+                    <td className="py-3 px-4">
+                      {lead.contactChannel === 'email' ? (
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                          <Mail className="w-3 h-3 mr-1 inline" />メール
+                        </Badge>
+                      ) : lead.contactChannel === 'phone' ? (
+                        <Badge variant="secondary" className="bg-green-50 text-green-700">
+                          <Phone className="w-3 h-3 mr-1 inline" />電話
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
+                      {lead.contactDisposition === 'redacted' && (
+                        <span className="text-xs text-red-500 block">削除済み</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {updating === lead.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <select
+                          value={lead.status}
+                          onChange={(e) => void handleStatusChange(lead.id, e.target.value)}
+                          disabled={updating === lead.id}
+                          className="text-xs border border-gray-200 rounded px-2 py-1"
+                        >
+                          {STATUS_OPTIONS.map(o => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="text-xs text-gray-600">
+                        {new Date(lead.createdAt).toLocaleDateString('ja-JP')}
                       </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void handleReveal(lead.id)}
+                        disabled={revealing === lead.id}
+                        title="連絡先を開示"
+                      >
+                        {revealing === lead.id
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <Eye className="w-4 h-4" />}
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -390,11 +357,58 @@ export default function AdminLeadsClient() {
           {filteredLeads.length === 0 && (
             <div className="text-center py-12">
               <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No leads found matching your criteria</p>
+              <p className="text-gray-600">条件に一致するリードが見つかりません</p>
             </div>
           )}
         </Card>
       </Container>
+
+      {/* Contact Reveal Modal */}
+      {contactModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setContactModal(null)}>
+          <Card className="w-full max-w-md p-6 relative" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+            <button
+              onClick={() => setContactModal(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">連絡先情報</h3>
+
+            {contactModal.redacted ? (
+              <div className="text-center py-6">
+                <AlertCircle className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600">このリードの連絡先は削除されています。</p>
+              </div>
+            ) : contactModal.contact ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-900">{contactModal.contact.email ?? '-'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-900">{contactModal.contact.phone ?? '-'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Building className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-900">{contactModal.contact.companyName ?? '-'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-900">{contactModal.contact.contactName ?? '-'}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+                <p className="text-gray-600">連絡先を取得できませんでした。</p>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
     </PageLoadingState>
   )
