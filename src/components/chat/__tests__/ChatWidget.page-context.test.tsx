@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { UIMessage } from 'ai';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ChatDrawerProvider } from '@/contexts/ChatDrawerContext';
 import { ChatWidget } from '../ChatWidget';
 
 const mockUseChat = jest.fn();
@@ -62,9 +63,9 @@ const setQuotePage = (step: string) => {
 };
 
 const renderWidget = () => render(
-    <LanguageProvider>
+    <ChatDrawerProvider><LanguageProvider>
       <ChatWidget />
-    </LanguageProvider>
+    </LanguageProvider></ChatDrawerProvider>
   );
 
 const renderOpenWidget = async () => {
@@ -145,9 +146,9 @@ describe('ChatWidget page context', () => {
     fireEvent.focusIn(screen.getByTestId('chat-input'));
     fireEvent.focusIn(document.getElementById('fixture-width')!);
     await act(async () => { view.rerender(
-    <LanguageProvider>
+    <ChatDrawerProvider><LanguageProvider>
       <ChatWidget />
-    </LanguageProvider>
+    </LanguageProvider></ChatDrawerProvider>
   ); });
     fireEvent.focusIn(screen.getByTestId('chat-input'));
     fireEvent.focusIn(document.getElementById('fixture-width')!);
@@ -175,9 +176,9 @@ describe('ChatWidget page context', () => {
 
     mockUsePathname.mockReturnValue('/contact');
     await act(async () => { view.rerender(
-    <LanguageProvider>
+    <ChatDrawerProvider><LanguageProvider>
       <ChatWidget />
-    </LanguageProvider>
+    </LanguageProvider></ChatDrawerProvider>
   ); });
     await sendCurrentRequest();
     expect(lastChatBody().pageContext).toEqual({ pathname: '/contact', locale: 'ja' });
@@ -192,9 +193,9 @@ describe('ChatWidget page context', () => {
     const view = await renderOpenWidget();
     mockUsePathname.mockReturnValue('/quote-simulator');
     await act(async () => { view.rerender(
-    <LanguageProvider>
+    <ChatDrawerProvider><LanguageProvider>
       <ChatWidget />
-    </LanguageProvider>
+    </LanguageProvider></ChatDrawerProvider>
   ); });
     fireEvent.focusIn(document.querySelector('[data-chat-field="width"]')!);
 
@@ -211,9 +212,9 @@ describe('ChatWidget page context', () => {
       error: new Error('send failed'),
     });
     await act(async () => { view.rerender(
-      <LanguageProvider>
+      <ChatDrawerProvider><LanguageProvider>
         <ChatWidget />
-      </LanguageProvider>
+      </LanguageProvider></ChatDrawerProvider>
     ); });
     expect(screen.getByTestId('connection-status')).toHaveTextContent('オフライン');
   });
@@ -238,9 +239,9 @@ describe('ChatWidget page context', () => {
     const view = await renderOpenWidget();
     mockUsePathname.mockReturnValue('/quote-simulator');
     await act(async () => { view.rerender(
-      <LanguageProvider>
+      <ChatDrawerProvider><LanguageProvider>
         <ChatWidget />
-      </LanguageProvider>
+      </LanguageProvider></ChatDrawerProvider>
     ); });
     fireEvent.focusIn(document.querySelector('[data-chat-field="width"]')!);
 

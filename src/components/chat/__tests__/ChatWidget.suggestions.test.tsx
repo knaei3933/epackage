@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { UIMessage } from 'ai';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ChatDrawerProvider } from '@/contexts/ChatDrawerContext';
 import { ChatWidget } from '../ChatWidget';
 import { PUBLIC_CHAT_FALLBACK_SUGGESTIONS } from '@/lib/chat/public-chat-suggestions';
 
@@ -69,9 +70,9 @@ describe('ChatWidget suggestions', () => {
 
   it('fetches page suggestions only after opening and sends a chip as a normal message', async () => {
     const view = render(
-      <LanguageProvider>
+      <ChatDrawerProvider><LanguageProvider>
         <ChatWidget />
-      </LanguageProvider>,
+      </LanguageProvider></ChatDrawerProvider>,
     );
     await act(async () => {});
     expect(fetchMock.mock.calls.some(([input]) => String(input).startsWith('/api/chat/suggestions'))).toBe(false);
@@ -119,9 +120,9 @@ describe('ChatWidget suggestions', () => {
     });
 
     const view = render(
-      <LanguageProvider>
+      <ChatDrawerProvider><LanguageProvider>
         <ChatWidget />
-      </LanguageProvider>,
+      </LanguageProvider></ChatDrawerProvider>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'チャットを開く' }));
     await act(async () => {});
@@ -175,9 +176,9 @@ describe('ChatWidget suggestions', () => {
     });
 
     render(
-      <LanguageProvider>
+      <ChatDrawerProvider><LanguageProvider>
         <ChatWidget />
-      </LanguageProvider>,
+      </LanguageProvider></ChatDrawerProvider>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'チャットを開く' }));
     await act(async () => {});

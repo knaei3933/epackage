@@ -16,6 +16,7 @@ import DOMPurify from 'dompurify';
 import { markdownToHtml } from '@/lib/markdown-renderer';
 import { parseChatPageContext, type ChatLocale, type ChatPageContext } from '@/lib/chat/page-context';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useChatDrawer } from '@/contexts/ChatDrawerContext';
 import { getPhoneNumberError, HANDOFF_TRIGGER_KEYWORDS } from '@/lib/validation';
 import { validateChatMessages } from '@/lib/chat/chat-messages';
 import { PUBLIC_CHAT_FALLBACK_SUGGESTIONS } from '@/lib/chat/public-chat-suggestions';
@@ -85,7 +86,10 @@ const saveChatHistory = (messages: UIMessage[]) => {
 export function ChatWidget() {
   const pathname = usePathname();
   const { language } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, open: setIsOpenTrue, close: setIsOpenFalse, toggle: setIsOpenToggle } = useChatDrawer();
+  const setIsOpen = useCallback((val: boolean | ((prev: boolean) => boolean)) => {
+    if (typeof val === 'function') { setIsOpenToggle(); } else { val ? setIsOpenTrue() : setIsOpenFalse(); }
+  }, [setIsOpenTrue, setIsOpenFalse, setIsOpenToggle]);
   const [isMinimized, setIsMinimized] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking');
   const [input, setInput] = useState('');
@@ -645,11 +649,10 @@ export function ChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-brixa text-white rounded-full shadow-lg hover:bg-brixa-600 transition-all flex items-center justify-center group"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brixa text-white rounded-full shadow-lg hover:bg-brixa-600 hover:scale-105 transition-all flex items-center justify-center group"
           aria-label="チャットを開く"
         >
           <MessageCircle className="w-6 h-6" />
-          {/* 接続ステータスインジケーター */}
           <span
             className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getStatusColor()} border-2 border-white`}
             aria-label={getStatusText()}
@@ -657,15 +660,16 @@ export function ChatWidget() {
         </button>
       )}
 
-      {/* チャットウィンドウ */}
+      {/* チャットドロアパネル */}
       {isOpen && (
         <div
-          className={`fixed bottom-24 right-6 z-50 w-[calc(100vw-2rem)] max-w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col transition-all ${
-            isMinimized ? 'h-14' : 'h-[500px]'
-          }`}
+          className={`fixed z-50 bg-white shadow-2xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-in-out
+            lg:top-16 lg:bottom-0 lg:right-0 lg:w-[400px] lg:rounded-none lg:border-l
+            max-lg:inset-0 max-lg:border-l-0
+            ${isMinimized ? 'lg:h-14' : ''}`}
         >
           {/* ヘッダー */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-brixa text-white rounded-t-2xl">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-brixa text-white">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
               <span className="font-semibold">カスタマーサポート</span>
@@ -923,7 +927,7 @@ export function ChatWidget() {
                       type="button"
                       onClick={() => handleSuggestionSelect(suggestion)}
                       disabled={connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
-                      className="max-w-full truncate px-3 py-1.5 text-left text-xs rounded-full border border-gray-300 bg-white text-gray-700 hover:border-brixa hover:text-brixa disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      className="w-full text-left px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-brixa hover:bg-brixa/5 hover:text-brixa disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
                       {suggestion.questionJa}
                     </button>

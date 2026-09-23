@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import Script from "next/script";
 import "./globals.css";
@@ -14,6 +15,8 @@ import { OrganizationSchema, LocalBusinessSchema, WebSiteSchema } from "@/compon
 import { Footer } from "@/components/layout/Footer";
 import { ModalWrapper } from "./components/ModalWrapper";
 import { ChatWidget } from "@/components/chat/ChatWidgetWrapper";
+import { ChatDrawerProvider } from "@/contexts/ChatDrawerContext";
+import { ChatDrawerAppShell } from "@/contexts/ChatDrawerAppShell";
 import { WebVitals } from "@/components/analytics/WebVitals";
 import { CookieConsentBannerWrapper } from "@/components/analytics/CookieConsentBannerWrapper";
 import { GA4_MEASUREMENT_ID, GOOGLE_ADS_ID } from "@/lib/analytics/dataLayer";
@@ -170,14 +173,18 @@ export default function RootLayout({
               <CatalogProvider>
                 <LanguageProvider>
                   <ModalWrapper />
-                  <HeaderWrapper />
-                  <OrganizationSchema />
-                  <LocalBusinessSchema />
-                  <WebSiteSchema />
-                  <BreadcrumbNav />
-                  <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
-                  <Footer />
-                  <ChatWidget />
+                  <ChatDrawerProvider>
+                    <ChatDrawerAppShell>
+                      <HeaderWrapper />
+                      <OrganizationSchema />
+                      <LocalBusinessSchema />
+                      <WebSiteSchema />
+                      <BreadcrumbNav />
+                      <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
+                      <Footer />
+                    </ChatDrawerAppShell>
+                    <ChatWidget />
+                  </ChatDrawerProvider>
                   <CookieConsentBannerWrapper />
                 </LanguageProvider>
               </CatalogProvider>

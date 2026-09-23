@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { UIMessage } from 'ai';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ChatDrawerProvider } from '@/contexts/ChatDrawerContext';
 import { ChatWidget } from '../ChatWidget';
 
 const mockUsePathname = jest.fn();
@@ -53,9 +54,9 @@ const storedMessage: UIMessage = {
 
 const renderOpenWidget = async () => {
   const view = render(
-    <LanguageProvider>
+    <ChatDrawerProvider><LanguageProvider>
       <ChatWidget />
-    </LanguageProvider>
+    </LanguageProvider></ChatDrawerProvider>
   );
   await act(async () => {});
   fireEvent.click(screen.getByRole('button', { name: 'チャットを開く' }));

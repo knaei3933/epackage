@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ChatDrawerProvider } from '@/contexts/ChatDrawerContext';
 import { ChatWidget } from '../ChatWidget';
 
 const mockUseChat = jest.fn();
@@ -34,9 +35,9 @@ const healthCallCount = () =>
 
 const renderOpenWidget = () => {
   const view = render(
-    <LanguageProvider>
+    <ChatDrawerProvider><LanguageProvider>
       <ChatWidget />
-    </LanguageProvider>
+    </LanguageProvider></ChatDrawerProvider>
   );
   return { open: async () => {
     fireEvent.click(screen.getByRole('button', { name: 'チャットを開く' }));
@@ -101,9 +102,9 @@ describe('ChatWidget health lifecycle', () => {
 
   it('does not poll health while the widget is closed and polls once after opening', async () => {
     const view = render(
-      <LanguageProvider>
+      <ChatDrawerProvider><LanguageProvider>
         <ChatWidget />
-      </LanguageProvider>,
+      </LanguageProvider></ChatDrawerProvider>,
     );
     await act(async () => {
       await jest.advanceTimersByTimeAsync(180000);
