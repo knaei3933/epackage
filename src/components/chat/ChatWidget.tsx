@@ -738,7 +738,7 @@ export function ChatWidget() {
                           ? 'assistant-message'
                           : undefined
                       }
-                      className={`max-w-[80%] px-4 py-2 rounded-lg ${
+                      className={`max-w-[85%] px-4 py-3 rounded-xl ${
                         message.role === 'user'
                           ? 'bg-brixa text-white'
                           : 'bg-gray-100 text-gray-900'
@@ -746,7 +746,7 @@ export function ChatWidget() {
                     >
                       {message.role === 'assistant' ? (
                         <div
-                          className="prose prose-sm max-w-none"
+                          className="prose prose-sm max-w-none text-[15px]"
                           dangerouslySetInnerHTML={{
                             __html: DOMPurify.sanitize(renderedHtml[message.id] || '', {
                               ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'div', 'span'],
@@ -843,11 +843,11 @@ export function ChatWidget() {
                 )}
 
                 {leadError && (
-                  <div className="mx-4 mb-3 text-xs text-red-600">{leadError}</div>
+                  <div className="mx-4 mb-3 text-sm text-red-600">{leadError}</div>
                 )}
 
                 {leadSubmitted && (
-                  <div className="mx-4 mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700">
+                  <div className="mx-4 mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
                     承知いたしました。担当者より確認いたします。
                   </div>
                 )}
@@ -914,7 +914,7 @@ export function ChatWidget() {
                 data-lead-capture-enabled={leadCaptureEnabled}
                 className="px-4 pt-3 border-t border-gray-200 bg-gray-50"
               >
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-sm text-gray-500 mb-2">
                   このページのよくある質問（自由に入力しても構いません）
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -927,7 +927,7 @@ export function ChatWidget() {
                       type="button"
                       onClick={() => handleSuggestionSelect(suggestion)}
                       disabled={connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
-                      className="w-full text-left px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-brixa hover:bg-brixa/5 hover:text-brixa disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                      className="w-full text-left px-3 py-2.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-brixa hover:bg-brixa/5 hover:text-brixa disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
                       {suggestion.questionJa}
                     </button>
@@ -936,7 +936,7 @@ export function ChatWidget() {
                     <button
                       type="button"
                       onClick={() => setShowAllSuggestions((current) => !current)}
-                      className="px-3 py-1.5 text-xs rounded-full text-brixa hover:underline"
+                      className="px-3 py-1.5 text-sm rounded-full text-brixa hover:underline"
                     >
                       {showAllSuggestions ? '閉じる' : `他${suggestions.length - VISIBLE_SUGGESTION_COUNT}件`}
                     </button>
