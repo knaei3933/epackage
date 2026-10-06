@@ -186,20 +186,14 @@ export function validateChatLeadSubmission(input: unknown): ChatLeadSchemaResult
   const phone = normalizeText(contactInput.phone);
   const companyName = normalizeText(contactInput.companyName);
   const contactName = normalizeText(contactInput.contactName);
-  if (email !== undefined && !EMAIL_PATTERN.test(email)) {
+  if (!email || !EMAIL_PATTERN.test(email)) {
     return { success: false, reason: 'invalid-contact' };
   }
-  if (phone !== undefined && !PHONE_PATTERN.test(phone)) {
+  if (!phone || !PHONE_PATTERN.test(phone)) {
     return { success: false, reason: 'invalid-contact' };
   }
-  if ((companyName !== undefined && companyName.length > 200) ||
-      (contactName !== undefined && contactName.length > 100)) {
-    return { success: false, reason: 'invalid-contact' };
-  }
-  if (contactInput.channel === 'email' && (email === undefined || phone !== undefined)) {
-    return { success: false, reason: 'invalid-contact' };
-  }
-  if (contactInput.channel === 'phone' && (phone === undefined || email !== undefined)) {
+  if (!companyName || companyName.length > 200 ||
+      !contactName || contactName.length > 100) {
     return { success: false, reason: 'invalid-contact' };
   }
 

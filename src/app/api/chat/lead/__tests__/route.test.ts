@@ -85,6 +85,9 @@ const createEnabledRequest = (
       contact: {
         channel: 'email',
         email: 'customer@example.jp',
+        phone: '050-1793-6500',
+        companyName: '株式会社テスト',
+        contactName: '山田太郎',
         preferredChannel: 'email',
         contactWindow: 'unspecified',
       },
