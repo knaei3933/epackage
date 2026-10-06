@@ -305,7 +305,7 @@ describe('LM Studio rollback provider selection', () => {
 
     expect(model).toMatchObject({
       modelId: 'qwen/qwen3-vl-4b',
-      name: 'LM Studio (Local)',
+      name: 'OpenAI-compatible (Local)',
       type: 'lmstudio',
       isFailover: false,
     });

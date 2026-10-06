@@ -19,7 +19,7 @@ const chatModelPayload = JSON.stringify({
   },
 });
 
-describe('LM Studio provider NAS migration configuration', () => {
+describe('OpenAI-compatible provider NAS migration configuration', () => {
   const originalEnv = { ...process.env };
   const fetchMock = jest.spyOn(global, 'fetch');
 
@@ -42,11 +42,11 @@ describe('LM Studio provider NAS migration configuration', () => {
     process.env = originalEnv;
   });
 
-  it('keeps the existing local LM Studio contract by default', () => {
+  it('keeps the existing local OpenAI-compatible contract by default', () => {
     expect(getChatModel()).toMatchObject({
       baseURL: 'http://localhost:1234/v1',
       modelId: 'qwen/qwen3-vl-4b',
-      name: 'LM Studio (Local)',
+      name: 'OpenAI-compatible (Local)',
       type: 'lmstudio',
       isFailover: false,
     });
@@ -59,7 +59,7 @@ describe('LM Studio provider NAS migration configuration', () => {
     expect(getChatModel()).toMatchObject({
       baseURL: NAS_BASE_URL,
       modelId: NAS_MODEL,
-      name: 'LM Studio (NAS Relay)',
+      name: 'OpenAI-compatible (NAS Relay)',
       type: 'lmstudio',
       isFailover: false,
     });
@@ -130,7 +130,7 @@ describe('LM Studio provider NAS migration configuration', () => {
     expect(getChatModel).toThrow(
       'LMSTUDIO_BASE_URL is required in production. ' +
         'Please set LMSTUDIO_BASE_URL in your Vercel environment variables. ' +
-        'Expected format: https://<nas-relay-hostname>/v1'
+        'Expected format: https://chatbot.package-lab.com/v1'
     );
   });
 });
