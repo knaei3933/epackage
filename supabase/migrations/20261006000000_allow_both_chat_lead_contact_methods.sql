@@ -161,7 +161,13 @@ ALTER TABLE public.chat_lead_contacts
 ALTER TABLE public.chat_lead_contacts
   ADD CONSTRAINT chat_lead_contacts_pre_redaction_channel CHECK (
     contact_data_redacted_at IS NOT NULL OR (
-      email IS NOT NULL AND phone IS NOT NULL AND
-      (contact_channel = 'email' OR contact_channel = 'phone')
+      (
+        email IS NOT NULL AND phone IS NOT NULL AND
+        (contact_channel = 'email' OR contact_channel = 'phone')
+      ) OR (
+        email IS NOT NULL AND phone IS NULL AND contact_channel = 'email'
+      ) OR (
+        phone IS NOT NULL AND email IS NULL AND contact_channel = 'phone'
+      )
     )
   );
