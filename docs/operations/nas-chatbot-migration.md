@@ -25,6 +25,8 @@ The 3090 workstation remains the inference host. Do not create a new model or in
 
 The NAS is only a stable HTTPS entry point/reverse proxy. Keep workstation LAN ports unreachable from the public Internet.
 
+The current tunnel is token-managed. Its Cloudflare-managed ingress remains `chatbot.package-lab.com -> http://127.0.0.1:8642`. Therefore the NAS Caddy relay binds only `127.0.0.1:8642` and `127.0.0.1:8787`; port `8642` satisfies the existing token-managed ingress and `8787` remains the direct operational check port.
+
 When the NAS and workstation have a direct 10GbE path, configure the relay upstream to use that dedicated private subnet rather than Wi-Fi or another LAN interface. Keep the private workstation address outside Git and use the exact address in the NAS-only deployment environment.
 
 ## Reuse the existing Qwen model

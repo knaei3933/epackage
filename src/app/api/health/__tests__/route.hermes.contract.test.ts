@@ -91,7 +91,7 @@ describe('Hermes health route contract', () => {
     expect(serialized).not.toContain(HERMES_BASE_URL);
   });
 
-  it('preserves LM Studio behavior when Hermes is not selected', async () => {
+  it('preserves OpenAI-compatible behavior when Hermes is not selected', async () => {
     process.env = {
       ...originalEnv,
       CHAT_PROVIDER: 'lmstudio',
@@ -111,7 +111,7 @@ describe('Hermes health route contract', () => {
     const payload = await response.json();
     expect(payload).toEqual({
       status: 'ok',
-      message: 'LM Studio is available',
+      message: 'OpenAI-compatible inference is available',
       service: 'lmstudio',
     });
     expect(JSON.stringify(payload)).not.toContain(OLD_LMSTUDIO_BASE_URL);
