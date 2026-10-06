@@ -39,10 +39,16 @@ _ROT_LINE_GAP = 18
 _ROT_ADDR_FONT_DEFAULT = 60  # px; env LABEL_ROT_ADDR_FONT
 _ROT_TRAILING_FEED_PX = 60  # 5mm feed margin so auto-cut cannot hit text
 
-# Common JP-capable fonts across Windows (office PC) and Linux (dev/CI).
+# Common CJK-capable fonts across Windows (office PC) and Linux (dev/CI).
+# Korean labels are possible (member company/contact data), so KR-capable
+# candidates are included alongside JP ones.
 _FONT_CANDIDATES = [
     r"C:\Windows\Fonts\meiryo.ttc",
     r"C:\Windows\Fonts\Meiryo.ttc",
+    r"C:\Windows\Fonts\malgun.ttf",
+    r"C:\Windows\Fonts\malgunbd.ttf",
+    r"C:\Windows\Fonts\msyh.ttc",
+    r"C:\Windows\Fonts\msjh.ttc",
     r"C:\Windows\Fonts\YugothM.ttc",
     r"C:\Windows\Fonts\YuGothM.ttc",
     r"C:\Windows\Fonts\msgothic.ttc",
@@ -54,26 +60,55 @@ _FONT_CANDIDATES = [
 _BOLD_FONT_CANDIDATES = [
     r"C:\Windows\Fonts\meiryob.ttc",
     r"C:\Windows\Fonts\Meiryo-Bold.ttf",
+    r"C:\Windows\Fonts\malgunbd.ttf",
+    r"C:\Windows\Fonts\msyhbd.ttc",
     r"C:\Windows\Fonts\YugothB.ttc",
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
 ]
 
+_CJK_PROBE_CHARS = "東ア가"  # kanji + kana + hangul coverage probe
+
+
+def _has_cjk_glyphs(font_path: Path) -> bool:
+    """True when the font can actually draw representative JP + KR glyphs.
+
+    A font file can exist yet lack CJK glyphs (e.g. a Latin-only override via
+    LABEL_FONT_PATH). Pillow then draws .notdef tofu boxes while the print job
+    is still marked 'printed', silently shipping unreadable labels. We detect
+    that by comparing each probe glyph's mask against the .notdef mask.
+    """
+    try:
+        font = ImageFont.truetype(str(font_path), 40)
+        notdef_mask = font.getmask("\uFFFF", mode="1")
+        notdef = bytes(notdef_mask)
+        for ch in _CJK_PROBE_CHARS:
+            mask = font.getmask(ch, mode="1")
+            data = bytes(mask)
+            if data == notdef or not any(data):
+                return False
+        return True
+    except OSError:
+        return False
 
 def resolve_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    """Resolve a JP-capable TTF. Env override: LABEL_FONT_PATH.
+    """Resolve a CJK-capable TTF. Env override: LABEL_FONT_PATH.
 
-    Raises RuntimeError when no JP-capable font exists: printing tofu glyphs
-    and marking the job 'printed' would mask a real failure.
+    Validates that the chosen font actually contains JP/KR glyphs so tofu
+    output cannot be silently marked as printed. LABEL_FONT_PATH is tried
+    first, but a Latin-only override falls through to the standard list
+    (with a logged warning) instead of printing squares.
     """
     candidates = [os.environ["LABEL_FONT_PATH"]] if os.environ.get("LABEL_FONT_PATH") else []
     candidates += _BOLD_FONT_CANDIDATES if bold else _FONT_CANDIDATES
     for path in candidates:
-        if Path(path).exists():
+        p = Path(path)
+        if p.exists() and _has_cjk_glyphs(p):
             return ImageFont.truetype(path, size)
     raise RuntimeError(
-        "No Japanese-capable font found. Install Meiryo (Windows) / Noto Sans CJK (Linux) "
-        "or set LABEL_FONT_PATH in .env."
+        "No CJK-capable font found (needs JP kanji/kana + KR hangul glyphs). "
+        "Install Meiryo or Malgun Gothic (Windows) / Noto Sans CJK (Linux) "
+        "or set LABEL_FONT_PATH to a CJK font in .env."
     )
 
 

@@ -52,12 +52,41 @@ def test_resolve_font_returns_something():
     assert font is not None
 
 
-def test_resolve_font_raises_without_jp_font(monkeypatch):
+def test_resolve_font_raises_without_cjk_font(monkeypatch):
     monkeypatch.delenv("LABEL_FONT_PATH", raising=False)
     monkeypatch.setattr(label_renderer, "_FONT_CANDIDATES", [])
     monkeypatch.setattr(label_renderer, "_BOLD_FONT_CANDIDATES", [])
-    with pytest.raises(RuntimeError, match="No Japanese-capable font"):
+    with pytest.raises(RuntimeError, match="No CJK-capable font"):
         label_renderer.resolve_font(40)
+
+
+def test_has_cjk_glyphs_true_for_noto_cjk():
+    noto = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
+    if not noto.exists():
+        pytest.skip("Noto Sans CJK not installed")
+    assert label_renderer._has_cjk_glyphs(noto) is True
+
+
+def test_has_cjk_glyphs_false_for_missing_file(tmp_path):
+    assert label_renderer._has_cjk_glyphs(tmp_path / "missing.ttf") is False
+
+
+def test_resolve_font_skips_font_without_cjk_glyphs(monkeypatch, tmp_path):
+    latin = tmp_path / "latin.ttf"
+    cjk = tmp_path / "cjk.ttf"
+    latin.write_bytes(b"x")
+    cjk.write_bytes(b"x")
+    monkeypatch.delenv("LABEL_FONT_PATH", raising=False)
+    monkeypatch.setattr(label_renderer, "_FONT_CANDIDATES", [str(latin), str(cjk)])
+    monkeypatch.setattr(label_renderer, "_BOLD_FONT_CANDIDATES", [])
+    monkeypatch.setattr(
+        label_renderer, "_has_cjk_glyphs", lambda p: Path(p) == cjk
+    )
+    monkeypatch.setattr(
+        label_renderer.ImageFont, "truetype", lambda path, size: f"font:{path}"
+    )
+    font = label_renderer.resolve_font(40)
+    assert font == f"font:{cjk}"
 
 
 def test_render_label_requires_address():
