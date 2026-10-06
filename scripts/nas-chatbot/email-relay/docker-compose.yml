@@ -1,0 +1,32 @@
+services:
+  email-relay:
+    image: node:22-alpine
+    container_name: nas-chatbot-email-relay
+    restart: unless-stopped
+    network_mode: host
+    working_dir: /app
+    user: "1001:1001"
+    environment:
+      HOST: 127.0.0.1
+      PORT: "8788"
+      APP_URL: "https://www.package-lab.com"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:?Set administrator email}"
+      FROM_EMAIL: "${FROM_EMAIL:-info@package-lab.com}"
+      EMAIL_RELAY_API_KEY: "${EMAIL_RELAY_API_KEY:?Set a long random relay key}"
+      SMTP_HOST: "${SMTP_HOST:-sv12515.xserver.jp}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:?Set SMTP user}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:?Set SMTP password}"
+    volumes:
+      - ./server.mjs:/app/server.mjs:ro
+      - ./package.json:/app/package.json:ro
+      - email_relay_node_modules:/app/node_modules
+    command: sh -c "npm install --omit=dev --no-audit --no-fund && node server.mjs"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8788/health').then(()=>process.exit(0)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  email_relay_node_modules:

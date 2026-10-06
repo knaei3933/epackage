@@ -1,0 +1,8 @@
+{
+  "name": "epackage-email-relay",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^7.0.10"
+  }
+}
