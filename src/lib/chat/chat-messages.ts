@@ -48,6 +48,22 @@ const isAssistantStepStartPart = (
   (value as { type?: unknown }).type === 'step-start';
 
 /**
+ * AI SDK v6 marks completed assistant text with `state: 'done'`.
+ * Accept only completed text; provider metadata and streaming state are dropped.
+ */
+const isAssistantCompletedTextPart = (
+  value: unknown,
+): value is { type: 'text'; text: string } =>
+  isRecord(value) &&
+  Object.keys(value).every((key) =>
+    key === 'type' || key === 'text' || key === 'state'
+  ) &&
+  value.type === 'text' &&
+  typeof value.text === 'string' &&
+  value.text.length > 0 &&
+  value.state === 'done';
+
+/**
  * Return a deterministic, array-unique ID when an optional client ID is absent.
  * The index guarantees uniqueness without trusting or echoing client content.
  */
@@ -95,6 +111,15 @@ export function validateChatMessages(input: unknown): ChatMessagesResult {
     for (const part of parts) {
       if (role === 'assistant' && isAssistantStepStartPart(part)) {
         validatedParts.push({ type: 'step-start' });
+        continue;
+      }
+
+      if (role === 'assistant' && isAssistantCompletedTextPart(part)) {
+        messageTextLength += part.text.length;
+        if (messageTextLength > MAX_CHAT_MESSAGE_TEXT_LENGTH) {
+          return { success: false, reason: 'message-too-large' };
+        }
+        validatedParts.push({ type: 'text', text: part.text });
         continue;
       }
 
