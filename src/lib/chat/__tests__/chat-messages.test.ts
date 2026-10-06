@@ -194,6 +194,80 @@ describe('validateChatMessages', () => {
     });
   });
 
+  it('accepts completed AI SDK assistant text state', () => {
+    const assistantHistory = [
+      {
+        id: 'assistant-1',
+        role: 'assistant' as const,
+        parts: [
+          { type: 'step-start' },
+          {
+            type: 'text',
+            text: 'こんにちは！何かご質問はありますか？',
+            state: 'done' as const,
+          },
+        ],
+      },
+      {
+        id: 'user-2',
+        role: 'user' as const,
+        parts: [{ type: 'text', text: '１２０＊１２０サイズの三方パウチ安く作るには？' }],
+      },
+    ];
+
+    expect(validateChatMessages(assistantHistory)).toEqual({
+      success: true,
+      messages: [
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          parts: [
+            { type: 'step-start' },
+            { type: 'text', text: 'こんにちは！何かご質問はありますか？' },
+          ],
+        },
+        assistantHistory[1],
+      ],
+    });
+
+    const streamingAssistantText = [
+      {
+        id: 'assistant-1',
+        role: 'assistant' as const,
+        parts: [
+          {
+            type: 'text',
+            text: 'streaming',
+            state: 'streaming' as const,
+          },
+        ],
+      },
+    ];
+    expect(validateChatMessages(streamingAssistantText)).toEqual({
+      success: false,
+      reason: 'invalid-parts',
+    });
+
+    const assistantTextWithProviderMetadata = [
+      {
+        id: 'assistant-1',
+        role: 'assistant' as const,
+        parts: [
+          {
+            type: 'text',
+            text: 'metadata',
+            state: 'done' as const,
+            providerMetadata: { provider: {} },
+          },
+        ],
+      },
+    ];
+    expect(validateChatMessages(assistantTextWithProviderMetadata)).toEqual({
+      success: false,
+      reason: 'invalid-parts',
+    });
+  });
+
   it('enforces empty, count, message, and conversation limits', () => {
     expect(validateChatMessages([])).toEqual({
       success: false,
