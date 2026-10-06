@@ -1,5 +1,5 @@
 /**
- * Health Check API for Hermes / LM Studio
+ * Health Check API for Hermes / OpenAI-compatible inference
  *
  * Hermes mode uses the same authenticated serving preflight as chat requests.
  */
@@ -46,7 +46,7 @@ const getLMStudioHealth = async () => {
       return createJsonResponse(
         {
           status: 'ok',
-          message: 'LM Studio is available',
+          message: 'OpenAI-compatible inference is available',
           service: 'lmstudio',
         },
         'no-store',
@@ -56,7 +56,7 @@ const getLMStudioHealth = async () => {
     return createJsonResponse(
       {
           status: 'offline',
-          message: 'LM Studio returned an error',
+          message: 'OpenAI-compatible inference returned an error',
           service: 'lmstudio',
       },
       'no-store',
@@ -64,8 +64,8 @@ const getLMStudioHealth = async () => {
   } catch (error) {
     const isTimeout = error instanceof Error && error.name === 'AbortError';
     const errorMessage = isTimeout
-      ? 'LM Studio connection timeout'
-      : 'LM Studio is unavailable';
+      ? 'OpenAI-compatible inference connection timeout'
+      : 'OpenAI-compatible inference is unavailable';
 
     return createJsonResponse(
       {

@@ -252,7 +252,7 @@ describe('Hermes provider configuration', () => {
     expect(getHermesChatModel().modelId).toBe('hermes');
   });
 
-  it('short-circuits commercial failover before LM Studio production validation', async () => {
+  it('short-circuits commercial failover before legacy LMSTUDIO production validation', async () => {
     process.env.NODE_ENV = 'production';
     process.env.VERCEL_ENV = undefined;
     delete process.env.LMSTUDIO_BASE_URL;
@@ -286,14 +286,14 @@ describe('Hermes provider configuration', () => {
   });
 });
 
-describe('LM Studio rollback provider selection', () => {
+describe('Legacy LMSTUDIO rollback provider selection', () => {
   const originalEnv = { ...process.env };
 
   afterAll(() => {
     process.env = originalEnv;
   });
 
-  it('preserves the default LM Studio contract when Hermes is not selected', () => {
+  it('preserves the default OpenAI-compatible contract when Hermes is not selected', () => {
     process.env = {
       ...originalEnv,
       CHAT_PROVIDER: undefined,
@@ -311,7 +311,7 @@ describe('LM Studio rollback provider selection', () => {
     });
   });
 
-  it('fails closed for an unknown provider instead of silently selecting LM Studio', () => {
+  it('fails closed for an unknown provider instead of silently selecting OpenAI-compatible inference', () => {
     process.env = {
       ...originalEnv,
       CHAT_PROVIDER: 'hermes-typo',
@@ -322,7 +322,7 @@ describe('LM Studio rollback provider selection', () => {
     expect(getChatModel).toThrow('CHAT_PROVIDER must be either "hermes" or "lmstudio"');
   });
 
-  it('still applies the existing production LM Studio base URL requirement', () => {
+  it('still applies the existing production OpenAI-compatible base URL requirement', () => {
     process.env = {
       ...originalEnv,
       CHAT_PROVIDER: undefined,
