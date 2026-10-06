@@ -29,6 +29,11 @@ _TOP_PAD = 20
 _LINE_GAP = 10
 _BLOCK_GAP = 16
 
+# Uniform text size bounds (px @300dpi). Every content line (postal, address,
+# company, contact) renders at the SAME size so the label never looks jagged.
+_TEXT_SIZE_MAX = 60
+_TEXT_SIZE_MIN = 22
+
 # Horizontal (efficiency) mode: higher chars-per-line => smaller font/shorter label.
 _ADDR_CHARS_DEFAULT = 45
 _ADDR_CHARS_MIN = 8
@@ -134,6 +139,21 @@ def postal_display(postal_code: str | None) -> str:
     return f"{POSTAL_MARK}{postal}" if postal else ""
 
 
+def _uniform_text_size(text: str, max_width: int) -> int:
+    """Largest size (≤60, ≥22) at which `text` fits one measured line.
+
+    Measured with real glyph advances (getlength), not a character count:
+    half-width Latin/digits must not shrink full-width CJK lines.
+    """
+    measured_at_max = resolve_font(_TEXT_SIZE_MAX).getlength(text)
+    if measured_at_max <= max_width:
+        return _TEXT_SIZE_MAX
+    size = max(_TEXT_SIZE_MIN, int(_TEXT_SIZE_MAX * max_width / measured_at_max))
+    while size > _TEXT_SIZE_MIN and resolve_font(size).getlength(text) > max_width:
+        size -= 1
+    return size
+
+
 def get_orientation() -> str:
     o = os.environ.get("LABEL_ORIENTATION", "horizontal").strip().lower()
     if o not in ("rotated", "horizontal"):
@@ -153,8 +173,8 @@ def _render_horizontal(
     output_path: Path,
 ) -> Path:
     """Horizontal layout: text lines run ACROSS the roll width (readable with
-    the 62mm edge horizontal). The address font auto-sizes so the address fits
-    on ONE line across the roll - no 7-char wrap limit.
+    the 62mm edge horizontal). All content lines share ONE uniform font size -
+    the largest size at which the address fits on a single measured line.
 
     Line spacing uses the real glyph height (ascent+descent), so nothing clips.
     """
@@ -162,11 +182,10 @@ def _render_horizontal(
         raise ValueError("address is required")
 
     inner_width = LABEL_WIDTH_PX - 2 * _SIDE_PAD
-    addr_len = max(1, len(address.strip()))
-    addr_size = min(60, max(22, inner_width // addr_len))
-    font_addr = resolve_font(addr_size)
-    font_name = resolve_font(max(14, int(addr_size * 0.85)), bold=True)
-    font_postal = resolve_font(max(14, int(addr_size * 0.8)), bold=True)
+    text_size = _uniform_text_size(address.strip(), inner_width)
+    font_addr = resolve_font(text_size)
+    font_name = resolve_font(text_size, bold=True)
+    font_postal = resolve_font(text_size, bold=True)
 
     def _lh(f):
         a, d = f.getmetrics()
@@ -182,14 +201,14 @@ def _render_horizontal(
     display_contact = contact if contact.endswith("様") else f"{contact} 様"
     contact_lines = wrap_text(display_contact, font_name, inner_width)
 
-    line_gap = max(4, addr_size // 8)
-    block_gap = max(8, addr_size // 4)
-    top_pad = max(10, addr_size // 3)
+    line_gap = max(4, text_size // 8)
+    block_gap = max(8, text_size // 4)
+    top_pad = max(10, text_size // 3)
     postal_box_h = postal_lh + 12 if postal_lines else 0
     brand_font = resolve_font(18, bold=True)
     brand_text = "Epackage-lab"
     brand_lh = _lh(brand_font)
-    brand_gap = max(6, addr_size // 8)
+    brand_gap = max(6, text_size // 8)
 
     h = top_pad
     if postal_lines:
@@ -267,7 +286,7 @@ def _render_rotated(
 
     def fonts_for_size(size: int):
         font_addr = resolve_font(size)
-        font_name = resolve_font(max(20, int(size * 0.85)), bold=True)
+        font_name = resolve_font(size, bold=True)
         return font_addr, font_name, font_name
 
     def build_lines(size: int):

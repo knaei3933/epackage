@@ -89,6 +89,23 @@ def test_resolve_font_skips_font_without_cjk_glyphs(monkeypatch, tmp_path):
     assert font == f"font:{cjk}"
 
 
+def test_uniform_text_size_caps_at_max_for_short_text():
+    size = label_renderer._uniform_text_size("東京", max_width=640)
+    assert size == label_renderer._TEXT_SIZE_MAX
+
+
+def test_uniform_text_size_floors_at_min_for_very_long_text():
+    size = label_renderer._uniform_text_size("東京都江東区" * 40, max_width=640)
+    assert size == label_renderer._TEXT_SIZE_MIN
+
+
+def test_uniform_text_size_fits_measured_line():
+    text = "東京都江東区東陽7-2-22 Epackageビル4F"
+    size = label_renderer._uniform_text_size(text, max_width=640)
+    assert size >= label_renderer._TEXT_SIZE_MIN
+    assert resolve_font(size).getlength(text) <= 640
+
+
 def test_render_label_requires_address():
     with pytest.raises(ValueError):
         render_label("123", "  ", "会社", "山田", "out/t3.png")
