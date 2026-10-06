@@ -33,7 +33,6 @@ export function ChatLeadForm({
   const [sizeSpecState, setSizeSpecState] = useState('');
   const [materialPrintingNeeds, setMaterialPrintingNeeds] = useState('');
   const [deadlineText, setDeadlineText] = useState('');
-  const [channel, setChannel] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -61,11 +60,19 @@ export function ChatLeadForm({
       setError('相談内容を1つ以上入力してください。');
       return;
     }
-    if (channel === 'email' && !email.trim()) {
+    if (!companyName.trim()) {
+      setError('会社名を入力してください。');
+      return;
+    }
+    if (!contactName.trim()) {
+      setError('お名前を入力してください。');
+      return;
+    }
+    if (!email.trim()) {
       setError('メールアドレスを入力してください。');
       return;
     }
-    if (channel === 'phone' && !phone.trim()) {
+    if (!phone.trim()) {
       setError('電話番号を入力してください。');
       return;
     }
@@ -88,11 +95,11 @@ export function ChatLeadForm({
         deadlineText: deadlineText.trim() || undefined,
       },
       contact: {
-        channel,
-        email: channel === 'email' ? email.trim() : undefined,
-        phone: channel === 'phone' ? phone.trim() : undefined,
-        companyName: companyName.trim() || undefined,
-        contactName: contactName.trim() || undefined,
+        channel: preferredChannel === 'phone' ? 'phone' : 'email',
+        email: email.trim(),
+        phone: phone.trim(),
+        companyName: companyName.trim(),
+        contactName: contactName.trim(),
         preferredChannel,
         contactWindow,
       },
@@ -199,7 +206,7 @@ export function ChatLeadForm({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-company">
-            会社名（任意）
+            会社名
           </label>
           <input
             id="lead-company"
@@ -212,7 +219,7 @@ export function ChatLeadForm({
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-contact-name">
-            お名前（任意）
+            ご担当者名
           </label>
           <input
             id="lead-contact-name"
@@ -225,51 +232,37 @@ export function ChatLeadForm({
         </div>
       </div>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm text-gray-600">連絡方法</legend>
-        <label className="flex items-center gap-2 text-base">
-          <input
-            type="radio"
-            name="lead-contact-channel"
-            checked={channel === 'email'}
-            onChange={() => setChannel('email')}
-            disabled={disabled}
-          />
-          メール
+      <div>
+        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-email">
+          メールアドレス
         </label>
-        <label className="flex items-center gap-2 text-base">
-          <input
-            type="radio"
-            name="lead-contact-channel"
-            checked={channel === 'phone'}
-            onChange={() => setChannel('phone')}
-            disabled={disabled}
-          />
-          電話
+        <input
+          id="lead-email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          disabled={disabled}
+          maxLength={254}
+          placeholder="example@example.com"
+          className={inputClassName}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-phone">
+          電話番号
         </label>
-        {channel === 'email' && (
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            disabled={disabled}
-            maxLength={254}
-            placeholder="example@example.com"
-            className={inputClassName}
-          />
-        )}
-        {channel === 'phone' && (
-          <input
-            type="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            disabled={disabled}
-            maxLength={32}
-            placeholder="050-1793-6500"
-            className={inputClassName}
-          />
-        )}
-      </fieldset>
+        <input
+          id="lead-phone"
+          type="tel"
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          disabled={disabled}
+          maxLength={32}
+          placeholder="050-1793-6500"
+          className={inputClassName}
+        />
+      </div>
 
       <div className="grid grid-cols-2 gap-2">
         <div>

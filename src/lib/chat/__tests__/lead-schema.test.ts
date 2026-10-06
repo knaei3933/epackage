@@ -15,6 +15,9 @@ const validLead = (): Record<string, unknown> => ({
   contact: {
     channel: 'email',
     email: ' Customer@Example.JP ',
+    phone: '050-1793-6500',
+    companyName: '株式会社テスト',
+    contactName: '山田太郎',
     preferredChannel: 'email',
     contactWindow: 'weekday_daytime',
   },
@@ -78,10 +81,22 @@ describe('chat lead schema', () => {
     expect(validateChatLeadSubmission(empty)).toMatchObject({ reason: 'invalid-requirements' });
   });
 
-  it('requires exactly one valid contact channel and explicit consent', () => {
+  it('requires company/contact names, both contact methods, and explicit consent', () => {
+    const noCompany = validLead();
+    (noCompany.contact as Record<string, unknown>).companyName = undefined;
+    expect(validateChatLeadSubmission(noCompany)).toMatchObject({ reason: 'invalid-contact' });
+
+    const noName = validLead();
+    (noName.contact as Record<string, unknown>).contactName = undefined;
+    expect(validateChatLeadSubmission(noName)).toMatchObject({ reason: 'invalid-contact' });
+
     const both = validLead();
-    (both.contact as Record<string, unknown>).phone = '050-1793-6500';
+    (both.contact as Record<string, unknown>).email = 'not-an-email';
     expect(validateChatLeadSubmission(both)).toMatchObject({ reason: 'invalid-contact' });
+
+    const noPhone = validLead();
+    (noPhone.contact as Record<string, unknown>).phone = undefined;
+    expect(validateChatLeadSubmission(noPhone)).toMatchObject({ reason: 'invalid-contact' });
 
     const badEmail = validLead();
     (badEmail.contact as Record<string, unknown>).email = 'not-an-email';
