@@ -147,6 +147,53 @@ describe('validateChatMessages', () => {
     }
   });
 
+  it('accepts AI SDK step-start markers only in assistant history', () => {
+    const assistantHistory = [
+      {
+        id: 'assistant-1',
+        role: 'assistant' as const,
+        parts: [
+          { type: 'step-start' },
+          { type: 'text', text: 'こんにちは。' },
+        ],
+      },
+      {
+        id: 'user-2',
+        role: 'user' as const,
+        parts: [{ type: 'text', text: 'こんにちは' }],
+      },
+    ];
+
+    expect(validateChatMessages(assistantHistory)).toEqual({
+      success: true,
+      messages: assistantHistory,
+    });
+
+    const userStepStart = [
+      {
+        id: 'user-1',
+        role: 'user' as const,
+        parts: [{ type: 'step-start' }],
+      },
+    ];
+    expect(validateChatMessages(userStepStart)).toEqual({
+      success: false,
+      reason: 'invalid-parts',
+    });
+
+    const stepStartWithExtraKeys = [
+      {
+        id: 'assistant-1',
+        role: 'assistant' as const,
+        parts: [{ type: 'step-start', state: 'done' }],
+      },
+    ];
+    expect(validateChatMessages(stepStartWithExtraKeys)).toEqual({
+      success: false,
+      reason: 'invalid-parts',
+    });
+  });
+
   it('enforces empty, count, message, and conversation limits', () => {
     expect(validateChatMessages([])).toEqual({
       success: false,

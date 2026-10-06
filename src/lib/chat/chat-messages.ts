@@ -35,6 +35,19 @@ const isAllowedRole = (value: unknown): value is 'user' | 'assistant' =>
   typeof value === 'string' && ALLOWED_ROLES.has(value);
 
 /**
+ * AI SDK v6 emits step-start markers inside assistant UIMessage history.
+ * Accept only the exact marker-shaped object and only for assistant messages.
+ */
+const isAssistantStepStartPart = (
+  value: unknown,
+): value is { type: 'step-start' } =>
+  typeof value === 'object' &&
+  value !== null &&
+  !Array.isArray(value) &&
+  Object.keys(value).length === 1 &&
+  (value as { type?: unknown }).type === 'step-start';
+
+/**
  * Return a deterministic, array-unique ID when an optional client ID is absent.
  * The index guarantees uniqueness without trusting or echoing client content.
  */
@@ -74,10 +87,17 @@ export function validateChatMessages(input: unknown): ChatMessagesResult {
       return { success: false, reason: 'invalid-parts' };
     }
 
-    const validatedParts: Array<{ type: 'text'; text: string }> = [];
+    const validatedParts: Array<
+      { type: 'text'; text: string } | { type: 'step-start' }
+    > = [];
     let messageTextLength = 0;
 
     for (const part of parts) {
+      if (role === 'assistant' && isAssistantStepStartPart(part)) {
+        validatedParts.push({ type: 'step-start' });
+        continue;
+      }
+
       if (
         !isRecord(part) ||
         Object.keys(part).some((key) => !ALLOWED_PART_KEYS.has(key)) ||
