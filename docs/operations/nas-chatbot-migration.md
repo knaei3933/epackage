@@ -25,6 +25,8 @@ The 3090 workstation remains the inference host. Do not create a new model or in
 
 The NAS is only a stable HTTPS entry point/reverse proxy. Keep workstation LAN ports unreachable from the public Internet.
 
+When the NAS and workstation have a direct 10GbE path, configure the relay upstream to use that dedicated private subnet rather than Wi-Fi or another LAN interface. Keep the private workstation address outside Git and use the exact address in the NAS-only deployment environment.
+
 ## Reuse the existing Qwen model
 
 From a machine that can reach the 3090 workstation, identify the model ID advertised by the existing service. Adjust only the LAN host/port and key to the current service:
