@@ -438,26 +438,56 @@ export async function preflightHermesConnection(
  * LM StudioのベースURLを取得
  * Get LM Studio base URL
  */
-function getBaseURL(): string {
-  const env = process.env.LMSTUDIO_BASE_URL;
+function getLMStudioBaseURL(): string {
+  const configuredURL = process.env.LMSTUDIO_BASE_URL;
+  const normalizedURL = configuredURL?.replace(/\/+$/, '') || 'http://localhost:1234/v1';
 
-  if (env && env.length > 0) {
-    return env;
+  if (!normalizedURL.endsWith('/v1')) {
+    throw new Error(
+      'LMSTUDIO_BASE_URL must be an OpenAI-compatible endpoint ending in /v1.'
+    );
   }
 
-  // デフォルト値
-  // Default value
-  return 'http://localhost:1234/v1';
+  try {
+    const url = new URL(normalizedURL);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      throw new TypeError('Unsupported LM Studio URL protocol');
+    }
+    if (url.protocol === 'http:' &&
+        (!isLoopbackHost(url.hostname) || isProductionOrPreview())) {
+      throw new TypeError('HTTP is allowed only for loopback local development');
+    }
+  } catch {
+    throw new Error(
+      'LMSTUDIO_BASE_URL must be a valid URL ending in /v1. ' +
+      'Use HTTPS outside local loopback development.'
+    );
+  }
+
+  return normalizedURL;
 }
 
-/**
- * LM Studioプロバイダーを作成
- * Create LM Studio provider
- */
-export const lmstudio = createOpenAICompatible({
-  name: 'lmstudio',
-  baseURL: getBaseURL(),
-});
+function getLMStudioApiKey(): string | undefined {
+  const apiKey = process.env.LMSTUDIO_API_KEY;
+  return apiKey && apiKey.length > 0 ? apiKey : undefined;
+}
+
+function getLMStudioModelId(): string {
+  return process.env.LMSTUDIO_MODEL || 'qwen/qwen3-vl-4b';
+}
+
+function createLMStudioProvider(baseURL: string, apiKey?: string) {
+  return createOpenAICompatible({
+    name: 'lmstudio',
+    baseURL,
+    apiKey,
+  });
+}
+
+export const lmstudio = createLMStudioProvider(
+  process.env.LMSTUDIO_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:1234/v1',
+  getLMStudioApiKey(),
+);
 
 // ============================================================
 // Chat Model Configuration
@@ -480,23 +510,27 @@ export function getChatModel() {
   }
 
   const env = detectEnvironment();
-  const baseURL = getBaseURL();
 
   // 本番環境でベースURLが設定されていない場合はエラー
   // Error if base URL is not configured in production
-  if (env.isProduction && !env.hasBaseUrl) {
+  if (env.isProduction && !process.env.LMSTUDIO_BASE_URL) {
     throw new Error(
       'LMSTUDIO_BASE_URL is required in production. ' +
       'Please set LMSTUDIO_BASE_URL in your Vercel environment variables. ' +
-      'Expected format: https://chatbot.package-lab.com/v1'
+      'Expected format: https://<nas-relay-hostname>/v1'
     );
   }
 
+  const baseURL = getLMStudioBaseURL();
+  const apiKey = getLMStudioApiKey();
+  const modelId = getLMStudioModelId();
+  const isLocalBaseURL = isLoopbackHost(new URL(baseURL).hostname);
+
   return {
-    provider: lmstudio,
-    modelId: 'qwen/qwen3-vl-4b',
-    baseURL: baseURL,
-    name: env.isDevelopment ? 'LM Studio (Local)' : 'LM Studio (Cloudflare Tunnel)',
+    provider: createLMStudioProvider(baseURL, apiKey),
+    modelId,
+    baseURL,
+    name: isLocalBaseURL ? 'LM Studio (Local)' : 'LM Studio (NAS Relay)',
     type: 'lmstudio' as const,
     isFailover: false as const,
   };
@@ -771,7 +805,7 @@ export async function getChatModelWithFailover(
  */
 export async function checkLMStudioHealth(): Promise<boolean> {
   try {
-    const baseURL = getBaseURL();
+    const baseURL = getLMStudioBaseURL();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒タイムアウト
 
@@ -779,6 +813,9 @@ export async function checkLMStudioHealth(): Promise<boolean> {
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        ...(getLMStudioApiKey()
+          ? { Authorization: `Bearer ${getLMStudioApiKey()}` }
+          : {}),
       },
     });
 
