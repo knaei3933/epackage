@@ -93,6 +93,24 @@ describe('chat prompt context integration', () => {
     expect(prompt).toContain('【ページコンテキスト】');
     expect(prompt).toContain('【サイトナレッジ】安定した品質');
   });
+
+  it('gives contact consultation answers a concrete preparation checklist', () => {
+    const prompt = buildChatSystemPrompt({
+      basePrompt: 'BASE_PROMPT',
+      selectedSuggestion: {
+        id: 'public.contact.staff',
+        labelJa: '担当者相談',
+        questionJa: '担当者に確認したいことはどう伝えればよいですか？',
+        audience: 'public',
+        target: { type: 'route', routePattern: '/contact', priority: 0 },
+        grounding: { kind: 'contact' },
+      },
+    });
+
+    expect(prompt).toContain('この質問は担当者確認・相談案内を目的とします。');
+    expect(prompt).toContain('用途・内容物、希望形状、寸法、数量/SKU、納期、デザイン有無、現在の状況');
+    expect(prompt).toContain('確定できない業務条件は推測せず');
+  });
 });
 
 describe('chat route context validation', () => {
