@@ -60,7 +60,7 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  if (request.method !== 'POST' || request.url !== '/send') {
+  if (request.method !== 'POST') {
     response.writeHead(404, { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ error: 'not_found' }));
     return;
@@ -134,6 +134,28 @@ const server = http.createServer(async (request, response) => {
   ];
   const staffUrl = `${appUrl}/admin/leads`;
 
+  const customerRows = [
+    ['ご相談内容', requirements.contentsDescription],
+    ['数量', requirements.quantityDescription],
+    ['サイズ・仕様の状況', requirements.sizeSpecState],
+    ['素材・印刷のご希望', requirements.materialPrintingNeeds],
+    ['希望時期', requirements.deadlineText],
+    ['ご希望の連絡方法', PREFERRED_CHANNEL_LABELS[contact.preferredChannel]],
+    ['連絡可能時間', CONTACT_WINDOW_LABELS[contact.contactWindow]],
+  ];
+  const displayValue = (value) => value || '未記入';
+  const customerTextRows = customerRows
+    .map(([label, value]) => `【${label}】\n${displayValue(value)}`)
+    .join('\n\n');
+  const customerHtmlRows = customerRows
+    .map(([label, value]) => `
+      <tr>
+        <th>${escapeHtml(label)}</th>
+        <td style="white-space:pre-wrap;">${escapeHtml(displayValue(value))}</td>
+      </tr>
+    `)
+    .join('');
+
   const adminText = [
     '新しいチャット相談リードが保存されました。',
     ...staffRows.map(([label, value]) => value ? `${label}: ${value}` : ''),
@@ -141,17 +163,50 @@ const server = http.createServer(async (request, response) => {
   ].filter(Boolean).join('\n');
   const adminHtml = `<p>新しいチャット相談リードが保存されました。</p><table>${rows(staffRows)}</table><p><a href="${staffUrl}">管理画面で確認</a></p>`;
 
-  const customerText = [
-    'お問い合わせありがとうございます。',
-    '担当者が確認のうえ、ご希望の連絡方法にてご連絡いたします。',
-    ...valueRows.slice(3).map(([label, value]) => value ? `${label}: ${value}` : ''),
-  ].join('\n');
-  const customerHtml = `<p>お問い合わせありがとうございます。</p><p>担当者が確認のうえ、ご希望の連絡方法にてご連絡いたします。</p><table>${rows(valueRows.slice(3))}</table>`;
+  const customerText = `この度は、Epackage Labにお問い合わせいただきありがとうございます。
+
+以下の内容でご相談を受け付けました。
+担当者が確認のうえ、ご希望の連絡方法にてご連絡いたしますので、今しばらくお待ちください。
+
+${customerTextRows}
+
+万一、内容に相違がある場合は、お手数ですが本メールへの返信ではなく、
+お問い合わせフォームよりご連絡ください。
+
+Epackage Lab
+https://www.package-lab.com
+
+※本メールはシステムより自動送信されています。`;
+  const customerHtml = `
+<!DOCTYPE html>
+<html lang="ja">
+<body style="font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;color:#333;line-height:1.7;margin:0;padding:24px;background:#f9fafb;">
+  <div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+    <div style="padding:24px;background:#111827;color:#fff;">
+      <div style="font-size:13px;letter-spacing:.08em;">Epackage Lab</div>
+      <h1 style="margin:8px 0 0;font-size:20px;font-weight:600;">お問い合わせを受け付けました</h1>
+    </div>
+    <div style="padding:24px;">
+      <p style="margin:0 0 16px;">この度は、Epackage Labにお問い合わせいただきありがとうございます。</p>
+      <p style="margin:0 0 24px;">以下の内容でご相談を受け付けました。担当者が確認のうえ、ご希望の連絡方法にてご連絡いたしますので、今しばらくお待ちください。</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tbody>${customerHtmlRows}</tbody>
+      </table>
+      <p style="margin:24px 0 0;font-size:13px;color:#4b5563;">万一、内容に相違がある場合は、お手数ですがお問い合わせフォームよりご連絡ください。</p>
+    </div>
+    <div style="padding:20px 24px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280;">
+      Epackage Lab<br>
+      <a href="https://www.package-lab.com" style="color:#4b5563;">https://www.package-lab.com</a><br>
+      ※本メールはシステムより自動送信されています。
+    </div>
+  </div>
+</body>
+</html>`;
 
   const [adminResult, customerResult] = await Promise.allSettled([
     send(process.env.ADMIN_EMAIL, '【Epackage Lab】新しいチャット相談リード', adminText, adminHtml, contact.email),
     contact.channel === 'email' && contact.email
-      ? send(contact.email, '【Epackage Lab】相談内容を受け付けました', customerText, customerHtml)
+      ? send(contact.email, '【Epackage Lab】お問い合わせを受け付けました', customerText, customerHtml)
       : Promise.resolve(null),
   ]);
 
