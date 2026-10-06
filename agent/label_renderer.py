@@ -35,6 +35,10 @@ _BLOCK_GAP = 16
 _TEXT_SIZE_MAX = 48
 _TEXT_SIZE_MIN = 28
 
+# Printed in the label footer so the office can verify at a glance WHICH agent
+# version produced a physical label (bump when the renderer changes).
+_BRAND_TEXT = "Epackage-lab v251006"
+
 # Horizontal (efficiency) mode: higher chars-per-line => smaller font/shorter label.
 _ADDR_CHARS_DEFAULT = 45
 _ADDR_CHARS_MIN = 8
@@ -205,7 +209,7 @@ def _render_horizontal(
     top_pad = max(10, text_size // 3)
     postal_box_h = postal_lh + 12 if postal_lines else 0
     brand_font = resolve_font(18, bold=True)
-    brand_text = "Epackage-lab"
+    brand_text = _BRAND_TEXT
     brand_lh = _lh(brand_font)
     brand_gap = max(6, text_size // 8)
 
@@ -329,7 +333,7 @@ def _render_rotated(
     draw = ImageDraw.Draw(img)
     content_height = measured_height(lines)
     brand_font = resolve_font(max(18, addr_font_size // 2))
-    brand_text = "Epackage-lab"
+    brand_text = _BRAND_TEXT
     brand_height = sum(brand_font.getmetrics()) + 24
     y = max(_ROT_MARGIN, (LABEL_WIDTH_PX - brand_height - content_height) // 2)
     for text, font in lines:
