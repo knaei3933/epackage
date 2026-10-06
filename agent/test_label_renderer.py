@@ -99,11 +99,14 @@ def test_uniform_text_size_floors_at_min_for_very_long_text():
     assert size == label_renderer._TEXT_SIZE_MIN
 
 
-def test_uniform_text_size_fits_measured_line():
+def test_uniform_text_size_wraps_within_two_lines():
     text = "東京都江東区東陽7-2-22 Epackageビル4F"
     size = label_renderer._uniform_text_size(text, max_width=640)
     assert size >= label_renderer._TEXT_SIZE_MIN
-    assert resolve_font(size).getlength(text) <= 640
+    lines = wrap_text(text, resolve_font(size), 640)
+    assert len(lines) <= 2
+    # Readability floor: mixed JP/Latin address must not shrink to ~5pt again.
+    assert size >= 40
 
 
 def test_render_label_requires_address():
@@ -163,13 +166,14 @@ def test_horizontal_compact_height(monkeypatch):
         assert img.size[1] < 700
 
 
-def test_horizontal_auto_sized_address_fits_one_line(monkeypatch):
-    # 18-char address -> auto font ~36px, address on ONE line across the roll
+def test_horizontal_uniform_text_is_large_and_compact(monkeypatch):
+    # Uniform size (~11.5pt) with up to a 2-line address wrap; label height
+    # stays well under the old no-wrap-cap behavior.
     monkeypatch.setenv("LABEL_ORIENTATION", "horizontal")
     out = render_label("123-4567", "東京都港区テスト1-2-3 テストビル4F", "株式会社テスト", "山田太郎", "out/auto.png")
     with Image.open(out) as img:
         assert img.size[0] == 696
-        assert img.size[1] < 400  # compact: no excessive wrap-induced growth
+        assert img.size[1] < 700  # compact even with the larger uniform font
 
 
 def test_horizontal_long_address_still_fits(monkeypatch):

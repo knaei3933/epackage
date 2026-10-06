@@ -31,8 +31,9 @@ _BLOCK_GAP = 16
 
 # Uniform text size bounds (px @300dpi). Every content line (postal, address,
 # company, contact) renders at the SAME size so the label never looks jagged.
-_TEXT_SIZE_MAX = 60
-_TEXT_SIZE_MIN = 22
+# 48px = ~11.5pt, 28px = ~6.7pt in Word terms.
+_TEXT_SIZE_MAX = 48
+_TEXT_SIZE_MIN = 28
 
 # Horizontal (efficiency) mode: higher chars-per-line => smaller font/shorter label.
 _ADDR_CHARS_DEFAULT = 45
@@ -139,19 +140,17 @@ def postal_display(postal_code: str | None) -> str:
     return f"{POSTAL_MARK}{postal}" if postal else ""
 
 
-def _uniform_text_size(text: str, max_width: int) -> int:
-    """Largest size (≤60, ≥22) at which `text` fits one measured line.
+def _uniform_text_size(text: str, max_width: int, max_lines: int = 2) -> int:
+    """Largest size (≤48, ≥28) at which `text` wraps to ≤ max_lines lines.
 
-    Measured with real glyph advances (getlength), not a character count:
-    half-width Latin/digits must not shrink full-width CJK lines.
+    Forcing ONE line shrank mixed JP/Latin addresses to ~5.5pt (unreadable);
+    allowing a 2-line wrap keeps text large. Measured with real glyph
+    advances (wrap_text), not a raw character count.
     """
-    measured_at_max = resolve_font(_TEXT_SIZE_MAX).getlength(text)
-    if measured_at_max <= max_width:
-        return _TEXT_SIZE_MAX
-    size = max(_TEXT_SIZE_MIN, int(_TEXT_SIZE_MAX * max_width / measured_at_max))
-    while size > _TEXT_SIZE_MIN and resolve_font(size).getlength(text) > max_width:
-        size -= 1
-    return size
+    for size in range(_TEXT_SIZE_MAX, _TEXT_SIZE_MIN - 1, -1):
+        if len(wrap_text(text, resolve_font(size), max_width)) <= max_lines:
+            return size
+    return _TEXT_SIZE_MIN
 
 
 def get_orientation() -> str:
