@@ -233,4 +233,33 @@ describe('/api/chat/lead privacy gate', () => {
     expect(mockedRecordEvents).not.toHaveBeenCalled();
     expect(mockedSendNotifications).not.toHaveBeenCalled();
   });
+
+  it('waits for notification dispatch before returning accepted lead', async () => {
+    mockedCapability.mockResolvedValueOnce({
+      enabled: true,
+      leadIntents: ['human'],
+      consentVersion: 1,
+      privacyPolicyVersion: 1,
+    });
+    mockedResolveParticipant.mockResolvedValueOnce({ status: 'anonymous' });
+    mockedCheckRateLimit.mockResolvedValueOnce({ allowed: true });
+    mockedSubmitLead.mockResolvedValueOnce({ accepted: true, leadId: 'lead-id' });
+    mockedRecordEvents.mockResolvedValueOnce(true);
+    let notificationsResolved = false;
+    mockedSendNotifications.mockImplementationOnce(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      notificationsResolved = true;
+      return {
+        adminEmail: { attempted: true, success: false, error: 'smtp blocked' },
+      };
+    });
+    const request = createEnabledRequest();
+
+    const response = await POST(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual({ accepted: true });
+    expect(notificationsResolved).toBe(true);
+  });
 });

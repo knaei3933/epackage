@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { ADMIN_EMAIL, escapeHtml, sendEmail } from '@/lib/email/transport';
+import { createAdminNotification } from '@/lib/admin-notifications';
 import { Logger } from '@/lib/logger';
 import type { ChatLeadSubmission } from '@/lib/chat/lead-schema';
 import type { ChatPageContext } from '@/lib/chat/page-context';
@@ -197,6 +198,28 @@ export async function sendChatLeadNotifications(
 
   if (lead.contact.email) {
     result.customerEmail = normalize(customerResult);
+  }
+
+  if (!result.adminEmail.success) {
+    const notification = await createAdminNotification({
+      type: 'system',
+      title: '新しいチャット相談リード',
+      message: `チャットリード ${leadId} が保存されました。メール通知失敗のため管理画面から確認してください。`,
+      relatedId: leadId,
+      relatedType: 'chat_lead',
+      priority: 'high',
+      actionUrl: `${APP_URL}/admin/leads`,
+      actionLabel: 'リードを確認',
+      metadata: {
+        intent: lead.intent,
+        routeFamily,
+        adminEmailSuccess: false,
+      },
+    });
+
+    if (notification) {
+      logger.info('Chat lead admin dashboard fallback created', { leadId });
+    }
   }
 
   logger.info('Chat lead notifications processed', {
