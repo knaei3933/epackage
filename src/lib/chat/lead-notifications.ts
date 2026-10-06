@@ -14,6 +14,13 @@ const INTENT_LABELS: Record<ChatLeadSubmission['intent'], string> = {
   human: '担当者相談',
 };
 
+type NotificationRelayPayload = {
+  accepted?: boolean;
+  adminSent?: boolean;
+  customerAttempted?: boolean;
+  customerSent?: boolean;
+};
+
 export interface ChatLeadNotificationInput {
   leadId: string;
   lead: ChatLeadSubmission;
@@ -63,7 +70,7 @@ export async function sendChatLeadNotifications(
     }),
   });
 
-  const payload = await response.json().catch(() => null) as {
+  const payload = await response.json().catch((): NotificationRelayPayload | null => null) as {
     accepted?: boolean;
     adminSent?: boolean;
     customerAttempted?: boolean;
@@ -117,3 +124,4 @@ export async function sendChatLeadNotifications(
 
   return result;
 }
+
