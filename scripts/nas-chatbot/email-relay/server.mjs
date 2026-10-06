@@ -156,15 +156,17 @@ const server = http.createServer(async (request, response) => {
     ['ご希望の連絡方法', PREFERRED_CHANNEL_LABELS[contact.preferredChannel]],
     ['連絡可能時間', CONTACT_WINDOW_LABELS[contact.contactWindow]],
   ];
-  const displayValue = (value) => value || '未記入';
-  const customerTextRows = customerRows
-    .map(([label, value]) => `【${label}】\n${displayValue(value)}`)
+  const filledCustomerRows = customerRows.filter(([, value]) =>
+    value !== undefined && value !== null && value !== ''
+  );
+  const customerTextRows = filledCustomerRows
+    .map(([label, value]) => `【${label}】\n${value}`)
     .join('\n\n');
-  const customerHtmlRows = customerRows
+  const customerHtmlRows = filledCustomerRows
     .map(([label, value]) => `
       <tr>
         <th>${escapeHtml(label)}</th>
-        <td style="white-space:pre-wrap;">${escapeHtml(displayValue(value))}</td>
+        <td style="white-space:pre-wrap;">${escapeHtml(value)}</td>
       </tr>
     `)
     .join('');
