@@ -11,6 +11,7 @@ import {
   submitChatLead,
 } from '@/lib/chat/lead-server';
 import { recordChatFunnelEvents } from '@/lib/chat/chat-analytics';
+import { sendChatLeadNotifications } from '@/lib/chat/lead-notifications';
 
 jest.mock('@/lib/chat/lead-capture', () => ({
   getChatLeadCapability: jest.fn(),
@@ -29,11 +30,16 @@ jest.mock('@/lib/chat/chat-analytics', () => ({
   recordChatFunnelEvents: jest.fn(),
 }));
 
+jest.mock('@/lib/chat/lead-notifications', () => ({
+  sendChatLeadNotifications: jest.fn(),
+}));
+
 const mockedCapability = getChatLeadCapability as jest.Mock;
 const mockedResolveParticipant = resolveChatParticipantStrict as jest.Mock;
 const mockedCheckRateLimit = checkChatLeadRateLimit as jest.Mock;
 const mockedSubmitLead = submitChatLead as jest.Mock;
 const mockedRecordEvents = recordChatFunnelEvents as jest.Mock;
+const mockedSendNotifications = sendChatLeadNotifications as jest.Mock;
 
 class RequestWithBodySpy extends NextRequest {
   readonly jsonSpy = jest.fn(() => Promise.resolve({}));
@@ -101,6 +107,10 @@ describe('/api/chat/lead privacy gate', () => {
   mockedCheckRateLimit.mockResolvedValue({ allowed: false });
   mockedSubmitLead.mockResolvedValue({ accepted: false });
   mockedRecordEvents.mockResolvedValue(true);
+  mockedSendNotifications.mockResolvedValue({
+    adminEmail: { attempted: true, success: true },
+    customerEmail: { attempted: true, success: true },
+  });
   });
 
   it('returns a stable disabled response without parsing the body', async () => {
@@ -198,6 +208,10 @@ describe('/api/chat/lead privacy gate', () => {
       '123e4567-e89b-42d3-a456-426614174000',
       [{ eventType: 'contact_submitted' }],
     );
+    expect(mockedSendNotifications).toHaveBeenCalledWith(expect.objectContaining({
+      leadId: 'lead-id',
+      routeFamily: 'quote-simulator',
+    }));
     expect(request.jsonSpy).not.toHaveBeenCalled();
   });
 
@@ -217,5 +231,6 @@ describe('/api/chat/lead privacy gate', () => {
     expect(response.status).toBe(503);
     expect(mockedSubmitLead).not.toHaveBeenCalled();
     expect(mockedRecordEvents).not.toHaveBeenCalled();
+    expect(mockedSendNotifications).not.toHaveBeenCalled();
   });
 });

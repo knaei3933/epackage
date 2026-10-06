@@ -13,6 +13,7 @@ import {
 } from '@/lib/chat/lead-server';
 import { parseChatPageContext } from '@/lib/chat/page-context';
 import { recordChatFunnelEvents } from '@/lib/chat/chat-analytics';
+import { sendChatLeadNotifications } from '@/lib/chat/lead-notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -184,6 +185,14 @@ export async function POST(req: NextRequest) {
   await recordChatFunnelEvents(validatedLead.lead.sessionId, [
     { eventType: 'contact_submitted' },
   ]);
+
+  await sendChatLeadNotifications({
+    leadId: result.leadId!,
+    lead: validatedLead.lead,
+    routeFamily: contextResult.context.pathname === '/'
+      ? 'home'
+      : contextResult.context.pathname.split('/')[1] || 'general',
+  });
 
   // Return leadId only to authenticated linked members so they can query status.
   const response: { accepted: boolean; leadId?: string } = { accepted: true };
