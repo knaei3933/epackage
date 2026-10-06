@@ -131,6 +131,7 @@ const buildSelectedSuggestionPrompt = (
   } else if (suggestion.grounding.kind === 'contact') {
     lines.push(
       'この質問は担当者確認・相談案内を目的とします。',
+      '相談前の整理項目として、用途・内容物、希望形状、寸法、数量/SKU、納期、デザイン有無、現在の状況を挙げてください。',
       '確定できない業務条件は推測せず、お問い合わせ・電話・有人切り替えの案内のみを使用してください。',
     );
   } else if (suggestion.grounding.kind === 'navigation') {
