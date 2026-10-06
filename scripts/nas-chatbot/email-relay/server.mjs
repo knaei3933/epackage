@@ -12,6 +12,19 @@ const smtpPassword = process.env.SMTP_PASSWORD;
 const fromEmail = process.env.FROM_EMAIL || smtpUser;
 const appUrl = (process.env.APP_URL || 'https://www.package-lab.com').replace(/\/+$/, '');
 
+const PREFERRED_CHANNEL_LABELS = {
+  email: 'メール希望',
+  phone: '電話希望',
+  any: 'どちらでも可',
+};
+
+const CONTACT_WINDOW_LABELS = {
+  unspecified: '指定なし',
+  weekday_daytime: '平日日中',
+  weekday_evening: '平日夜間',
+  weekend: '土日',
+};
+
 if (!relayKey || !smtpHost || !smtpUser || !smtpPassword) {
   console.error('email relay configuration incomplete');
   process.exit(1);
