@@ -34,6 +34,9 @@ const getLMStudioHealth = async () => {
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        ...(process.env.LMSTUDIO_API_KEY
+          ? { Authorization: `Bearer ${process.env.LMSTUDIO_API_KEY}` }
+          : {}),
       },
     });
 

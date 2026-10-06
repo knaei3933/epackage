@@ -1,8 +1,9 @@
 /**
- * LM Studio AI Provider Configuration with Failover Support
+ * OpenAI-compatible AI Provider Configuration with Failover Support
  *
- * LM Studio用AIプロバイダー設定（フェイルオーバー対応）
- * Configuration for LM Studio OpenAI-compatible API with commercial API fallback
+ * OpenAI互換API用プロバイダー設定（フェイルオーバー対応）
+ * OpenAI-compatible inference (currently llama.cpp) with commercial API fallback.
+ * LMSTUDIO_* environment names are retained as a legacy compatibility contract.
  */
 
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
@@ -431,33 +432,63 @@ export async function preflightHermesConnection(
 }
 
 // ============================================================
-// LM Studio Provider
+// Legacy LMSTUDIO-configured OpenAI-compatible Provider
 // ============================================================
 
 /**
- * LM StudioのベースURLを取得
- * Get LM Studio base URL
+ * legacy LMSTUDIO_* 変数でOpenAI-compatible URLを取得
+ * Resolve an OpenAI-compatible URL through legacy LMSTUDIO_* variables.
  */
-function getBaseURL(): string {
-  const env = process.env.LMSTUDIO_BASE_URL;
+function getLMStudioBaseURL(): string {
+  const configuredURL = process.env.LMSTUDIO_BASE_URL;
+  const normalizedURL = configuredURL?.replace(/\/+$/, '') || 'http://localhost:1234/v1';
 
-  if (env && env.length > 0) {
-    return env;
+  if (!normalizedURL.endsWith('/v1')) {
+    throw new Error(
+      'LMSTUDIO_BASE_URL must be an OpenAI-compatible endpoint ending in /v1.'
+    );
   }
 
-  // デフォルト値
-  // Default value
-  return 'http://localhost:1234/v1';
+  try {
+    const url = new URL(normalizedURL);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      throw new TypeError('Unsupported OpenAI-compatible URL protocol');
+    }
+    if (url.protocol === 'http:' &&
+        (!isLoopbackHost(url.hostname) || isProductionOrPreview())) {
+      throw new TypeError('HTTP is allowed only for loopback local development');
+    }
+  } catch {
+    throw new Error(
+      'LMSTUDIO_BASE_URL must be a valid URL ending in /v1. ' +
+      'Use HTTPS outside local loopback development.'
+    );
+  }
+
+  return normalizedURL;
 }
 
-/**
- * LM Studioプロバイダーを作成
- * Create LM Studio provider
- */
-export const lmstudio = createOpenAICompatible({
-  name: 'lmstudio',
-  baseURL: getBaseURL(),
-});
+function getLMStudioApiKey(): string | undefined {
+  const apiKey = process.env.LMSTUDIO_API_KEY;
+  return apiKey && apiKey.length > 0 ? apiKey : undefined;
+}
+
+function getLMStudioModelId(): string {
+  return process.env.LMSTUDIO_MODEL || 'qwen/qwen3-vl-4b';
+}
+
+function createLMStudioProvider(baseURL: string, apiKey?: string) {
+  return createOpenAICompatible({
+    name: 'lmstudio',
+    baseURL,
+    apiKey,
+  });
+}
+
+export const lmstudio = createLMStudioProvider(
+  process.env.LMSTUDIO_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:1234/v1',
+  getLMStudioApiKey(),
+);
 
 // ============================================================
 // Chat Model Configuration
@@ -465,7 +496,7 @@ export const lmstudio = createOpenAICompatible({
 
 /**
  * チャット用モデル設定を取得
- * Get chat model configuration for LM Studio
+ * Get OpenAI-compatible chat model configuration.
  */
 export function getChatModel() {
   if (isHermesMode()) {
@@ -480,11 +511,10 @@ export function getChatModel() {
   }
 
   const env = detectEnvironment();
-  const baseURL = getBaseURL();
 
   // 本番環境でベースURLが設定されていない場合はエラー
   // Error if base URL is not configured in production
-  if (env.isProduction && !env.hasBaseUrl) {
+  if (env.isProduction && !process.env.LMSTUDIO_BASE_URL) {
     throw new Error(
       'LMSTUDIO_BASE_URL is required in production. ' +
       'Please set LMSTUDIO_BASE_URL in your Vercel environment variables. ' +
@@ -492,11 +522,16 @@ export function getChatModel() {
     );
   }
 
+  const baseURL = getLMStudioBaseURL();
+  const apiKey = getLMStudioApiKey();
+  const modelId = getLMStudioModelId();
+  const isLocalBaseURL = isLoopbackHost(new URL(baseURL).hostname);
+
   return {
-    provider: lmstudio,
-    modelId: 'qwen/qwen3-vl-4b',
-    baseURL: baseURL,
-    name: env.isDevelopment ? 'LM Studio (Local)' : 'LM Studio (Cloudflare Tunnel)',
+    provider: createLMStudioProvider(baseURL, apiKey),
+    modelId,
+    baseURL,
+    name: isLocalBaseURL ? 'OpenAI-compatible (Local)' : 'OpenAI-compatible (NAS Relay)',
     type: 'lmstudio' as const,
     isFailover: false as const,
   };
@@ -711,14 +746,14 @@ export async function getChatModelWithFailover(
 ): Promise<FailoverChatModelConfig> {
   const { sessionId, logFailover = true } = options;
 
-  // HermesモードではLM Studio可用性や商用フェイルオーバーへ決して到達させない
-  // In Hermes mode, never reach LM Studio checks or commercial failover
+  // HermesモードではOpenAI-compatible可用性や商用フェイルオーバーへ決して到達させない
+  // In Hermes mode, never reach OpenAI-compatible checks or commercial failover
   if (isHermesMode()) {
     return getHermesChatModel();
   }
 
-  // フェイルオーバーが無効な場合は通常のLM Studioのみ
-  // If failover is disabled, use LM Studio only
+  // フェイルオーバーが無効な場合は通常のOpenAI-compatibleサーバーのみ
+  // If failover is disabled, use the OpenAI-compatible server only
   if (!isFailoverEnabled()) {
     const config = getChatModel();
     return {
@@ -728,8 +763,8 @@ export async function getChatModelWithFailover(
     };
   }
 
-  // LM Studio設定を試行
-  // Try LM Studio configuration
+  // OpenAI-compatible設定を試行
+  // Try OpenAI-compatible configuration
   try {
     const config = getChatModel();
     return {
@@ -738,9 +773,9 @@ export async function getChatModelWithFailover(
       type: 'lmstudio',
     };
   } catch (error) {
-    // LM Studioが利用できない場合、フェイルオーバー
-    // When LM Studio is unavailable, failover to commercial API
-    logger.warn('LM Studio unavailable, failing over to commercial API', {
+    // OpenAI-compatibleサーバーが利用できない場合、フェイルオーバー
+    // When the OpenAI-compatible server is unavailable, failover to commercial API
+    logger.warn('OpenAI-compatible inference unavailable, failing over to commercial API', {
       error: error instanceof Error ? error.message : String(error),
     });
 
@@ -766,12 +801,12 @@ export async function getChatModelWithFailover(
 }
 
 /**
- * LM Studioのヘルスチェック
- * Health check for LM Studio
+ * OpenAI-compatible推論サーバーのヘルスチェック
+ * Health check for the OpenAI-compatible inference server.
  */
 export async function checkLMStudioHealth(): Promise<boolean> {
   try {
-    const baseURL = getBaseURL();
+    const baseURL = getLMStudioBaseURL();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒タイムアウト
 
@@ -779,6 +814,9 @@ export async function checkLMStudioHealth(): Promise<boolean> {
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        ...(getLMStudioApiKey()
+          ? { Authorization: `Bearer ${getLMStudioApiKey()}` }
+          : {}),
       },
     });
 
