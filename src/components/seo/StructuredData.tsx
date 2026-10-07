@@ -13,11 +13,11 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'Epackage Lab',
+          legalName: '金井貿易株式会社',
           alternateName: 'イーパッケージラボ',
           url: 'https://www.package-lab.com',
           logo: 'https://www.package-lab.com/epackage-logo.png',
           description: '韓国品質の包装材料で日本のものづくりを支援するパッケージング専門会社',
-          foundingDate: '2010',
           areaServed: [
             {
               '@type': 'Country',
@@ -28,13 +28,13 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             '@type': 'PostalAddress',
             addressCountry: 'JP',
             addressRegion: '兵庫県',
-            addressLocality: '稲美町',
+            addressLocality: '明石市',
             postalCode: '673-0892',
-            streetAddress: '六分一486'
+            streetAddress: '本町2-1-29 みなとメゾン明石本町2F'
           },
           contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+81-50-1793-6500',
+            telephone: '+81-50-3613-9673',
             contactType: 'customer service',
             availableLanguage: ['Japanese', 'Korean', 'English'],
             hoursAvailable: 'Mo-Fr 09:00-18:00'
@@ -144,21 +144,17 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@context': 'https://schema.org',
           '@type': 'LocalBusiness',
           name: 'Epackage Lab Japan',
+          legalName: '金井貿易株式会社',
           description: '韓国品質の包装材料で日本のものづくりを支援',
           url: 'https://www.package-lab.com',
-          telephone: '+81-50-1793-6500',
+          telephone: '+81-50-3613-9673',
           address: {
             '@type': 'PostalAddress',
             addressCountry: 'JP',
             addressRegion: '兵庫県',
-            addressLocality: '稲美町',
+            addressLocality: '明石市',
             postalCode: '673-0892',
-            streetAddress: '六分一486'
-          },
-          geo: {
-            '@type': 'GeoCoordinates',
-            latitude: 34.7367,
-            longitude: 134.898475
+            streetAddress: '本町2-1-29 みなとメゾン明石本町2F'
           },
           openingHours: [
             'Mo-Fr 09:00-18:00'
