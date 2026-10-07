@@ -18,7 +18,6 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           url: 'https://www.package-lab.com',
           logo: 'https://www.package-lab.com/epackage-logo.png',
           description: '韓国品質の包装材料で日本のものづくりを支援するパッケージング専門会社',
-          foundingDate: '2010',
           areaServed: [
             {
               '@type': 'Country',
@@ -156,11 +155,6 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             addressLocality: '明石市',
             postalCode: '673-0892',
             streetAddress: '本町2-1-29 みなとメゾン明石本町2F'
-          },
-          geo: {
-            '@type': 'GeoCoordinates',
-            latitude: 34.7367,
-            longitude: 134.898475
           },
           openingHours: [
             'Mo-Fr 09:00-18:00'
