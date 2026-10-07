@@ -24,9 +24,6 @@ export default function robots(): MetadataRoute.Robots {
           '/checkout',
           '/order-confirmation',
 
-          // Interactive tools (not indexable content)
-          '/quote-simulator',
-
           // Internal pages
           '/profile',
           '/members',
