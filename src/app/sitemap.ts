@@ -8,9 +8,9 @@ import { BLOG_CATEGORIES } from '@/lib/types/blog'
 // This prevents RSC 404 errors and reduces database queries
 export const revalidate = 3600; // 1 hour
 
-// IMPORTANT: 静的ページの lastmod は固定値。コンテンツ更新時は手動で更新すること。
-// 自動化（git commit date 連携等）は Phase 2 で検討。
-const STATIC_PAGES_LASTMOD = new Date('2026-07-13');
+// Company/legal page content was refreshed on 2026-10-07.
+// Keep this manual until release automation provides reliable per-route dates.
+const STATIC_PAGES_LASTMOD = new Date('2026-10-07');
 
 // 製品データを取得
 const allProducts = getAllProducts(null, 'ja')
