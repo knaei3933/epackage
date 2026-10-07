@@ -253,12 +253,12 @@ export function Footer() {
                   </div>
                   <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-300">
                     <Phone className="h-4 w-4 text-brixa-500" />
-                    <span className="text-sm">050-1793-6500</span>
+                    <span className="text-sm">050-3613-9673</span>
                   </div>
                   <div className="flex items-start space-x-3 text-slate-600 dark:text-slate-300">
                     <MapPin className="h-4 w-4 text-brixa-500 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <div>本社：兵庫県加古郡稲美町六分一486</div>
+                      <div>本社：兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
                     </div>
                   </div>
                 </div>

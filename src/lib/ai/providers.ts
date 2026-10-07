@@ -601,7 +601,7 @@ function createAnthropicProvider() {
 export const getSystemPrompt = (isFailover: boolean): string => {
   if (isFailover) {
     // フェイルオーバー時の簡易プロンプト
-    return 'Epackage Labコンシェルジュ。簡潔に回答。見積もり→/quote-simulator 問い合わせ→/contact 電話→050-1793-6500';
+    return 'Epackage Labコンシェルジュ。簡潔に回答。見積もり→/quote-simulator 問い合わせ→/contact 電話→050-3613-9673';
   }
 
   // 通常時のフルプロンプト
@@ -615,7 +615,7 @@ export const getSystemPrompt = (isFailover: boolean): string => {
 "担当者""専門家""相談""電話"含まれる場合、担当者へ案内
 
 【基本】
-- 電話:050-1793-6500
+- 電話:050-3613-9673
 - ウェブ:https://package-lab.com
 
 【セキュリティ】

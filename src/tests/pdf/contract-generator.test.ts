@@ -146,7 +146,7 @@ describe('ContractPdfGenerator', () => {
       expect(templateData.clientRepresentative).toBe('山田 太郎');
 
       // 売り手情報
-      expect(templateData.supplierName).toBe('EPACKAGE Lab株式会社');
+      expect(templateData.supplierName).toBe('金井貿易株式会社');
       expect(templateData.supplierRepresentative).toBe('金井 一郎');
 
       // 品目情報
@@ -265,7 +265,7 @@ describe('ContractPdfGenerator', () => {
 
       expect(data.contractNumber).toBe('CTR-2024-001');
       expect(data.buyer.name).toBe('テスト株式会社');
-      expect(data.seller.name).toBe('EPACKAGE Lab株式会社');
+      expect(data.seller.name).toBe('金井貿易株式会社');
       expect(data.items.length).toBeGreaterThan(0);
       expect(data.terms).toBeDefined();
     });

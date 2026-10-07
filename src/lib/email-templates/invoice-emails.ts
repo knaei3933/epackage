@@ -55,7 +55,7 @@ ${data.remarks ? `■ 備考\n${data.remarks}\n` : ''}────────�
 
 ────────────────────────────────
 Epackage Lab
-兵庫県加古郡稲美町六分一486
+兵庫県明石市本町2-1-29 みなとメゾン明石本町2F
 Email: info@package-lab.com
 ${formatDateJP(new Date().toISOString())}
 ────────────────────────────────
@@ -242,7 +242,7 @@ ${formatDateJP(new Date().toISOString())}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県加古郡稲美町六分一486</div>
+      <div>兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
       <div>Email: info@package-lab.com</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
@@ -304,7 +304,7 @@ ${isOverdue ? `■ 遅延日数：${data.daysOverdue}日\n` : ''}─────
 
 ────────────────────────────────
 Epackage Lab
-兵庫県加古郡稲美町六分一486
+兵庫県明石市本町2-1-29 みなとメゾン明石本町2F
 Email: info@package-lab.com
 ${formatDateJP(new Date().toISOString())}
 ────────────────────────────────
@@ -457,7 +457,7 @@ ${formatDateJP(new Date().toISOString())}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県加古郡稲美町六分一486</div>
+      <div>兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
       <div>Email: info@package-lab.com</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>

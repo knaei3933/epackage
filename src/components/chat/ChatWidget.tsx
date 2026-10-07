@@ -785,7 +785,7 @@ export function ChatWidget() {
                       現在チャットサービスは利用できません。お急ぎの場合は、
                       <a href="/contact" className="text-brixa hover:underline">お問い合わせフォーム</a>
                       または
-                      <a href="tel:050-1793-6500" className="text-brixa hover:underline">お電話（050-1793-6500）</a>
+                      <a href="tel:050-3613-9673" className="text-brixa hover:underline">お電話（050-3613-9673）</a>
                       でご連絡ください。
                     </p>
                   </div>
@@ -855,13 +855,13 @@ export function ChatWidget() {
                 {/* 電話番号入力フォーム */}
                 {showPhoneInput && !handoffSuccess && (
                   <div className="bg-gray-100 px-4 py-3 rounded-lg">
-                    <p className="text-sm text-gray-700 mb-2">電話番号をご入力ください（例: 050-1793-6500）</p>
+                    <p className="text-sm text-gray-700 mb-2">電話番号をご入力ください（例: 050-3613-9673）</p>
                     <div className="flex gap-2">
                       <input
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        placeholder="050-1793-6500"
+                        placeholder="050-3613-9673"
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brixa"
                       />
                       <button

@@ -72,7 +72,7 @@ export default function AboutPage() {
                 <dl className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-text-muted">会社名</dt>
-                    <dd className="text-lg text-text-primary">Epackage Lab株式会社</dd>
+                    <dd className="text-lg text-text-primary">金井貿易株式会社</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-text-muted">設立</dt>
@@ -85,7 +85,7 @@ export default function AboutPage() {
                   <div>
                     <dt className="text-sm font-medium text-text-muted">所在地</dt>
                     <dd className="text-lg text-text-primary">
-                      兵庫県加古郡稲美町六分一486
+                      〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F
                     </dd>
                   </div>
                 </dl>
@@ -95,7 +95,7 @@ export default function AboutPage() {
                 <dl className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-text-muted">代表取締役</dt>
-                    <dd className="text-lg text-text-primary">山田太郎</dd>
+                    <dd className="text-lg text-text-primary">金　乾雄</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-text-muted">従業員数</dt>

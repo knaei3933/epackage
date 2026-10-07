@@ -21,13 +21,13 @@
 
 | Type | Address |
 |------|---------|
-| **Headquarters** | 486 Rokubunichi, Inami-cho, Kako-gun, Hyogo 675-1112, Japan |
+| **Headquarters** | 486 Rokubunichi, Inami-cho, Kako-gun, Hyogo 673-0892, Japan |
 
 ### 1.3 Contact Information
 
 | Type | Details |
 |------|---------|
-| **Phone** | 050-1793-6500 |
+| **Phone** | 050-3613-9673 |
 | **Email** | info@package-lab.com |
 | **Website** | https://www.package-lab.com |
 | **Business Hours** | Mon-Fri 9:00-18:00 |
@@ -257,7 +257,7 @@ Please feel free to consult with us about packaging solutions.
 
 | Item | Details |
 |------|---------|
-| **Phone** | 050-1793-6500 |
+| **Phone** | 050-3613-9673 |
 | **Email** | info@package-lab.com |
 | **Website** | https://www.package-lab.com |
 | **Business Hours** | Mon-Fri 9:00-18:00 |

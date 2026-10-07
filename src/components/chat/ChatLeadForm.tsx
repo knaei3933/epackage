@@ -259,7 +259,7 @@ export function ChatLeadForm({
           onChange={(event) => setPhone(event.target.value)}
           disabled={disabled}
           maxLength={32}
-          placeholder="050-1793-6500"
+          placeholder="050-3613-9673"
           className={inputClassName}
         />
       </div>

@@ -15,7 +15,7 @@ const validLead = (): Record<string, unknown> => ({
   contact: {
     channel: 'email',
     email: ' Customer@Example.JP ',
-    phone: '050-1793-6500',
+    phone: '050-3613-9673',
     companyName: '株式会社テスト',
     contactName: '山田太郎',
     preferredChannel: 'email',

@@ -133,9 +133,9 @@ export function mapQuotationDataToQuoteData(quotationData: QuotationData): Quote
       name: quotationData.supplier.brandName || 'EPACKAGE Lab',
       subBrand: quotationData.supplier.subBrand || 'by kanei-trade',
       companyName: quotationData.supplier.companyName || '金井貿易株式会社',
-      postalCode: quotationData.supplier.postalCode || '〒675-1112',
-      address: quotationData.supplier.address || '兵庫県加古郡稲美町六分一486',
-      phone: quotationData.supplier.phone || 'TEL: 050-1793-6500',
+      postalCode: quotationData.supplier.postalCode || '〒673-0892',
+      address: quotationData.supplier.address || '兵庫県明石市本町2-1-29 みなとメゾン明石本町2F',
+      phone: quotationData.supplier.phone || 'TEL: 050-3613-9673',
       email: quotationData.supplier.email || 'info@package-lab.com',
     } : undefined,
   };

@@ -72,7 +72,7 @@ bankInfo: {
   branchName: '本店営業部',
   accountType: '普通',
   accountNumber: '1234567',
-  accountHolder: '株式会社Epackage Lab',
+  accountHolder: '金井貿易株式会社',
 }
 ```
 
@@ -156,7 +156,7 @@ The invoice HTML template includes:
 - ✅ Branch name display (本店営業部)
 - ✅ Account type display (普通)
 - ✅ Account number display (1234567)
-- ✅ Account holder display (株式会社Epackage Lab)
+- ✅ Account holder display (金井貿易株式会社)
 - ✅ Payment method: 猶行振込 (Bank Transfer)
 
 ---

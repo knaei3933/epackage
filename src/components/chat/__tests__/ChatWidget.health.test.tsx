@@ -87,7 +87,7 @@ describe('ChatWidget health lifecycle', () => {
     await advanceOnePoll();
     expect(screen.getByTestId('connection-status')).toHaveTextContent('オフライン');
     expect(screen.getByRole('link', { name: 'お問い合わせフォーム' })).toHaveAttribute('href', '/contact');
-    expect(screen.getByRole('link', { name: /お電話/ })).toHaveAttribute('href', 'tel:050-1793-6500');
+    expect(screen.getByRole('link', { name: /お電話/ })).toHaveAttribute('href', 'tel:050-3613-9673');
 
     fetchMock.mockImplementation((input: RequestInfo | URL) => {
       if (String(input) === '/api/config') return Promise.resolve(jsonResponse({

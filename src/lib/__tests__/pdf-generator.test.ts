@@ -356,9 +356,9 @@ describe('generateInvoicePDF', () => {
       ...mockInvoiceData,
       supplierInfo: {
         name: 'EPACKAGE Lab',
-        postalCode: '675-1112',
+        postalCode: '673-0892',
         address: '兵庫県加古郡稲美町...',
-        phone: '050-1793-6500',
+        phone: '050-3613-9673',
         email: 'info@package-lab.com',
         registrationNumber: 'T2900001234567',
       },

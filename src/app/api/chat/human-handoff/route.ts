@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       !PHONE_REGEX.test(phoneNumber)
     ) {
       return NextResponse.json(
-        { error: '電話番号の形式が正しくありません（例: 050-1793-6500）' },
+        { error: '電話番号の形式が正しくありません（例: 050-3613-9673）' },
         { status: 400 }
       );
     }

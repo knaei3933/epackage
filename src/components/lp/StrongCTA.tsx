@@ -31,7 +31,7 @@ export function StrongCTA({
   variant = 'default',
   className = ''
 }: StrongCTAProps) {
-  const phoneNumber = '050-1793-6500'
+  const phoneNumber = '050-3613-9673'
 
   const handlePhoneClick = () => {
     trackPhoneClick(phoneNumber, 'cta')

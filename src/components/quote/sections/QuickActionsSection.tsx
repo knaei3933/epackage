@@ -88,8 +88,8 @@ export function QuickActionsSection() {
 
             {/* Immediate Consultation Card */}
             <a
-              href="tel:050-1793-6500"
-              onClick={() => trackPhoneClick('050-1793-6500', 'cta')}
+              href="tel:050-3613-9673"
+              onClick={() => trackPhoneClick('050-3613-9673', 'cta')}
               className="group hover-glow"
             >
               <Card className="quick-actions-card p-6 hover:border-purple-400 bg-white">
@@ -115,7 +115,7 @@ export function QuickActionsSection() {
                   </div>
                   <div className="mt-3 text-center">
                     <div className="block bg-gradient-to-r from-purple-50 to-blue-50 text-sm text-gray-700 font-medium py-2.5 px-4 rounded-lg border border-purple-200 hover:border-purple-300 transition-colors cursor-pointer">
-                      050-1793-6500
+                      050-3613-9673
                     </div>
                   </div>
                 </div>

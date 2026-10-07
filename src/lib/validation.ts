@@ -275,7 +275,7 @@ export function getPhoneNumberError(phone: string): string | null {
     return '電話番号を入力してください';
   }
   if (!validatePhoneNumber(phone)) {
-    return '電話番号の形式が正しくありません（例: 050-1793-6500）';
+    return '電話番号の形式が正しくありません（例: 050-3613-9673）';
   }
   return null;
 }

@@ -63,7 +63,7 @@ ${data.paymentAmount < data.totalAmount ? `残金　　　：${formatYen(data.to
 EPACKAGE Lab
 〒100-0001
 東京都〇〇区〇〇1-2-3
-TEL: 050-1793-6500
+TEL: 050-3613-9673
 Email: info@package-lab.com
 Web: https://epackage-lab.com
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -256,7 +256,7 @@ Web: https://epackage-lab.com
     <div class="footer">
       <p><strong>EPACKAGE Lab</strong></p>
       <p>〒100-0001 東京都〇〇区〇〇1-2-3</p>
-      <p>TEL: 050-1793-6500 | Email: info@package-lab.com</p>
+      <p>TEL: 050-3613-9673 | Email: info@package-lab.com</p>
       <p><a href="https://epackage-lab.com">https://epackage-lab.com</a></p>
     </div>
   </div>
@@ -334,7 +334,7 @@ EPACKAGE Lab
 東京本社
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Email: info@package-lab.com
-Tel: 050-1793-6500
+Tel: 050-3613-9673
 `,
     html: `
 <!DOCTYPE html>
@@ -469,7 +469,7 @@ Tel: 050-1793-6500
       <p><strong>EPACKAGE Lab</strong></p>
       <p>東京本社</p>
       <p>Email: info@package-lab.com</p>
-      <p>Tel: 050-1793-6500</p>
+      <p>Tel: 050-3613-9673</p>
     </div>
   </div>
 </body>

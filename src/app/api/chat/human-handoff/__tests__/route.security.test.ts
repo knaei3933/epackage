@@ -39,7 +39,7 @@ const createRequest = (
 });
 
 const validBody = () => ({
-  phoneNumber: '050-1793-6500',
+  phoneNumber: '050-3613-9673',
   conversationHistory: [
     {
       id: 'user-message',
@@ -74,7 +74,7 @@ describe('human handoff security contract', () => {
     expect(payload.success).toBe(true);
     expect(payload.remaining).toBe(5);
     expect(mockedSendEmail).toHaveBeenCalledWith(expect.objectContaining({
-      phoneNumber: '050-1793-6500',
+      phoneNumber: '050-3613-9673',
       conversationHistory: validBody().conversationHistory,
     }));
   });

@@ -29,7 +29,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             addressCountry: 'JP',
             addressRegion: '兵庫県',
             addressLocality: '稲美町',
-            postalCode: '675-1112',
+            postalCode: '673-0892',
             streetAddress: '六分一486'
           },
           contactPoint: {
@@ -152,7 +152,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             addressCountry: 'JP',
             addressRegion: '兵庫県',
             addressLocality: '稲美町',
-            postalCode: '675-1112',
+            postalCode: '673-0892',
             streetAddress: '六分一486'
           },
           geo: {

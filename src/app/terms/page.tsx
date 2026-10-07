@@ -424,8 +424,8 @@ export default function TermsOfService() {
                     </p>
                     <div className="bg-surface-secondary rounded-lg p-4 mt-4">
                       <p className="font-medium text-text-primary">金井貿易株式会社</p>
-                      <p>兵庫県加古郡稲美町六分一486</p>
-                      <p>電話：050-1793-6500</p>
+                      <p>〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</p>
+                      <p>電話：050-3613-9673</p>
                       <p>メール：info@package-lab.com</p>
                     </div>
                   </div>

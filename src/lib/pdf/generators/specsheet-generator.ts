@@ -270,10 +270,10 @@ export class SpecSheetPdfGenerator extends BasePdfGenerator<
     // テンプレートデータを返す
     return {
       header: {
-        companyName: 'EPACKAGE Lab株式会社',
+        companyName: '金井貿易株式会社',
         companyNameKana: 'イーパックケージラボカブシキガイシャ',
-        address: '兵庫県加古郡稲美町六分一486',
-        phone: '050-1793-6500',
+        address: '兵庫県明石市本町2-1-29 みなとメゾン明石本町2F',
+        phone: '050-3613-9673',
         email: 'info@package-lab.com',
         website: 'https://epackage-lab.com',
       },

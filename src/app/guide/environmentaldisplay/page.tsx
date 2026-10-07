@@ -382,7 +382,7 @@ export default function EnvironmentalDisplayGuide() {
             <div className="border border-border-medium rounded-lg p-4">
               <h4 className="font-medium text-text-primary mb-2">スタンドパウチの例</h4>
               <div className="bg-gray-50 p-3 rounded font-mono text-sm">
-                <div>株式会社Epackage Lab 兵庫県加古郡稲美町六分一486</div>
+                <div>金井貿易株式会社 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
                 <div>容器 包装 紙・プラスチック(PP)・金属</div>
                 <div>プラスチック使用割合 85%</div>
                 <div className="flex items-center space-x-2 mt-2">
@@ -396,7 +396,7 @@ export default function EnvironmentalDisplayGuide() {
             <div className="border border-border-medium rounded-lg p-4">
               <h4 className="font-medium text-text-primary mb-2">三方シール袋の例</h4>
               <div className="bg-gray-50 p-3 rounded font-mono text-sm">
-                <div>株式会社Epackage Lab</div>
+                <div>金井貿易株式会社</div>
                 <div>プラスチック製容器包装(PE)</div>
                 <div>再生プラスチック含有割合 70%</div>
                 <div className="flex items-center space-x-2 mt-2">

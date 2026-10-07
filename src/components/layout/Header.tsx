@@ -270,14 +270,14 @@ export function Header() {
         <div className="flex items-center space-x-4">
           {/* Phone Number - Desktop - Hidden */}
           {/* <a
-            href="tel:050-1793-6500"
-            onClick={() => trackPhoneClick('050-1793-6500', 'header')}
+            href="tel:050-3613-9673"
+            onClick={() => trackPhoneClick('050-3613-9673', 'header')}
             className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-brixa-50 to-blue-50 rounded-lg border border-brixa-200 hover:border-brixa-300 hover:shadow-md transition-all group"
-            aria-label="電話をかける: 050-1793-6500"
+            aria-label="電話をかける: 050-3613-9673"
           >
             <Phone className="w-4 h-4 text-brixa-700 group-hover:text-brixa-600 transition-colors" />
             <span className="text-sm font-semibold text-brixa-900 group-hover:text-brixa-800 transition-colors">
-              050-1793-6500
+              050-3613-9673
             </span>
           </a> */}
 

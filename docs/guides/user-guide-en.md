@@ -496,7 +496,7 @@ A: Up to 50MB per file.
 
 | Method | Contact | Business Hours |
 |--------|---------|----------------|
-| **Phone** | 050-1793-6500 | Weekdays 9:00-18:00 |
+| **Phone** | 050-3613-9673 | Weekdays 9:00-18:00 |
 | **Email** | info@package-lab.com | 24 hours |
 | **Contact Form** | From website | 24 hours |
 

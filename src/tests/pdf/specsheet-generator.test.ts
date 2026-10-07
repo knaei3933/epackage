@@ -117,8 +117,8 @@ describe('SpecSheetPdfGenerator', () => {
       const templateData = generator.prepareTemplateData(data);
 
       // ヘッダー情報
-      expect(templateData.header.companyName).toBe('EPACKAGE Lab株式会社');
-      expect(templateData.header.address).toBe('兵庫県加古郡稲美町六分一486');
+      expect(templateData.header.companyName).toBe('金井貿易株式会社');
+      expect(templateData.header.address).toBe('兵庫県明石市本町2-1-29 みなとメゾン明石本町2F');
 
       // 仕様書情報
       expect(templateData.specSheet.specNumber).toBe('B2B-SPEC-2024-001');
