@@ -60,6 +60,12 @@ const staticPages = [
     lastmod: STATIC_PAGES_LASTMOD
   },
   {
+    url: '/csr',
+    changefreq: 'monthly' as const,
+    priority: 0.5,
+    lastmod: STATIC_PAGES_LASTMOD
+  },
+  {
     url: '/about',
     changefreq: 'yearly' as const,
     priority: 0.5,
@@ -145,6 +151,12 @@ const staticPages = [
     url: '/data-templates',
     changefreq: 'monthly' as const,
     priority: 0.6,
+    lastmod: STATIC_PAGES_LASTMOD
+  },
+  {
+    url: '/quote-simulator',
+    changefreq: 'weekly' as const,
+    priority: 0.8,
     lastmod: STATIC_PAGES_LASTMOD
   }
 ]
