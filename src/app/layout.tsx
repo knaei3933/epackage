@@ -38,12 +38,6 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  alternates: {
-    canonical: SITE_URL,
-    // RSS auto-discovery は <head> 内の <link> で直接出力（下記 apple-touch-icon 付近）。
-    // 補足: metadata.alternates.types 経由だと Next.js 16 (Turbopack) で
-    // <link rel="alternate" type="application/rss+xml"> が出力されないことを実機確認済み。
-  },
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
