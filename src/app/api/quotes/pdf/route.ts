@@ -178,8 +178,8 @@ export async function GET(request: NextRequest) {
             // Optional: Custom supplier info (uses defaults if not provided)
             // supplierInfo: {
             //   name: 'EPACKAGE Lab',
-            //   postalCode: '〒675-1112',
-            //   address: '兵庫県加古郡稲美町六分一486',
+            //   postalCode: '〒673-0892',
+            //   address: '兵庫県明石市本町2-1-29 みなとメゾン明石本町2F',
             //   phone: 'TEL: 080-6942-7235',
             //   email: 'info@epackage-lab.com',
             // },

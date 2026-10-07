@@ -107,9 +107,9 @@ export const DEFAULT_SUPPLIER: SupplierInfo = {
   subBrand: 'by kanei-trade',
   description: 'オーダーメイドバッグ印刷専門',
   companyName: '金井貿易株式会社',
-  postalCode: '〒675-1112',
-  address: '兵庫県加古郡稲美町六分一486',
-  phone: 'TEL: 050-1793-6500',
+  postalCode: '〒673-0892',
+  address: '兵庫県明石市本町2-1-29 みなとメゾン明石本町2F',
+  phone: 'TEL: 050-3613-9673',
   email: 'info@package-lab.com'
 }
 

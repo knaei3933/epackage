@@ -80,8 +80,8 @@ export function getJapaneseEmailFooter(companyName = 'Epackage Lab'): string {
   return `
 ================================
 ${companyName}
-兵庫県加古郡稲美町六分一486
-電話: 050-1793-6500
+兵庫県明石市本町2-1-29 みなとメゾン明石本町2F
+電話: 050-3613-9673
 Email: info@package-lab.com
 https://epackage-lab.com
 

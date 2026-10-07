@@ -32,7 +32,7 @@ All three public pages have been successfully implemented and are fully function
 **Sections Included:**
 1. Hero section with gradient background
 2. Company overview (会社情報) with:
-   - Company name (会社名): Epackage Lab株式会社
+   - Company name (会社名): 金井貿易株式会社
    - Founded (設立): 2020年4月
    - Capital (資本金): 1,000万円
    - Location (所在地): 東京都千代田区
@@ -331,7 +331,7 @@ const privacyLinks: PrivacyLink[] = [
 ```
 
 ### 2. Company Name Consistency
-**Observation:** The About page uses "Epackage Lab株式会社" while Privacy/Terms use "金井貿易株式会社"
+**Observation:** The About page uses "金井貿易株式会社" while Privacy/Terms use "金井貿易株式会社"
 **Status:** As designed (different legal entities)
 **Recommendation:** Verify this is intentional based on actual business structure
 

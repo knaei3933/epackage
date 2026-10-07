@@ -209,7 +209,7 @@ try {
       'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
       '44444444-4444-4444-8444-444444444444',
       true, 'technical', 'ロールフィルム', '300m', NULL, NULL, NULL,
-      'member', 'phone', NULL, '050-1793-6500', NULL, NULL,
+      'member', 'phone', NULL, '050-3613-9673', NULL, NULL,
       'phone', 'unspecified', true, true, false,
       1, 1, 180, 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
     );
@@ -449,7 +449,7 @@ try {
     SELECT * FROM public.submit_chat_lead(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       NULL, false, 'sample', 'サンプル希望', '100枚', NULL, NULL, NULL,
-      'home', 'phone', NULL, '050-1793-6500', NULL, NULL,
+      'home', 'phone', NULL, '050-3613-9673', NULL, NULL,
       'phone', 'unspecified', true, true, false,
       1, 1, 180, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
     );

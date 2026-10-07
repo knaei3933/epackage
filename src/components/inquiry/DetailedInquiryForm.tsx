@@ -338,7 +338,7 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
       {/* Form Help */}
       <div className="mt-8 text-center text-sm text-gray-500">
         <p>ご不明な点がございましたら、お気軽にご連絡ください。</p>
-        <p className="mt-1">電話: 050-1793-6500 | メール: info@package-lab.com</p>
+        <p className="mt-1">電話: 050-3613-9673 | メール: info@package-lab.com</p>
       </div>
     </div>
   )

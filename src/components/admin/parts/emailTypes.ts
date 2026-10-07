@@ -46,8 +46,8 @@ export const EMAIL_SIGNATURE = `
 
 --
 Epackage Lab (イーパックラボ)
-info@epackage-lab.com | 050-1793-6500
-本社：兵庫県加古郡稲美町六分一486
+info@epackage-lab.com | 050-3613-9673
+本社：兵庫県明石市本町2-1-29 みなとメゾン明石本町2F
 https://epackage-lab.com`;
 
 export const ANIMATION_VARIANTS = {

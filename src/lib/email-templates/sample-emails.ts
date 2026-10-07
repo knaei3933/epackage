@@ -116,8 +116,8 @@ ${footer}
     </div>
     <div class="footer" style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px;">
       <p style="margin: 5px 0;">Epackage Lab</p>
-      <p style="margin: 5px 0;">兵庫県加古郡稲美町六分一486</p>
-      <p style="margin: 5px 0;">電話: 050-1793-6500</p>
+      <p style="margin: 5px 0;">兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</p>
+      <p style="margin: 5px 0;">電話: 050-3613-9673</p>
       <p style="margin: 5px 0;">Email: info@package-lab.com</p>
       <p style="margin: 5px 0;">https://epackage-lab.com</p>
       <p style="margin: 15px 0 5px 0; color: #999;">※このメールはシステムによる自動送信です。</p>

@@ -92,7 +92,7 @@ export async function exampleRejectionEmail() {
 
 ご希望の方は、お気軽にお問い合わせください。
       `,
-      contactInfo: '担当者: 田中\n電話: 050-1793-6500\nメール: info@package-lab.com',
+      contactInfo: '担当者: 田中\n電話: 050-3613-9673\nメール: info@package-lab.com',
     }
   );
 

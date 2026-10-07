@@ -47,14 +47,14 @@ function createMockQuotationData(): QuotationData {
     title: '御見積書',
 
     issuer: {
-      name: 'EPACKAGE Lab株式会社',
+      name: '金井貿易株式会社',
       nameKana: 'イーパックケージラボカブシキガイシャ',
-      address: '兵庫県加古郡稲美町六分一486',
-      postalCode: '675-1112',
+      address: '兵庫県明石市本町2-1-29 みなとメゾン明石本町2F',
+      postalCode: '673-0892',
       representative: '金井 一郎',
       representativeTitle: '代表取締役',
       contact: {
-        phone: '050-1793-6500',
+        phone: '050-3613-9673',
         email: 'info@package-lab.com',
         fax: '050-1793-6501',
       },
@@ -63,7 +63,7 @@ function createMockQuotationData(): QuotationData {
         branchName: 'ビジネス営業部支店',
         accountType: '普通',
         accountNumber: '5630235',
-        accountHolder: 'EPACKAGE Lab株式会社',
+        accountHolder: '金井貿易株式会社',
       },
     },
 
@@ -197,7 +197,7 @@ describe('QuotationPdfGenerator', () => {
       expect(templateData.title).toBe('御見積書');
 
       // 見積元
-      expect(templateData.issuerName).toBe('EPACKAGE Lab株式会社');
+      expect(templateData.issuerName).toBe('金井貿易株式会社');
       expect(templateData.issuerRepresentative).toBe('金井 一郎');
 
       // 見積先

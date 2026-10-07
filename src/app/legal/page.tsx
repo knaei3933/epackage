@@ -42,11 +42,11 @@ export default function LegalPage() {
               </div>
               <div>
                 <span className="font-medium">本社住所：</span>
-                <span className="ml-2">兵庫県加古郡稲美町六分一486</span>
+                <span className="ml-2">〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</span>
               </div>
               <div>
                 <span className="font-medium">電話番号：</span>
-                <span className="ml-2">050-1793-6500</span>
+                <span className="ml-2">050-3613-9673</span>
               </div>
               <div>
                 <span className="font-medium">FAX番号：</span>
@@ -373,7 +373,7 @@ export default function LegalPage() {
                           <Phone className="h-4 w-4 inline mr-2" />
                           電話
                         </h3>
-                        <p className="text-sm">050-1793-6500</p>
+                        <p className="text-sm">050-3613-9673</p>
                         <p className="text-sm text-gray-500">営業時間：平日9:00-18:00</p>
                       </div>
                       <div>
@@ -389,7 +389,7 @@ export default function LegalPage() {
                           <MapPin className="h-4 w-4 inline mr-2" />
                           所在地
                         </h3>
-                        <p className="text-sm">兵庫県加古郡稲美町六分一486</p>
+                        <p className="text-sm">〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</p>
                         <p className="text-sm text-gray-500">面談予約要</p>
                       </div>
                     </div>

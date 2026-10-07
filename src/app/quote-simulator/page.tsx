@@ -110,7 +110,7 @@ export default function QuoteSimulatorPage() {
               title="ご不明点がございましたらお気軽にご相談ください"
               description="専門スタッフが最適な包装ソリューションをご提案します。電話・メール・チャットで迅速に対応いたします。"
               primaryText="今すぐお電話で相談"
-              primaryHref="tel:050-1793-6500"
+              primaryHref="tel:050-3613-9673"
               secondaryText="お問い合わせフォーム"
               secondaryHref="/contact"
             />

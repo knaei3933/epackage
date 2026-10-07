@@ -1322,9 +1322,9 @@ export function EnhancedQuoteSimulator() {
                     </Button>
                   </div>
                   <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center text-sm">
-                    <a href="tel:050-1793-6500" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
+                    <a href="tel:050-3613-9673" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
                       <Phone className="w-4 h-4" />
-                      <span>050-1793-6500</span>
+                      <span>050-3613-9673</span>
                     </a>
                     <a href="mailto:info@package-lab.com" className="flex items-center justify-center space-x-2 text-navy-700 hover:text-navy-600">
                       <Mail className="w-4 h-4" />

@@ -329,7 +329,7 @@ function getDefaultTemplate(): HandlebarsTemplateDelegate {
     <div class="header">
       <div class="header-left">
         <h1>製品仕様書</h1>
-        <p>EPACKAGE Lab株式会社</p>
+        <p>金井貿易株式会社</p>
       </div>
       <div class="header-right">
         <div class="spec-number">{{specSheet.specNumber}}</div>
@@ -587,8 +587,8 @@ function getDefaultTemplate(): HandlebarsTemplateDelegate {
 
     <!-- Footer -->
     <div class="footer">
-      <p>この仕様書はEPACKAGE Lab株式会社の機密情報です。無断転載を禁じます。</p>
-      <p>EPACKAGE Lab株式会社 | 兵庫県加古郡稲美町六分一486 | TEL: 050-1793-6500</p>
+      <p>この仕様書は金井貿易株式会社の機密情報です。無断転載を禁じます。</p>
+      <p>金井貿易株式会社 | 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F | TEL: 050-3613-9673</p>
     </div>
   </div>
 </body>
@@ -781,10 +781,10 @@ function prepareTemplateData(data: SpecSheetData): SpecSheetTemplateData {
 
   return {
     header: {
-      companyName: 'EPACKAGE Lab株式会社',
+      companyName: '金井貿易株式会社',
       companyNameKana: 'イーパックケージラボカブシキガイシャ',
-      address: '兵庫県加古郡稲美町六分一486',
-      phone: '050-1793-6500',
+      address: '兵庫県明石市本町2-1-29 みなとメゾン明石本町2F',
+      phone: '050-3613-9673',
       email: 'info@package-lab.com',
       website: 'https://epackage-lab.com',
     },

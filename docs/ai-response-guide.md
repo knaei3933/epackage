@@ -486,7 +486,7 @@ Epackage Labの金井と申します。
 ────────────────────────────────
 Epackage Lab
 担当: 金井
-電話: 050-1793-6500
+電話: 050-3613-9673
 メール: info@package-lab.com
 URL: https://www.package-lab.com
 ────────────────────────────────
@@ -647,7 +647,7 @@ URL: https://www.package-lab.com/quote-simulator
 ────────────────────────────────
 Epackage Lab
 担当: 金井
-電話: 050-1793-6500
+電話: 050-3613-9673
 メール: info@package-lab.com
 URL: https://www.package-lab.com
 ────────────────────────────────

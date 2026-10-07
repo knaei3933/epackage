@@ -81,11 +81,11 @@ export default function ContactThankYouPage() {
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">お電話でのお問い合わせ</h4>
                   <a
-                    href="tel:050-1793-6500"
+                    href="tel:050-3613-9673"
                     className="text-navy-700 hover:text-navy-600 flex items-center"
                   >
                     <Phone className="w-4 h-4 mr-2" />
-                    050-1793-6500
+                    050-3613-9673
                   </a>
                 </div>
               </div>

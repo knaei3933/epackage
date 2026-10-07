@@ -760,8 +760,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
                                 {message}
                                 <div className="mt-4 pt-4 border-t border-gray-300 text-xs text-gray-600">
                                   <div className="font-semibold">Epackage Lab (イーパックラボ)</div>
-                                  <div>info@epackage-lab.com | 050-1793-6500</div>
-                                  <div>本社：兵庫県加古郡稲美町六分一486</div>
+                                  <div>info@epackage-lab.com | 050-3613-9673</div>
+                                  <div>本社：兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
                                   <div>https://epackage-lab.com</div>
                                 </div>
                               </>

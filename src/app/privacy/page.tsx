@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
               </div>
               <div>
                 <span className="font-medium">所在地：</span>
-                <span className="ml-2">兵庫県加古郡稲美町六分一486</span>
+                <span className="ml-2">〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</span>
               </div>
               <div>
                 <span className="font-medium">代表者：</span>
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
               </div>
               <div>
                 <span className="font-medium">電話番号：</span>
-                <span className="ml-2">050-1793-6500</span>
+                <span className="ml-2">050-3613-9673</span>
               </div>
               <div>
                 <span className="font-medium">メール：</span>
@@ -355,8 +355,8 @@ export default function PrivacyPolicy() {
                     <div className="bg-surface-secondary rounded-lg p-4 mt-4">
                       <p className="font-medium text-text-primary">個人情報保護管理者</p>
                       <p>金　乾雄</p>
-                      <p>兵庫県加古郡稲美町六分一486</p>
-                      <p>電話：050-1793-6500</p>
+                      <p>〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</p>
+                      <p>電話：050-3613-9673</p>
                       <p>メール：info@package-lab.com</p>
                     </div>
                     <p className="mt-4">

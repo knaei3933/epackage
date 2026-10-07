@@ -243,7 +243,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県加古郡稲美町六分一486</div>
+      <div>兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -453,7 +453,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県加古郡稲美町六分一486</div>
+      <div>兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>
@@ -803,7 +803,7 @@ ${footer}
 
     <div class="footer">
       <div><strong>Epackage Lab</strong></div>
-      <div>兵庫県加古郡稲美町六分一486</div>
+      <div>兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
       <div>${formatDateJP(new Date().toISOString())}</div>
     </div>
   </div>

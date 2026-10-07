@@ -789,9 +789,9 @@ export function ImprovedQuotingWizard() {
 
               {/* 即時相談 */}
               <a
-                href="tel:050-1793-6500"
+                href="tel:050-3613-9673"
                 className="bg-gradient-to-r from-navy-600 to-navy-700 text-white border-2 border-navy-600 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-navy-300 text-left sm:col-span-2 lg:col-span-1"
-                aria-label="即時相談 - 専門家との無料相談。電話番号: 050-1793-6500"
+                aria-label="即時相談 - 専門家との無料相談。電話番号: 050-3613-9673"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 lg:w-10 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -799,7 +799,7 @@ export function ImprovedQuotingWizard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm lg:text-base truncate">即時相談</h3>
-                    <p className="text-xs lg:text-sm text-white/90 hidden sm:block">専門家との無料相談 050-1793-6500</p>
+                    <p className="text-xs lg:text-sm text-white/90 hidden sm:block">専門家との無料相談 050-3613-9673</p>
                   </div>
                 </div>
               </a>
@@ -810,12 +810,12 @@ export function ImprovedQuotingWizard() {
               <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0">
                 <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 lg:space-x-6 text-xs sm:text-sm text-gray-600">
                   <a
-                    href="tel:050-1793-6500"
+                    href="tel:050-3613-9673"
                     className="flex items-center space-x-2 hover:text-navy-700 transition-colors"
-                    aria-label="電話番号: 050-1793-6500"
+                    aria-label="電話番号: 050-3613-9673"
                   >
                     <Phone className="w-4 h-4 text-navy-600" />
-                    <span className="font-medium">050-1793-6500</span>
+                    <span className="font-medium">050-3613-9673</span>
                   </a>
                   <a
                     href="mailto:info@package-lab.com"
