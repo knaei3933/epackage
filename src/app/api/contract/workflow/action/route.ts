@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { ContractWorkflowStatus, WorkflowAction } from '@/components/b2b/ContractApproval';
 import { sendApprovalEmail, createRecipient } from '@/lib/email';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@package-lab.com';
 
 // ============================================================
 // Types

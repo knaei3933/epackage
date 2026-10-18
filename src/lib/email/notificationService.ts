@@ -49,7 +49,7 @@ function isCustomerEmailData(data: unknown): data is CustomerEmailData {
 // ============================================================
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@package-lab.com'
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@package-lab.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@package-lab.com'
 const REPLY_TO_EMAIL = process.env.REPLY_TO_EMAIL || 'support@package-lab.com'
 
 // Xserver SMTP Configuration

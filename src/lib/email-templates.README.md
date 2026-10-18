@@ -279,7 +279,7 @@ Automatically uses configured email service:
 # .env.local
 SENDGRID_API_KEY=SG.your-key-here
 FROM_EMAIL=noreply@epackage-lab.com
-ADMIN_EMAIL=admin@epackage-lab.com
+ADMIN_EMAIL=info@package-lab.com
 ```
 
 ## Testing

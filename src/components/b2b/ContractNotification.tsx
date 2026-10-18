@@ -166,7 +166,7 @@ export default function ContractNotification({
         recipients.push({
           type: 'admin',
           name: '管理者',
-          email: 'admin@epackage-lab.com',
+          email: 'info@package-lab.com',
           sent: false,
         });
       }
@@ -371,7 +371,7 @@ export default function ContractNotification({
                 />
                 <div className="flex-1">
                   <p className="text-sm font-medium">管理者へ通知</p>
-                  <p className="text-xs text-gray-500">admin@epackage-lab.com</p>
+                  <p className="text-xs text-gray-500">info@package-lab.com</p>
                 </div>
               </label>
             </div>

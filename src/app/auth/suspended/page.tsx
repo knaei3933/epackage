@@ -47,7 +47,7 @@ export default function SuspendedPage() {
 
           {/* 問い合わせリンク */}
           <a
-            href="mailto:admin@epackage-lab.com"
+            href="mailto:info@package-lab.com"
             className="inline-block w-full px-4 py-2 bg-brixa-500 hover:bg-brixa-600 text-white font-medium rounded-md transition-colors"
           >
             管理者にお問い合わせ

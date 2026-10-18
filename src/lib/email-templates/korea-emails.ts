@@ -79,7 +79,7 @@ ${sanitizeContent(data.notes)}
 문의사항이 있으시면 언제든 연락주십시오.
 
 Epackage Lab Japan
-Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
+Email: ${process.env.ADMIN_EMAIL || 'info@package-lab.com'}
     `.trim(),
     html: `
 <!DOCTYPE html>
@@ -399,8 +399,8 @@ Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
     <div class="footer">
       <p style="margin: 10px 0;">
         ご不明な点がございましたら、いつでもご連絡ください。<br>
-        <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}" class="contact-link">
-          ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
+        <a href="mailto:${process.env.ADMIN_EMAIL || 'info@package-lab.com'}" class="contact-link">
+          ${process.env.ADMIN_EMAIL || 'info@package-lab.com'}
         </a>
       </p>
       <p style="margin: 20px 0 0 0; font-size: 12px; color: #999;">
@@ -561,7 +561,7 @@ ${footer}
       <div class="contact-box" style="background: #f0f9ff; padding: 20px; margin: 30px 0; border-radius: 8px; text-align: center;">
         <p style="margin: 0; font-size: 14px; color: #64748b;">
           ご不明な点がございましたら、以下までお問い合わせください<br>
-          <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}</a>
+          <a href="mailto:${process.env.ADMIN_EMAIL || 'info@package-lab.com'}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${process.env.ADMIN_EMAIL || 'info@package-lab.com'}</a>
         </p>
       </div>
     </div>

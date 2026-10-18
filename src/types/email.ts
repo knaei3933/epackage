@@ -441,7 +441,7 @@ export const DEFAULT_SMTP_CONFIG: SmtpConfig = {
   password: process.env.XSERVER_SMTP_PASSWORD,
   from_email: process.env.FROM_EMAIL || 'noreply@package-lab.com',
   reply_to: process.env.REPLY_TO_EMAIL || 'support@package-lab.com',
-  admin_email: process.env.ADMIN_EMAIL || 'admin@package-lab.com',
+  admin_email: process.env.ADMIN_EMAIL || 'info@package-lab.com',
 };
 
 /**
@@ -485,7 +485,7 @@ export const DEFAULT_BANK_INFO: BankInfo = {
  * デフォルト通知受信者
  */
 export const DEFAULT_NOTIFICATION_RECIPIENTS: NotificationRecipients = {
-  admin_emails: ['admin@package-lab.com'],
+  admin_emails: ['info@package-lab.com'],
   sales_emails: ['sales@package-lab.com'],
   production_emails: ['production@package-lab.com'],
 };

@@ -96,7 +96,7 @@ async function getSupabaseClient() {
 }
 
 // Email configuration
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@epackage-lab.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'info@package-lab.com';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@epackage-lab.com';
 
 // =====================================================

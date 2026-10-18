@@ -188,7 +188,7 @@ ${data.deliveryNotes ? `【配送備考】\n${data.deliveryNotes}\n\n` : ''}${da
 
 Epackage Lab
 URL: https://epackage-lab.com
-Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
+Email: ${process.env.ADMIN_EMAIL || 'info@package-lab.com'}
 
 ※このメールはシステムによる自動送信です。
   `.trim(),
@@ -351,7 +351,7 @@ Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
       <p><strong>Epackage Lab</strong></p>
       <p style="margin: 10px 0;">
         URL: <a href="https://epackage-lab.com">https://epackage-lab.com</a><br>
-        Email: ${process.env.ADMIN_EMAIL || 'admin@epackage-lab.com'}
+        Email: ${process.env.ADMIN_EMAIL || 'info@package-lab.com'}
       </p>
       <p style="font-size: 11px; opacity: 0.7; margin-top: 15px;">※このメールはシステムによる自動送信です。</p>
     </div>
@@ -380,7 +380,7 @@ const getOrderAdminNotificationEmail = (data: OrderConfirmationEmailData) => {
     .join('');
 
   return {
-    to: process.env.ADMIN_EMAIL || 'admin@epackage-lab.com',
+    to: process.env.ADMIN_EMAIL || 'info@package-lab.com',
     from: process.env.FROM_EMAIL || 'noreply@epackage-lab.com',
     subject: `【新規注文】${data.orderNumber} - ${data.customerName}`,
     text: `

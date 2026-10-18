@@ -135,7 +135,7 @@ Order status → Email template mapping (in `order-status-emails.ts`):
 SENDGRID_API_KEY=SG.xxxxx
 FROM_EMAIL=noreply@epackage-lab.com
 REPLY_TO_EMAIL=support@epackage-lab.com
-ADMIN_EMAIL=admin@epackage-lab.com
+ADMIN_EMAIL=info@package-lab.com
 
 # Xserver SMTP (Epackage Lab)
 XSERVER_SMTP_HOST=smtp.xserver.ne.jp

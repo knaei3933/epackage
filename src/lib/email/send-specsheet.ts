@@ -60,7 +60,7 @@ export async function sendSpecSheetRejectionEmail(
     if (adminEmail) {
       recipient = createRecipient('Admin', adminEmail);
     } else {
-      recipient = createRecipient('Admin', process.env.ADMIN_EMAIL || 'admin@epackage-lab.com');
+      recipient = createRecipient('Admin', process.env.ADMIN_EMAIL || 'info@package-lab.com');
     }
   }
 
