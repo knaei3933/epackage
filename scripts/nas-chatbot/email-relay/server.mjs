@@ -35,8 +35,18 @@ const transporter = nodemailer.createTransport({
   port: smtpPort,
   secure: smtpPort === 465,
   auth: { user: smtpUser, pass: smtpPassword },
-  tls: { rejectUnauthorized: false },
+  // XServer presents a valid CA-signed certificate (*.xserver.jp) - validate it
+  // so SMTP credentials cannot be stolen by an on-path attacker.
+  tls: { rejectUnauthorized: true },
 });
+
+// Simple fixed-window rate limit. Auth runs first, so this only ever trips
+// for the legitimate client or an abused key - it caps spam volume if the
+// API key ever leaks.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 100;
+let rateWindowStart = Date.now();
+let rateCount = 0;
 
 const safeEqual = (left, right) => {
   const a = Buffer.from(left);
@@ -85,6 +95,19 @@ const server = http.createServer(async (request, response) => {
   if (authorization.length !== expected.length || !safeEqual(authorization, expected)) {
     response.writeHead(401, { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ error: 'unauthorized' }));
+    return;
+  }
+
+  const now = Date.now();
+  if (now - rateWindowStart > RATE_LIMIT_WINDOW_MS) {
+    rateWindowStart = now;
+    rateCount = 0;
+  }
+  rateCount += 1;
+  if (rateCount > RATE_LIMIT_MAX) {
+    console.log(JSON.stringify({ event: 'rate_limited' }));
+    response.writeHead(429, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ error: 'rate_limited' }));
     return;
   }
 
@@ -153,7 +176,8 @@ const server = http.createServer(async (request, response) => {
         replyTo,
         Array.isArray(attachments)
           ? attachments.map((att) => ({
-              filename: att.filename,
+              // Strip control characters to prevent MIME header injection.
+              filename: String(att.filename).replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 255) || 'attachment',
               content: Buffer.from(att.contentBase64, 'base64'),
               contentType: typeof att.contentType === 'string' ? att.contentType : 'application/octet-stream',
               contentDisposition: att.disposition === 'inline' ? 'inline' : 'attachment',
