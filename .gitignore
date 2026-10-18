@@ -225,3 +225,6 @@ add-test-file*.js
 # docs hidden state files
 /docs/.*-memory.json
 /docs/.*-status.json
+
+# customer data exports (PII - never commit)
+/outputs/
