@@ -126,33 +126,14 @@ export async function sendContactViaRelay(
           'https://www.package-lab.com',
     });
 
-    // Call 2: staff copy addressed to the office mailbox via the relay's
-    // customer path. The NAS relay's ADMIN_EMAIL may point elsewhere, so the
-    // inquiry digest is delivered through the proven customer-send path.
-    // Remove this call once the NAS relay ADMIN_EMAIL is confirmed as
-    // info@package-lab.com.
-    const officeEmail =
-      process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.includes('@')
-        ? process.env.ADMIN_EMAIL
-        : 'info@package-lab.com';
-    const staffCall = await callRelay(relayUrl, relayKey, {
-      leadId: `${input.requestId}-staff`,
-      intent: INTENT_BY_INQUIRY_TYPE[input.inquiryType] || '一般相談',
-      routeFamily: 'contact-form',
-      requirements: toRelayRequirements(input),
-      contact: toRelayContact(input, { email: officeEmail }),
-      appUrl:
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        process.env.NEXT_PUBLIC_APP_URL ||
-        'https://www.package-lab.com',
-    });
-
-    const adminSent = staffCall.customerSent;
+    // The NAS relay delivers its admin template to ADMIN_EMAIL
+    // (info@package-lab.com, confirmed on 2026-10-18) and the customer
+    // confirmation to the inquirer.
+    const adminSent = customerCall.adminSent;
     const customerSent = customerCall.customerSent;
     if (!adminSent) {
       logger.error('Contact email relay did not deliver admin email', {
         requestId: input.requestId,
-        staffCall,
         customerCall,
       });
     }
@@ -161,7 +142,7 @@ export async function sendContactViaRelay(
       attempted: true,
       adminSent,
       customerSent,
-      error: staffCall.error || customerCall.error,
+      error: customerCall.error,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'relay_request_failed';

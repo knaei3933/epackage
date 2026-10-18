@@ -219,7 +219,15 @@ https://www.package-lab.com
 </html>`;
 
   const [adminResult, customerResult] = await Promise.allSettled([
-    send(process.env.ADMIN_EMAIL, '【Epackage Lab】新しいチャット相談リード', adminText, adminHtml, contact.email),
+    send(
+      process.env.ADMIN_EMAIL,
+      routeFamily === 'contact-form'
+        ? '【Epackage Lab】新しいお問い合わせ'
+        : '【Epackage Lab】新しいチャット相談リード',
+      adminText,
+      adminHtml,
+      contact.email,
+    ),
     contact.channel === 'email' && contact.email
       ? send(contact.email, '【Epackage Lab】お問い合わせを受け付けました', customerText, customerHtml)
       : Promise.resolve(null),
