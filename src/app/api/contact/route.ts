@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase';
 import { sendContactEmail } from '@/lib/email';
+import { sendContactViaRelay } from '@/lib/email/contact-relay';
 import type { Database } from '@/types/database';
 import { withRateLimit, createApiRateLimiter } from '@/lib/rate-limiter';
 
@@ -177,6 +178,14 @@ const contactFormSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
+const DEFAULT_SUBJECT_BY_TYPE: Record<ContactFormData['inquiryType'], string> = {
+  product: '製品に関するお問い合わせ',
+  quotation: 'お見積りに関するお問い合わせ',
+  sample: 'サンプル請求',
+  order: '注文に関するお問い合わせ',
+  other: 'お問い合わせ',
+};
+
 // =====================================================
 // API Route Handler
 // =====================================================
@@ -210,6 +219,8 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
     // Build customer name
     const customerName = `${validatedData.kanjiLastName} ${validatedData.kanjiFirstName}`;
     const customerNameKana = `${validatedData.kanaLastName} ${validatedData.kanaFirstName}`;
+    const inquirySubject =
+      validatedData.subject?.trim() || DEFAULT_SUBJECT_BY_TYPE[validatedData.inquiryType];
 
     // Prepare database record
     // Note: Database column is 'type' (not 'inquiry_type')
@@ -228,7 +239,7 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
       prefecture: null, // ContactForm sends single address field
       city: null, // ContactForm sends single address field
       street: validatedData.address || null, // Map address to street column
-      subject: validatedData.subject,
+      subject: inquirySubject,
       message: validatedData.message,
       response: null, // No response yet for new inquiry
       urgency: (validatedData.urgency || 'normal') as Database['public']['Tables']['inquiries']['Row']['urgency'],
@@ -264,33 +275,72 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
       console.log('[Contact API] Sample label job created:', labelPipeline);
     }
 
-    // Send emails
-    console.log('[Contact API] Sending emails...');
-    const emailResult = await sendContactEmail({
-      name: customerName,
-      nameKana: customerNameKana,
-      email: validatedData.email,
-      company: validatedData.company,
+    // Send emails.
+    // Production (Vercel) cannot reach XServer SMTP directly (cloud IPs are
+    // rejected), so delivery goes through the NAS email relay first. The
+    // direct SMTP path remains as the local-development fallback.
+    console.log('[Contact API] Sending emails via relay...');
+    const relayResult = await sendContactViaRelay({
+      requestId,
       inquiryType: validatedData.inquiryType,
-      subject: validatedData.subject,
-      message: validatedData.message,
-      urgency: validatedData.urgency,
-      preferredContact: validatedData.preferredContact,
+      subject: inquirySubject,
+      message: validatedData.message || '',
+      customerName,
+      company: validatedData.company,
+      email: validatedData.email,
       phone: validatedData.phone,
-      fax: validatedData.fax,
-      postalCode: validatedData.postalCode,
-      address: validatedData.address,
-      requestId
     });
 
-    if (!emailResult.success) {
-      console.error('[Contact API] Email errors:', emailResult.errors);
-      // Email失敗はエラーとして処理せずログのみ記録
-      // DBは既に保存済みのため成功レスポンス
+    let emailSent = relayResult.adminSent;
+
+    if (relayResult.adminSent) {
+      console.log('[Contact API] Emails delivered via relay:', {
+        requestId,
+        adminSent: relayResult.adminSent,
+        customerSent: relayResult.customerSent
+      });
     } else {
-      console.log('[Contact API] Emails sent successfully:', {
-        customer: emailResult.customerEmail?.messageId,
-        admin: emailResult.adminEmail?.messageId
+      if (relayResult.error) {
+        console.error('[Contact API] Relay delivery failed:', {
+          requestId,
+          error: relayResult.error
+        });
+      }
+      console.log('[Contact API] Falling back to direct SMTP...');
+      const emailResult = await sendContactEmail({
+        name: customerName,
+        nameKana: customerNameKana,
+        email: validatedData.email,
+        company: validatedData.company,
+        inquiryType: validatedData.inquiryType,
+        subject: inquirySubject,
+        message: validatedData.message,
+        urgency: validatedData.urgency,
+        preferredContact: validatedData.preferredContact,
+        phone: validatedData.phone,
+        fax: validatedData.fax,
+        postalCode: validatedData.postalCode,
+        address: validatedData.address,
+        requestId
+      });
+      emailSent = emailResult.success;
+
+      if (!emailResult.success) {
+        console.error('[Contact API] Email errors:', emailResult.errors);
+        // Email失敗はエラーとして処理せずログのみ記録
+        // DBは既に保存済みのため成功レスポンス
+      } else {
+        console.log('[Contact API] Emails sent successfully:', {
+          customer: emailResult.customerEmail?.messageId,
+          admin: emailResult.adminEmail?.messageId
+        });
+      }
+    }
+
+    if (!emailSent) {
+      console.error('[Contact API] WARNING: inquiry saved but admin email was NOT delivered:', {
+        requestId,
+        inquiryId: savedInquiry.id
       });
     }
 
@@ -303,11 +353,8 @@ async function handleContactPost(request: NextRequest): Promise<NextResponse> {
         inquiryId: savedInquiry?.id,
         sampleRequestNumber: labelRequestNumber,
         labelQueued: Boolean(labelRequestNumber),
-        emailSent: emailResult.success,
-        messageIds: {
-          customer: emailResult.customerEmail?.messageId,
-          admin: emailResult.adminEmail?.messageId
-        }
+        emailSent,
+        deliveryPath: relayResult.adminSent ? 'relay' : 'smtp'
       }
     });
 

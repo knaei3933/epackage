@@ -342,18 +342,34 @@ export async function sendEmail(
 ): Promise<{ success: boolean; error?: string; messageId?: string; previewUrl?: string }> {
   // Consoleモード（Fallback）
   if (transportType === 'console' || !transporter) {
-    console.log('[Email] Console mode - Email content:');
+    if (isDevelopment) {
+      console.log('[Email] Console mode - Email content:');
+      console.log('='.repeat(60));
+      console.log(`To: ${to}`);
+      if (replyTo) console.log(`Reply-To: ${replyTo}`);
+      console.log(`Subject: ${subject}`);
+      console.log('Text:', text);
+      console.log('HTML:', html);
+      console.log('='.repeat(60));
+
+      return {
+        success: true,
+        messageId: `console-${Date.now()}`
+      };
+    }
+
+    // 本番環境でトランスポートが無い場合、メールは配送されない。
+    // 過去には success: true を返して黙って破棄しており、通知漏れの原因になった。
+    console.error('[Email] FATAL: no email transport configured in production - email NOT delivered:', {
+      to,
+      subject
+    });
     console.log('='.repeat(60));
-    console.log(`To: ${to}`);
-    if (replyTo) console.log(`Reply-To: ${replyTo}`);
-    console.log(`Subject: ${subject}`);
-    console.log('Text:', text);
-    console.log('HTML:', html);
     console.log('='.repeat(60));
 
     return {
-      success: true,
-      messageId: `console-${Date.now()}`
+      success: false,
+      error: 'no_email_transport_configured'
     };
   }
 
