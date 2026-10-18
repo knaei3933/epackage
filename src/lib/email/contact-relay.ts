@@ -45,6 +45,56 @@ export interface ContactRelayResult {
   error?: string;
 }
 
+interface RelayCallOutcome {
+  adminSent: boolean;
+  customerSent: boolean;
+  error?: string;
+}
+
+async function callRelay(
+  relayUrl: string,
+  relayKey: string,
+  payload: Record<string, unknown>,
+): Promise<RelayCallOutcome> {
+  const response = await fetch(relayUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${relayKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response
+    .json()
+    .catch((): NotificationRelayPayload | null => null);
+
+  return {
+    adminSent: response.ok && result?.adminSent === true,
+    customerSent: response.ok && result?.customerSent === true,
+    ...(response.ok ? {} : { error: `relay_http_${response.status}` }),
+  };
+}
+
+const toRelayContact = (
+  input: ContactRelayInput,
+  overrides: Partial<ContactRelayInput>,
+) => ({
+  channel: 'email',
+  email: overrides.email ?? input.email,
+  phone: input.phone,
+  companyName: input.company,
+  contactName: input.customerName,
+  preferredChannel: 'email',
+  contactWindow: 'unspecified',
+});
+
+const toRelayRequirements = (input: ContactRelayInput) => ({
+  contentsDescription: [input.subject, input.message]
+    .filter((part) => part && part.trim().length > 0)
+    .join('\n\n'),
+});
+
 export async function sendContactViaRelay(
   input: ContactRelayInput,
 ): Promise<ContactRelayResult> {
@@ -62,49 +112,48 @@ export async function sendContactViaRelay(
   }
 
   try {
-    const response = await fetch(relayUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${relayKey}`,
-      },
-      body: JSON.stringify({
+    // Call 1: customer confirmation (relay also forwards its admin template to
+    // the NAS-configured ADMIN_EMAIL).
+    const customerCall = await callRelay(relayUrl, relayKey, {
         leadId: input.requestId,
         intent: INTENT_BY_INQUIRY_TYPE[input.inquiryType] || '一般相談',
         routeFamily: 'contact-form',
-        requirements: {
-          contentsDescription: [input.subject, input.message]
-            .filter((part) => part && part.trim().length > 0)
-            .join('\n\n'),
-        },
-        contact: {
-          channel: 'email',
-          email: input.email,
-          phone: input.phone,
-          companyName: input.company,
-          contactName: input.customerName,
-          preferredChannel: 'email',
-          contactWindow: 'unspecified',
-        },
+        requirements: toRelayRequirements(input),
+        contact: toRelayContact(input, {}),
         appUrl:
           process.env.NEXT_PUBLIC_SITE_URL ||
           process.env.NEXT_PUBLIC_APP_URL ||
           'https://www.package-lab.com',
-      }),
     });
 
-    const payload = await response
-      .json()
-      .catch((): NotificationRelayPayload | null => null);
+    // Call 2: staff copy addressed to the office mailbox via the relay's
+    // customer path. The NAS relay's ADMIN_EMAIL may point elsewhere, so the
+    // inquiry digest is delivered through the proven customer-send path.
+    // Remove this call once the NAS relay ADMIN_EMAIL is confirmed as
+    // info@package-lab.com.
+    const officeEmail =
+      process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.includes('@')
+        ? process.env.ADMIN_EMAIL
+        : 'info@package-lab.com';
+    const staffCall = await callRelay(relayUrl, relayKey, {
+      leadId: `${input.requestId}-staff`,
+      intent: INTENT_BY_INQUIRY_TYPE[input.inquiryType] || '一般相談',
+      routeFamily: 'contact-form',
+      requirements: toRelayRequirements(input),
+      contact: toRelayContact(input, { email: officeEmail }),
+      appUrl:
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        'https://www.package-lab.com',
+    });
 
-    const adminSent = response.ok && payload?.adminSent === true;
-    const customerSent = response.ok && payload?.customerSent === true;
-
+    const adminSent = staffCall.customerSent;
+    const customerSent = customerCall.customerSent;
     if (!adminSent) {
       logger.error('Contact email relay did not deliver admin email', {
         requestId: input.requestId,
-        status: response.status,
-        accepted: payload?.accepted,
+        staffCall,
+        customerCall,
       });
     }
 
@@ -112,7 +161,7 @@ export async function sendContactViaRelay(
       attempted: true,
       adminSent,
       customerSent,
-      ...(response.ok ? {} : { error: `relay_http_${response.status}` }),
+      error: staffCall.error || customerCall.error,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'relay_request_failed';
