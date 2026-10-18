@@ -8,6 +8,7 @@
  */
 
 import * as nodemailer from 'nodemailer'
+import { isEmailRelayConfigured, sendViaEmailRelay, toBase64Attachment } from './relay-send'
 import {
   type EmailTemplateId,
   type SendEmailRequest,
@@ -81,6 +82,9 @@ function createXServerTransporter() {
       user: XSERVER_SMTP_USER,
       pass: XSERVER_SMTP_PASSWORD,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     tls: {
       rejectUnauthorized: false
     },
@@ -159,6 +163,38 @@ export async function sendEmail(request: SendEmailRequest): Promise<SendEmailRes
 
     // 受信者を配列に統一
     const recipients = Array.isArray(request.to) ? request.to : [request.to]
+
+    // Relay path: submit via the NAS email relay when configured.
+    if (isEmailRelayConfigured()) {
+      const relayResults = await Promise.all(
+        recipients.map((recipient) =>
+          sendViaEmailRelay({
+            to: recipient.email,
+            subject,
+            text: plainText,
+            html,
+            replyTo: request.replyTo || REPLY_TO_EMAIL,
+            attachments: request.attachments?.map((att) =>
+              toBase64Attachment({
+                filename: att.filename,
+                content: att.content as Buffer | string,
+                type: att.type,
+                disposition: att.disposition as 'attachment' | 'inline' | undefined,
+              })
+            ),
+          })
+        )
+      )
+      const failed = relayResults.find((r) => !r.success)
+      if (!failed) {
+        console.log('[NotificationService] Sent via NAS relay:', { to: recipients.map((r) => r.email) })
+        return {
+          success: true,
+          messageId: relayResults[0]?.messageId || 'relay-ok',
+        }
+      }
+      console.error('[NotificationService] NAS relay send failed, falling back to SMTP:', { error: failed.error })
+    }
 
     // nodemailerメッセージの作成
     const mailOptions: nodemailer.SendMailOptions = {

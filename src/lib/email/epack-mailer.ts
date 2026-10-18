@@ -8,6 +8,7 @@
  */
 
 import * as nodemailer from 'nodemailer'
+import { isEmailRelayConfigured, sendViaEmailRelay, toBase64Attachment } from './relay-send'
 import { epackEmailTemplates, type EpackEmailData, type EpackTemplateId } from './epack-templates'
 import { getSmtpConfig, getEmailToggles, isEmailEnabled } from './email-settings'
 import type { SmtpConfig } from '@/types/email'
@@ -54,6 +55,9 @@ function createXServerTransporter(smtpConfig?: SmtpConfig) {
       user,
       pass: password,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     tls: {
       rejectUnauthorized: false
     },
@@ -151,6 +155,31 @@ export async function sendEpackEmail(
   data: EpackEmailData,
   attachments?: EpackAttachment[]
 ): Promise<EpackSendResult> {
+  // Relay path: submit via the NAS email relay when configured.
+  if (isEmailRelayConfigured()) {
+    const template = epackEmailTemplates[templateId]
+    if (!template) {
+      return {
+        success: false,
+        error: `Template not found: ${templateId}`,
+        errorCode: 'TEMPLATE_NOT_FOUND',
+      }
+    }
+    const result = await sendViaEmailRelay({
+      to: data.customer_email,
+      subject: template.subject(data),
+      text: template.plainText(data),
+      html: template.html(data),
+      replyTo: REPLY_TO_EMAIL,
+      attachments: attachments?.map(toBase64Attachment),
+    })
+    if (result.success) {
+      console.log('[EpackMailer] Sent via NAS relay:', { to: data.customer_email, templateId, messageId: result.messageId })
+      return { success: true, messageId: result.messageId }
+    }
+    console.error('[EpackMailer] NAS relay send failed, falling back to SMTP:', { to: data.customer_email, error: result.error })
+  }
+
   // Consoleモード（Fallback）
   if (transportType === 'console' || !transporter) {
     console.log('[EpackMailer] Console mode - Email content:')
@@ -292,6 +321,22 @@ export async function sendEpackEmailBatch(
       const plainText = template.plainText(data)
       const html = template.html(data)
 
+      // Relay path (per recipient)
+      if (isEmailRelayConfigured()) {
+        const relayResult = await sendViaEmailRelay({
+          to: recipient.email,
+          subject,
+          text: plainText,
+          html,
+          replyTo: REPLY_TO_EMAIL,
+          attachments: attachments?.map(toBase64Attachment),
+        })
+        if (relayResult.success) {
+          return { success: true, messageId: relayResult.messageId }
+        }
+        console.error('[EpackMailer] NAS relay batch send failed, falling back to SMTP:', { to: recipient.email, error: relayResult.error })
+      }
+
       const msg = {
         from: `${COMPANY_NAME_EN} <${FROM_EMAIL}>`,
         to: recipient.email,
@@ -412,8 +457,24 @@ export async function sendCustomEmail(
 
   // 複数宛先の場合は個別送信
   const results = await Promise.all(
-    recipients.map(async (recipient) => {
+    recipients.map(async (recipient): Promise<EpackSendResult> => {
       try {
+        // Relay path (per recipient)
+        if (isEmailRelayConfigured()) {
+          const relayResult = await sendViaEmailRelay({
+            to: recipient.email,
+            subject,
+            text: content.text || '',
+            html: content.html || '',
+            replyTo: replyTo || REPLY_TO_EMAIL,
+            attachments: attachments?.map(toBase64Attachment),
+          })
+          if (relayResult.success) {
+            return { success: true, messageId: relayResult.messageId } as EpackSendResult
+          }
+          console.error('[EpackMailer] NAS relay custom send failed, falling back to SMTP:', { to: recipient.email, error: relayResult.error })
+        }
+
         // nodemailerメッセージの作成
         const fromAddress = from || FROM_EMAIL
         const msg: nodemailer.SendMailOptions = {

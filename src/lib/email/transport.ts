@@ -6,6 +6,7 @@
 
 import * as nodemailer from 'nodemailer';
 import sanitizeHtml from 'sanitize-html';
+import { isEmailRelayConfigured, sendViaEmailRelay } from './relay-send';
 import {
   renderEmailTemplate,
   type EmailTemplateType,
@@ -245,6 +246,9 @@ function createXServerTransporter() {
       user: SMTP_USER,
       pass: SMTP_PASSWORD,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     // XServerはTLSを推奨
     tls: {
       rejectUnauthorized: false // 開発環境では証明書検証を緩和
@@ -340,6 +344,20 @@ export async function sendEmail(
   html: string,
   replyTo?: string
 ): Promise<{ success: boolean; error?: string; messageId?: string; previewUrl?: string }> {
+  // Production path: XServer rejects cloud IPs (Vercel/AWS), so submit through
+  // the NAS email relay first. Falls back to direct SMTP below (local dev).
+  if (isEmailRelayConfigured()) {
+    const relayResult = await sendViaEmailRelay({ to, subject, text, html, replyTo });
+    if (relayResult.success) {
+      console.log('[Email] Sent via NAS relay:', { to, subject, messageId: relayResult.messageId });
+      return relayResult;
+    }
+    console.error('[Email] NAS relay send failed, falling back to SMTP:', {
+      to,
+      error: relayResult.error,
+    });
+  }
+
   // Consoleモード（Fallback）
   if (transportType === 'console' || !transporter) {
     if (isDevelopment) {

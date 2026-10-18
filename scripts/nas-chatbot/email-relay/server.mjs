@@ -57,13 +57,14 @@ const rows = (values) => values
   `)
   .join('');
 
-const send = (to, subject, text, html, replyTo) => transporter.sendMail({
+const send = (to, subject, text, html, replyTo, attachments) => transporter.sendMail({
   from: fromEmail,
   to,
   subject,
   text,
   html,
   ...(replyTo ? { replyTo } : {}),
+  ...(attachments ? { attachments } : {}),
 });
 
 const server = http.createServer(async (request, response) => {
@@ -91,7 +92,8 @@ const server = http.createServer(async (request, response) => {
   let tooLarge = false;
   for await (const chunk of request) {
     body += chunk;
-    if (body.length > 65536) {
+    // Generic sends may carry base64 attachments (PDF quotes/orders).
+    if (body.length > 5 * 1024 * 1024) {
       tooLarge = true;
       break;
     }
@@ -108,6 +110,77 @@ const server = http.createServer(async (request, response) => {
   } catch {
     response.writeHead(400, { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ error: 'invalid_json' }));
+    return;
+  }
+
+  // ------------------------------------------------------------
+  // Generic one-off send (type: 'send').
+  // Used by the web app for all transactional email. The sender is always
+  // the relay's configured FROM_EMAIL; recipients are limited to 5.
+  // ------------------------------------------------------------
+  if (payload && typeof payload === 'object' && payload.type === 'send') {
+    const { to, subject, text, html, replyTo, attachments } = payload;
+    const toList = Array.isArray(to) ? to : [to];
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const recipientsValid =
+      toList.length > 0 && toList.length <= 5 &&
+      toList.every((address) => typeof address === 'string' && emailPattern.test(address));
+    const attachmentsValid =
+      !Array.isArray(attachments) ||
+      attachments.every((att) =>
+        att && typeof att.filename === 'string' && typeof att.contentBase64 === 'string'
+      );
+
+    if (
+      !recipientsValid ||
+      typeof subject !== 'string' ||
+      subject.length === 0 ||
+      (typeof text !== 'string' && typeof html !== 'string') ||
+      (replyTo !== undefined && typeof replyTo !== 'string') ||
+      !attachmentsValid
+    ) {
+      response.writeHead(400, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ error: 'invalid_payload' }));
+      return;
+    }
+
+    try {
+      const info = await send(
+        toList.join(', '),
+        subject,
+        typeof text === 'string' ? text : '',
+        typeof html === 'string' ? html : '',
+        replyTo,
+        Array.isArray(attachments)
+          ? attachments.map((att) => ({
+              filename: att.filename,
+              content: Buffer.from(att.contentBase64, 'base64'),
+              contentType: typeof att.contentType === 'string' ? att.contentType : 'application/octet-stream',
+              contentDisposition: att.disposition === 'inline' ? 'inline' : 'attachment',
+            }))
+          : undefined
+      );
+
+      console.log(JSON.stringify({
+        event: 'generic_send',
+        to: toList,
+        subject,
+        messageId: info?.messageId,
+      }));
+
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ success: true, messageId: info?.messageId }));
+    } catch (error) {
+      console.log(JSON.stringify({
+        event: 'generic_send_failed',
+        to: toList,
+        subject,
+        error: String(error?.message || error),
+      }));
+
+      response.writeHead(502, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ success: false, error: 'smtp_send_failed' }));
+    }
     return;
   }
 
