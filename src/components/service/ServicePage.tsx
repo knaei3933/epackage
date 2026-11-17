@@ -140,11 +140,11 @@ export function ServicePageContent() {
           >
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
               <span className="block">パッケージ製造</span>
-              <span className="block text-2xl md:text-3xl lg:text-4xl mt-4 font-medium text-brixa-600">
+              <span className="block text-2xl md:text-3xl lg:text-4xl mt-4 font-medium text-brixa-200">
                 サービス内容
               </span>
             </h1>
-            <p className="text-xl text-brixa-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-brixa-100 max-w-3xl mx-auto leading-relaxed">
               6種類のパウチ製品で、お客様のニーズに最適な包装ソリューションを提供
             </p>
             <div className="flex justify-center gap-4">

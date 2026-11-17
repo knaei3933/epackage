@@ -83,13 +83,13 @@ export function ManufacturingProcessShowcase() {
         {/* Header */}
         <MotionWrapper delay={0.1}>
           <div className="text-center mb-16">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-navy-700 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-brixa-600 to-navy-700 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Settings className="w-4 h-4" />
               <span>製造工程の紹介</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
               一貫したパウチ製造サービス
-              <span className="block text-purple-600 mt-2">印刷、ラミネート、スリッティング、パウチ加工</span>
+              <span className="block text-brixa-600 mt-2">印刷、ラミネート、スリッティング、パウチ加工</span>
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 印刷、ラミネート、スリッティング、パウチ加工まで一貫して製作しています。
@@ -101,7 +101,7 @@ export function ManufacturingProcessShowcase() {
         {/* Manufacturing Process Timeline */}
         <div className="relative mb-20">
           {/* Timeline Line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-purple-200 to-navy-600 hidden md:block"></div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-brixa-200 to-navy-600 hidden md:block"></div>
 
           <div className="space-y-12">
             {manufacturingProcesses.map((process, index) => (
@@ -112,7 +112,7 @@ export function ManufacturingProcessShowcase() {
                     <Card className="p-6 hover:shadow-xl transition-all duration-500 bg-white border border-gray-100">
                       <div className="flex items-start space-x-4">
                         {/* Step Number */}
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-navy-700 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-brixa-600 to-navy-700 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                           {process.step}
                         </div>
 
@@ -160,8 +160,8 @@ export function ManufacturingProcessShowcase() {
                   </div>
 
                   {/* Timeline Dot */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-8 h-8 bg-white border-4 border-purple-600 rounded-full hidden md:flex items-center justify-center">
-                    <process.icon className="w-4 h-4 text-purple-600" />
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-8 h-8 bg-white border-4 border-brixa-600 rounded-full hidden md:flex items-center justify-center">
+                    <process.icon className="w-4 h-4 text-brixa-600" />
                   </div>
                 </div>
               </MotionWrapper>
@@ -175,8 +175,8 @@ export function ManufacturingProcessShowcase() {
             {qualityStats.map((stat, index) => (
               <Card key={index} className="text-center p-6 hover:shadow-lg transition-all duration-300 bg-white">
                 <div className="flex justify-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-brixa-100 to-brixa-200 rounded-full flex items-center justify-center">
+                    <stat.icon className="w-6 h-6 text-brixa-600" />
                   </div>
                 </div>
                 <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
