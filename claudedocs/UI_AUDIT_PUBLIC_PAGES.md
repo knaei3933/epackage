@@ -96,3 +96,38 @@
 ### Unit 3: レイアウト微調整（要ユーザー確認事項あり）
 10. **A2**: （取り下げ済み — カードは8項目で正常。対応不要）
 11. **C1**: /contact の統計カード重複。削除は文言削除を伴うため、ユーザー確認の上「削除」or「維持」を決める。レイアウト変更のみなら安全。
+---
+
+## 実装結果（2026-11-17 実施分）
+
+コミット:
+- `5336bc16` docs: audit report
+- `c99c91b7` Unit 1（A1 / S1 / S2 / H1）
+- `9f3fc34f` Unit 2（G4 / H8 / G2 / S2b / S3 / S3b）
+- `9015525e` Unit 3（C1）
+
+| # | 結果 | 内容・コミット |
+|---|---|---|
+| A1 | ✅ 完了 | about ヒーロー `to-primary-dark`（不存在トークン）→ `to-primary-700`（c99c91b7） |
+| S1 | ✅ 完了 | service ヒーロー サブタイトル・説明文を `text-brixa-200` / `text-brixa-100` へ（c99c91b7） |
+| S2 | ⛔ 取り下げ | 白ボタン+ティール文字で正常描画（誤認） |
+| H1 | ✅ 完了 | 製造工程の purple ハードコード → brixa に統一（c99c91b7） |
+| G4 | ✅ 完了 | **根本原因は新規発見**: `bg-bg-primary/80` は var() 完全色トークンへの opacity 修飾子で無効 → ヘッダーは全ページで実質「透過ゼロ」だった。パレット直指定（`bg-white/95 dark:bg-slate-900/95`）で有効なすりガラス表現として復元。モバイルメニューの border/サブメニュー bg の同種不備も修正（9f3fc34f） |
+| S3 | ✅ 完了 | 動的 Tailwind クラス（JIT 未検出）→ リテラルクラスマップ。purple→brixa（9f3fc34f） |
+| S3b | ✅ 完了 | 技術力と設備の円形アイコンを白アイコン化（9f3fc34f） |
+| S2b | ✅ 完了 | Button 共有コンポの children スパンを `inline-flex items-center` 化。preflight `svg{display:block}` によるアイコン縦積みを解消。後方互換維持、`pnpm build` 全画面で影響なしを確認（9f3fc34f） |
+| H8 | ✅ 完了 | モバイル ヒーロー統計カードを 3 列グリッド化（9f3fc34f）。実測: 375px 幅で 3 カード 104px 幅で横並び |
+| G2 | ✅ 完了（部分） | ChatWidget をモバイルで小さく+画面端に寄せて被りを軽減（9f3fc34f）。**監査で見えた黒い「N」ボタンは Next.js dev tools インジケータ（`nextjs-portal`）で本番ビルドには存在しない**ことを確認済み |
+| C1 | ✅ 完了 | /contact 下部の統計カード重複を削除（9015525e）。`500社以上` 等の表示回数 2→1 を実測確認。ヒーロー直下のコンパクト帯は維持 |
+
+### 検証証跡
+- `pnpm typecheck`: ✅ 通過（全ユニット後）
+- `pnpm build`: ✅ exit 0（Unit 2 後 = Button.tsx 共有コンポ変更の全画面影響確認。Unit 3 後の再ビルドも実施）
+- `pnpm lint`: ⛔ **既存のリポジトリ全体の不具合により実行不可**（本ブランチの変更と無関係）。ESLint 9 flat config が `@typescript-eslint/*` ルールを参照するが、プラグイン登録がなく `@typescript-eslint` がルート node_modules に存在しないため設定読込時に失敗（eslint.config.js L44-52）。変更前に同じエラーで停止することを確認済み。typecheck + build + 実ブラウザ検証で代替。
+- スクリーンショット比較: `outputs/ui-audit/before/`（11枚）vs `outputs/ui-audit/after/`（13枚、unit1-*/unit2-*/unit3-* 接頭辞）。outputs/ は gitignore のためローカルのみ。
+- DOM 実測: ヘッダー背景 `rgba(255,255,255,0.95)`、カテゴリアイコン 4 色すべて computed style 解決、技術力アイコン白色、モバイル統計カード 3 列（104px×3）、チャットボタン 48×48、/contact 統計 1 回表示、を playwright で確認。
+
+### 未対応（ユーザー判断待ち or スコープ外）
+- G1: Google Ads CSP 違反 — スコープ外として見送り（ユーザー決定済み）
+- G3: Cookie バナーのモバイル占有 — 許諾後非表示のため実害小として未対応
+- A3: 企業理念の絵文字アイコン — 文言・トーンは既存のまま維持する制約のため未対応
