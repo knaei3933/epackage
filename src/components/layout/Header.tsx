@@ -120,7 +120,10 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b border-border-medium/50 bg-bg-primary/80 backdrop-blur-md transition-all duration-200 shadow-sm",
+        // bg-bg-primary/80 は var() 完全色トークンに opacity 修飾子を付けた
+        // 無効な指定（rgb(var(--bg-primary)/0.8)）で実質「透過ゼロ」になっていた。
+        // パレット直指定なら修飾子が有効なので、白系のすりガラス表現として復元（G4）。
+        "sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-slate-600/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md transition-all duration-200 shadow-sm",
       )}
       role="banner"
       suppressHydrationWarning={true}
@@ -348,7 +351,7 @@ export function Header() {
         <Container size="6xl" className="py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="space-y-1" suppressHydrationWarning={true}>
             {navigationItems.map((item, index) => (
-              <div key={`${item.href}-${item.label}-${index}`} className="border-b border-border-medium/50 last:border-0">
+              <div key={`${item.href}-${item.label}-${index}`} className="border-b border-gray-200/50 dark:border-slate-600/50 last:border-0">
                 {item.children ? (
                   // Mobile dropdown
                   <div>
@@ -371,7 +374,7 @@ export function Header() {
                       />
                     </button>
                     {dropdownOpen === item.label && (
-                      <div className="px-4 py-2 bg-bg-secondary/50">
+                      <div className="px-4 py-2 bg-gray-50/50 dark:bg-slate-800/50">
                         {item.children.map((child, childIndex) => (
                           child.children ? (
                             // Nested mobile dropdown

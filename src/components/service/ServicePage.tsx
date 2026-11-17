@@ -75,9 +75,18 @@ const serviceCategories = [
       "進捗リアルタイム報告",
       "緊急対応可能"
     ],
-    color: "purple"
+    color: "brixa"
   }
-];
+]
+
+// リテラルで Tailwind クラスを並べる（`text-${color}-600` 等の動的構築は
+// JIT が検出できず CSS が生成されないため）。purple はブランド外のため brixa に寄せた。
+const categoryColorStyles: Record<string, { circle: string; icon: string }> = {
+  orange: { circle: "bg-orange-100", icon: "text-orange-600" },
+  blue: { circle: "bg-blue-100", icon: "text-blue-600" },
+  green: { circle: "bg-green-100", icon: "text-green-600" },
+  brixa: { circle: "bg-brixa-100", icon: "text-brixa-600" },
+};
 
 const technicalCapabilities = [
   {
@@ -190,8 +199,8 @@ export function ServicePageContent() {
                 <MotionWrapper key={category.id} delay={0.1 * (index + 1)}>
                   <Card className="p-8 hover:shadow-xl transition-all duration-300 group">
                     <div className="flex items-start space-x-4">
-                      <div className={`w-16 h-16 bg-${category.color}-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                        <category.icon className={`h-8 w-8 text-${category.color}-600`} />
+                      <div className={`w-16 h-16 ${categoryColorStyles[category.color].circle} rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                        <category.icon className={`h-8 w-8 ${categoryColorStyles[category.color].icon}`} />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">
@@ -237,7 +246,7 @@ export function ServicePageContent() {
                   <Card className="p-6 hover:shadow-lg transition-all duration-300 h-full">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-gradient-to-br from-brixa-600 to-navy-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <capability.icon className="h-8 w-8 text-brixa-700" />
+                        <capability.icon className="h-8 w-8 text-white" />
                       </div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-3">
                         {capability.title}

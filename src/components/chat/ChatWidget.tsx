@@ -649,7 +649,8 @@ export function ChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brixa text-white rounded-full shadow-lg hover:bg-brixa-600 hover:scale-105 transition-all flex items-center justify-center group"
+          // モバイルでは小さめ+画面端に寄せ、カード内容への被りを軽減（G2）
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-brixa text-white rounded-full shadow-lg hover:bg-brixa-600 hover:scale-105 transition-all flex items-center justify-center group"
           aria-label="チャットを開く"
         >
           <MessageCircle className="w-6 h-6" />

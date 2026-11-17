@@ -164,7 +164,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
 
         {/* Content */}
-        <span className={cn('truncate', loading && 'opacity-75')}>
+        <span className={cn('truncate inline-flex items-center', loading && 'opacity-75')}>
           {loading && loadingText ? loadingText : children}
         </span>
 

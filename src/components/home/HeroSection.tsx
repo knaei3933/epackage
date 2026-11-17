@@ -75,19 +75,20 @@ export function HeroSection() {
               variants={statVariants}
               className="space-y-6"
             >
-              <div className="flex flex-col lg:flex-row items-center justify-center gap-6 text-2xl md:text-3xl font-extrabold">
+              {/* モバイルでは3列グリッドで横並びにし、ヒーローの縦長化を防ぐ（H8） */}
+              <div className="grid grid-cols-3 gap-2 md:gap-6 items-stretch text-2xl md:text-3xl font-extrabold">
                 {/* 500種以上製造可能 */}
                 <motion.div
                   variants={statVariants}
                   whileHover="hover"
-                  className="bg-gradient-to-r from-brixa-500 via-brixa-600 to-brixa-700 text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center space-x-3 border-2 border-brixa-400/30 min-w-[280px]"
+                  className="bg-gradient-to-r from-brixa-500 via-brixa-600 to-brixa-700 text-white px-3 py-4 md:px-6 md:py-5 rounded-xl md:rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-1 md:flex-row md:gap-3 border-2 border-brixa-400/30 min-w-0"
                 >
-                  <TrendingUp className="w-7 h-7 flex-shrink-0" />
+                  <TrendingUp className="w-6 h-6 md:w-7 md:h-7 flex-shrink-0" />
                   <div className="text-center flex-1">
                     <motion.div
                       variants={numberVariants}
                       animate="pulse"
-                      className="text-4xl md:text-5xl font-black text-white drop-shadow-lg"
+                      className="text-2xl md:text-5xl font-black text-white drop-shadow-lg"
                     >
                       500
                     </motion.div>
@@ -99,14 +100,14 @@ export function HeroSection() {
                 <motion.div
                   variants={statVariants}
                   whileHover="hover"
-                  className="bg-gradient-to-r from-brixa-secondary-500 via-brixa-secondary-600 to-brixa-secondary-700 text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center space-x-3 border-2 border-brixa-secondary-400/30 min-w-[280px]"
+                  className="bg-gradient-to-r from-brixa-secondary-500 via-brixa-secondary-600 to-brixa-secondary-700 text-white px-3 py-4 md:px-6 md:py-5 rounded-xl md:rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-1 md:flex-row md:gap-3 border-2 border-brixa-secondary-400/30 min-w-0"
                 >
-                  <Clock className="w-7 h-7 flex-shrink-0" />
+                  <Clock className="w-6 h-6 md:w-7 md:h-7 flex-shrink-0" />
                   <div className="text-center flex-1">
                     <motion.div
                       variants={numberVariants}
                       animate="pulse"
-                      className="text-4xl md:text-5xl font-black text-white drop-shadow-lg"
+                      className="text-2xl md:text-5xl font-black text-white drop-shadow-lg"
                     >
                       21日
                     </motion.div>
@@ -119,14 +120,14 @@ export function HeroSection() {
                 <motion.div
                   variants={statVariants}
                   whileHover="hover"
-                  className="bg-gradient-to-r from-brixa-500 via-brixa-600 to-brixa-700 text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center space-x-3 border-2 border-brixa-400/30 min-w-[280px]"
+                  className="bg-gradient-to-r from-brixa-500 via-brixa-600 to-brixa-700 text-white px-3 py-4 md:px-6 md:py-5 rounded-xl md:rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-1 md:flex-row md:gap-3 border-2 border-brixa-400/30 min-w-0"
                 >
-                  <Shield className="w-7 h-7 flex-shrink-0" />
+                  <Shield className="w-6 h-6 md:w-7 md:h-7 flex-shrink-0" />
                   <div className="text-center flex-1">
                     <motion.div
                       variants={numberVariants}
                       animate="pulse"
-                      className="text-4xl md:text-5xl font-black text-white drop-shadow-lg"
+                      className="text-2xl md:text-5xl font-black text-white drop-shadow-lg"
                     >
                       100
                     </motion.div>
