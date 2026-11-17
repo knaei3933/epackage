@@ -77,9 +77,6 @@ export default function ContactPage() {
           />
         </div>
       </section>
-
-      {/* Trust Signals with Certifications */}
-      <TrustSignals variant="default" showCertifications={true} />
     </div>
   )
 }
