@@ -25,15 +25,15 @@ import {
 // ============================================================
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 flex items-start gap-3',
+  'relative w-full rounded-container border p-4 flex items-start gap-3',
   {
     variants: {
       variant: {
-        default: 'bg-bg-primary border-border-light text-text-primary dark:bg-bg-secondary dark:border-border-dark',
-        destructive: 'border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive dark:text-destructive',
-        warning: 'border-yellow-500/50 bg-yellow-50 text-yellow-900 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-100',
-        info: 'border-info-500/50 bg-info-50 text-info-900 dark:border-info-700 dark:bg-info-950 dark:text-info-100',
-        success: 'border-success-500/50 bg-success-50 text-success-900 dark:border-success-700 dark:bg-success-950 dark:text-success-100',
+        default: 'bg-bg-secondary border-border-dark text-text-primary',
+        destructive: 'bg-error-muted border-error text-on-error-muted',
+        warning: 'bg-warning-muted border-warning text-on-warning-muted',
+        info: 'bg-info-muted border-info text-on-info-muted',
+        success: 'bg-success-muted border-success text-on-success-muted',
       },
     },
     defaultVariants: {
@@ -107,7 +107,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           <button
             type="button"
             onClick={onDismiss}
-            className="flex-shrink-0 rounded-sm opacity-70 ring-offset-bg-primary transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="flex-shrink-0 rounded-inner opacity-70 ring-offset-bg-primary transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             aria-label="Dismiss alert"
           >
             <X className="h-4 w-4" />

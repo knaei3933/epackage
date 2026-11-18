@@ -234,7 +234,7 @@ export function BeforeAfterPreview({
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="metallic" className="text-sm">
+              <Badge variant="default" className="text-sm">
                 {language === 'ja' ? '高品質プレビュー' : 'HD Preview'}
               </Badge>
               <Button

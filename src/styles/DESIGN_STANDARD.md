@@ -68,7 +68,7 @@
 | `--color-background-body` / `-surface` | `#FFFFFF` | ページ、カード | - |
 | `--color-background-muted` | `#F4F8F7` | 交互の帯、表の見出し、フッター（「Mist」） | - |
 | `--color-background-subtle` | `#EEF3F2` | ホバーの行、チップ | - |
-| `--color-background-inverted` | `#2F333D` | 紺の帯（v1 では使わない） | 白文字 12.64 |
+| `--color-background-inverted`（`bg-bg-inverted`） | `#2F333D` | 紺の帯。**ページ末尾の CTA の帯だけ**。文字は `text-text-inverse`（白、12.64:1）、主ボタンは基準色の `bg-brand`（白文字 4.51:1）。ほかの場所では使わない | 白文字 12.64 |
 | `--color-border` | `#E2E8E6` | 区切り線、カードの枠（装飾） | 1.24 |
 | `--color-border-emphasized` | `#C9D3D0` | 強めの区切り | 1.53 |
 | `--color-border-control` | `#7A858F` | **入力欄などの枠**。唯一の境界の手がかりなので 3:1 が必要 | 3.76 |

@@ -139,8 +139,8 @@ export default function RootLayout({
         <meta name="supported-color-schemes" content="light dark" />
 
         {/* Theme color */}
-        <meta name="theme-color" content="#1A365D" />
-        <meta name="msapplication-TileColor" content="#1A365D" />
+        <meta name="theme-color" content="#3A827B" />
+        <meta name="msapplication-TileColor" content="#3A827B" />
 
         {/* RSS auto-discovery: RSS リーダーが自動検出するための <link rel="alternate"> */}
         <link rel="alternate" type="application/rss+xml" title="Epackage Lab ブログ RSS" href="/rss.xml" />

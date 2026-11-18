@@ -425,7 +425,7 @@ export function UnifiedPostProcessingPreview({
                       {language === 'ja' ? currentOption.descriptionJa : currentOption.description}
                     </p>
                   </div>
-                  <Badge variant="metallic" className="text-sm">
+                  <Badge variant="default" className="text-sm">
                     {language === 'ja' ? '価格x' : 'Price'} {currentOption.priceMultiplier.toFixed(2)}
                   </Badge>
                 </CardTitle>

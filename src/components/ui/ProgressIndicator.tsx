@@ -13,19 +13,19 @@ const progressIndicatorVariants = cva(
         xl: 'h-4',
       },
       variant: {
-        default: 'bg-gray-200',
-        primary: 'bg-brixa-100',
-        success: 'bg-success-100',
-        warning: 'bg-warning-100',
-        error: 'bg-error-100',
-        metallic: 'bg-gradient-to-r from-gray-100 to-gray-200',
+        default: 'bg-bg-muted',
+        primary: 'bg-brand-muted',
+        success: 'bg-success-muted',
+        warning: 'bg-warning-muted',
+        error: 'bg-error-muted',
+        metallic: 'bg-bg-muted',
       },
       rounded: {
         none: 'rounded-none',
         sm: 'rounded-sm',
         md: 'rounded-md',
         lg: 'rounded-lg',
-        xl: 'rounded-xl',
+        xl: 'rounded-container',
         full: 'rounded-full',
       },
     },
@@ -42,12 +42,12 @@ const progressBarVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-gradient-to-r from-brixa-600 to-brixa-700',
-        primary: 'bg-gradient-to-r from-brixa-500 to-brixa-600',
-        success: 'bg-gradient-to-r from-success-500 to-success-600',
-        warning: 'bg-gradient-to-r from-warning-500 to-warning-600',
-        error: 'bg-gradient-to-r from-error-500 to-error-600',
-        metallic: 'bg-gradient-to-r from-metallic-gold to-metallic-silver',
+        default: 'bg-brand',
+        primary: 'bg-brand',
+        success: 'bg-success',
+        warning: 'bg-warning',
+        error: 'bg-error',
+        metallic: 'bg-brand',
       },
       animated: {
         true: 'relative overflow-hidden',
@@ -137,8 +137,8 @@ const ProgressIndicator = React.forwardRef<HTMLDivElement, ProgressIndicatorProp
         {/* Label */}
         {showLabel && labelPosition === 'top' && (
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-700">Progress</span>
-            <span className="text-sm text-gray-600">{getLabelText()}</span>
+            <span className="text-sm font-medium text-text-secondary">Progress</span>
+            <span className="text-sm text-text-secondary">{getLabelText()}</span>
           </div>
         )}
 
@@ -165,7 +165,7 @@ const ProgressIndicator = React.forwardRef<HTMLDivElement, ProgressIndicatorProp
             >
               {/* Stripes */}
               {striped && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent bg-[length:20px_20px] animate-pulse" />
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.25)_0,rgba(255,255,255,0.25)_6px,transparent_6px,transparent_12px)]" />
               )}
             </div>
           </div>
@@ -179,10 +179,10 @@ const ProgressIndicator = React.forwardRef<HTMLDivElement, ProgressIndicatorProp
         {/* Bottom Label */}
         {showLabel && labelPosition === 'bottom' && (
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-text-secondary">
               {actualValue} of {max} completed
             </span>
-            <span className="text-sm text-gray-600">{getLabelText()}</span>
+            <span className="text-sm text-text-secondary">{getLabelText()}</span>
           </div>
         )}
       </div>
@@ -222,21 +222,20 @@ export function CircularProgress({
 
   const getLabelColor = () => {
     switch (variant) {
-      case 'primary': return 'text-brixa-600';
-      case 'success': return 'text-success-600';
-      case 'warning': return 'text-warning-600';
-      case 'error': return 'text-error-600';
-      default: return 'text-gray-700';
+      case 'primary': return 'text-brand';
+      case 'success': return 'text-success';
+      case 'warning': return 'text-warning';
+      case 'error': return 'text-error';
+      default: return 'text-text-secondary';
     }
   };
 
   const getStrokeColor = () => {
     switch (variant) {
-      case 'primary': return '#0891b2';
-      case 'success': return '#059669';
-      case 'warning': return '#d97706';
-      case 'error': return '#dc2626';
-      default: return '#0891b2';
+      case 'success': return 'var(--color-success)';
+      case 'warning': return 'var(--color-warning)';
+      case 'error': return 'var(--color-error)';
+      default: return 'var(--color-brand)';
     }
   };
 
@@ -263,7 +262,7 @@ export function CircularProgress({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#e5e7eb"
+          stroke="var(--color-border-emphasized)"
           strokeWidth={strokeWidth}
           fill="none"
         />

@@ -43,7 +43,7 @@ export default function DetailedOptionModal({
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="metallic" className="text-sm">
+              <Badge variant="default" className="text-sm">
                 {language === 'ja' ? '価格' : 'Price'} x{option.priceMultiplier.toFixed(2)}
               </Badge>
               <Button
@@ -135,7 +135,7 @@ export default function DetailedOptionModal({
                     <span className="text-sm font-medium text-gray-700">
                       {language === 'ja' ? '価格乗数' : 'Price Multiplier'}
                     </span>
-                    <Badge variant="metallic">
+                    <Badge variant="default">
                       x{option.priceMultiplier.toFixed(2)}
                     </Badge>
                   </div>

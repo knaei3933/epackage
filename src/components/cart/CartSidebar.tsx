@@ -46,7 +46,7 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             <ShoppingCart className="w-6 h-6 text-brixa-700" />
             <h2 className="text-lg font-semibold text-gray-900">ショッピングカート</h2>
             {totalItems > 0 && (
-              <Badge variant="metallic" className="px-2 py-1 text-xs">
+              <Badge variant="default" className="px-2 py-1 text-xs">
                 {totalItems}個
               </Badge>
             )}

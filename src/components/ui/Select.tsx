@@ -3,21 +3,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, AlertCircle } from 'lucide-react';
 import { useFocusTrap } from '@/hooks';
 
 const selectVariants = cva(
-  'flex w-full items-center justify-between rounded-md border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+  'flex w-full items-center justify-between rounded-md border transition-colors duration-fast focus:outline-none focus-visible:ring-2 aria-disabled:cursor-not-allowed disabled:cursor-not-allowed',
   {
     variants: {
       variant: {
-        default: 'border-[var(--border-medium)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--brixa-primary-500)] focus:ring-[var(--brixa-primary-500)]',
-        error: 'border-[var(--error-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--error-500)] focus:ring-[var(--error-500)]',
-        success: 'border-[var(--success-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:border-[var(--success-500)] focus:ring-[var(--success-500)]',
+        default: 'border-border-strong bg-bg-primary text-text-primary focus-visible:border-brand focus-visible:ring-brand',
+        error: 'border-error bg-bg-primary text-text-primary focus-visible:border-error focus-visible:ring-error',
+        success: 'border-success bg-bg-primary text-text-primary focus-visible:border-success focus-visible:ring-success',
       },
       size: {
-        sm: 'h-8 px-3 text-xs',
-        md: 'h-10 px-3 py-2 text-sm',
+        sm: 'h-9 px-3 text-sm',
+        md: 'h-10 px-3 py-2 text-sm max-sm:h-11',
         lg: 'h-12 px-4 text-base',
       },
     },
@@ -254,10 +254,10 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="text-sm font-medium text-[var(--text-primary)] leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-medium text-text-primary leading-none"
           >
             {label}
-            {required && <span className="text-[var(--error-500)] ml-1">*</span>}
+            {required && <span className="text-error ml-1">*</span>}
           </label>
         )}
 
@@ -268,7 +268,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             id={selectId}
             className={cn(
               selectVariants({ variant, size }),
-              'cursor-pointer',
+              disabled ? 'cursor-not-allowed bg-bg-muted text-text-disabled' : 'cursor-pointer',
               className
             )}
             onClick={handleToggle}
@@ -283,7 +283,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             onKeyDown={handleDropdownKeyDown}
             {...props}
           >
-            <span className={cn('truncate flex-1', !currentValue && 'text-[var(--text-tertiary)]')}>
+            <span className={cn('truncate flex-1', !currentValue && 'text-text-muted')}>
               {currentValue ? selectedOption?.label : placeholder}
             </span>
 
@@ -292,7 +292,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-1 hover:bg-[var(--bg-secondary)] rounded-sm transition-colors"
+                  className="p-1 hover:bg-bg-secondary rounded-inner transition-colors"
                   aria-label="Clear selection"
                 >
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -316,14 +316,14 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             <div
               id={dropdownId}
               ref={optionsRef}
-              className="absolute z-50 w-full mt-1 bg-white border border-[var(--border-light)] rounded-md shadow-lg max-h-60 overflow-hidden"
+              className="absolute z-50 w-full mt-1 bg-bg-primary border border-border-medium rounded-container shadow-med max-h-60 overflow-hidden"
               role="listbox"
               aria-activedescendant={focusedIndex >= 0 ? `${selectId}-option-${focusedIndex}` : undefined}
               onKeyDown={handleDropdownKeyDown}
             >
               {/* Search Input */}
               {searchable && (
-                <div className="p-2 border-b border-[var(--border-light)]">
+                <div className="p-2 border-b border-border-medium">
                   <input
                     ref={inputRef}
                     type="text"
@@ -331,7 +331,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                     onChange={handleSearch}
                     placeholder="検索..."
                     autoComplete="off"
-                    className="w-full px-3 py-2 text-sm border border-[var(--border-medium)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brixa-primary-500)] focus:border-[var(--brixa-primary-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]"
+                    className="w-full px-3 py-2 text-sm border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand bg-bg-primary text-text-primary placeholder:text-text-muted"
                   />
                 </div>
               )}
@@ -339,7 +339,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
               {/* Options List */}
               <div className="max-h-48 overflow-y-auto">
                 {filteredOptions.length === 0 ? (
-                  <div className="p-2 text-sm text-[var(--text-tertiary)] text-center" role="status">
+                  <div className="p-2 text-sm text-text-muted text-center" role="status">
                     {searchTerm ? '検索結果がありません' : '選択肢がありません'}
                   </div>
                 ) : (
@@ -353,13 +353,13 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                         className={cn(
                           'px-3 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between',
                           option.disabled
-                            ? 'text-[var(--text-tertiary)] cursor-not-allowed'
+                            ? 'text-text-disabled cursor-not-allowed'
                             : cn(
-                                'text-[var(--text-primary)]',
-                                isFocused && 'bg-[var(--brixa-primary-100)] text-[var(--brixa-primary-700)] outline-none',
-                                !isFocused && 'hover:bg-[var(--brixa-primary-50)]'
+                                'text-text-primary',
+                                isFocused && 'bg-brand-muted text-on-brand-muted outline-none',
+                                !isFocused && 'hover:bg-brand-subtle'
                               ),
-                          currentValue === option.value && 'bg-[var(--brixa-primary-100)] text-[var(--brixa-primary-700)]'
+                          currentValue === option.value && 'bg-brand-muted text-on-brand-muted'
                         )}
                         onClick={() => handleSelect(option)}
                         role="option"
@@ -382,14 +382,15 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
 
         {/* Error Message */}
         {error && (
-          <p id={errorId} className="text-sm text-[var(--error-500)]">
-            {error}
+          <p id={errorId} className="flex items-start gap-1.5 text-sm text-error" role="alert">
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+            <span>{error}</span>
           </p>
         )}
 
         {/* Helper Text */}
         {helperText && !error && (
-          <p id={helperId} className="text-sm text-[var(--text-tertiary)]">
+          <p id={helperId} className="text-sm text-text-muted">
             {helperText}
           </p>
         )}

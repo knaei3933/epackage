@@ -49,19 +49,19 @@ export interface ConfirmModalProps {
 
 const VARIANT_STYLES = {
   danger: {
-    container: 'border-red-200 bg-red-50',
-    icon: 'text-red-600',
-    button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+    container: 'border-error bg-error-muted',
+    icon: 'text-error',
+    button: 'bg-error text-on-error hover:brightness-90 focus-visible:ring-error',
   },
   warning: {
-    container: 'border-yellow-200 bg-yellow-50',
-    icon: 'text-yellow-600',
-    button: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
+    container: 'border-warning bg-warning-muted',
+    icon: 'text-warning',
+    button: 'bg-warning text-on-warning hover:brightness-90 focus-visible:ring-warning',
   },
   info: {
-    container: 'border-blue-200 bg-blue-50',
-    icon: 'text-blue-600',
-    button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+    container: 'border-brand bg-brand-muted',
+    icon: 'text-brand',
+    button: 'bg-brand text-on-brand hover:bg-brand-hover focus-visible:ring-brand',
   },
 } as const;
 
@@ -189,7 +189,7 @@ export function ConfirmModal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -197,27 +197,27 @@ export function ConfirmModal({
       {/* Modal */}
       <div
         ref={modalRef}
-        className={`relative w-full max-w-md rounded-lg border-2 shadow-xl ${styles.container} p-6`}
+        className={`relative w-full max-w-md rounded-container border shadow-high ${styles.container} p-6`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 text-text-muted hover:text-text-secondary transition-colors"
           aria-label="モーダルを閉じる"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Icon */}
-        <div className={`flex items-center justify-center w-12 h-12 rounded-full bg-white mx-auto mb-4`}>
+        <div className={`flex items-center justify-center w-12 h-12 rounded-full bg-bg-primary mx-auto mb-4`}>
           <Icon className={`w-6 h-6 ${styles.icon}`} aria-hidden="true" />
         </div>
 
         {/* Title */}
         <h2
           id="confirm-modal-title"
-          className="text-xl font-semibold text-center text-gray-900 mb-2"
+          className="text-xl font-semibold text-center text-text-primary mb-2"
         >
           {title}
         </h2>
@@ -225,7 +225,7 @@ export function ConfirmModal({
         {/* Message */}
         <p
           id="confirm-modal-message"
-          className="text-center text-gray-700 mb-6 whitespace-pre-wrap"
+          className="text-center text-text-secondary mb-6 whitespace-pre-wrap"
         >
           {message}
         </p>
@@ -235,7 +235,7 @@ export function ConfirmModal({
           {!confirmOnly && (
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              className="flex-1 px-4 py-2 border border-border-strong rounded-md text-text-secondary hover:bg-bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 transition-colors"
             >
               {cancelLabel}
             </button>
@@ -243,7 +243,7 @@ export function ConfirmModal({
           <button
             ref={confirmButtonRef}
             onClick={handleConfirm}
-            className={`flex-1 px-4 py-2 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${styles.button}`}
+            className={`flex-1 px-4 py-2 rounded-md font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors ${styles.button}`}
           >
             {confirmLabel}
           </button>

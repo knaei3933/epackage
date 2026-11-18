@@ -1,26 +1,32 @@
 import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Epackage UI 基準 v1: 枠 border-strong（3:1）、フォーカス ring-brand、エラー border-error。
+const FIELD = 'border-border-strong bg-bg-primary text-text-primary focus-visible:border-brand focus-visible:ring-brand';
+
 const inputVariants = cva(
-  'flex w-full rounded-md border transition-all duration-fast file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-brixa-700 placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:file:text-brixa-300',
+  'flex w-full rounded-md border transition-colors duration-fast file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-brand placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:border-border-strong disabled:bg-bg-muted disabled:text-text-disabled',
   {
     variants: {
       variant: {
-        default: 'border-border-medium bg-bg-primary text-text-primary focus-visible:border-brixa-500 focus-visible:ring-brixa-500 dark:border-border-dark dark:bg-bg-secondary dark:text-text-primary',
-        error: 'border-error-500 bg-bg-primary text-text-primary focus-visible:border-error-500 focus-visible:ring-error-500 dark:bg-bg-secondary',
-        success: 'border-success-500 bg-bg-primary text-text-primary focus-visible:border-success-500 focus-visible:ring-success-500 dark:bg-bg-secondary',
-        warning: 'border-warning-500 bg-bg-primary text-text-primary focus-visible:border-warning-500 focus-visible:ring-warning-500 dark:bg-bg-secondary',
-        ghost: 'border-transparent bg-transparent text-text-primary focus-visible:border-brixa-300 focus-visible:ring-brixa-500 hover:bg-bg-accent dark:hover:bg-bg-accent',
-        filled: 'border-transparent bg-bg-secondary text-text-primary focus-visible:border-brixa-500 focus-visible:ring-brixa-500 dark:bg-bg-muted',
-        metallic: 'border-metallic-silver bg-gradient-to-r from-gray-50 to-gray-100 text-text-primary focus-visible:border-brixa-500 focus-visible:ring-brixa-500 dark:from-gray-800 dark:to-gray-900',
+        default: FIELD,
+        error: 'border-error bg-bg-primary text-text-primary focus-visible:border-error focus-visible:ring-error',
+        success: 'border-success bg-bg-primary text-text-primary focus-visible:border-success focus-visible:ring-success',
+        warning: 'border-warning bg-bg-primary text-text-primary focus-visible:border-warning focus-visible:ring-warning',
+        /** @deprecated Use "default". */
+        ghost: FIELD,
+        filled: 'border-border-strong bg-bg-secondary text-text-primary focus-visible:border-brand focus-visible:ring-brand',
+        /** @deprecated Use "default". */
+        metallic: FIELD,
       },
       size: {
-        xs: 'h-7 px-2 text-xs',
-        sm: 'h-8 px-3 text-xs',
-        md: 'h-10 px-3 py-2 text-sm',
+        xs: 'h-8 px-2 text-[13px]',
+        sm: 'h-9 px-3 text-sm',
+        md: 'h-10 px-3 py-2 text-sm max-sm:h-11',
         lg: 'h-12 px-4 text-base',
-        xl: 'h-14 px-5 text-lg',
+        xl: 'h-12 px-4 text-base',
       },
       rounded: {
         none: 'rounded-none',
@@ -141,7 +147,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className={labelClassName}>
             {label}
-            {required && <span className="text-error-500 ml-1" aria-label="required">*</span>}
+            {required && <span className="text-error ml-1" aria-label="required">*</span>}
           </label>
         )}
 
@@ -149,7 +155,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {/* Left Icon/Element */}
           {(leftIcon || leftElement) && (
             <div className={cn(
-              'absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary flex items-center justify-center',
+              'absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted flex items-center justify-center',
               {
                 'w-4 h-4': size === 'xs' || size === 'sm',
                 'w-5 h-5': size === 'md',
@@ -205,7 +211,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {/* Right Icon/Element */}
           {(rightIcon || rightElement) && (
             <div className={cn(
-              'absolute right-3 top-1/2 transform -translate-y-1/2 text-text-tertiary flex items-center justify-center',
+              'absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted flex items-center justify-center',
               {
                 'w-4 h-4': size === 'xs' || size === 'sm',
                 'w-5 h-5': size === 'md',
@@ -224,7 +230,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className={cn(
                 'absolute right-3 top-1/2 transform -translate-y-1/2 text-xs',
                 currentLength > maxLength * 0.9
-                  ? 'text-error-500 font-medium'
+                  ? 'text-error font-medium'
                   : 'text-text-muted'
               )}
               aria-live="polite"
@@ -239,8 +245,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <div className={cn('text-sm', labelPosition !== 'top' && 'mt-2')}>
             {/* Error Message */}
             {error && (
-              <p id={errorId} className="text-error-500" role="alert">
-                {error}
+              <p id={errorId} className="flex items-start gap-1.5 text-error" role="alert">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                <span>{error}</span>
               </p>
             )}
 

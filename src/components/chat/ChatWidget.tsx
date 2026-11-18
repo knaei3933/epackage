@@ -603,13 +603,13 @@ export function ChatWidget() {
   const getStatusColor = () => {
     switch (connectionStatus) {
       case 'online':
-        return 'bg-green-500';
+        return 'bg-success';
       case 'offline':
-        return 'bg-red-500';
+        return 'bg-error';
       case 'maintenance':
-        return 'bg-orange-500';
+        return 'bg-warning';
       default:
-        return 'bg-yellow-500';
+        return 'bg-warning';
     }
   };
 
@@ -649,12 +649,12 @@ export function ChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brixa text-white rounded-full shadow-lg hover:bg-brixa-600 hover:scale-105 transition-all flex items-center justify-center group"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brand text-on-brand rounded-full shadow-med hover:bg-brand-hover transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           aria-label="チャットを開く"
         >
           <MessageCircle className="w-6 h-6" />
           <span
-            className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getStatusColor()} border-2 border-white`}
+            className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getStatusColor()} border-2 border-bg-primary`}
             aria-label={getStatusText()}
           />
         </button>
@@ -663,13 +663,13 @@ export function ChatWidget() {
       {/* チャットドロアパネル */}
       {isOpen && (
         <div
-          className={`fixed z-50 bg-white shadow-2xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-in-out
+          className={`fixed z-50 bg-bg-primary shadow-high border-l border-border-medium flex flex-col transition-transform duration-300 ease-in-out
             lg:top-16 lg:bottom-0 lg:right-0 lg:w-[400px] lg:rounded-none lg:border-l
             max-lg:inset-0 max-lg:border-l-0
             ${isMinimized ? 'lg:h-14' : ''}`}
         >
           {/* ヘッダー */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-brixa text-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border-medium bg-brand text-on-brand">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
               <span className="font-semibold">カスタマーサポート</span>
@@ -679,14 +679,14 @@ export function ChatWidget() {
                   className={`w-2 h-2 rounded-full ${getStatusColor()}`}
                   aria-label={getStatusText()}
                 />
-                <span className="text-xs opacity-80" data-testid="connection-status">{getStatusText()}</span>
+                <span className="text-xs" data-testid="connection-status">{getStatusText()}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {messages.length > 0 && (
                 <button
                   onClick={handleClearConversation}
-                  className="p-1 hover:bg-white/10 rounded transition-colors"
+                  className="p-1 hover:bg-bg-primary/10 rounded transition-colors"
                   aria-label="会話を削除"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -694,14 +694,14 @@ export function ChatWidget() {
               )}
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
+                className="p-1 hover:bg-bg-primary/10 rounded transition-colors"
                 aria-label={isMinimized ? '展開' : '最小化'}
               >
                 <Minimize2 className="w-4 h-4" />
               </button>
               <button
                 onClick={handleClose}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
+                className="p-1 hover:bg-bg-primary/10 rounded transition-colors"
                 aria-label="閉じる"
               >
                 <X className="w-4 h-4" />
@@ -716,7 +716,7 @@ export function ChatWidget() {
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* ウェルカムメッセージ */}
                 {messages.length === 0 && (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className="text-center text-text-muted py-8">
                     <p>こんにちは！Epackage Labです。</p>
                     <p className="text-sm mt-2">
                       包装材料や製品についてのお問い合わせをご相談ください。
@@ -738,10 +738,10 @@ export function ChatWidget() {
                           ? 'assistant-message'
                           : undefined
                       }
-                      className={`max-w-[85%] px-4 py-3 rounded-xl ${
+                      className={`max-w-[85%] px-4 py-3 rounded-container ${
                         message.role === 'user'
-                          ? 'bg-brixa text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-brand text-on-brand'
+                          : 'bg-bg-secondary text-text-primary'
                       }`}
                     >
                       {message.role === 'assistant' ? (
@@ -764,28 +764,28 @@ export function ChatWidget() {
                 {/* ローディング */}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-brixa" />
-                      <span className="text-sm text-gray-600">入力中...</span>
+                    <div className="bg-bg-secondary px-4 py-2 rounded-container flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand" />
+                      <span className="text-sm text-text-secondary">入力中...</span>
                     </div>
                   </div>
                 )}
 
                 {/* エラー表示 */}
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
+                  <div className="bg-error-muted border border-border-medium text-on-error-muted px-4 py-2 rounded-container text-sm">
                     <p>{error.message || 'エラーが発生しました'}</p>
                   </div>
                 )}
 
                 {/* オフライン時のメッセージ */}
                 {connectionStatus === 'offline' && (
-                  <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-2 rounded-lg text-sm">
+                  <div className="bg-warning-muted border border-border-medium text-on-warning-muted px-4 py-2 rounded-container text-sm">
                     <p>
                       現在チャットサービスは利用できません。お急ぎの場合は、
-                      <a href="/contact" className="text-brixa hover:underline">お問い合わせフォーム</a>
+                      <a href="/contact" className="text-brand hover:underline">お問い合わせフォーム</a>
                       または
-                      <a href="tel:050-3613-9673" className="text-brixa hover:underline">お電話（050-3613-9673）</a>
+                      <a href="tel:050-3613-9673" className="text-brand hover:underline">お電話（050-3613-9673）</a>
                       でご連絡ください。
                     </p>
                   </div>
@@ -793,20 +793,20 @@ export function ChatWidget() {
 
                 {/* メンテナンス時のメッセージ */}
                 {connectionStatus === 'maintenance' && (
-                  <div className="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-warning-muted border border-border-medium text-on-warning-muted px-4 py-3 rounded-container text-sm">
                     <p className="font-medium mb-3">
                       現在メンテナンス中です。復旧までしばらくお待ちください。
                     </p>
                     <div className="flex flex-col gap-2">
                       <a
                         href="/contact"
-                        className="text-brixa hover:underline inline-flex items-center gap-1"
+                        className="text-brand hover:underline inline-flex items-center gap-1"
                       >
                         お問い合わせフォームはこちら
                       </a>
                       <a
                         href="/products"
-                        className="text-brixa hover:underline inline-flex items-center gap-1"
+                        className="text-brand hover:underline inline-flex items-center gap-1"
                       >
                         製品ページはこちら
                       </a>
@@ -819,7 +819,7 @@ export function ChatWidget() {
                   <div className="flex justify-start">
                     <button
                       onClick={() => setShowPhoneInput(true)}
-                      className="px-4 py-2 bg-brixa text-white rounded-lg hover:bg-brixa-600 transition-colors"
+                      className="px-4 py-2 bg-brand text-on-brand rounded-md hover:bg-brand-hover transition-colors"
                     >
                       担当者に相談する
                     </button>
@@ -843,30 +843,30 @@ export function ChatWidget() {
                 )}
 
                 {leadError && (
-                  <div className="mx-4 mb-3 text-sm text-red-600">{leadError}</div>
+                  <div className="mx-4 mb-3 text-sm text-error">{leadError}</div>
                 )}
 
                 {leadSubmitted && (
-                  <div className="mx-4 mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                  <div className="mx-4 mb-3 p-3 bg-success-muted border border-border-medium rounded-container text-sm text-on-success-muted">
                     承知いたしました。担当者より確認いたします。
                   </div>
                 )}
 
                 {/* 電話番号入力フォーム */}
                 {showPhoneInput && !handoffSuccess && (
-                  <div className="bg-gray-100 px-4 py-3 rounded-lg">
-                    <p className="text-sm text-gray-700 mb-2">電話番号をご入力ください（例: 050-3613-9673）</p>
+                  <div className="bg-bg-secondary px-4 py-3 rounded-container">
+                    <p className="text-sm text-text-secondary mb-2">電話番号をご入力ください（例: 050-3613-9673）</p>
                     <div className="flex gap-2">
                       <input
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="050-3613-9673"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brixa"
+                        className="flex-1 px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-brand"
                       />
                       <button
                         onClick={handleHandoffSubmit}
-                        className="px-4 py-2 bg-brixa text-white rounded-lg hover:bg-brixa-600"
+                        className="px-4 py-2 bg-brand text-on-brand rounded-md hover:bg-brand-hover"
                       >
                         送信
                       </button>
@@ -876,20 +876,20 @@ export function ChatWidget() {
                           setPhoneNumber('');
                           setPhoneError('');
                         }}
-                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                        className="px-4 py-2 border border-border-strong bg-bg-primary text-text-primary rounded-md hover:bg-bg-secondary"
                       >
                         キャンセル
                       </button>
                     </div>
                     {phoneError && (
-                      <p className="text-red-600 text-sm mt-2">{phoneError}</p>
+                      <p className="text-error text-sm mt-2">{phoneError}</p>
                     )}
                   </div>
                 )}
 
                 {/* 送信成功メッセージ */}
                 {handoffSuccess && (
-                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm">
+                  <div className="bg-success-muted border border-border-medium text-on-success-muted px-4 py-2 rounded-container text-sm">
                     承知いたしました。担当者より折り返しご連絡いたします。
                   </div>
                 )}
@@ -899,7 +899,7 @@ export function ChatWidget() {
                   <div className="flex justify-center">
                     <button
                       onClick={handleClose}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      className="px-4 py-2 border border-border-strong bg-bg-primary text-text-primary rounded-md hover:bg-bg-secondary transition-colors"
                     >
                       閉じる
                     </button>
@@ -912,9 +912,9 @@ export function ChatWidget() {
               {/* ページ別の質問提案。自由入力は常に併用する。 */}
               <div
                 data-lead-capture-enabled={leadCaptureEnabled}
-                className="px-4 pt-3 border-t border-gray-200 bg-gray-50"
+                className="px-4 pt-3 border-t border-border-medium bg-bg-secondary"
               >
-                <p className="text-sm text-gray-500 mb-2">
+                <p className="text-sm text-text-muted mb-2">
                   このページのよくある質問（自由に入力しても構いません）
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -927,7 +927,7 @@ export function ChatWidget() {
                       type="button"
                       onClick={() => handleSuggestionSelect(suggestion)}
                       disabled={connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
-                      className="w-full text-left px-3 py-2.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-brixa hover:bg-brixa/5 hover:text-brixa disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                      className="w-full text-left px-3 py-2.5 text-sm rounded-md border border-border-medium bg-bg-primary text-text-secondary hover:border-brand hover:bg-brand-subtle hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {suggestion.questionJa}
                     </button>
@@ -936,7 +936,7 @@ export function ChatWidget() {
                     <button
                       type="button"
                       onClick={() => setShowAllSuggestions((current) => !current)}
-                      className="px-3 py-1.5 text-sm rounded-full text-brixa hover:underline"
+                      className="px-3 py-1.5 text-sm rounded-md text-brand hover:underline"
                     >
                       {showAllSuggestions ? '閉じる' : `他${suggestions.length - VISIBLE_SUGGESTION_COUNT}件`}
                     </button>
@@ -948,7 +948,7 @@ export function ChatWidget() {
               <form
                 data-testid="chat-form"
                 onSubmit={handleSubmit}
-                className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl"
+                className="p-4 border-t border-border-medium bg-bg-secondary"
               >
                 <div className="flex gap-2">
                   <input
@@ -958,12 +958,12 @@ export function ChatWidget() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="メッセージを入力..."
                     disabled={connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brixa focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     type="submit"
                     disabled={!input.trim() || connectionStatus === 'offline' || connectionStatus === 'maintenance' || isLoading}
-                    className="px-4 py-2 bg-brixa text-white rounded-lg hover:bg-brixa-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-brand text-on-brand rounded-md hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     aria-label="送信"
                   >
                     {isLoading ? (

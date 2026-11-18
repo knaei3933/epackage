@@ -2,55 +2,42 @@ import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
-// Button variants using class-variance-authority with Tailwind CSS 4 integration
-const buttonVariants = cva(
-  // Base styles - Enhanced with better transitions and accessibility
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2 whitespace-nowrap relative overflow-hidden group',
+// Epackage UI 基準 v1（src/styles/DESIGN_STANDARD.md 8 章）
+// 単色・影なし・拡大なし。色はトークン（bg-brand など）だけを使う。
+const PRIMARY = 'bg-brand text-on-brand hover:bg-brand-hover active:bg-brand-pressed';
+const STATUS = 'hover:brightness-90 active:brightness-75';
+
+const buttonVariantsBase = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        // Primary - Enhanced with gradient, shadow, and micro-interactions
-        primary: 'bg-gradient-to-br from-[var(--brixa-primary-500)] to-[var(--brixa-primary-700)] text-white hover:from-[var(--brixa-primary-600)] hover:to-[var(--brixa-primary-800)] focus-visible:ring-[var(--brixa-primary-500)] shadow-md hover:shadow-lg active:scale-[0.98] active:shadow-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500',
-
-        // Secondary - Cleaner with better hover state
-        secondary: 'bg-[var(--bg-primary)] text-[var(--brixa-primary-700)] border-2 border-[var(--brixa-primary-200)] hover:bg-[var(--brixa-primary-50)] hover:border-[var(--brixa-primary-300)] focus-visible:ring-[var(--brixa-primary-500)] dark:bg-[var(--bg-secondary)] dark:text-[var(--brixa-primary-300)] dark:border-[var(--brixa-primary-700)] dark:hover:bg-[var(--brixa-primary-800)] dark:hover:bg-opacity-20 shadow-sm hover:shadow active:scale-[0.98]',
-
-        // Outline - Enhanced with smoother hover
-        outline: 'border-2 border-[var(--brixa-primary-300)] text-[var(--brixa-primary-700)] bg-transparent hover:bg-[var(--brixa-primary-50)] hover:border-[var(--brixa-primary-400)] focus-visible:ring-[var(--brixa-primary-500)] dark:border-[var(--brixa-primary-600)] dark:text-[var(--brixa-primary-300)] dark:hover:bg-[var(--brixa-primary-800)] dark:hover:bg-opacity-20 dark:hover:border-[var(--brixa-primary-500)] transition-all active:scale-[0.98]',
-
-        // Ghost - Subtle with better visibility
-        ghost: 'text-[var(--brixa-primary-600)] hover:bg-[var(--brixa-primary-50)] hover:text-[var(--brixa-primary-700)] focus-visible:ring-[var(--brixa-primary-500)] dark:text-[var(--brixa-primary-400)] dark:hover:bg-[var(--brixa-primary-700)] dark:hover:bg-opacity-30 dark:hover:text-[var(--brixa-primary-300)] active:bg-[var(--brixa-primary-100)] dark:active:bg-[var(--brixa-primary-800)] dark:active:bg-opacity-30',
-
-        // Link - Enhanced with better hover
-        link: 'text-[var(--brixa-primary-600)] underline-offset-4 hover:underline hover:text-[var(--brixa-primary-700)] focus-visible:ring-[var(--brixa-primary-500)] dark:text-[var(--brixa-primary-400)] dark:hover:text-[var(--brixa-primary-300)] transition-all',
-
-        // Destructive - Enhanced with gradient
-        destructive: 'bg-gradient-to-br from-[var(--error-500)] to-[var(--error-600)] text-white hover:from-[var(--error-600)] hover:to-[var(--error-700)] focus-visible:ring-[var(--error-500)] shadow-md hover:shadow-lg hover:shadow-error-500/20 active:scale-[0.98] active:shadow-sm',
-
-        // Success - Enhanced with gradient
-        success: 'bg-gradient-to-br from-[var(--success-500)] to-[var(--success-600)] text-white hover:from-[var(--success-600)] hover:to-[var(--success-700)] focus-visible:ring-[var(--success-500)] shadow-md hover:shadow-lg hover:shadow-success-500/20 active:scale-[0.98] active:shadow-sm',
-
-        // Warning - Enhanced with gradient
-        warning: 'bg-gradient-to-br from-[var(--warning-500)] to-[var(--warning-600)] text-white hover:from-[var(--warning-600)] hover:to-[var(--warning-700)] focus-visible:ring-[var(--warning-500)] shadow-md hover:shadow-lg hover:shadow-warning-500/20 active:scale-[0.98] active:shadow-sm',
-
-        // Info - Enhanced with gradient
-        info: 'bg-gradient-to-br from-[var(--info-500)] to-[var(--info-600)] text-white hover:from-[var(--info-600)] hover:to-[var(--info-700)] focus-visible:ring-[var(--info-500)] shadow-md hover:shadow-lg hover:shadow-info-500/20 active:scale-[0.98] active:shadow-sm',
-
-        // Metallic - Premium metallic effect
-        metallic: 'bg-gradient-metallic text-white hover:from-metallic-gold hover:to-metallic-silver focus-visible:ring-metallic-silver shadow-md hover:shadow-lg active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700',
-
-        // Brixa Gradient - Premium brand gradient
-        'brixa-gradient': 'bg-gradient-brixa text-white hover:shadow-xl hover:shadow-brixa-500/30 focus-visible:ring-[var(--brixa-primary-500)] active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-600',
+        primary: PRIMARY,
+        secondary: 'border border-border-strong bg-bg-primary text-text-primary hover:bg-bg-secondary',
+        outline: 'border border-brand bg-transparent text-brand hover:bg-brand-subtle',
+        ghost: 'bg-transparent text-brand hover:bg-brand-subtle',
+        link: 'text-brand underline-offset-4 hover:text-brand-pressed hover:underline',
+        destructive: `bg-error text-on-error ${STATUS}`,
+        success: `bg-success text-on-success ${STATUS}`,
+        warning: `bg-warning text-on-warning ${STATUS}`,
+        info: `bg-info text-on-info ${STATUS}`,
+        /** @deprecated Use "primary". 見た目は primary と同じ。 */
+        metallic: PRIMARY,
+        /** @deprecated Use "primary". 見た目は primary と同じ。 */
+        'brixa-gradient': PRIMARY,
       },
       size: {
-        xs: 'h-7 px-2 text-xs gap-1',
-        sm: 'h-8 px-3 text-xs gap-1.5',
-        md: 'h-10 px-4 py-2 text-sm gap-2',
+        /** 管理画面の密な表だけ */
+        xs: 'h-8 px-2.5 text-[13px] gap-1',
+        sm: 'h-9 px-3.5 text-sm gap-1.5',
+        md: 'h-10 px-4 text-sm gap-2 max-sm:h-11',
         lg: 'h-12 px-6 text-base gap-2.5',
-        xl: 'h-14 px-8 text-lg gap-3',
-        '2xl': 'h-16 px-10 text-xl gap-3',
-        icon: 'h-10 w-10 p-0',
-        'icon-sm': 'h-8 w-8 p-0',
+        /** @deprecated Use "lg". */
+        xl: 'h-12 px-6 text-base gap-2.5',
+        /** @deprecated Use "lg". */
+        '2xl': 'h-12 px-6 text-base gap-2.5',
+        icon: 'h-10 w-10 p-0 max-sm:h-11 max-sm:w-11',
+        'icon-sm': 'h-9 w-9 p-0',
         'icon-lg': 'h-12 w-12 p-0',
       },
       fullWidth: {
@@ -62,11 +49,17 @@ const buttonVariants = cva(
         sm: 'rounded-sm',
         md: 'rounded-md',
         lg: 'rounded-lg',
+        /** @deprecated 基準では rounded-container(8px) か element(6px) */
         xl: 'rounded-xl',
+        /** @deprecated 同上 */
         '2xl': 'rounded-2xl',
         full: 'rounded-full',
       },
     },
+    compoundVariants: [
+      // link は文中の文字なので、高さと左右の余白を持たない（size のクラスより後に効かせる）
+      { variant: 'link', className: 'h-auto px-0' },
+    ],
     defaultVariants: {
       variant: 'primary',
       size: 'md',
@@ -76,9 +69,15 @@ const buttonVariants = cva(
   }
 );
 
+/**
+ * 見た目のクラス列を返す。Link など Button 以外で直接使っても、
+ * 基本の text-sm と size の text-base のような競合が残らないよう、tailwind-merge を通す。
+ */
+const buttonVariants = (props?: Parameters<typeof buttonVariantsBase>[0]) => cn(buttonVariantsBase(props));
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+    VariantProps<typeof buttonVariantsBase> {
   loading?: boolean;
   loadingText?: string;
   icon?: React.ReactNode;
@@ -114,6 +113,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         ref={ref}
         disabled={isDisabled}
+        aria-busy={loading ? 'true' : undefined}
         {...props}
       >
         {/* Badge */}

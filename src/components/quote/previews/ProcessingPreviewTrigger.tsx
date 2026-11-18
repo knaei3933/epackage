@@ -405,7 +405,7 @@ export function ProcessingPreviewTrigger({
               {/* Selection Indicator */}
               {isSelected && (
                 <div className="absolute top-3 left-3">
-                  <Badge variant="metallic" className="bg-brixa-600 text-white border-0 flex items-center space-x-1">
+                  <Badge variant="default" className="bg-brixa-600 text-white border-0 flex items-center space-x-1">
                     <CheckCircle className="w-3 h-3" />
                     <span className="text-xs font-medium">
                       {language === 'ja' ? '選択済み' : 'Selected'}

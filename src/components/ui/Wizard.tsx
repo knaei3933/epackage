@@ -48,10 +48,10 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
                   className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-colors',
                     index === currentStep
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-brand text-white'
                       : index < currentStep
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-500'
+                      ? 'bg-success text-white'
+                      : 'bg-bg-muted text-text-muted'
                   )}
                 >
                   {index < currentStep ? '✓' : index + 1}
@@ -60,13 +60,13 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
                   <div
                     className={cn(
                       'text-sm font-medium',
-                      index === currentStep ? 'text-blue-600' : 'text-gray-600'
+                      index === currentStep ? 'text-brand' : 'text-text-secondary'
                     )}
                   >
                     {step.title}
                   </div>
                   {step.description && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-text-muted mt-1">
                       {step.description}
                     </div>
                   )}
@@ -79,7 +79,7 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
                   <div
                     className={cn(
                       'h-full rounded transition-colors',
-                      index < currentStep ? 'bg-green-500' : 'bg-gray-200'
+                      index < currentStep ? 'bg-success' : 'bg-bg-muted'
                     )}
                   />
                 </div>
@@ -89,11 +89,11 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-6 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="mt-6 h-2 bg-bg-muted rounded-full overflow-hidden">
           <div
             className={cn(
               'h-full transition-all duration-300',
-              currentStep === steps.length - 1 ? 'bg-green-500' : 'bg-blue-600'
+              currentStep === steps.length - 1 ? 'bg-success' : 'bg-brand'
             )}
             style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           />
@@ -110,7 +110,7 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+      <div className="flex justify-between items-center pt-4 border-t border-border-medium">
         <button
           type="button"
           onClick={handleBack}
@@ -118,14 +118,14 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
           className={cn(
             'px-6 py-2 rounded-lg font-medium transition-colors',
             canGoBack
-              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              ? 'bg-bg-muted text-text-secondary hover:bg-bg-accent'
+              : 'bg-bg-muted text-text-muted cursor-not-allowed'
           )}
         >
           戻る
         </button>
 
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-text-secondary">
           ステップ {currentStep + 1} / {steps.length}
         </div>
 
@@ -135,8 +135,8 @@ export function Wizard({ steps, currentStep, children, onComplete, onStepChange 
           className={cn(
             'px-6 py-2 rounded-lg font-medium transition-colors',
             canGoForward
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-green-600 text-white hover:bg-green-700'
+              ? 'bg-brand text-white hover:bg-brand-hover'
+              : 'bg-success text-white hover:brightness-90'
           )}
         >
           {canGoForward ? '次へ' : '完了'}

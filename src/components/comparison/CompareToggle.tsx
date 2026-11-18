@@ -54,7 +54,7 @@ export function CompareToggle() {
               <GitCompare className="w-5 h-5 text-brixa-600" />
               <h3 className="font-semibold text-gray-900">製品比較</h3>
               {selectedProducts.length > 0 && (
-                <Badge variant="metallic" className="text-xs">
+                <Badge variant="default" className="text-xs">
                   {selectedProducts.length}/4
                 </Badge>
               )}

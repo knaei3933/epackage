@@ -1,33 +1,27 @@
-'use client';
-
-import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
-import { motion } from 'framer-motion'
-;
+import { Card } from './Card';
+import { cn } from '@/lib/utils';
 
 interface GlassCardProps {
-    children: ReactNode;
-    className?: string;
-    hoverEffect?: boolean;
-    onClick?: () => void;
+  children: ReactNode;
+  className?: string;
+  hoverEffect?: boolean;
+  onClick?: () => void;
 }
 
+/**
+ * @deprecated Use `Card`. Epackage UI 基準 v1 ではガラス風（ぼかし・半透明）を使わない。
+ * 互換のため、Card と同じ見た目の薄い別名として残している。
+ */
 export const GlassCard = ({ children, className, hoverEffect = false, onClick }: GlassCardProps) => {
-    return (
-        <motion.div
-            onClick={onClick}
-            className={cn(
-                "relative overflow-hidden rounded-2xl border border-white/20 bg-white/70 backdrop-blur-md shadow-xl",
-                hoverEffect && "cursor-pointer transition-all duration-300 hover:bg-white/80 hover:shadow-2xl hover:-translate-y-1",
-                className
-            )}
-            whileHover={hoverEffect ? { scale: 1.02 } : undefined}
-            whileTap={hoverEffect ? { scale: 0.98 } : undefined}
-        >
-            {/* Glossy reflection effect */}
-            <div className="pointer-events-none absolute -inset-full top-0 block -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
-
-            {children}
-        </motion.div>
-    );
+  return (
+    <Card
+      onClick={onClick}
+      variant={hoverEffect ? 'interactive' : 'default'}
+      size="none"
+      className={cn('overflow-hidden', className)}
+    >
+      {children}
+    </Card>
+  );
 };

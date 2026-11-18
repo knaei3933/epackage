@@ -18,10 +18,10 @@ export function EmptyState({ title, description, icon, action }: EmptyStateProps
           {icon}
         </div>
       )}
-      <h3 className="text-lg font-medium text-gray-900 mb-2">
+      <h3 className="text-lg font-medium text-text-primary mb-2">
         {title}
       </h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+      <p className="text-text-secondary mb-6 max-w-md mx-auto">
         {description}
       </p>
       {action && (

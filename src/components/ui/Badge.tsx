@@ -2,24 +2,28 @@ import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn, formatCurrency } from '@/lib/utils';
 
+// Epackage UI 基準 v1: 四角（rounded-inner）・13px・font-medium。ピル型・グラデーションは使わない。
+const BRAND = 'bg-brand-muted text-on-brand-muted';
+
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+  'inline-flex items-center rounded-inner px-2 py-0.5 text-[13px] font-medium transition-colors duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
   {
     variants: {
       variant: {
-        default: 'bg-[var(--brixa-primary-100)] text-[var(--brixa-primary-800)] focus:ring-[var(--brixa-primary-500)]',
-        secondary: 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-light)] focus:ring-[var(--brixa-primary-500)]',
-        success: 'bg-[var(--success-100)] text-[var(--success-800)] focus:ring-[var(--success-500)]',
-        warning: 'bg-[var(--warning-100)] text-[var(--warning-800)] focus:ring-[var(--warning-500)]',
-        error: 'bg-[var(--error-100)] text-[var(--error-800)] focus:ring-[var(--error-500)]',
-        info: 'bg-[var(--info-100)] text-[var(--info-800)] focus:ring-[var(--info-500)]',
-        outline: 'border border-[var(--brixa-primary-300)] text-[var(--brixa-primary-700)] bg-transparent focus:ring-[var(--brixa-primary-500)]',
-        metallic: 'bg-gradient-to-r from-[var(--metallic-silver)] to-[var(--metallic-gold)] text-white focus:ring-[var(--metallic-silver)]',
+        default: BRAND,
+        secondary: 'bg-bg-muted text-text-secondary',
+        success: 'bg-success-muted text-on-success-muted',
+        warning: 'bg-warning-muted text-on-warning-muted',
+        error: 'bg-error-muted text-on-error-muted',
+        info: 'bg-info-muted text-on-info-muted',
+        outline: 'border border-border-strong bg-transparent text-text-secondary',
+        /** @deprecated Use "default". 見た目はブランドと同じ。 */
+        metallic: BRAND,
       },
       size: {
-        sm: 'px-2 py-0.5 text-xs',
-        md: 'px-2.5 py-0.5 text-sm',
-        lg: 'px-3 py-1 text-base',
+        sm: 'px-2 py-0.5 text-[13px]',
+        md: 'px-2 py-0.5 text-[13px]',
+        lg: 'px-2.5 py-1 text-sm',
       },
     },
     defaultVariants: {
@@ -49,14 +53,12 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
           <span
             className={cn(
               'mr-1.5 h-2 w-2 rounded-full',
-              variant === 'success' && 'bg-[var(--success-500)]',
-              variant === 'warning' && 'bg-[var(--warning-500)]',
-              variant === 'error' && 'bg-[var(--error-500)]',
-              variant === 'info' && 'bg-[var(--info-500)]',
-              variant === 'default' && 'bg-[var(--brixa-primary-500)]',
-              variant === 'metallic' && 'bg-white',
-              variant === 'outline' && 'bg-[var(--brixa-primary-500)]',
-              variant === 'secondary' && 'bg-[var(--text-secondary)]'
+              variant === 'success' && 'bg-success',
+              variant === 'warning' && 'bg-warning',
+              variant === 'error' && 'bg-error',
+              variant === 'info' && 'bg-info',
+              (variant === 'default' || variant === 'metallic' || !variant) && 'bg-brand',
+              (variant === 'outline' || variant === 'secondary') && 'bg-text-secondary'
             )}
           />
         )}
@@ -121,7 +123,7 @@ export const CurrencyBadge = ({
   currency?: 'JPY' | 'KRW' | 'USD';
 } & Omit<BadgeProps, 'children'>) => {
   return (
-    <Badge variant="metallic" size="sm" {...props}>
+    <Badge variant="default" size="sm" {...props}>
       {formatCurrency(amount, currency)}
     </Badge>
   );
@@ -134,7 +136,6 @@ export const TagBadge = ({ children, removable, onRemove, ...props }: BadgeProps
     size="sm"
     removable={removable}
     onRemove={onRemove}
-    className="rounded-md"
     {...props}
   >
     {children}

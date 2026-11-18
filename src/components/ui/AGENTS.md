@@ -2,16 +2,27 @@
 
 <!-- Parent: ../AGENTS.md -->
 
+## UI 基準（Epackage UI 基準 v1）
+
+**正本は [`src/styles/DESIGN_STANDARD.md`](../../styles/DESIGN_STANDARD.md)。** 値・クラス名・ルールはそこに従う。このファイルは部品の使い方の要約。
+
+- ブランド色は `bg-brand`（`#3A827B`。ヘッダーの「会員登録」「今すぐ相談」の色）の 1 色。色はトークンのクラス（`bg-brand` `text-on-brand` `text-brand` `bg-success-muted` など）だけを使い、`text-[#...]` や `gray-*` `blue-*` は書かない。
+- 平らな面と細い枠線。グラデーション、`backdrop-blur`、色つきの影、`hover:scale-*` `active:scale-*`、光る動きは使わない。
+- 形は役割で決める: `rounded-md`/`rounded-element`（ボタン・入力欄）、`rounded-container`（カード・ダイアログ・アラート）、`rounded-inner`（バッジ）。
+- 影は浮いているものだけ: `shadow-low`（操作できるカードのホバー）、`shadow-med`（メニュー）、`shadow-high`（ダイアログ・トースト）。
+- 高さ: `md` は 40px（スマホは 44px）。入力欄の枠は `border-border-strong`（3:1）。
+- `Button` の `metallic` `brixa-gradient`、`size` の `xl` `2xl`、`GlassCard`、`rounded` の `xl` `2xl` は **`@deprecated`**。型には残してあるが、見た目は `primary` / `lg` / `Card` と同じ。新しい作業では使わない。
+
 ## Purpose
 
-Reusable UI components built with React, TypeScript, Tailwind CSS 4, and class-variance-authority (CVA). Provides a comprehensive design system with consistent variants, accessibility features, and internationalization support (Japanese/English).
+Reusable UI components built with React, TypeScript, Tailwind CSS 3.4, and class-variance-authority (CVA). Provides a comprehensive design system with consistent variants, accessibility features, and internationalization support (Japanese/English).
 
 ## Directory Structure
 
 ```
 ui/
 ├── Forms & Inputs
-│   ├── Button.tsx              # Enhanced button with variants, loading, badges
+│   ├── Button.tsx              # Button: 単色（bg-brand）・影なし・loading/badge 対応
 │   ├── Input.tsx               # Text input with validation, icons, character count
 │   ├── Textarea.tsx            # Multi-line text input
 │   ├── Select.tsx              # Dropdown with search, keyboard nav, focus trap
@@ -19,8 +30,8 @@ ui/
 │   └── Wizard.tsx              # Multi-step wizard component
 │
 ├── Layout & Containers
-│   ├── Card.tsx                # Card with header, content, footer variants
-│   ├── GlassCard.tsx           # Glass morphism card with hover effects
+│   ├── Card.tsx                # Card: 不透明 + 細い枠線 + rounded-container、既定は影なし
+│   ├── GlassCard.tsx           # @deprecated Card と同じ見た目の別名（ガラス風は廃止）
 │   ├── Container.tsx           # Responsive container
 │   ├── Grid.tsx                # CSS Grid wrapper with responsive breakpoints
 │   ├── Flex.tsx                # Flexbox wrapper with alignment utilities
@@ -29,7 +40,7 @@ ui/
 │
 ├── Feedback & Status
 │   ├── AlertComponent.tsx      # Alert banners (success, warning, error, info)
-│   ├── Badge.tsx               # Status badges, currency badges, tags
+│   ├── Badge.tsx               # 四角のバッジ（rounded-inner・13px）、状態・通貨・タグ
 │   ├── LoadingSpinner.tsx      # Loading indicators (dots, pulse, bars, bounce)
 │   ├── LoadingState.tsx        # Loading state wrapper components
 │   ├── EmptyState.tsx          # Empty state placeholder
@@ -52,6 +63,9 @@ ui/
 │   └── index.ts                # Barrel exports
 │
 └── __tests__/
+    ├── Button.test.tsx         # Button の基準（単色・影なし・高さ・loading）
+    ├── Badge.test.tsx          # Badge の基準（四角・トークン）
+    ├── Card.test.tsx           # Card の基準（枠線・影なし）
     └── LoadingSpinner.test.tsx # Component tests
 ```
 
@@ -63,9 +77,11 @@ All components use **class-variance-authority (CVA)** for type-safe variants:
 
 ```tsx
 // Button variants
-variant: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive' | 'success' | 'warning' | 'info' | 'metallic' | 'brixa-gradient'
-size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'icon' | 'icon-sm' | 'icon-lg'
-rounded: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
+variant: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive' | 'success' | 'warning' | 'info'
+        // 'metallic' | 'brixa-gradient' は @deprecated（primary と同じ見た目）
+size: 'xs'(32px・密な表だけ) | 'sm'(36) | 'md'(40・スマホ44) | 'lg'(48) | 'icon' | 'icon-sm' | 'icon-lg'
+        // 'xl' | '2xl' は @deprecated（lg と同じ）
+rounded: 'none' | 'sm' | 'md'(既定) | 'lg' | 'full'   // 'xl' | '2xl' は @deprecated
 ```
 
 ### 2. Accessibility Features
@@ -115,8 +131,8 @@ rounded: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
 
 ```tsx
 <Button
-  variant="primary"          // Visual style
-  size="md"                  // xs|sm|md|lg|xl|2xl|icon
+  variant="primary"          // 塗り bg-brand・白文字・影なし・グラデーションなし
+  size="md"                  // xs|sm|md|lg|icon（xl|2xl は deprecated）
   fullWidth={false}         // Width behavior
   rounded="md"              // Border radius
   loading={false}           // Show loading spinner
@@ -136,7 +152,7 @@ rounded: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
 
 ```tsx
 <Card
-  variant="default"          // default|elevated|outlined|ghost|metallic|interactive|glass
+  variant="default"          // default(枠線のみ・影なし)|elevated|interactive(ホバーで border-dark + shadow-low)|brixa(選択状態: border-brand)|outlined|ghost|success|warning|error|info  ※ metallic|glass は deprecated
   size="md"                  // xs|sm|md|lg|xl|2xl|none (padding)
   rounded="lg"              // Border radius
   shadow="none"             // none|sm|md|lg|xl|2xl
@@ -154,7 +170,7 @@ rounded: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
 
 ```tsx
 <Input
-  variant="default"          // default|error|success|warning|ghost|filled|metallic
+  variant="default"          // default|error|success|warning|filled  ※ ghost|metallic は deprecated（default と同じ）
   size="md"                  // xs|sm|md|lg|xl
   rounded="md"              // Border radius
   label="Label"             // Field label
@@ -220,7 +236,7 @@ rounded: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
 
 ```tsx
 <Badge
-  variant="default"          // default|secondary|success|warning|error|info|outline|metallic
+  variant="default"          // default(ブランド)|secondary(中立)|success|warning|error|info|outline  ※ metallic は deprecated
   size="md"                  // sm|md|lg
   dot={true}                // Show colored dot
   removable={true}           // Show remove button

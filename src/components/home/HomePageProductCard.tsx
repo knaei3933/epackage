@@ -34,7 +34,7 @@ const MATERIAL_ABBREVIATIONS: Record<string, string> = { ALUMINUM: 'AL', ALUMINI
 const abbreviateMaterial = (m: string) => MATERIAL_ABBREVIATIONS[m.trim().toUpperCase()] ?? m
 
 const linkClass =
-  'whitespace-nowrap rounded-[4px] py-1 font-medium text-[#2D6C65] underline underline-offset-4 hover:text-[#245a54] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5EB6AC]'
+  'whitespace-nowrap inline-flex min-h-11 items-center rounded-md font-medium text-brand underline underline-offset-4 hover:text-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 
 export function HomePageProductCard({ product, delay = 0 }: HomePageProductCardProps) {
   const unit = product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'
@@ -45,7 +45,7 @@ export function HomePageProductCard({ product, delay = 0 }: HomePageProductCardP
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay }}
-      className={`border-b border-[#5EB6AC]/40 py-4 text-[15px] leading-[1.8] text-[#2F333D] ${row}`}>
+      className={`border-b border-border-medium py-4 text-[15px] leading-[1.8] text-text-primary ${row}`}>
       <div className="flex items-center gap-3">
         {product.image && (
           <Image
@@ -54,12 +54,12 @@ export function HomePageProductCard({ product, delay = 0 }: HomePageProductCardP
             width={112}
             height={112}
             sizes="(min-width: 1024px) 112px, 88px"
-            className="h-[88px] w-[88px] shrink-0 rounded-[4px] object-cover lg:h-28 lg:w-28"
+            className="h-[88px] w-[88px] shrink-0 rounded-inner object-cover lg:h-28 lg:w-28"
           />
         )}
         <div>
           <div className="font-medium">{product.name_ja}</div>
-          <div className="text-sm text-[#2F333D]/70">{categoryNames[product.category] ?? product.category}</div>
+          <div className="text-sm text-text-secondary">{categoryNames[product.category] ?? product.category}</div>
         </div>
       </div>
       <div className="lg:contents">

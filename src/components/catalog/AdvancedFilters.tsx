@@ -137,7 +137,7 @@ export function AdvancedFilters({
           <SlidersHorizontal className="w-5 h-5 text-gray-600" />
           <h2 className="font-semibold text-gray-900">フィルター</h2>
           {activeFilterCount > 0 && (
-            <Badge variant="metallic" className="text-xs">
+            <Badge variant="default" className="text-xs">
               {activeFilterCount}
             </Badge>
           )}
@@ -234,7 +234,7 @@ export function AdvancedFilters({
           >
             <span>詳細フィルター</span>
             {activeFilterCount > 0 && (
-              <Badge variant="metallic" className="text-xs">
+              <Badge variant="default" className="text-xs">
                 {activeFilterCount}
               </Badge>
             )}

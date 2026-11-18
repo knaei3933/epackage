@@ -68,13 +68,13 @@ export function OptimizedImage({
 
       {/* Loading placeholder */}
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+        <div className="absolute inset-0 bg-bg-muted animate-pulse" />
       )}
 
       {/* Error fallback */}
       {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <span className="text-gray-500 text-sm">Image not available</span>
+        <div className="absolute inset-0 flex items-center justify-center bg-bg-muted">
+          <span className="text-text-muted text-sm">Image not available</span>
         </div>
       )}
     </div>

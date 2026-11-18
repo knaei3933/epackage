@@ -21,7 +21,7 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        'bg-gray-200 animate-pulse rounded',
+        'bg-bg-muted animate-pulse rounded',
         className,
         !className && (width ? `w-[${width}]` : 'w-full'),
         !className && (height ? `h-[${height}]` : 'h-4'),
@@ -35,7 +35,7 @@ export function Skeleton({
 
 export function CardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-4">
+    <div className="bg-bg-primary rounded-lg shadow p-6 space-y-4">
       <div className="flex items-center space-x-4">
         <Skeleton variant="circle" width={40} height={40} />
         <div className="space-y-2 flex-1">
@@ -54,11 +54,11 @@ export function CardSkeleton() {
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="border-b border-gray-200 px-6 py-4">
+    <div className="bg-bg-primary rounded-lg shadow overflow-hidden">
+      <div className="border-b border-border-medium px-6 py-4">
         <Skeleton width={200} />
       </div>
-      <div className="divide-y divide-gray-200">
+      <div className="divide-y divide-border-medium">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="px-6 py-4">
             <div className="flex items-center space-x-4">
@@ -80,14 +80,14 @@ export function DashboardSkeleton() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow p-6">
+          <div key={i} className="bg-bg-primary rounded-lg shadow p-6">
             <Skeleton width={120} />
             <Skeleton height={32} className="mt-2" />
             <Skeleton width={80} className="mt-2" />
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-bg-primary rounded-lg shadow p-6">
         <Skeleton width={150} />
         <div className="mt-4 space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -110,7 +110,7 @@ export default Skeleton;
 // Additional skeleton variants for demo pages
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow p-4 space-y-3">
+    <div className="bg-bg-primary rounded-lg shadow p-4 space-y-3">
       <Skeleton variant="circle" width={200} height={200} className="mx-auto" />
       <Skeleton width="80%" />
       <Skeleton width="60%" />
@@ -123,7 +123,7 @@ export function ListSkeleton({ items = 5 }: { items?: number }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="flex items-center space-x-4 p-4 bg-white rounded-lg shadow">
+        <div key={i} className="flex items-center space-x-4 p-4 bg-bg-primary rounded-lg shadow">
           <Skeleton variant="circle" width={48} height={48} />
           <div className="space-y-2 flex-1">
             <Skeleton width="50%" />
@@ -137,7 +137,7 @@ export function ListSkeleton({ items = 5 }: { items?: number }) {
 
 export function FormSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-4">
+    <div className="bg-bg-primary rounded-lg shadow p-6 space-y-4">
       <div className="space-y-2">
         <Skeleton width={120} />
         <Skeleton height={40} />

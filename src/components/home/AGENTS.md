@@ -2,6 +2,8 @@
 
 # Home Components
 
+> **見た目の正本は `src/styles/DESIGN_STANDARD.md`（Epackage UI 基準 v1）。** 色は 16 進数を直接書かず、トークンのクラスを使う（`text-brand` `bg-bg-secondary` `border-brand-soft` `text-text-primary` `text-text-secondary`、角は `rounded-md` / `rounded-container` / `rounded-inner`）。主ボタンは `buttonVariants({ variant: 'primary', size: 'lg' })`（`@/components/ui/Button`）で、ヘッダーのボタンと同じ `#3A827B`。フォーカスは `focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2`。描画される部品は `HeroSection` `IndustryShowcase` `ProductShowcaseSection`（+ `HomePageProductCard`）`ManufacturingProcessShowcase` `BeforeAfterSection` `CTASection` `AnnouncementBanner`。
+
 **Purpose**: Homepage-specific components for landing page, hero sections, and quote simulators.
 
 ## Directory Structure
@@ -20,7 +22,7 @@ home/
 ### HeroSection.tsx
 - **Role**: Landing page hero with value propositions
 - **Features**:
-  - Multi-layer background with gradient overlays
+  - Current design: 写真 + 数字の行 + 主ボタン 1 つ（単色・グラデーションなし）
   - Floating product images with parallax effects
   - Animated stats (500+ types, 28-day delivery, 100+ companies)
   - CTA buttons with Google Analytics tracking
@@ -72,7 +74,7 @@ import { heroVariants, statVariants, ctaVariants, numberVariants } from './anima
 1. **Hero Changes**:
    - Maintain GA tracking on CTAs
    - Preserve WebP optimization with blur placeholders
-   - Keep gradient overlay hierarchy
+   - グラデーションは使わない（基準書 9 章）。色はトークンのみ
    - Test responsive breakpoints (md/lg)
 
 2. **Quote Wizards**:

@@ -129,6 +129,8 @@ const config: Config = {
           secondary: 'var(--bg-secondary)',
           accent: 'var(--bg-accent)',
           muted: 'var(--bg-muted)',
+          // 紺の帯（ページ末尾の CTA の帯だけ）。文字は text-text-inverse
+          inverted: 'var(--color-background-inverted)',
         },
         // Text Colors
         text: {
@@ -137,6 +139,8 @@ const config: Config = {
           tertiary: 'var(--text-tertiary)',
           inverse: 'var(--text-inverse)',
           muted: 'var(--text-muted)',
+          // 無効状態の文字だけ（基準の対象外）
+          disabled: 'var(--color-text-disabled)',
         },
         // Border Colors
         border: {

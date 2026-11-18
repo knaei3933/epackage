@@ -54,19 +54,19 @@ export function AnnouncementBanner({ announcements: initialAnnouncements }: Anno
   const getCategoryColor = (category: Announcement['category']) => {
     switch (category) {
       case 'maintenance':
-        return 'bg-orange-50 border-orange-200 text-orange-800'
+        return 'bg-warning-muted border-border-medium text-on-warning-muted'
       case 'update':
-        return 'bg-blue-50 border-blue-200 text-blue-800'
+        return 'bg-info-muted border-border-medium text-on-info-muted'
       case 'promotion':
-        return 'bg-pink-50 border-pink-200 text-pink-800'
+        return 'bg-brand-muted border-border-medium text-on-brand-muted'
       case 'notice':
       default:
-        return 'bg-gray-50 border-gray-200 text-gray-800'
+        return 'bg-bg-secondary border-border-medium text-text-primary'
     }
   }
 
   return (
-    <div className="border-b bg-white">
+    <div className="border-b border-border-medium bg-bg-primary">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         <MotionWrapper delay={0}>
           <div className="space-y-3">
@@ -74,7 +74,7 @@ export function AnnouncementBanner({ announcements: initialAnnouncements }: Anno
               <div
                 key={announcement.id}
                 className={`
-                  flex items-start gap-3 p-4 rounded-[4px] border
+                  flex items-start gap-3 p-4 rounded-container border
                   ${getCategoryColor(announcement.category)}
                 `}
               >
@@ -83,11 +83,11 @@ export function AnnouncementBanner({ announcements: initialAnnouncements }: Anno
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-[4px] bg-white bg-opacity-60">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-inner bg-bg-primary">
                       {getAnnouncementCategoryLabel(announcement.category)}
                     </span>
                     {announcement.published_at && (
-                      <span className="text-xs opacity-75">
+                      <span className="text-xs">
                         {formatAnnouncementDate(announcement.published_at)}
                       </span>
                     )}
@@ -95,13 +95,13 @@ export function AnnouncementBanner({ announcements: initialAnnouncements }: Anno
                   <h3 className="font-semibold text-sm mb-1">
                     {announcement.title}
                   </h3>
-                  <p className="text-sm opacity-90 line-clamp-2">
+                  <p className="text-sm line-clamp-2">
                     {announcement.content}
                   </p>
                 </div>
                 {announcement.priority === 'high' && (
                   <div className="flex-shrink-0">
-                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-800 border border-red-200">
+                    <span className="inline-flex items-center px-2 py-1 rounded-inner text-xs font-bold bg-error-muted text-on-error-muted border border-border-medium">
                       重要
                     </span>
                   </div>

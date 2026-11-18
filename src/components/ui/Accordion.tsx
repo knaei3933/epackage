@@ -26,30 +26,30 @@ export function AccordionItem({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-gray-200 rounded-lg mb-4 overflow-hidden">
+    <div className="border border-border-medium rounded-lg mb-4 overflow-hidden">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+        className="w-full px-6 py-4 flex items-center justify-between bg-bg-primary hover:bg-bg-secondary transition-colors"
         aria-expanded={isOpen}
         aria-controls={`accordion-${id}`}
       >
         <div className="flex items-center gap-3">
-          {icon && <div className="text-blue-600">{icon}</div>}
+          {icon && <div className="text-brand">{icon}</div>}
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900">{title}</h3>
-              {required && <span className="text-red-500">*</span>}
+              <h3 className="font-semibold text-text-primary">{title}</h3>
+              {required && <span className="text-error">*</span>}
             </div>
             {description && (
-              <p className="text-sm text-gray-500 mt-1">{description}</p>
+              <p className="text-sm text-text-muted mt-1">{description}</p>
             )}
           </div>
         </div>
         {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-gray-400" />
+          <ChevronUp className="w-5 h-5 text-text-muted" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-gray-400" />
+          <ChevronDown className="w-5 h-5 text-text-muted" />
         )}
       </button>
       <div
@@ -59,7 +59,7 @@ export function AccordionItem({
           isOpen ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
         )}
       >
-        <div className="px-6 py-4 bg-gray-50">
+        <div className="px-6 py-4 bg-bg-secondary">
           {children}
         </div>
       </div>
@@ -101,30 +101,30 @@ export function AccordionSection({ items, allowMultipleOpen = false }: Accordion
   return (
     <div className="space-y-2">
       {items.map((item) => (
-        <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+        <div key={item.id} className="border border-border-medium rounded-lg overflow-hidden">
           <button
             type="button"
             onClick={() => toggleItem(item.id)}
-            className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+            className="w-full px-6 py-4 flex items-center justify-between bg-bg-primary hover:bg-bg-secondary transition-colors"
             aria-expanded={openItems.has(item.id)}
             aria-controls={`accordion-${item.id}`}
           >
             <div className="flex items-center gap-3">
-              {item.icon && <div className="text-blue-600">{item.icon}</div>}
+              {item.icon && <div className="text-brand">{item.icon}</div>}
               <div className="text-left">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                  {item.required && <span className="text-red-500">*</span>}
+                  <h3 className="font-semibold text-text-primary">{item.title}</h3>
+                  {item.required && <span className="text-error">*</span>}
                 </div>
                 {item.description && (
-                  <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                  <p className="text-sm text-text-muted mt-1">{item.description}</p>
                 )}
               </div>
             </div>
             {openItems.has(item.id) ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
+              <ChevronUp className="w-5 h-5 text-text-muted" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+              <ChevronDown className="w-5 h-5 text-text-muted" />
             )}
           </button>
           <div
@@ -134,7 +134,7 @@ export function AccordionSection({ items, allowMultipleOpen = false }: Accordion
               openItems.has(item.id) ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
             )}
           >
-            <div className="px-6 py-4 bg-gray-50">
+            <div className="px-6 py-4 bg-bg-secondary">
               {item.children}
             </div>
           </div>

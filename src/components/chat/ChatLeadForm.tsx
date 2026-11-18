@@ -17,7 +17,7 @@ interface ChatLeadFormProps {
   onSkip: () => void;
 }
 
-const inputClassName = 'w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brixa focus:border-transparent disabled:bg-gray-100';
+const inputClassName = 'w-full px-3 py-2.5 text-base border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-50';
 
 export function ChatLeadForm({
   intent,
@@ -120,19 +120,19 @@ export function ChatLeadForm({
     <form
       data-testid="chat-lead-form"
       onSubmit={handleSubmit}
-      className="mx-4 mb-3 p-3 bg-white border border-gray-200 rounded-lg space-y-3"
+      className="mx-4 mb-3 p-3 bg-bg-primary border border-border-medium rounded-container space-y-3"
     >
-      <p className="text-base font-medium text-gray-900">
+      <p className="text-base font-medium text-text-primary">
         続けてご相談いただく場合
       </p>
       {consentVersion !== null && privacyPolicyVersion !== null && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-text-muted">
           同意バージョン {consentVersion} / ポリシー {privacyPolicyVersion}
         </p>
       )}
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-contents">
+        <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-contents">
           内容・用途
         </label>
         <textarea
@@ -148,7 +148,7 @@ export function ChatLeadForm({
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-quantity">
+          <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-quantity">
             数量
           </label>
           <input
@@ -161,7 +161,7 @@ export function ChatLeadForm({
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-deadline">
+          <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-deadline">
             希望時期
           </label>
           <input
@@ -176,7 +176,7 @@ export function ChatLeadForm({
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-size">
+        <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-size">
           サイズ・仕様の状況
         </label>
         <input
@@ -190,7 +190,7 @@ export function ChatLeadForm({
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-material">
+        <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-material">
           素材・印刷の希望
         </label>
         <input
@@ -205,7 +205,7 @@ export function ChatLeadForm({
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-company">
+          <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-company">
             会社名
           </label>
           <input
@@ -218,7 +218,7 @@ export function ChatLeadForm({
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-contact-name">
+          <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-contact-name">
             ご担当者名
           </label>
           <input
@@ -233,7 +233,7 @@ export function ChatLeadForm({
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-email">
+        <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-email">
           メールアドレス
         </label>
         <input
@@ -249,7 +249,7 @@ export function ChatLeadForm({
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-phone">
+        <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-phone">
           電話番号
         </label>
         <input
@@ -266,7 +266,7 @@ export function ChatLeadForm({
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-preferred-channel">
+          <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-preferred-channel">
             希望連絡方法
           </label>
           <select
@@ -282,7 +282,7 @@ export function ChatLeadForm({
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="lead-contact-window">
+          <label className="block text-sm text-text-secondary mb-1" htmlFor="lead-contact-window">
             連絡可能時間
           </label>
           <select
@@ -300,7 +300,7 @@ export function ChatLeadForm({
         </div>
       </div>
 
-      <label className="flex items-start gap-2 text-sm text-gray-700">
+      <label className="flex items-start gap-2 text-sm text-text-secondary">
         <input
           type="checkbox"
           checked={contactConsent}
@@ -310,7 +310,7 @@ export function ChatLeadForm({
         />
         入力内容を担当者確認のために保存することに同意します。
       </label>
-      <label className="flex items-start gap-2 text-sm text-gray-700">
+      <label className="flex items-start gap-2 text-sm text-text-secondary">
         <input
           type="checkbox"
           checked={privacyConsent}
@@ -319,13 +319,13 @@ export function ChatLeadForm({
           className="mt-0.5"
         />
         <span>
-          <a href="/privacy" className="text-brixa hover:underline" target="_blank" rel="noreferrer">
+          <a href="/privacy" className="text-brand hover:underline" target="_blank" rel="noreferrer">
             プライバシーポリシー
           </a>
           に同意します。
         </span>
       </label>
-      <label className="flex items-start gap-2 text-sm text-gray-700">
+      <label className="flex items-start gap-2 text-sm text-text-secondary">
         <input
           type="checkbox"
           checked={marketingConsent}
@@ -337,7 +337,7 @@ export function ChatLeadForm({
       </label>
 
       {memberLinkageAvailable && (
-        <label className="flex items-start gap-2 text-sm text-gray-700">
+        <label className="flex items-start gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             checked={memberLinkage}
@@ -350,14 +350,14 @@ export function ChatLeadForm({
       )}
 
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-error">{error}</p>
       )}
 
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={disabled}
-          className="flex-1 px-3 py-2 text-sm bg-brixa text-white rounded-lg hover:bg-brixa-600 disabled:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+          className="flex-1 px-3 py-2 text-sm bg-brand text-on-brand rounded-md hover:bg-brand-hover disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
         >
           {disabled && <Loader2 className="w-4 h-4 animate-spin" />}
           内容を保存する
@@ -366,7 +366,7 @@ export function ChatLeadForm({
           type="button"
           onClick={onSkip}
           disabled={disabled}
-          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 disabled:bg-gray-100"
+          className="px-3 py-2 text-sm border border-border-strong rounded-md hover:bg-bg-secondary disabled:opacity-50"
         >
           スキップ
         </button>

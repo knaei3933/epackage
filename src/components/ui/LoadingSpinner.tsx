@@ -52,8 +52,8 @@ const sizeClasses = {
 };
 
 const colorClasses = {
-  primary: 'text-blue-600',
-  secondary: 'text-gray-600',
+  primary: 'text-brand',
+  secondary: 'text-text-secondary',
   white: 'text-white',
   current: 'text-current',
 };
@@ -77,7 +77,7 @@ export function LoadingSpinner({
 
   const containerClasses = cn(
     'flex items-center justify-center',
-    overlay && 'fixed inset-0 bg-white bg-opacity-75 z-50',
+    overlay && 'fixed inset-0 bg-bg-primary bg-opacity-75 z-50',
     center && !overlay && 'w-full flex-col'
   );
 

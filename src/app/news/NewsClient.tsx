@@ -379,7 +379,7 @@ export function NewsClient() {
                         <Package className="w-16 h-16 text-brixa-600" />
                       </div>
                       <div className="absolute top-4 left-4">
-                        <Badge variant="metallic" className="bg-brixa-600 text-white">
+                        <Badge variant="default" className="bg-brixa-600 text-white">
                           注目
                         </Badge>
                       </div>
@@ -472,7 +472,7 @@ export function NewsClient() {
                       </div>
                       {article.featured && (
                         <div className="absolute top-4 left-4">
-                          <Badge variant="metallic" className="bg-brixa-600 text-white text-xs">
+                          <Badge variant="default" className="bg-brixa-600 text-white text-xs">
                             注目
                           </Badge>
                         </div>

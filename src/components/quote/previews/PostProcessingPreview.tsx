@@ -276,7 +276,7 @@ export function PostProcessingPreview({
                     {currentOption.descriptionJa}
                   </p>
                 </div>
-                <Badge variant="metallic" className="text-sm">
+                <Badge variant="default" className="text-sm">
                   価格x {currentOption.priceMultiplier.toFixed(2)}
                 </Badge>
               </CardTitle>

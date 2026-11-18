@@ -1,5 +1,7 @@
 # Layout Components Directory
 
+> **見た目の正本は `src/styles/DESIGN_STANDARD.md`（Epackage UI 基準 v1）。** 色は `className` に 16 進数や `brixa-*` を直接書かず、トークンのクラス（`bg-brand` `text-brand` `bg-bg-secondary` `border-brand-soft` など）を使う。基準色 `#3A827B` = ヘッダーの「会員登録」「今すぐ相談」ボタン。
+
 <!-- Parent: ../AGENTS.md -->
 
 ## Purpose
@@ -12,7 +14,8 @@ This directory contains the core layout components that provide the structural f
 Main site header component with responsive navigation, authentication integration, and mobile menu support.
 
 **Key Features:**
-- Sticky header with backdrop blur
+- Sticky header: 高さ 64px、白の単色 + 下に細い枠線（`border-border-medium`）。影・`backdrop-blur` なし（基準書 8 章）
+- ボタンの色は `Button` が決める（`ghost` ログイン / `primary` 会員登録・今すぐ相談）。ヘッダー側で色・影を上書きしない
 - Desktop dropdown navigation with nested support
 - Mobile hamburger menu with full navigation
 - Authentication-aware UI (login/register vs user menu)
@@ -28,14 +31,14 @@ Main site header component with responsive navigation, authentication integratio
 - お見積り (Quote Simulator) - auth-gated
 
 ### Footer.tsx
-Flat, link-first footer (Mist #F4F8F7 / Ink #2F333D / Fjord #2D6C65, Sea Glass #5EB6AC for rules only, 4px radius, no shadows or gradients).
+Flat, link-first footer。トークンのみ: 面 `bg-bg-secondary`（Mist）、文字 `text-text-primary`、リンク・アイコン `text-brand`、細線 `border-brand-soft`、角 `rounded-md`、影・グラデーションなし。
 
 **Key Features:**
 - lg: 4 columns (company info / サービス・コンテンツ / ご利用案内 / SNS), md: 2 columns, mobile: 1 column with 44px-high links
 - Company info: logo, description, email, phone, address
 - Bottom row: copyright on the left, サイトマップ・個人情報保護方針・利用規約 on the right
-- SNS: five 44px outline icon buttons (hover = Fjord, no brand colors)
-- Back-to-top button: shown after 400px scroll, 44px solid Fjord, placed above the chat widget (`bottom-24 right-6`)
+- SNS: five 44px outline icon buttons (`border-border-emphasized`、hover = `border-brand` + `text-brand`)
+- Back-to-top button: shown after 400px scroll, 44px `bg-brand text-on-brand hover:bg-brand-hover`, placed above the chat widget (`bottom-24 right-6`)
 - No newsletter form, privacy cards, background pattern or mount animation (removed)
 - Only state: `showBackToTop` (scroll listener)
 
@@ -174,11 +177,11 @@ import { LoadingSkeleton, CardSkeleton } from '@/components/layout'
 
 ### Styling Conventions
 
-- Uses Tailwind CSS with custom `brixa-*` color palette
+- Uses Tailwind CSS with the **UI standard v1 tokens** (`bg-brand` / `text-brand` / `bg-bg-secondary` / `border-border-medium` ...). `brixa-*` と 16 進数の直接指定は使わない
 - Responsive breakpoints: `sm`, `md`, `lg`, `xl`
-- Dark mode support via `dark:` prefix
+- Dark mode: トークンが `.dark` に対応済み。`dark:` で色を上書きしない
 - Accessibility: `sr-only` for screen reader only content
-- Transitions: `transition-all duration-200/300` for smooth interactions
+- Transitions: 色の変化のみ（`transition-colors`）。拡大・光る動きなし
 
 ### Key Dependencies
 
@@ -331,10 +334,10 @@ useEffect(() => {
 **Japanese-First UI:**
 All user-facing text is in Japanese. English used only for code/logic.
 
-**Brixa Color System:**
-- `brixa-50` to `brixa-900` - Primary brand color scale
-- Used for accents, active states, highlights
-- Gradient variants: `from-brixa-600 to-brixa-700`
+**Color tokens (UI standard v1):**
+- 塗り `bg-brand`（#3A827B）/ ホバー `bg-brand-hover` / 文字・リンク `text-brand`
+- 淡い面 `bg-brand-subtle` `bg-brand-muted`、装飾の細線 `border-brand-soft`
+- グラデーション・色つきの影は使わない。詳細は `src/styles/DESIGN_STANDARD.md`
 
 **Responsive Navigation:**
 - Desktop: Horizontal with dropdowns
@@ -343,6 +346,6 @@ All user-facing text is in Japanese. English used only for code/logic.
 - Breakpoint: `lg` (1024px)
 
 **Scroll Behavior:**
-- Header: Sticky with backdrop blur
+- Header: Sticky, flat white (no blur / shadow)
 - Footer: Static with back-to-top button
 - Smooth scroll to top: `window.scrollTo({ top: 0, behavior: 'smooth' })`

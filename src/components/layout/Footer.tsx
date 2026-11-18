@@ -59,14 +59,14 @@ const bottomLinks: FooterLink[] = [
 ]
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D6C65] focus-visible:ring-offset-2 dark:focus-visible:ring-[#5EB6AC]'
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 
 const linkClass = cn(
-  'inline-flex min-h-11 items-center rounded-[4px] text-[15px] leading-[1.8] text-[#2D6C65] hover:underline underline-offset-4 lg:min-h-0 dark:text-[#5EB6AC]',
+  'inline-flex min-h-11 items-center rounded-md text-[15px] leading-[1.8] text-brand hover:underline underline-offset-4 lg:min-h-0',
   focusRing
 )
 
-const headingClass = 'mb-2 text-sm font-medium text-[#2F333D] dark:text-slate-100'
+const headingClass = 'mb-2 text-sm font-medium text-text-primary'
 
 export function Footer() {
   const [showBackToTop, setShowBackToTop] = useState(false)
@@ -92,7 +92,7 @@ export function Footer() {
         type="button"
         onClick={scrollToTop}
         className={cn(
-          'fixed bottom-24 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-[4px] bg-[#2D6C65] text-white hover:bg-[#245a54]',
+          'fixed bottom-24 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-md bg-brand text-on-brand hover:bg-brand-hover',
           focusRing,
           showBackToTop ? 'opacity-100' : 'invisible pointer-events-none opacity-0'
         )}
@@ -104,7 +104,7 @@ export function Footer() {
       </button>
 
       <footer
-        className="border-t border-[#5EB6AC] bg-[#F4F8F7] text-[#2F333D] dark:bg-slate-900 dark:text-slate-200"
+        className="border-t border-brand-soft bg-bg-secondary text-text-primary"
         role="contentinfo"
       >
         <div className="mx-auto max-w-[1120px] px-4 pt-10 sm:px-6 lg:pt-12">
@@ -113,7 +113,7 @@ export function Footer() {
             <div>
               <Link
                 href="/"
-                className={cn('inline-flex items-center gap-3 rounded-[4px]', focusRing)}
+                className={cn('inline-flex items-center gap-3 rounded-md', focusRing)}
                 aria-label="Epackage Lab - ホームへ戻る"
               >
                 <span className="relative block h-8 w-8">
@@ -132,15 +132,15 @@ export function Footer() {
               </p>
               <ul className="mt-3 space-y-1 text-[15px] leading-[1.8]">
                 <li className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 shrink-0 text-[#2D6C65] dark:text-[#5EB6AC]" aria-hidden="true" />
+                  <Mail className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
                   <span>info@package-lab.com</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 shrink-0 text-[#2D6C65] dark:text-[#5EB6AC]" aria-hidden="true" />
+                  <Phone className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
                   <span>050-3613-9673</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <MapPin className="mt-[0.45rem] h-4 w-4 shrink-0 text-[#2D6C65] dark:text-[#5EB6AC]" aria-hidden="true" />
+                  <MapPin className="mt-[0.45rem] h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
                   <span>本社：兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</span>
                 </li>
               </ul>
@@ -187,7 +187,7 @@ export function Footer() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={cn(
-                          'flex h-11 w-11 items-center justify-center rounded-[4px] border border-[#5EB6AC] text-[#2F333D] hover:border-[#2D6C65] hover:text-[#2D6C65] dark:text-slate-200 dark:hover:border-[#5EB6AC] dark:hover:text-[#5EB6AC]',
+                          'flex h-11 w-11 items-center justify-center rounded-md border border-border-emphasized text-text-primary hover:border-brand hover:text-brand',
                           focusRing
                         )}
                         aria-label={`${social.label}でフォローする`}
@@ -202,7 +202,7 @@ export function Footer() {
           </div>
 
           {/* 下段 */}
-          <div className="mt-8 flex flex-col gap-2 border-t border-[#5EB6AC] pb-20 pt-4 md:flex-row md:items-center md:justify-between lg:py-4 lg:pr-20">
+          <div className="mt-8 flex flex-col gap-2 border-t border-brand-soft pb-20 pt-4 md:flex-row md:items-center md:justify-between lg:py-4 lg:pr-20">
             <p className="text-sm leading-[1.8]">© {currentYear} Epackage Lab. 全著作権所有.</p>
             <nav aria-label="フッターのリンク">
               <ul className="flex flex-wrap gap-x-6">

@@ -793,7 +793,7 @@ export function EnhancedQuoteSimulator() {
                           <div className="flex items-center justify-between mb-2">
                             <div className="font-semibold text-gray-900">{option.nameJa}</div>
                             {option.popular && (
-                              <Badge variant="metallic" className="text-xs">人気</Badge>
+                              <Badge variant="default" className="text-xs">人気</Badge>
                             )}
                           </div>
                           <div className="text-sm text-gray-600 mb-2">{option.descriptionJa}</div>

@@ -62,24 +62,24 @@ export function UserMenu() {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 rounded-md text-text-primary hover:bg-bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         aria-label="ユーザーメニュー"
         aria-expanded={isOpen}
       >
-        <div className="w-8 h-8 rounded-full bg-brixa-600 flex items-center justify-center text-white text-sm font-medium">
+        <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-on-brand text-sm font-medium">
           {displayName?.[0] || 'U'}
         </div>
         <span className="hidden md:block text-sm font-medium">
           {displayName}
         </span>
-        <ChevronDown className="h-4 w-4 text-gray-500" />
+        <ChevronDown className="h-4 w-4 text-text-muted" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-container shadow-med border border-border-medium py-2 z-50">
           {menuItems.map((item, index) => {
             if ('divider' in item) {
-              return <div key={index} className="border-t border-gray-200 dark:border-gray-700 my-2" />
+              return <div key={index} className="border-t border-border-medium my-2" />
             }
 
             const Icon = item.icon
@@ -92,7 +92,7 @@ export function UserMenu() {
                     item.onClick?.()
                     setIsOpen(false)
                   }}
-                  className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
@@ -104,7 +104,7 @@ export function UserMenu() {
               <Link
                 key={index}
                 href={item.href}
-                className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center space-x-3 px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 <Icon className="h-4 w-4" />

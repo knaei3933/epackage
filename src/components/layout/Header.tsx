@@ -120,7 +120,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b border-border-medium/50 bg-bg-primary/80 backdrop-blur-md transition-all duration-200 shadow-sm",
+        "sticky top-0 z-50 w-full border-b border-border-medium bg-bg-primary",
       )}
       role="banner"
       suppressHydrationWarning={true}
@@ -129,7 +129,7 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center space-x-3 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:ring-offset-2 rounded-lg"
+          className="flex items-center space-x-3 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-md"
           aria-label="Epackage Lab - ホーム"
         >
           <div className="relative h-8 w-8 md:h-10 md:w-10">
@@ -172,8 +172,8 @@ export function Header() {
                 <button
                   onClick={() => handleDropdownToggle(item.label)}
                   className={cn(
-                    "flex items-center space-x-1 px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary",
-                    dropdownOpen === item.label && "text-brixa-600 bg-bg-secondary"
+                    "flex items-center space-x-1 px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary",
+                    dropdownOpen === item.label && "text-brand bg-bg-secondary"
                   )}
                   aria-expanded={dropdownOpen === item.label}
                   aria-haspopup="true"
@@ -192,8 +192,7 @@ export function Header() {
                   <button
                     onClick={handleQuoteClick}
                     className={cn(
-                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary",
-                      "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary"
                     )}
                     title={item.description}
                     aria-label={item.label}
@@ -204,8 +203,7 @@ export function Header() {
                   <Link
                     href={item.href}
                     className={cn(
-                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brixa-600 focus:outline-none focus:text-brixa-600 rounded-lg hover:bg-bg-secondary",
-                      "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary"
                     )}
                     {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                     title={item.description}
@@ -217,7 +215,7 @@ export function Header() {
 
               {/* Dropdown content - only render after mount to prevent hydration issues */}
               {item.children && dropdownOpen === item.label && (
-                <div className="absolute top-full left-0 mt-1 w-64 bg-bg-primary border border-border-medium rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-1 w-64 bg-bg-primary border border-border-medium rounded-container shadow-med overflow-hidden z-50">
                   <div className="py-2">
                     {item.children.map((child, childIndex) => (
                       child.children ? (
@@ -225,19 +223,19 @@ export function Header() {
                         <div key={generateKey(child.href, child.label, childIndex, `${index}`)} className="relative">
                           <button
                             onClick={() => handleDropdownToggle(`${item.label}-${child.label}`)}
-                            className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-brixa-600 hover:bg-bg-secondary transition-colors flex items-center justify-between"
+                            className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-brand hover:bg-bg-secondary transition-colors flex items-center justify-between"
                           >
                             <span>{child.label}</span>
                             <ChevronDown className="h-3 w-3" />
                           </button>
                           {dropdownOpen === `${item.label}-${child.label}` && (
-                            <div className="absolute left-full top-0 ml-1 w-48 bg-bg-primary border border-border-medium rounded-lg shadow-lg overflow-hidden z-50">
+                            <div className="absolute left-full top-0 ml-1 w-48 bg-bg-primary border border-border-medium rounded-container shadow-med overflow-hidden z-50">
                               <div className="py-2">
                                 {child.children.map((grandChild, grandChildIndex) => (
                                   <Link
                                     key={generateKey(grandChild.href, grandChild.label, grandChildIndex, `${index}-${childIndex}`)}
                                     href={grandChild.href}
-                                    className="block px-4 py-2 text-sm text-text-secondary hover:text-brixa-600 hover:bg-bg-secondary transition-colors"
+                                    className="block px-4 py-2 text-sm text-text-secondary hover:text-brand hover:bg-bg-secondary transition-colors"
                                     onClick={() => setDropdownOpen(null)}
                                   >
                                     {grandChild.label}
@@ -252,7 +250,7 @@ export function Header() {
                         <Link
                           key={generateKey(child.href, child.label, childIndex, `${index}`)}
                           href={child.href}
-                          className="block px-4 py-2 text-sm text-text-secondary hover:text-brixa-600 hover:bg-bg-secondary transition-colors"
+                          className="block px-4 py-2 text-sm text-text-secondary hover:text-brand hover:bg-bg-secondary transition-colors"
                           onClick={() => setDropdownOpen(null)}
                         >
                           {child.label}
@@ -348,7 +346,7 @@ export function Header() {
         <Container size="6xl" className="py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="space-y-1" suppressHydrationWarning={true}>
             {navigationItems.map((item, index) => (
-              <div key={`${item.href}-${item.label}-${index}`} className="border-b border-border-medium/50 last:border-0">
+              <div key={`${item.href}-${item.label}-${index}`} className="border-b border-border-medium last:border-0">
                 {item.children ? (
                   // Mobile dropdown
                   <div>
@@ -358,8 +356,8 @@ export function Header() {
                         setDropdownOpen(currentlyOpen ? null : item.label)
                       }}
                       className={cn(
-                        "w-full px-4 py-3 text-left text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary flex items-center justify-between",
-                        dropdownOpen === item.label && "text-brixa-600 bg-bg-secondary"
+                        "w-full px-4 py-3 text-left text-base font-medium text-text-secondary rounded-md min-h-11 transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary flex items-center justify-between",
+                        dropdownOpen === item.label && "text-brand bg-bg-secondary"
                       )}
                     >
                       <span>{item.label}</span>
@@ -371,19 +369,19 @@ export function Header() {
                       />
                     </button>
                     {dropdownOpen === item.label && (
-                      <div className="px-4 py-2 bg-bg-secondary/50">
+                      <div className="px-4 py-2 bg-bg-secondary">
                         {item.children.map((child, childIndex) => (
                           child.children ? (
                             // Nested mobile dropdown
-                            <div key={generateKey(child.href, child.label, childIndex, `mobile-${index}`)} className="border-l-2 border-brixa-600/20 ml-2">
+                            <div key={generateKey(child.href, child.label, childIndex, `mobile-${index}`)} className="border-l-2 border-brand-soft ml-2">
                               <button
                                 onClick={() => {
                                   const nestedOpen = dropdownOpen === `${item.label}-${child.label}`
                                   setDropdownOpen(nestedOpen ? null : `${item.label}-${child.label}`)
                                 }}
                                 className={cn(
-                                  "w-full px-3 py-2 text-left text-sm text-text-secondary rounded transition-colors hover:bg-bg-primary hover:text-brixa-600 focus:outline-none focus:bg-bg-primary focus:text-brixa-600 flex items-center justify-between",
-                                  dropdownOpen === `${item.label}-${child.label}` && "text-brixa-600"
+                                  "w-full px-3 py-2 text-left text-sm text-text-secondary rounded transition-colors hover:bg-bg-primary hover:text-brand focus:outline-none focus:bg-bg-primary focus:text-brand flex items-center justify-between",
+                                  dropdownOpen === `${item.label}-${child.label}` && "text-brand"
                                 )}
                               >
                                 <span>{child.label}</span>
@@ -404,7 +402,7 @@ export function Header() {
                                         setIsMenuOpen(false)
                                         setDropdownOpen(null)
                                       }}
-                                      className="block px-2 py-1 text-sm text-text-secondary hover:text-brixa-600 hover:bg-bg-primary rounded transition-colors"
+                                      className="block px-2 py-1 text-sm text-text-secondary hover:text-brand hover:bg-bg-primary rounded-md transition-colors"
                                     >
                                       {grandChild.label}
                                     </Link>
@@ -421,7 +419,7 @@ export function Header() {
                                 setIsMenuOpen(false)
                                 setDropdownOpen(null)
                               }}
-                              className="block px-3 py-2 text-sm text-text-secondary hover:text-brixa-600 hover:bg-bg-primary rounded transition-colors"
+                              className="block px-3 py-3 text-sm text-text-secondary hover:text-brand hover:bg-bg-primary rounded-md transition-colors"
                               {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                             >
                               {child.label}
@@ -441,8 +439,7 @@ export function Header() {
                         setIsMenuOpen(false)
                       }}
                       className={cn(
-                        "block w-full text-left px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary",
-                        "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                        "block w-full text-left px-4 py-3 text-base font-medium text-text-secondary rounded-md min-h-11 transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary"
                       )}
                       title={item.description}
                       aria-label={item.label}
@@ -454,8 +451,7 @@ export function Header() {
                       href={item.href}
                       onClick={() => setIsMenuOpen(false)}
                       className={cn(
-                        "block px-4 py-3 text-base font-medium text-text-secondary rounded-lg transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary",
-                        "after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-0.5 after:bg-brixa-600 after:transition-all after:duration-200 hover:after:w-full"
+                        "block px-4 py-3 text-base font-medium text-text-secondary rounded-md min-h-11 transition-colors hover:bg-bg-secondary hover:text-text-primary focus:outline-none focus:bg-bg-secondary focus:text-text-primary"
                       )}
                       {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                       title={item.description}
@@ -478,7 +474,7 @@ export function Header() {
                         onClick={() => setIsMenuOpen(false)}
                         className="inline-flex w-full"
                       >
-                        <Button variant="outline" fullWidth>
+                        <Button variant="secondary" fullWidth>
                           マイページ
                         </Button>
                       </Link>
@@ -500,7 +496,7 @@ export function Header() {
                         className="inline-flex w-full"
                         aria-label="ログイン - 会員認証ページへ移動"
                       >
-                        <Button variant="outline" fullWidth>
+                        <Button variant="secondary" fullWidth>
                           ログイン
                         </Button>
                       </Link>
@@ -523,7 +519,7 @@ export function Header() {
                 className="inline-flex w-full"
               >
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   fullWidth
                   className="justify-center font-medium"
                   aria-label="お問い合わせ - mobile CTA"

@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface TextareaProps
@@ -13,19 +14,20 @@ export interface TextareaProps
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, variant = 'default', label, error, helperText, showCharCount, ...props }, ref) => {
+    const field = 'border-border-strong bg-bg-primary text-text-primary focus-visible:border-brand focus-visible:ring-brand';
     const variantStyles = {
-      default: 'border-[var(--border-medium)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus-visible:border-[var(--brixa-primary-500)] focus-visible:ring-[var(--brixa-primary-500)] dark:border-[var(--border-dark)] dark:bg-[var(--bg-secondary)]',
-      error: 'border-[var(--error-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus-visible:border-[var(--error-500)] focus-visible:ring-[var(--error-500)] dark:bg-[var(--bg-secondary)]',
-      success: 'border-[var(--success-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus-visible:border-[var(--success-500)] focus-visible:ring-[var(--success-500)] dark:bg-[var(--bg-secondary)]',
-      warning: 'border-[var(--warning-500)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus-visible:border-[var(--warning-500)] focus-visible:ring-[var(--warning-500)] dark:bg-[var(--bg-secondary)]',
-      ghost: 'border-transparent bg-transparent text-[var(--text-primary)] focus-visible:border-[var(--brixa-primary-300)] focus-visible:ring-[var(--brixa-primary-500)] hover:bg-[var(--bg-accent)] dark:hover:bg-[var(--bg-accent)]',
-      filled: 'border-transparent bg-[var(--bg-secondary)] text-[var(--text-primary)] focus-visible:border-[var(--brixa-primary-500)] focus-visible:ring-[var(--brixa-primary-500)] dark:bg-[var(--bg-muted)]',
+      default: field,
+      error: 'border-error bg-bg-primary text-text-primary focus-visible:border-error focus-visible:ring-error',
+      success: 'border-success bg-bg-primary text-text-primary focus-visible:border-success focus-visible:ring-success',
+      warning: 'border-warning bg-bg-primary text-text-primary focus-visible:border-warning focus-visible:ring-warning',
+      ghost: field,
+      filled: 'border-border-strong bg-bg-secondary text-text-primary focus-visible:border-brand focus-visible:ring-brand',
     };
 
     const textareaEl = (
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-[var(--text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+          "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:border-border-strong disabled:bg-bg-muted disabled:text-text-disabled transition-colors duration-fast",
           variantStyles[variant],
           className
         )}
@@ -41,16 +43,16 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="space-y-1 w-full">
         {label && (
-          <label className="block text-sm font-medium text-[var(--text-primary)]">
+          <label className="block text-sm font-medium text-text-primary">
             {label}
           </label>
         )}
         {textareaEl}
         {error && (
-          <p className="text-xs text-[var(--error-500)]">{error}</p>
+          <p className="flex items-start gap-1.5 text-sm text-error" role="alert"><AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" /><span>{error}</span></p>
         )}
         {helperText && (
-          <p className="text-xs text-[var(--text-tertiary)]">{helperText}</p>
+          <p className="text-sm text-text-muted">{helperText}</p>
         )}
       </div>
     )

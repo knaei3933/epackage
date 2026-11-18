@@ -10,7 +10,7 @@ import { createCanonicalMetadata } from '@/lib/seo/canonical'
 const ManufacturingProcessShowcase = dynamic(
   () => import('@/components/home/ManufacturingProcessShowcase').then(m => ({ default: m.ManufacturingProcessShowcase })),
   {
-    loading: () => <div className="min-h-[600px] flex items-center justify-center bg-[#F4F8F7]" aria-label="제조 공정 로딩 중" />,
+    loading: () => <div className="min-h-[600px] flex items-center justify-center bg-bg-secondary" aria-label="제조 공정 로딩 중" />,
     ssr: true
   }
 )
