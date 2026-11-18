@@ -4,16 +4,18 @@
 
 @layer base {
   :root {
-    /* Epackage Lab Brand Colors - Light Theme */
-    --brixa-primary: #5EB6AC; /* Primary green - 5EB6AC */
+    /* Epackage Lab Brand Colors - Light Theme（色の「土台」。画面では下の --color-* を使う）
+       ブランドの基準色は --color-brand（= 600 = #3A827B）。ヘッダーの「会員登録」「今すぐ相談」ボタンの色。
+       400（#5EB6AC）は装飾の細線・淡い面だけ。文字やボタンには使わない（白文字で 2.40:1 のため）。 */
+    --brixa-primary: #5EB6AC; /* DEFAULT = 400。装飾用。ブランドの基準色ではない */
     --brixa-primary-50: #F0FBFA;
     --brixa-primary-100: #E1F6F4;
     --brixa-primary-200: #C3EBE6;
     --brixa-primary-300: #89E1D8;
-    --brixa-primary-400: #5EB6AC; /* Main color */
+    --brixa-primary-400: #5EB6AC; /* 装飾用（細線・淡い面） */
     --brixa-primary-500: #47A39A;
-    --brixa-primary-600: #3A827B;
-    --brixa-primary-700: #2D6C65;
+    --brixa-primary-600: #3A827B; /* ★ ブランドの基準色（--color-brand） */
+    --brixa-primary-700: #2D6C65; /* hover の塗り・ブランド色の文字（--color-brand-hover / --color-text-brand） */
     --brixa-primary-800: #235954;
     --brixa-primary-900: #1A453F;
 
@@ -71,31 +73,31 @@
     --gray-800: #1F2937;
     --gray-900: #111827;
 
-    /* Background Colors - Light Theme */
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #F9FAFB;
-    --bg-accent: #F8FAFC;
-    --bg-muted: #F3F4F6;
+    /* 既存クラス（bg-bg-* / text-text-* / border-border-*）の互換トークン。
+       値は意味トークン（--color-*）を参照する。新しい作業では --color-* の側を使う。 */
+    --bg-primary: var(--color-background-body);
+    --bg-secondary: var(--color-background-muted);
+    --bg-accent: var(--color-background-muted);
+    --bg-muted: var(--color-background-subtle);
 
-    /* Text Colors - Light Theme */
-    --text-primary: #111827;
-    --text-secondary: #6B7280;
-    --text-tertiary: #9CA3AF;
-    --text-inverse: #FFFFFF;
-    --text-muted: #9CA3AF;
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-tertiary: var(--color-text-muted);   /* 旧 #9CA3AF は 2.54:1 で基準未達。読める値に統一 */
+    --text-inverse: var(--color-text-inverse);
+    --text-muted: var(--color-text-muted);
 
-    /* Border Colors - Light Theme */
-    --border-light: #F3F4F6;
-    --border-medium: #E5E7EB;
-    --border-dark: #D1D5DB;
-    --border-strong: #9CA3AF;
+    --border-light: var(--color-background-subtle);
+    --border-medium: var(--color-border);              /* 区切り線・カードの枠 */
+    --border-dark: var(--color-border-emphasized);
+    --border-strong: var(--color-border-control);      /* 入力欄などの枠（3:1 以上） */
 
-    /* Shadow Effects */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    /* Shadow Effects — 影は「浮いているもの」だけに使う（段階は 3 つ: low=sm / med=md / high=lg）。
+       xl・2xl は旧名。lg の少し強い版に揃えてある。置かれているだけのカードは枠線だけにする。 */
+    --shadow-sm: 0 1px 2px rgba(47, 51, 61, 0.06);
+    --shadow-md: 0 2px 8px rgba(47, 51, 61, 0.08);
+    --shadow-lg: 0 6px 20px rgba(47, 51, 61, 0.10);
+    --shadow-xl: 0 12px 32px rgba(47, 51, 61, 0.14);
+    --shadow-2xl: 0 12px 32px rgba(47, 51, 61, 0.14);
 
     /* Metallic Gradients */
     --gradient-metallic: linear-gradient(135deg, #C0C0C0 0%, #808080 50%, #C0C0C0 100%);
@@ -117,9 +119,10 @@
     --radius-sm: 0.125rem;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
-    --radius-2xl: 1rem;
-    --radius-3xl: 1.5rem;
+    /* xl 以上は container（8px）に揃えた旧名。新しい作業では使わない（DESIGN_STANDARD.md「形」） */
+    --radius-xl: 0.5rem;
+    --radius-2xl: 0.5rem;
+    --radius-3xl: 0.5rem;
     --radius-full: 9999px;
 
     /* Typography Scale */
@@ -141,6 +144,60 @@
     --ease-in: cubic-bezier(0.4, 0, 1, 1);
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* =====================================================================
+       Epackage UI Standard v1 — 意味トークン（正本: src/styles/DESIGN_STANDARD.md）
+       名前は Astryx（github.com/meta/astryx）の色トークンの文法に合わせてある:
+         --color-<property>-<role> / --color-<intent>[-hover|-pressed|-muted] / --color-on-<fill>
+       「brand」は Astryx の「accent」に当たる。画面のクラスは、この層（と互換トークン）を使う。
+       数字はすべて WCAG のコントラスト比（実測）。
+       ===================================================================== */
+
+    /* Brand — 基準は、ヘッダーの「会員登録」「今すぐ相談」ボタンの見た目の色
+       （旧グラデーション 500→700 の中間 = 600）。単色にして、この 1 色に統一する。 */
+    --color-brand: #3A827B;          /* 塗り: 主ボタン・選択状態。白文字で 4.51:1 */
+    --color-brand-hover: #2D6C65;    /* hover の塗り（白文字 6.10:1） */
+    --color-brand-pressed: #235954;  /* 押した状態の塗り（白文字 7.99:1） */
+    --color-brand-muted: #E1F6F4;    /* 淡い塗り。文字は --color-on-brand-muted */
+    --color-brand-subtle: #F0FBFA;   /* ghost・outline の hover 背景 */
+    --color-brand-soft: #5EB6AC;     /* 装飾の細線・大きな淡い面だけ。文字・ボタンには使わない */
+    --color-on-brand: #FFFFFF;
+    --color-on-brand-muted: #1A453F; /* 9.50:1 */
+    --color-text-brand: #2D6C65;     /* ブランド色の文字・リンク。白・Mist・淡い塗りの上で 5.4:1 以上 */
+    --color-ring: #3A827B;           /* フォーカスリング。白の上で 4.51:1（必要 3:1） */
+
+    /* Text */
+    --color-text-primary: #2F333D;   /* 12.64:1 */
+    --color-text-secondary: #545D66; /* 6.70:1 */
+    --color-text-muted: #636D77;     /* 5.27:1（Mist の上で 4.92:1） */
+    --color-text-disabled: #9CA3AF;  /* 無効状態の文字だけ（基準の対象外） */
+    --color-text-inverse: #FFFFFF;
+
+    /* Surface */
+    --color-background-body: #FFFFFF;
+    --color-background-surface: #FFFFFF;
+    --color-background-muted: #F4F8F7;    /* Mist: 交互の帯・表の見出し・フッター */
+    --color-background-subtle: #EEF3F2;   /* hover の行・チップ */
+    --color-background-inverted: #2F333D; /* 紺の帯 */
+
+    /* Border */
+    --color-border: #E2E8E6;              /* 区切り線・カードの枠（装飾） */
+    --color-border-emphasized: #C9D3D0;
+    --color-border-control: #7A858F;      /* 入力欄などの枠。白の上で 3.76:1（必要 3:1） */
+
+    /* Status — 塗り（白文字 4.5:1 以上）・淡い塗り・その上の文字。文字だけで使うときも -DEFAULT を使う */
+    --color-success: #047857;  --color-on-success: #FFFFFF;  --color-success-muted: #ECFDF5;  --color-on-success-muted: #065F46;
+    --color-warning: #B45309;  --color-on-warning: #FFFFFF;  --color-warning-muted: #FFFBEB;  --color-on-warning-muted: #92400E;
+    --color-error:   #B91C1C;  --color-on-error:   #FFFFFF;  --color-error-muted:   #FEF2F2;  --color-on-error-muted:   #991B1B;
+    --color-info:    #1D4ED8;  --color-on-info:    #FFFFFF;  --color-info-muted:    #EFF6FF;  --color-on-info-muted:    #1E40AF;
+
+    /* Shape — 役割で決める（Tailwind: inner=rounded / element=rounded-md / container=rounded-lg） */
+    --radius-inner: 0.25rem;      /* 4px  チップ・サムネイル・コード */
+    --radius-element: 0.375rem;   /* 6px  ボタン・入力欄・バッジ・タブ */
+    --radius-container: 0.5rem;   /* 8px  カード・パネル・ダイアログ・アラート */
+
+    /* 見出し用の明朝（font-heading）は、next/font の変数 --font-heading（src/components/home/fonts.ts）が
+       読み込まれた範囲の中で効く。:root では定義しない（子孫の変数は :root から見えないため）。 */
   }
 
   /* Dark Theme */
@@ -202,24 +259,56 @@
     --info-800: #BFDBFE;
     --info-900: #DBEAFE; /* Light blue for text contrast on dark backgrounds */
 
-    /* Background Colors - Dark Theme */
-    --bg-primary: #0F172A;
-    --bg-secondary: #1E293B;
-    --bg-accent: #334155;
-    --bg-muted: #1E293B;
+    /* 互換トークン（Light と同じ対応）。値は下の意味トークンで決まる */
+    --bg-primary: var(--color-background-body);
+    --bg-secondary: var(--color-background-muted);
+    --bg-accent: var(--color-background-muted);
+    --bg-muted: var(--color-background-subtle);
 
-    /* Text Colors - Dark Theme */
-    --text-primary: #F8FAFC;
-    --text-secondary: #CBD5E1;
-    --text-tertiary: #94A3B8;
-    --text-inverse: #0F172A;
-    --text-muted: #64748B;
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-tertiary: var(--color-text-muted);
+    --text-inverse: var(--color-text-inverse);
+    --text-muted: var(--color-text-muted);
 
-    /* Border Colors - Dark Theme */
-    --border-light: #334155;
-    --border-medium: #475569;
-    --border-dark: #64748B;
-    --border-strong: #94A3B8;
+    --border-light: var(--color-background-subtle);
+    --border-medium: var(--color-border);
+    --border-dark: var(--color-border-emphasized);
+    --border-strong: var(--color-border-control);
+
+    /* Epackage UI Standard v1 — Dark（隠し機能: 切り替えは /design-system のみ）。
+       組み合わせのコントラストは計算で確認済み。見た目の作り込みは対象外。 */
+    --color-brand: #3DBAB3;
+    --color-brand-hover: #5DDFD7;
+    --color-brand-pressed: #7DEAE4;
+    --color-brand-muted: #155E57;
+    --color-brand-subtle: #0F2B28;
+    --color-brand-soft: #3DBAB3;
+    --color-on-brand: #0F2B28;        /* 6.35:1 */
+    --color-on-brand-muted: #B5F5F0;  /* 6.24:1 */
+    --color-text-brand: #7DEAE4;      /* 12.55:1 */
+    --color-ring: #5DDFD7;
+
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #CBD5E1;
+    --color-text-muted: #94A3B8;
+    --color-text-disabled: #64748B;
+    --color-text-inverse: #0F172A;
+
+    --color-background-body: #0F172A;
+    --color-background-surface: #1E293B;
+    --color-background-muted: #1E293B;
+    --color-background-subtle: #334155;
+    --color-background-inverted: #F8FAFC;
+
+    --color-border: #475569;
+    --color-border-emphasized: #64748B;
+    --color-border-control: #94A3B8;
+
+    --color-success: #34D399;  --color-on-success: #052E22;  --color-success-muted: #064E3B;  --color-on-success-muted: #6EE7B7;
+    --color-warning: #FBBF24;  --color-on-warning: #2B1A03;  --color-warning-muted: #78350F;  --color-on-warning-muted: #FDE68A;
+    --color-error:   #F87171;  --color-on-error:   #2A0A0A;  --color-error-muted:   #7F1D1D;  --color-on-error-muted:   #FCA5A5;
+    --color-info:    #60A5FA;  --color-on-info:    #0B1D3A;  --color-info-muted:    #1E3A8A;  --color-on-info-muted:    #DBEAFE;
 
     /* Adjusted grays for dark theme */
     --gray-50: #0F172A;
@@ -271,9 +360,9 @@
     font-weight: 700;
   }
 
-  /* Focus Styles */
+  /* Focus Styles — リングはブランドの基準色（白の上で 4.51:1。旧 #5EB6AC は 2.40:1 で基準未達） */
   :focus-visible {
-    outline: 2px solid var(--brixa-primary);
+    outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
 }

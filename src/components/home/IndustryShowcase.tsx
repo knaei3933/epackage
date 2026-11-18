@@ -83,7 +83,7 @@ export function IndustryShowcase({
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-10 max-w-[40em] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-2xl leading-[1.6] text-[#2F333D] md:text-3xl">
+          className="mb-10 max-w-[40em] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] font-heading text-2xl leading-[1.6] text-[#2F333D] md:text-3xl">
           {title}
         </motion.h2>
       </div>

@@ -24,7 +24,7 @@ export function HeroSection() {
         <div className="grid gap-12 md:grid-cols-[1fr_1.15fr] md:items-center">
           <div>
             <motion.div variants={statVariants}>
-            <h1 className="[word-break:keep-all] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-[1.75rem] leading-[1.35] text-[#2F333D] md:text-[2.5rem] xl:text-5xl">
+            <h1 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-[1.75rem] leading-[1.35] text-[#2F333D] md:text-[2.5rem] xl:text-5xl">
               <span className="block whitespace-nowrap">あなたの製品を</span>
               <span className="block whitespace-nowrap">最適な包装で輝かせる</span>
             </h1>
@@ -75,7 +75,7 @@ export function HeroSection() {
           {SPECS.map(s => (
             <motion.div key={s.value} variants={statVariants} className="flex flex-col-reverse justify-end border-t border-[#5EB6AC] pt-4">
               <dt className="mt-1 text-sm leading-[1.8] text-[#2F333D]">{s.label}</dt>
-              <dd className="font-[family-name:var(--font-home-heading)] text-2xl text-[#2F333D]">{s.value}</dd>
+              <dd className="font-heading text-2xl text-[#2F333D]">{s.value}</dd>
             </motion.div>
           ))}
         </dl>

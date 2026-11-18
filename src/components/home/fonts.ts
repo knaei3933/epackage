@@ -4,7 +4,7 @@ export const headingFont = Shippori_Mincho_B1({
   weight: '600',
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-home-heading',
+  variable: '--font-heading',
 })
 
 export const bodyFont = Noto_Sans_JP({

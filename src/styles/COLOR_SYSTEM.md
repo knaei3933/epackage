@@ -1,10 +1,18 @@
 # Color System Documentation
 
+> **2026-11-19: 色の使い方の正本は [`DESIGN_STANDARD.md`](./DESIGN_STANDARD.md) に移った。**
+> このファイルの「どの色をどこに使うか」が食い違うときは、`DESIGN_STANDARD.md` を優先する。
+> 主な訂正:
+> - ブランドの基準色は **Primary-600 `#3A827B`**（ヘッダーの「会員登録」「今すぐ相談」ボタンの色）。
+>   旧記述の「Primary-400 `#5EB6AC` = メインのブランド色・CTA」は誤り。`#5EB6AC` は白文字で 2.40:1 のため、装飾の細線と淡い面だけに使う。
+> - 画面では、土台（`--brixa-primary-*`）ではなく、意味トークン（`--color-brand` など）を使う。
+> - 以下の表の Primary-400 / 600 / 700 の「Usage」列は、下の訂正に読み替える。
+
 ## Overview
 
 This document defines the comprehensive color system for the Epackage Lab quote application. The color palette is designed to provide visual consistency, accessibility (WCAG AA compliant), and clear semantic meaning throughout the application.
 
-**Last Updated:** 2025-01-29
+**Last Updated:** 2025-01-29（2026-11-19 に冒頭の訂正を追加）
 **Theme Version:** 1.0
 
 ---
@@ -32,10 +40,10 @@ The primary brand color represents growth, reliability, and professionalism.
 | Primary-100 | `#E1F6F4` | Subtle backgrounds, cards | `--brixa-primary-100` |
 | Primary-200 | `#C3EBE6` | Dividers, light borders | `--brixa-primary-200` |
 | Primary-300 | `#89E1D8` | Icons, small accents | `--brixa-primary-300` |
-| **Primary-400** | **`#5EB6AC`** | **Main brand color, CTAs** | `--brixa-primary-400` |
+| Primary-400 | `#5EB6AC` | **（訂正）装飾の細線・大きな淡い面だけ。文字・ボタンには使わない** | `--brixa-primary-400` |
 | Primary-500 | `#47A39A` | Active states, hover | `--brixa-primary-500` |
-| Primary-600 | `#3A827B` | Pressed buttons, dark accents | `--brixa-primary-600` |
-| Primary-700 | `#2D6C65` | Text on light backgrounds | `--brixa-primary-700` |
+| **Primary-600** | **`#3A827B`** | **（訂正）ブランドの基準色。主ボタン・選択状態の塗り（`--color-brand`）** | `--brixa-primary-600` |
+| Primary-700 | `#2D6C65` | **（訂正）ホバーの塗り・ブランド色の文字（`--color-brand-hover` / `--color-text-brand`）** | `--brixa-primary-700` |
 | Primary-800 | `#235954` | Headings, emphasized text | `--brixa-primary-800` |
 | Primary-900 | `#1A453F` | Dark backgrounds, high contrast | `--brixa-primary-900` |
 

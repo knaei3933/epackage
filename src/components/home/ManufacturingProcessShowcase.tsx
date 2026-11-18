@@ -46,10 +46,10 @@ export function ManufacturingProcessShowcase() {
     <section className="bg-white py-16 md:py-24">
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <MotionWrapper delay={0.1}>
-        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-2xl sm:text-3xl leading-[1.4] text-[#2F333D] md:text-4xl">
+        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-2xl sm:text-3xl leading-[1.4] text-[#2F333D] md:text-4xl">
           一貫したパウチ製造サービス
         </h2>
-        <p className="mt-2 font-[family-name:var(--font-home-heading)] text-lg leading-[1.6] text-[#2D6C65]">
+        <p className="mt-2 font-heading text-lg leading-[1.6] text-[#2D6C65]">
           印刷、ラミネート、スリッティング、パウチ加工
         </p>
         <p className="mt-4 max-w-[40em] leading-[1.8] text-[#2F333D]">
@@ -62,8 +62,8 @@ export function ManufacturingProcessShowcase() {
           {manufacturingProcesses.map((p, index) => (
             <li key={p.step} className="border-t border-[#5EB6AC] pt-4">
               <MotionWrapper delay={0.2 + index * 0.15}>
-              <span className="font-[family-name:var(--font-home-heading)] text-2xl text-[#2D6C65]">{p.step}</span>
-              <h3 className="mt-2 [word-break:keep-all] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-xl text-[#2F333D]">{p.title}</h3>
+              <span className="font-heading text-2xl text-[#2D6C65]">{p.step}</span>
+              <h3 className="mt-2 [word-break:keep-all] [overflow-wrap:anywhere] font-heading text-xl text-[#2F333D]">{p.title}</h3>
               <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-[4px] bg-[#F4F8F7]">
                 <Image
                   src={p.image}
@@ -89,7 +89,7 @@ export function ManufacturingProcessShowcase() {
           {qualityStats.map(s => (
             <div key={s.label} className="flex flex-col-reverse justify-end border-t border-[#5EB6AC] pt-4">
               <dt className="mt-1 text-sm leading-[1.8] text-[#2F333D]">{s.label}</dt>
-              <dd className="font-[family-name:var(--font-home-heading)] text-2xl text-[#2F333D]">{s.value}</dd>
+              <dd className="font-heading text-2xl text-[#2F333D]">{s.value}</dd>
             </div>
           ))}
         </dl>

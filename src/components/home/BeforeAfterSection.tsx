@@ -21,7 +21,7 @@ export function BeforeAfterSection() {
   return (
     <section className="bg-[#F4F8F7] py-16 md:py-24">
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
-        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-2xl sm:text-3xl leading-[1.4] text-[#2F333D] md:text-4xl">
+        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-2xl sm:text-3xl leading-[1.4] text-[#2F333D] md:text-4xl">
           導入前後の変化
         </h2>
         <p className="mt-3 leading-[1.8] text-[#2F333D]">100社以上の企業様が体験した変革</p>
@@ -48,7 +48,7 @@ export function BeforeAfterSection() {
 
         <div className="mt-12 max-w-[40em] border-t border-[#5EB6AC] pt-6">
           <p className="leading-[1.8] text-[#2F333D]">年間300万円の在庫廃棄コストを</p>
-          <p className="font-[family-name:var(--font-home-heading)] text-4xl text-[#2D6C65]">70%削減</p>
+          <p className="font-heading text-4xl text-[#2D6C65]">70%削減</p>
           <p className="mt-2 text-sm leading-[1.8] text-[#2F333D]">※ 導入企業の平均実績に基づく</p>
         </div>
       </div>

@@ -15,7 +15,7 @@ export function CTASection() {
     <section className="bg-[#2F333D] py-16 text-white md:py-24">
       <MotionWrapper delay={0.4}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
-        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-2xl sm:text-3xl leading-[1.4] md:text-4xl">
+        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-2xl sm:text-3xl leading-[1.4] md:text-4xl">
           今なら30秒で申し込み完了
         </h2>
         <p className="mt-4 max-w-[40em] leading-[1.8]">3営業日以内にサンプル発送、1週間でお手元に届きます。</p>
@@ -39,7 +39,7 @@ export function CTASection() {
                 href={o.href}
                 className="block rounded-[4px] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5EB6AC]"
               >
-                <span className="font-[family-name:var(--font-home-heading)] text-lg underline underline-offset-4">{o.title}</span>
+                <span className="font-heading text-lg underline underline-offset-4">{o.title}</span>
                 <span className="mt-2 block text-sm leading-[1.8] text-white/80">{o.text}</span>
               </Link>
             </li>

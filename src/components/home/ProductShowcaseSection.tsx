@@ -14,7 +14,7 @@ export function ProductShowcaseSection({ products }: ProductShowcaseSectionProps
     <section className="bg-[#F4F8F7] py-16 md:py-24">
       <MotionWrapper delay={0.2}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
-        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-2xl sm:text-3xl leading-[1.4] text-[#2F333D]">
+        <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-2xl sm:text-3xl leading-[1.4] text-[#2F333D]">
           あなたの製品に最適な
           <br />
           パッケージソリューション
