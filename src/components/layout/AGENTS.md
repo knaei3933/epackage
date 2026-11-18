@@ -28,17 +28,16 @@ Main site header component with responsive navigation, authentication integratio
 - お見積り (Quote Simulator) - auth-gated
 
 ### Footer.tsx
-Comprehensive footer with company information, privacy links, newsletter signup, and social media integration.
+Flat, link-first footer (Mist #F4F8F7 / Ink #2F333D / Fjord #2D6C65, Sea Glass #5EB6AC for rules only, 4px radius, no shadows or gradients).
 
 **Key Features:**
-- Multi-column responsive layout
-- Newsletter subscription form
-- Social media links with platform-specific styling
-- Privacy/legal links (Privacy Policy, Terms, Legal Notice, CSR)
-- Back-to-top button with scroll detection
-- Animated entry effects on mount
-- Contact information display
-- Copyright and bottom navigation bar
+- lg: 4 columns (company info / サービス・コンテンツ / ご利用案内 / SNS), md: 2 columns, mobile: 1 column with 44px-high links
+- Company info: logo, description, email, phone, address
+- Bottom row: copyright on the left, サイトマップ・個人情報保護方針・利用規約 on the right
+- SNS: five 44px outline icon buttons (hover = Fjord, no brand colors)
+- Back-to-top button: shown after 400px scroll, 44px solid Fjord, placed above the chat widget (`bottom-24 right-6`)
+- No newsletter form, privacy cards, background pattern or mount animation (removed)
+- Only state: `showBackToTop` (scroll listener)
 
 ### Navigation.tsx
 Reusable navigation components supporting multiple variants (header, sidebar, mobile).
@@ -309,10 +308,9 @@ useEffect(() => {
 4. Add badges for counts/notifications
 
 **Custom Footer Sections:**
-1. Add new link array in Footer.tsx
-2. Follow `PrivacyLink` or `SocialLink` interface
-3. Add icon and description
-4. Render in appropriate grid column
+1. Add a new `FooterLink[]` array in Footer.tsx
+2. Render it as a `<nav>` with a 14px `font-medium` heading in the grid
+3. Reuse `linkClass` (15px, Fjord, underline on hover)
 
 **Skeleton Variants:**
 1. Create new skeleton component following existing patterns
@@ -323,7 +321,7 @@ useEffect(() => {
 ## Testing Notes
 
 - Header: Test auth gating, mobile menu, dropdown interactions
-- Footer: Test newsletter form, back-to-top button, social links
+- Footer: Test back-to-top button, social links, link targets
 - Navigation: Test auth filtering, active states, keyboard navigation
 - Layout: Test container sizes, loading states, skip links
 - Skeletons: Verify animation smoothness, proper ARIA labels
