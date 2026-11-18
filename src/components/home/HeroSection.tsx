@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { heroVariants, statVariants, ctaVariants } from './animations'
 
@@ -136,8 +137,20 @@ export function HeroSection() {
               </Link>
             </motion.div>
           </div>
-          <motion.div variants={statVariants} className="rounded-[4px] bg-[#F4F8F7] p-4 sm:p-6">
-            <LayerCrossSection />
+          <motion.div variants={statVariants} className="flex flex-col gap-4">
+            <Image
+              src="/images/main/main15.png"
+              alt="スタンドパウチ、スパウトパウチ、クラフトパウチなど、包装材の例"
+              width={1408}
+              height={768}
+              priority
+              fetchPriority="high"
+              sizes="(min-width: 1152px) 600px, (min-width: 768px) 52vw, 100vw"
+              className="aspect-[16/9] w-full rounded-[4px] object-cover"
+            />
+            <div className="mx-auto w-full max-w-[420px] rounded-[4px] bg-[#F4F8F7] p-4 lg:max-w-none">
+              <LayerCrossSection />
+            </div>
           </motion.div>
         </div>
 

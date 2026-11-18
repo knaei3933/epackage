@@ -27,7 +27,7 @@ export function ProductShowcaseSection({ products }: ProductShowcaseSectionProps
         <div className="mt-10">
           <p className="mb-4 text-sm leading-[1.8] text-[#2F333D]">{PRODUCT_FEATURES.join('、')}</p>
           <div
-            className={`hidden border-b border-[#5EB6AC] pb-3 text-sm font-medium text-[#2F333D] md:grid ${PRODUCT_ROW_GRID} md:gap-4`}
+            className={`hidden border-b border-[#5EB6AC] pb-3 text-sm font-medium text-[#2F333D] lg:grid ${PRODUCT_ROW_GRID} lg:gap-4`}
             aria-hidden="true"
           >
             <span>製品名</span>

@@ -10,7 +10,7 @@ interface HomePageProductCardProps {
   delay?: number
 }
 
-export const PRODUCT_ROW_GRID = 'md:grid-cols-[2fr_2fr_1fr_1fr_minmax(11.5rem,auto)]'
+export const PRODUCT_ROW_GRID = 'lg:grid-cols-[2fr_2fr_1fr_1fr_minmax(11.5rem,auto)]'
 
 // 元のカードの先頭3つの特長。表の上の注記で1回だけ表示する（「密封性」は指示により修正済み）。
 export const PRODUCT_FEATURES = ['密封性', 'コスト競争力', '迅速な納期']
@@ -29,28 +29,32 @@ const categoryNames: Record<string, string> = {
   roll_film: 'ロールフィルム',
 }
 
+// 表示だけの略称。DB の値は変更しない（大文字小文字は区別しない）。
+const MATERIAL_ABBREVIATIONS: Record<string, string> = { ALUMINUM: 'AL', ALUMINIUM: 'AL', NYLON: 'NY' }
+const abbreviateMaterial = (m: string) => MATERIAL_ABBREVIATIONS[m.trim().toUpperCase()] ?? m
+
 const linkClass =
   'whitespace-nowrap rounded-[4px] py-1 font-medium text-[#2D6C65] underline underline-offset-4 hover:text-[#245a54] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5EB6AC]'
 
 export function HomePageProductCard({ product, delay = 0 }: HomePageProductCardProps) {
   const unit = product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'
-  const materials = (product.materials ?? []).join('、')
-  const row = `md:grid ${PRODUCT_ROW_GRID} md:gap-4 md:items-baseline`
+  const materials = (product.materials ?? []).map(abbreviateMaterial).join('、')
+  const row = `lg:grid ${PRODUCT_ROW_GRID} lg:gap-4 lg:items-center`
   return (
     <motion.li
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay }}
-      className={`border-b border-[#5EB6AC]/40 py-5 text-[15px] leading-[1.8] text-[#2F333D] ${row}`}>
+      className={`border-b border-[#5EB6AC]/40 py-4 text-[15px] leading-[1.8] text-[#2F333D] ${row}`}>
       <div className="flex items-center gap-3">
         {product.image && (
           <Image
             src={product.image}
             alt={product.name_ja}
-            width={56}
-            height={56}
-            sizes="56px"
-            className="h-14 w-14 shrink-0 rounded-[4px] object-cover"
+            width={112}
+            height={112}
+            sizes="(min-width: 1024px) 112px, 88px"
+            className="h-[88px] w-[88px] shrink-0 rounded-[4px] object-cover lg:h-28 lg:w-28"
           />
         )}
         <div>
@@ -58,12 +62,12 @@ export function HomePageProductCard({ product, delay = 0 }: HomePageProductCardP
           <div className="text-sm text-[#2F333D]/70">{categoryNames[product.category] ?? product.category}</div>
         </div>
       </div>
-      <div className="md:contents">
-        <div><span className="mr-2 text-sm md:sr-only">素材</span>{materials || '—'}</div>
-        <div><span className="mr-2 text-sm md:sr-only">最小注文数</span>{product.min_order_quantity.toLocaleString()}{unit}</div>
-        <div><span className="mr-2 text-sm md:sr-only">納期</span>{product.lead_time_days}日</div>
+      <div className="lg:contents">
+        <div><span className="mr-2 text-sm lg:sr-only">素材</span>{materials || '—'}</div>
+        <div><span className="mr-2 text-sm lg:sr-only">最小注文数</span>{product.min_order_quantity.toLocaleString()}{unit}</div>
+        <div><span className="mr-2 text-sm lg:sr-only">納期</span>{product.lead_time_days}日</div>
       </div>
-      <div className="mt-2 flex gap-6 whitespace-nowrap md:mt-0">
+      <div className="mt-2 flex gap-6 whitespace-nowrap lg:mt-0">
         <Link href="/catalog" className={linkClass}>詳細をご確認</Link>
         <Link href="/samples" className={linkClass}>サンプル</Link>
       </div>
