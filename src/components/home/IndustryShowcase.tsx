@@ -32,6 +32,9 @@ export function IndustryShowcase({
   title = '食品から化粧品、日用品、産業用途まで。多様な業界で信頼される包装ソリューション。',
 }: IndustryShowcaseProps) {
   const sliderRef = useRef<HTMLDivElement>(null)
+  // 停止状態は ref で持つ（再描画しない）。ポインタ（マウス・タッチ）とフォーカスのどちらかがあれば停止。
+  const hoverRef = useRef(false)
+  const focusRef = useRef(false)
 
   // Duplicate items for infinite scroll effect
   const duplicatedItems = [...ITEMS_DEFAULT, ...ITEMS_DEFAULT]
@@ -46,6 +49,12 @@ export function IndustryShowcase({
     const speed = 1.21 // pixels per frame
 
     const animate = () => {
+      if (hoverRef.current || focusRef.current) {
+        // 停止中は位置を進めない（再開時に飛ばないよう現在位置に合わせる）
+        scrollPosition = slider.scrollLeft
+        animationId = requestAnimationFrame(animate)
+        return
+      }
       scrollPosition -= speed
 
       // Reset when we've scrolled to the beginning
@@ -67,15 +76,14 @@ export function IndustryShowcase({
   }, [])
 
   return (
-    <section className="w-full py-16 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-5">
+    <section className="w-full bg-white py-16 md:py-24 overflow-hidden">
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8"
-        >
+          className="mb-10 max-w-[40em] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] font-[family-name:var(--font-home-heading)] text-2xl leading-[1.6] text-[#2F333D] md:text-3xl">
           {title}
         </motion.h2>
       </div>
@@ -83,7 +91,13 @@ export function IndustryShowcase({
       {/* Infinite Slider */}
       <div
         ref={sliderRef}
-        className="flex gap-5 overflow-x-auto scrollbar-hide"
+        onPointerEnter={(e) => { if (e.pointerType === 'mouse') hoverRef.current = true }}
+        onPointerLeave={(e) => { if (e.pointerType === 'mouse') hoverRef.current = false }}
+        onFocus={() => { focusRef.current = true }}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) focusRef.current = false
+        }}
+        className="flex gap-4 overflow-x-auto scrollbar-hide"
         style={{
           scrollBehavior: 'auto',
         }}
@@ -97,7 +111,7 @@ export function IndustryShowcase({
             viewport={{ once: true }}
             className="flex-shrink-0 w-[180px] sm:w-[220px] md:w-[265px] aspect-square relative"
           >
-            <div className="w-full h-full rounded-lg overflow-hidden shadow-md bg-white border border-gray-200">
+            <div className="relative w-full h-full rounded-[4px] overflow-hidden bg-white">
               <Image
                 src={item.image}
                 alt={item.alt}

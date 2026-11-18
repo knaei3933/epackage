@@ -22,7 +22,7 @@ home/
 - **Features**:
   - Multi-layer background with gradient overlays
   - Floating product images with parallax effects
-  - Animated stats (500+ types, 10-day delivery, 100+ companies)
+  - Animated stats (500+ types, 28-day delivery, 100+ companies)
   - CTA buttons with Google Analytics tracking
   - Trust indicators (quality, delivery, cost)
 - **Key Images**: `/images/main/main15.png`, `/images/products/granola-standpouch-real.jpg`

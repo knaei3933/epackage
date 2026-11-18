@@ -74,7 +74,7 @@ export function AnnouncementBanner({ announcements: initialAnnouncements }: Anno
               <div
                 key={announcement.id}
                 className={`
-                  flex items-start gap-3 p-4 rounded-lg border
+                  flex items-start gap-3 p-4 rounded-[4px] border
                   ${getCategoryColor(announcement.category)}
                 `}
               >
@@ -83,7 +83,7 @@ export function AnnouncementBanner({ announcements: initialAnnouncements }: Anno
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white bg-opacity-60">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-[4px] bg-white bg-opacity-60">
                       {getAnnouncementCategoryLabel(announcement.category)}
                     </span>
                     {announcement.published_at && (

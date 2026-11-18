@@ -3,13 +3,14 @@ import dynamic from 'next/dynamic'
 import { FAQSchema, ProductSchema } from '@/components/seo/StructuredData'
 import { HeroSection, ProductShowcaseSection, BeforeAfterSection, CTASection, IndustryShowcase } from '@/components/home'
 import { AnnouncementBanner } from '@/components/home/AnnouncementBanner'
+import { homeFontClass } from '@/components/home/fonts'
 import { getFeaturedProducts } from '@/lib/products'
 import { createCanonicalMetadata } from '@/lib/seo/canonical'
 
 const ManufacturingProcessShowcase = dynamic(
   () => import('@/components/home/ManufacturingProcessShowcase').then(m => ({ default: m.ManufacturingProcessShowcase })),
   {
-    loading: () => <div className="min-h-[600px] flex items-center justify-center bg-gray-50" aria-label="제조 공정 로딩 중" />,
+    loading: () => <div className="min-h-[600px] flex items-center justify-center bg-[#F4F8F7]" aria-label="제조 공정 로딩 중" />,
     ssr: true
   }
 )
@@ -34,7 +35,7 @@ const faqData = [
   },
   {
     question: '納期はどのくらいかかりますか？',
-    answer: '標準的な製品で最短21日、通常25-30日での納品が可能です。緊急のご要望には最優先で対応いたしますので、お気軽にご相談ください。'
+    answer: '標準的な製品で最短28日、通常28〜30日での納品が可能です。緊急のご要望には最優先で対応いたしますので、お気軽にご相談ください。'
   },
   {
     question: 'カスタマイズはどの程度可能ですか？',
@@ -68,7 +69,7 @@ export default async function Home() {
         <ProductSchema key={props.name} {...props} />
       ))}
 
-      <div className="min-h-screen">
+      <div className={`min-h-screen font-[family-name:var(--font-home-body)] ${homeFontClass}`}>
         {/* Announcement Banner - Client-side auth check */}
         <AnnouncementBanner />
 

@@ -1,13 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Shield, Award, Users, CheckCircle, Clock } from 'lucide-react'
+import { Award, Users, CheckCircle, Clock } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 
 const stats = [
-  { value: '500+', label: '導入企業数', icon: Users },
+  { value: '100+', label: '導入企業数', icon: Users },
   { value: '100%', label: '全検査合格', icon: CheckCircle },
-  { value: '21日', label: '平均納期', icon: Clock },
+  { value: '28日', label: '平均納期', icon: Clock },
   { value: '30%', label: 'コスト削減', icon: Award }
 ]
 
@@ -36,7 +36,7 @@ export function TrustSignalsSection() {
         {/* Client Logos Placeholder */}
         <div className="mt-12 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            500社以上の企業様にご利用いただいています
+            100社以上の企業様にご利用いただいています
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-50">
             {/* Placeholder - 実際のロゴ画像に差し替え */}
