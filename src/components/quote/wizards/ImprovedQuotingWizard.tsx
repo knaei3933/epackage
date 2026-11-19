@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/Button';
 import { Package, Layers, Calendar, Settings } from 'lucide-react';
 import { useQuote, useQuoteState, useQuoteContext, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState, canAddPostProcessingOptionForState, getSpecsValidationMessages } from '@/contexts/QuoteContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -556,7 +557,7 @@ export function ImprovedQuotingWizard() {
   }, [currentStep]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50" role="main">
+    <div className="min-h-screen bg-bg-secondary" role="main">
       {/* Error Toast Notifications */}
       <ErrorToast toasts={toasts} onDismiss={dismissToast} />
 
@@ -607,7 +608,7 @@ export function ImprovedQuotingWizard() {
 
           {/* Main Step Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:p-8 mb-8">
+            <div className="bg-bg-primary rounded-container border border-border-medium p-6 lg:p-8 mb-8">
               {/* Step Content */}
               {currentStepId === 'specs' && <SpecsStep />}
               {currentStepId === 'post-processing' && <PostProcessingStep />}
@@ -624,15 +625,15 @@ export function ImprovedQuotingWizard() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg"
+                  className="mb-4 p-4 bg-error-muted border border-error rounded-container"
                 >
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                    <AlertCircle className="h-6 w-6 text-error flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-red-800 mb-2">
+                      <p className="text-sm font-medium text-on-error-muted mb-2">
                         次の項目を入力してください：
                       </p>
-                      <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
+                      <ul className="text-xs text-on-error-muted space-y-1 list-disc list-inside">
                         {specsValidationErrors.map((error, index) => (
                           <li key={index}>{error}</li>
                         ))}
@@ -644,88 +645,46 @@ export function ImprovedQuotingWizard() {
 
               {/* Navigation Buttons */}
               {currentStepId !== 'result' && (
-                <div className="pt-8 flex flex-col sm:flex-row justify-between gap-4 border-t border-gray-200">
-                  <button
+                <div className="pt-8 flex flex-col sm:flex-row justify-between gap-4 border-t border-border-medium">
+                  <Button
+                    variant="secondary"
                     onClick={handleBack}
                     disabled={currentStep === 0}
-                    className={`px-6 py-3 font-medium rounded-lg transition-all flex items-center justify-center w-full sm:w-auto ${currentStep === 0
-                      ? 'text-gray-300 cursor-not-allowed bg-gray-100'
-                      : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
-                      }`}
+                    className="w-full sm:w-auto px-6"
                     aria-label="前のステップに戻る"
                   >
-                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    <ChevronLeft className="w-4 h-4" />
                     戻る
-                  </button>
+                  </Button>
 
-                  <motion.button
+                  <Button
                     onClick={handleNext}
                     disabled={!canProceed || isCalculating || isAuthLoading}
-                    className={`px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center relative shadow-lg w-full sm:w-auto border-2 ${!canProceed || isCalculating || isAuthLoading
-                      ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed opacity-70'
-                      : 'bg-info-700 border-info-800 hover:bg-info-800 hover:border-info-900 hover:shadow-xl'
-                      }`}
-                    style={!canProceed || isCalculating || isAuthLoading ? {} : {
-                      backgroundColor: '#1e3a8a',
-                      borderColor: '#1e40af',
-                      color: '#FFFFFF !important'
-                    }}
+                    className="w-full sm:w-auto px-8"
                     aria-label={isLastStep ? "見積もりを完了する" : "次のステップに進む"}
-                    whileHover={canProceed && !isCalculating && !isAuthLoading ? {
-                      scale: 1.02,
-                      backgroundColor: '#1e40af',
-                      borderColor: '#1e3a8a'
-                    } : {}}
-                    whileTap={canProceed && !isCalculating && !isAuthLoading ? { scale: 0.98 } : {}}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
-                    <div className="relative flex items-center" style={{
-                      color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF',
-                      fontWeight: 'bold'
-                    }}>
-                      {isAuthLoading ? (
-                        <>
-                          <div
-                            className="animate-spin rounded-full h-4 w-4 border-2 mr-2"
-                            style={{
-                              borderColor: !canProceed || isCalculating || isAuthLoading ? 'currentColor' : '#FFFFFF',
-                              borderTopColor: 'transparent'
-                            }}
-                          />
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
-                            認証確認中...
-                          </span>
-                        </>
-                      ) : isCalculating ? (
-                        <>
-                          <div
-                            className="animate-spin rounded-full h-4 w-4 border-2 mr-2"
-                            style={{
-                              borderColor: !canProceed || isCalculating || isAuthLoading ? 'currentColor' : '#FFFFFF',
-                              borderTopColor: 'transparent'
-                            }}
-                          />
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
-                            計算中...
-                          </span>
-                        </>
-                      ) : isLastStep ? (
-                        <>
-                          <Check className="w-4 h-4 mr-2" style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }} />
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
-                            見積もりを完了
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }}>
-                            次へ
-                          </span>
-                          <ChevronRight className="w-4 h-4 ml-2" style={{ color: !canProceed || isCalculating || isAuthLoading ? 'inherit' : '#FFFFFF' }} />
-                        </>
-                      )}
-                    </div>
-                  </motion.button>
+                    {isAuthLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                        <span>認証確認中...</span>
+                      </>
+                    ) : isCalculating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                        <span>計算中...</span>
+                      </>
+                    ) : isLastStep ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>見積もりを完了</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>次へ</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </div>
@@ -736,17 +695,17 @@ export function ImprovedQuotingWizard() {
         <div className="h-32 lg:hidden" aria-hidden="true" />
 
         {/* Bottom Action Boxes - Fixed Position */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-40" role="contentinfo">
+        <div className="fixed bottom-0 left-0 right-0 bg-bg-primary border-t border-border-medium z-40" role="contentinfo">
           <div className="max-w-7xl mx-auto px-4 py-4">
 
             {/* Mobile Price Display */}
             {result && (
-              <div className="lg:hidden mb-3 p-3 bg-gradient-to-r from-navy-50 to-blue-50 rounded-lg border-2 border-navy-200">
+              <div className="lg:hidden mb-3 p-3 bg-brand-muted rounded-container border border-brand-soft">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-navy-700">見積もり価格</span>
-                  <span className="text-xl font-bold text-navy-900">
+                  <span className="text-sm font-medium text-on-brand-muted">見積もり価格</span>
+                  <span className="text-xl font-bold text-on-brand-muted">
                     ¥{result.totalPrice.toLocaleString()}
-                    <span className="text-xs text-navy-600 ml-1">税込</span>
+                    <span className="text-xs text-on-brand-muted ml-1">税込</span>
                   </span>
                 </div>
               </div>
@@ -757,32 +716,32 @@ export function ImprovedQuotingWizard() {
 
               {/* 総合見積りツール */}
               <button
-                className="bg-gradient-to-r from-info-50 to-info-100 border-2 border-info-200 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-blue-300 text-left"
+                className="bg-bg-primary border border-border-medium rounded-container p-3 lg:p-4 hover:border-border-dark hover:shadow-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 text-left"
                 aria-label="総合見積りツール - すべてのオプションを網羅した詳細見積を表示"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-info-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Package className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center flex-shrink-0">
+                    <Package className="w-5 h-5 lg:w-6 lg:h-6 text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-info-900 text-sm lg:text-base truncate">総合見積りツール</h3>
-                    <p className="text-xs lg:text-sm text-info-700 hidden sm:block">すべてのオプションを網羅した詳細見積</p>
+                    <h3 className="font-semibold text-text-primary text-sm lg:text-base truncate">総合見積りツール</h3>
+                    <p className="text-xs lg:text-sm text-text-secondary hidden sm:block">すべてのオプションを網羅した詳細見積</p>
                   </div>
                 </div>
               </button>
 
               {/* 詳細見積もり */}
               <button
-                className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300 text-left"
+                className="bg-bg-primary border border-border-medium rounded-container p-3 lg:p-4 hover:border-border-dark hover:shadow-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 text-left"
                 aria-label="詳細見積もり - 仕様別の価格比較と分析を表示"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calculator className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center flex-shrink-0">
+                    <Calculator className="w-5 h-5 lg:w-6 lg:h-6 text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-green-900 text-sm lg:text-base truncate">詳細見積もり</h3>
-                    <p className="text-xs lg:text-sm text-green-700 hidden sm:block">仕様別の価格比較と分析</p>
+                    <h3 className="font-semibold text-text-primary text-sm lg:text-base truncate">詳細見積もり</h3>
+                    <p className="text-xs lg:text-sm text-text-secondary hidden sm:block">仕様別の価格比較と分析</p>
                   </div>
                 </div>
               </button>
@@ -790,48 +749,48 @@ export function ImprovedQuotingWizard() {
               {/* 即時相談 */}
               <a
                 href="tel:050-3613-9673"
-                className="bg-gradient-to-r from-navy-600 to-navy-700 text-white border-2 border-navy-600 rounded-xl p-3 lg:p-4 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-navy-300 text-left sm:col-span-2 lg:col-span-1"
+                className="bg-bg-primary border border-border-medium rounded-container p-3 lg:p-4 hover:border-border-dark hover:shadow-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 text-left sm:col-span-2 lg:col-span-1"
                 aria-label="即時相談 - 専門家との無料相談。電話番号: 050-3613-9673"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm lg:text-base truncate">即時相談</h3>
-                    <p className="text-xs lg:text-sm text-white/90 hidden sm:block">専門家との無料相談 050-3613-9673</p>
+                    <h3 className="font-semibold text-text-primary text-sm lg:text-base truncate">即時相談</h3>
+                    <p className="text-xs lg:text-sm text-text-secondary hidden sm:block">専門家との無料相談 050-3613-9673</p>
                   </div>
                 </div>
               </a>
             </div>
 
             {/* Contact Info Bar - Mobile Optimized */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-border-medium">
               <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0">
-                <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 lg:space-x-6 text-xs sm:text-sm text-gray-600">
+                <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 lg:space-x-6 text-xs sm:text-sm text-text-secondary">
                   <a
                     href="tel:050-3613-9673"
-                    className="flex items-center space-x-2 hover:text-navy-700 transition-colors"
+                    className="flex items-center space-x-2 min-h-11 hover:text-brand transition-colors"
                     aria-label="電話番号: 050-3613-9673"
                   >
-                    <Phone className="w-4 h-4 text-navy-600" />
+                    <Phone className="w-4 h-4 text-brand" />
                     <span className="font-medium">050-3613-9673</span>
                   </a>
                   <a
                     href="mailto:info@package-lab.com"
-                    className="flex items-center space-x-2 hover:text-navy-700 transition-colors"
+                    className="flex items-center space-x-2 min-h-11 hover:text-brand transition-colors"
                     aria-label="メールアドレス: info@package-lab.com"
                   >
-                    <Mail className="w-4 h-4 text-navy-600" />
+                    <Mail className="w-4 h-4 text-brand" />
                     <span className="font-medium hidden sm:inline">info@package-lab.com</span>
                     <span className="font-medium sm:hidden">メール</span>
                   </a>
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-navy-600" />
+                    <Clock className="w-4 h-4 text-brand" />
                     <span className="text-xs">平日 9:00-18:00 (JST)</span>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500 text-center lg:text-right">
+                <div className="text-xs text-text-muted text-center lg:text-right">
                   © 2025 Epackage Lab. 全著作権所有.
                 </div>
               </div>

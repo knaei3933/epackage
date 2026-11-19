@@ -19,8 +19,8 @@ const ImprovedQuotingWizard = dynamic(
     loading: () => (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brixa-600 mb-4"></div>
-          <p className="text-gray-600">見積もりツールを読み込み中...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand mb-4"></div>
+          <p className="text-text-secondary">見積もりツールを読み込み中...</p>
         </div>
       </div>
     ),
@@ -89,7 +89,7 @@ export default function QuoteSimulatorPage() {
         />
 
         {/* Improved Quote System */}
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-bg-secondary">
           <QuoteProvider>
             <MultiQuantityQuoteProvider>
               <ImprovedQuotingWizard />
@@ -104,7 +104,7 @@ export default function QuoteSimulatorPage() {
         <TrustSignals variant="default" showCertifications={true} />
 
         {/* Strong CTA Section */}
-        <section className="py-12 bg-gradient-to-br from-gray-50 via-white to-brixa-50">
+        <section className="py-12 bg-bg-primary">
           <Container size="6xl">
             <StrongCTA
               title="ご不明点がございましたらお気軽にご相談ください"

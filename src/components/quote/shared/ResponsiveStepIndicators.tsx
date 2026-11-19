@@ -44,12 +44,10 @@ export function ResponsiveStepIndicators({
               data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
               onClick={() => isCompleted && onStepClick(index)}
               disabled={!isCompleted}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left transition-all min-h-[44px] md:min-h-[48px] ${
-                isActive
-                  ? 'bg-navy-700 text-white shadow-lg ring-4 ring-navy-200'
-                  : isCompleted
-                  ? 'bg-green-50 border-2 border-green-300 text-green-800 hover:bg-green-100'
-                  : 'bg-gray-50 border-2 border-gray-200 text-gray-400 cursor-not-allowed'
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-container text-left transition-colors min-h-[44px] md:min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+                isActive || isCompleted
+                  ? 'bg-brand text-on-brand'
+                  : 'border border-border-strong text-text-muted cursor-not-allowed'
               }`}
               aria-label={`${step.title} - ${
                 isCompleted ? '完了' : isActive ? '現在のステップ' : '利用できません'
@@ -57,12 +55,10 @@ export function ResponsiveStepIndicators({
               aria-current={isActive ? 'step' : undefined}
             >
               <div
-                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all font-semibold text-sm ${
-                  isActive
-                    ? 'bg-white/20'
-                    : isCompleted
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-300 text-gray-500'
+                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm ${
+                  isActive || isCompleted
+                    ? 'bg-bg-primary text-brand'
+                    : 'border border-border-strong text-text-muted'
                 }`}
               >
                 {isCompleted ? (
@@ -74,16 +70,12 @@ export function ResponsiveStepIndicators({
 
               <div className="flex-1 min-w-0">
                 <div
-                  className={`font-semibold text-sm truncate ${
-                    isActive ? 'text-white' : isCompleted ? 'text-green-800' : 'text-gray-400'
-                  }`}
+                  className="font-semibold text-sm truncate"
                 >
                   {step.title}
                 </div>
                 <div
-                  className={`text-xs truncate ${
-                    isActive ? 'text-white/80' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                  }`}
+                  className="text-xs truncate"
                   aria-hidden="true"
                 >
                   {step.description}
@@ -91,7 +83,7 @@ export function ResponsiveStepIndicators({
               </div>
 
               {isActive && (
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse" aria-hidden="true" />
+                <div className="w-2 h-2 bg-bg-primary rounded-full" aria-hidden="true" />
               )}
             </button>
           );
@@ -110,18 +102,16 @@ export function ResponsiveStepIndicators({
           return (
             <div
               key={step.id}
-              className={`flex flex-col items-center relative ${
-                index < steps.length - 1 ? 'flex-1' : ''
-              }`}
+              className="flex flex-col items-center relative flex-1"
             >
               <button
                 data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
-                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 font-semibold text-sm ${
+                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 font-semibold text-sm ${
                   isActive
-                    ? 'bg-navy-700 text-white shadow-lg scale-110 ring-4 ring-navy-200 focus:ring-navy-400'
+                    ? 'bg-brand text-on-brand ring-2 ring-brand ring-offset-2'
                     : isCompleted
-                    ? 'bg-green-600 text-white shadow-md focus:ring-green-400'
-                    : 'bg-gray-300 text-gray-600 focus:ring-gray-400'
+                    ? 'bg-brand text-on-brand'
+                    : 'border border-border-strong text-text-muted'
                 }`}
                 onClick={() => isCompleted && onStepClick(index)}
                 disabled={!isCompleted}
@@ -141,22 +131,18 @@ export function ResponsiveStepIndicators({
                 <span
                   className={`text-xs sm:text-sm transition-colors block ${
                     isActive
-                      ? 'text-navy-700 font-semibold'
+                      ? 'text-text-primary font-semibold'
                       : isCompleted
-                      ? 'text-green-700 font-medium'
-                      : 'text-gray-500'
+                      ? 'text-text-primary font-medium'
+                      : 'text-text-muted'
                   }`}
                   aria-hidden="true"
                 >
                   {step.title}
                 </span>
                 <span
-                  className={`text-[10px] sm:text-xs mt-0.5 block leading-tight ${
-                    isActive
-                      ? 'text-navy-600'
-                      : isCompleted
-                      ? 'text-green-600'
-                      : 'text-gray-400'
+                  className={`text-xs mt-0.5 block leading-tight ${
+                    isActive || isCompleted ? 'text-text-secondary' : 'text-text-muted'
                   }`}
                   aria-hidden="true"
                 >
@@ -167,10 +153,9 @@ export function ResponsiveStepIndicators({
               {/* Connector Line */}
               {index < steps.length - 1 && (
                 <div
-                  className={`absolute top-5 left-10 h-0.5 -ml-5 transition-colors duration-300 ${
-                    isCompleted ? 'bg-green-400' : 'bg-gray-300'
+                  className={`absolute top-5 h-0.5 left-[calc(50%+28px)] w-[calc(100%-56px)] transition-colors duration-300 ${
+                    isCompleted ? 'bg-brand' : 'bg-border-medium'
                   }`}
-                  style={{ width: 'calc(100% - 44px)' }}
                   aria-hidden="true"
                 />
               )}
@@ -182,13 +167,13 @@ export function ResponsiveStepIndicators({
       {/* Progress Bar */}
       <div className="hidden lg:block max-w-4xl mx-auto mb-5 md:mb-6">
         <div className="flex justify-between items-center mb-1.5">
-          <span className="text-xs text-gray-600 font-medium">進捗状況</span>
-          <span className="text-xs font-bold text-navy-700" aria-live="polite">
+          <span className="text-xs text-text-secondary font-medium">進捗状況</span>
+          <span className="text-xs font-bold text-brand" aria-live="polite">
             {progressPercent}% 完了
           </span>
         </div>
         <div
-          className="w-full bg-gray-200 rounded-full h-2 md:h-2.5 shadow-inner overflow-hidden"
+          className="w-full bg-bg-muted rounded-full h-2 md:h-2.5 overflow-hidden"
           role="progressbar"
           aria-valuenow={progressPercent}
           aria-valuemin={0}
@@ -196,7 +181,7 @@ export function ResponsiveStepIndicators({
           aria-label="見積もり作成の進捗状況"
         >
           <div
-            className="bg-gradient-to-r from-navy-600 to-navy-700 h-2 md:h-2.5 rounded-full transition-all duration-500 ease-out shadow-lg"
+            className="bg-brand h-2 md:h-2.5 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
             aria-hidden="true"
           />

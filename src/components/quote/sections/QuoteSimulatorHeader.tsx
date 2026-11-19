@@ -1,10 +1,8 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
 import { LucideIcon } from 'lucide-react'
-import { Container } from '@/components/ui/Container'
-import { MotionWrapper } from '@/components/ui/MotionWrapper'
+import { PageHeader } from '@/components/layout'
 
 /**
  * Trust Indicator プロパティ
@@ -22,8 +20,8 @@ export interface QuoteSimulatorHeaderProps {
   title: string
   /** ページ説明 */
   description: string
-  /** パンくずリストに表示する現在ページ名 */
-  currentPageName: string
+  /** パンくずリストに表示する現在ページ名（パンくずは全ページ共通の BreadcrumbNav が出すため、現在は未使用） */
+  currentPageName?: string
   /** Trust Indicators（信頼指標）の配列 */
   trustIndicators: TrustIndicator[]
 }
@@ -31,50 +29,27 @@ export interface QuoteSimulatorHeaderProps {
 /**
  * QuoteSimulatorHeader コンポーネント
  *
- * 見積もりシミュレーターのページヘッダーセクションを表示
- * タイトル、説明、Trust Indicatorsをpropsとして受け取る
+ * 見積もりシミュレーターのページの頭（Epackage UI 基準 v1 の PageHeader）。
+ * 特長はアイコンつきの短いリストとして導入文の下に置く。
  */
 export function QuoteSimulatorHeader({
   title,
   description,
-  currentPageName,
   trustIndicators
 }: QuoteSimulatorHeaderProps) {
   return (
-    <section className="py-3 md:py-6 lg:py-8 bg-gradient-to-br from-navy-700 to-navy-900 border-b">
-      <Container size="6xl">
-        <MotionWrapper delay={0.1}>
-          {/* Breadcrumb */}
-          <nav className="hidden md:flex items-center space-x-2 text-sm text-navy-200 mb-4" aria-label="パンくずリスト">
-            <Link href="/" className="hover:text-white transition-colors">
-              ホーム
-            </Link>
-            <span>/</span>
-            <span className="text-white font-medium">{currentPageName}</span>
-          </nav>
-
-          {/* Page Title */}
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2">
-            {title}
-          </h1>
-          <p className="text-navy-100 text-base md:text-lg mb-4">
-            {description}
-          </p>
-
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-navy-200">
-            {trustIndicators.map((indicator, index) => {
-              const Icon = indicator.icon
-              return (
-                <div key={index} className="flex items-center space-x-2">
-                  <Icon className="w-4 h-4 text-green-400" />
-                  <span>{indicator.label}</span>
-                </div>
-              )
-            })}
-          </div>
-        </MotionWrapper>
-      </Container>
-    </section>
+    <PageHeader title={title} lead={description}>
+      <ul className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-8">
+        {trustIndicators.map((indicator, index) => {
+          const Icon = indicator.icon
+          return (
+            <li key={index} className="flex items-center gap-2 text-sm text-text-primary">
+              <Icon className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+              <span>{indicator.label}</span>
+            </li>
+          )
+        })}
+      </ul>
+    </PageHeader>
   )
 }

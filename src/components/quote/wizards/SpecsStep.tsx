@@ -150,25 +150,25 @@ export function SpecsStep() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-          <Package className="w-5 h-5 mr-2 text-navy-600" />
+        <h2 className="text-xl md:text-2xl font-bold text-text-primary flex items-center mb-4 [word-break:keep-all] [overflow-wrap:anywhere]">
+          <Package className="w-5 h-5 mr-2 text-brand" />
           基本仕様の選択
         </h2>
 
         {/* Contents Dropdowns - 4 dropdowns in a row */}
         <div className="mb-6" data-section="contents-dropdowns">
-          <label className="block text-lg font-semibold text-gray-900 mb-3">
-            内容物 <span className="text-red-500">*</span>
+          <label className="block text-lg font-semibold text-text-primary mb-3">
+            内容物 <span className="text-error">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Product Category */}
             <div>
-              <label className="block text-base text-gray-700 mb-1">製品タイプ</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">製品タイプ</label>
               <select
                 data-testid="product-category-select"
                 value={selectedCategory}
                 onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
               >
                 {PRODUCT_CATEGORIES.map(cat => (
                   <option
@@ -184,12 +184,12 @@ export function SpecsStep() {
 
             {/* Contents Type */}
             <div>
-              <label className="block text-base text-gray-700 mb-1">内容物の形態</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">内容物の形態</label>
               <select
                 data-chat-field="contents"
                 value={selectedType}
                 onChange={(e) => updateField('contentsType', e.target.value as typeof selectedType)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
               >
                 {CONTENTS_TYPES.map(type => (
                   <option
@@ -205,11 +205,11 @@ export function SpecsStep() {
 
             {/* Main Ingredient */}
             <div>
-              <label className="block text-base text-gray-700 mb-1">主成分</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">主成分</label>
               <select
                 value={selectedIngredient}
                 onChange={(e) => updateField('mainIngredient', e.target.value as typeof selectedIngredient)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
               >
                 {MAIN_INGREDIENTS.map(ing => (
                   <option
@@ -225,11 +225,11 @@ export function SpecsStep() {
 
             {/* Distribution Environment */}
             <div>
-              <label className="block text-base text-gray-700 mb-1">流通環境</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">流通環境</label>
               <select
                 value={selectedEnvironment}
                 onChange={(e) => updateField('distributionEnvironment', e.target.value as typeof selectedEnvironment)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
               >
                 {DISTRIBUTION_ENVIRONMENTS.map(env => (
                   <option
@@ -244,7 +244,7 @@ export function SpecsStep() {
             </div>
           </div>
           {/* Selection Summary */}
-          <div className="mt-2 text-xs text-gray-600">
+          <div className="mt-2 text-[13px] text-text-muted">
             選択: {PRODUCT_CATEGORIES.find(c => c.value === selectedCategory)?.labelJa} /
             {CONTENTS_TYPES.find(t => t.value === selectedType)?.labelJa} /
             {MAIN_INGREDIENTS.find(i => i.value === selectedIngredient)?.labelJa} /

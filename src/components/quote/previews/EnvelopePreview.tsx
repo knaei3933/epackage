@@ -128,14 +128,14 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
   const previewHeight = actualRatio >= 1 ? PREVIEW_BOX / actualRatio : PREVIEW_BOX;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+    <div className="bg-bg-primary rounded-container border border-border-medium p-6">
       {/* プレビューヘッダー */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2 min-w-0">
-          <Package className="w-5 h-5 text-navy-600 flex-shrink-0" />
-          <h3 className="font-semibold text-gray-900 whitespace-nowrap">袋のプレビュー</h3>
+          <Package className="w-5 h-5 text-brand flex-shrink-0" />
+          <h3 className="font-semibold text-text-primary whitespace-nowrap">袋のプレビュー</h3>
         </div>
-        <div className="flex items-center space-x-1 text-xs text-gray-500 flex-shrink-0">
+        <div className="flex items-center space-x-1 text-xs text-text-muted flex-shrink-0">
           <Maximize2 className="w-3 h-3" />
           <span className="whitespace-nowrap">リアルタイム</span>
         </div>
