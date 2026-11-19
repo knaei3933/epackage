@@ -3,21 +3,21 @@
 /**
  * Epackage UI 基準 v1 の機械チェック（コマンド）。
  *
- *   node scripts/check-ui-standard.cjs <ファイル...>            # CORE の規則だけ
- *   node scripts/check-ui-standard.cjs --pages <ファイル...>    # CORE + PAGE の規則（変換した公開ページ用）
+ *   node scripts/check-ui-standard.js <ファイル...>            # CORE の規則だけ
+ *   node scripts/check-ui-standard.js --pages <ファイル...>    # CORE + PAGE の規則（変換した公開ページ用）
  *
  * 違反があれば、ファイル:行 と規則名を出して、終了コード 1 で終わる。
- * 規則は src/styles/ui-standard-rules.cjs（jest の適合テストと同じもの）。
+ * 規則は scripts/ui-standard-rules.js（jest の適合テストと同じもの）。
  */
 const path = require('node:path')
-const { CORE_RULES, PAGE_RULES, scanFile } = require('../src/styles/ui-standard-rules.cjs')
+const { CORE_RULES, PAGE_RULES, scanFile } = require('./ui-standard-rules.js')
 
 const args = process.argv.slice(2)
 const pages = args.includes('--pages')
 const files = args.filter(a => !a.startsWith('--'))
 
 if (files.length === 0) {
-  console.error('使い方: node scripts/check-ui-standard.cjs [--pages] <ファイル...>')
+  console.error('使い方: node scripts/check-ui-standard.js [--pages] <ファイル...>')
   process.exit(2)
 }
 

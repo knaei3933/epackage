@@ -1,22 +1,19 @@
-/* global describe, it, expect, require */
+/* global describe, it, expect */
 /**
  * Epackage UI 基準 v1（src/styles/DESIGN_STANDARD.md）の適合テスト。
  *
  * 基準を適用ずみの範囲だけを見る。適用を広げたら、下の GOVERNED_* に足す。
  * 目的: 「効かない書き方」と「禁止の飾り」を、レビューの目ではなく機械で止める。
- * 規則の本体は src/styles/ui-standard-rules.cjs（コマンド scripts/check-ui-standard.cjs と共通）。
+ * 規則の本体は scripts/ui-standard-rules.js（コマンド scripts/check-ui-standard.js と共通）。
  */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
 type Rule = { id: string; message: string; pattern: RegExp }
-type Hit = { file: string; line: number; rule: string; text: string }
+// 規則は scripts/ui-standard-rules.js（コマンド scripts/check-ui-standard.js と共通）。
+// このリポジトリの ESLint は src/ の .js を扱えないため、scripts/ に置いている。
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { CORE_RULES, PAGE_RULES, scanFile } = require('../ui-standard-rules.cjs') as {
-  CORE_RULES: Rule[]
-  PAGE_RULES: Rule[]
-  scanFile: (filePath: string, rules: Rule[], displayName?: string) => Hit[]
-}
+const { CORE_RULES, PAGE_RULES, scanFile } = require('../../../scripts/ui-standard-rules.js')
 
 const ROOT = process.cwd()
 
@@ -80,13 +77,13 @@ describe('Epackage UI 基準 v1 の適合（適用ずみの範囲）', () => {
   })
 
   describe('全体の規則（CORE）', () => {
-    it.each(CORE_RULES.map(r => [r.id, r] as const))('%s', (_id, rule) => {
+    it.each((CORE_RULES as Rule[]).map(r => [r.id, r] as const))('%s', (_id, rule) => {
       expect(violations(CORE_FILES, rule)).toEqual([])
     })
   })
 
   describe('公開ページの規則（PAGE）', () => {
-    it.each(PAGE_RULES.map(r => [r.id, r] as const))('%s', (_id, rule) => {
+    it.each((PAGE_RULES as Rule[]).map(r => [r.id, r] as const))('%s', (_id, rule) => {
       expect(violations(GOVERNED_PAGE_FILES, rule)).toEqual([])
     })
   })

@@ -2,7 +2,7 @@
 /**
  * Epackage UI 基準 v1（src/styles/DESIGN_STANDARD.md）の機械チェックの規則。
  * jest の適合テスト（src/styles/__tests__/ui-standard.test.ts）と、
- * コマンド（scripts/check-ui-standard.cjs）の両方が、この 1 か所の規則を使う。
+ * コマンド（scripts/check-ui-standard.js）の両方が、この 1 か所の規則を使う。
  *
  * - CORE_RULES: 基準を適用ずみのすべてのファイル
  * - PAGE_RULES: 公開ページ（ページの頭・カード・ラベル・アイコンまで揃えたファイル）。CORE に上乗せする
