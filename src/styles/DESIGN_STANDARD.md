@@ -305,3 +305,4 @@
 - [ ] 375px 幅で横にはみ出さない。見出しが語の途中で切れない
 - [ ] `/design-system` に載せる必要がある変更なら、見本も更新した
 - [ ] `./node_modules/.bin/jest src/styles` が通る（基準を適用ずみの範囲を機械で守る）
+- [ ] 変換した公開ページを `node scripts/check-ui-standard.cjs --pages <ファイル...>` にかけて、違反 0（規則は `src/styles/ui-standard-rules.cjs`。通ったファイルは `ui-standard.test.ts` の `GOVERNED_PAGE_FILES` に足す）
