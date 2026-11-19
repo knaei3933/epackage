@@ -163,8 +163,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           <span className="flex-shrink-0">{icon}</span>
         )}
 
-        {/* Content */}
-        <span className={cn('truncate', loading && 'opacity-75')}>
+        {/* Content。子に置かれた svg アイコンは、preflight の display:block で行が分かれて
+            「文字の下に矢印が落ちる」ので、文字と同じ行に置く。余白は呼び出し側の mr-2 / ml-2 か icon プロップ。
+            ただし flex-col のボタン（アイコンの下に文字を置くタイル型）は、縦に並べる設計なので block のまま */}
+        <span className={cn('truncate [&>svg]:inline-block [.flex-col>&>svg]:block', loading && 'opacity-75')}>
           {loading && loadingText ? loadingText : children}
         </span>
 

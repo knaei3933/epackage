@@ -70,6 +70,28 @@ describe('Button (Epackage UI 基準 v1)', () => {
     expect(button).not.toHaveClass('px-4');
   });
 
+  it('子の svg アイコンは、文字と同じ行に置く（display:block で行が分かれて矢印が落ちるのを防ぐ）', () => {
+    render(<Button>導入資料<svg data-testid="arrow" /></Button>);
+    const content = screen.getByTestId('arrow').parentElement as HTMLElement;
+    expect(content).toHaveClass('truncate', '[&>svg]:inline-block');
+  });
+
+  it('flex-col のボタン（アイコンの下に文字を置くタイル型）は、アイコンを縦に並べるまま残す', () => {
+    render(<Button className="flex-col"><svg data-testid="icon" /><span>サンプル</span></Button>);
+    const content = screen.getByTestId('icon').parentElement as HTMLElement;
+    expect(screen.getByRole('button')).toHaveClass('flex-col');
+    expect(content).toHaveClass('[.flex-col>&>svg]:block');
+  });
+
+  it('icon プロップは、文字の外側に置く（右側にもできる）', () => {
+    render(<Button icon={<svg data-testid="arrow" />} iconPosition="right">続ける</Button>);
+    const button = screen.getByRole('button');
+    const arrow = screen.getByTestId('arrow');
+    expect(button).toContainElement(arrow);
+    expect(arrow.parentElement).not.toHaveClass('truncate');
+    expect(button.lastElementChild).toBe(arrow.parentElement);
+  });
+
   it('badge は overflow-hidden に切られない', () => {
     render(<Button badge={<span>3</span>}>カート</Button>);
     expect(screen.getByRole('button').className).not.toContain('overflow-hidden');

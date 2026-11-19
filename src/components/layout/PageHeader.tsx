@@ -36,7 +36,7 @@ export function PageHeader({ title, lead, actions, children, tone = 'muted', cla
       )}
     >
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
-        <h1 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-[1.75rem] leading-[1.4] text-text-primary md:text-4xl">
+        <h1 className="[word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance font-heading text-[length:clamp(1.375rem,6.4vw,1.75rem)] leading-[1.4] text-text-primary md:text-4xl">
           {title}
         </h1>
         {lead ? <p className="mt-4 max-w-[40em] text-base leading-[1.8] text-text-secondary">{lead}</p> : null}
