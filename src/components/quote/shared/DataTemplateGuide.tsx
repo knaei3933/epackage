@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import {
@@ -231,20 +232,15 @@ export function DataTemplateGuide({
     <div className="space-y-8">
       {/* Header Section */}
       <MotionWrapper delay={0.1}>
-        <div className="text-center">
-          <div className="inline-flex items-center space-x-2 bg-brixa-100 text-brixa-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <FileText className="w-4 h-4" />
-            <span>{language === 'ja' ? 'デザインテンプレートガイド' : 'Design Template Guide'}</span>
-          </div>
-
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div>
+          <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem] mb-4">
             {language === 'ja'
-              ? 'プロ仕様のデザインテンプレート'
+              ? <>プロ仕様の<wbr />デザイン<wbr />テンプレート</>
               : 'Professional Design Templates'
             }
           </h2>
 
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+          <p className="max-w-[40em] leading-[1.8] text-text-secondary mb-8">
             {language === 'ja'
               ? '正確な製品仕様を確保するための、Adobe Illustrator形式のデザインテンプレートをダウンロードしてください。各テンプレートには適切な塗り足し、安全領域、製造仕様が含まれています。'
               : 'Download our Adobe Illustrator design templates to ensure accurate product specifications. Each template includes proper bleed, safe zones, and manufacturing specifications.'
@@ -256,14 +252,14 @@ export function DataTemplateGuide({
       {/* Quick Guide Cards */}
       <MotionWrapper delay={0.2}>
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-            <div className="w-16 h-16 bg-navy-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Download className="w-8 h-8 text-navy-700" />
+          <Card className="text-center p-6">
+            <div className="w-14 h-14 bg-brand-muted rounded-container flex items-center justify-center mx-auto mb-4">
+              <Download className="w-7 h-7 text-brand" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-bold text-text-primary mb-2">
               {language === 'ja' ? '1. テンプレートを選択' : '1. Select Template'}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-text-secondary">
               {language === 'ja'
                 ? '製品タイプに合ったテンプレートを選択します'
                 : 'Choose the template matching your product type'
@@ -271,14 +267,14 @@ export function DataTemplateGuide({
             </p>
           </Card>
 
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Settings className="w-8 h-8 text-green-600" />
+          <Card className="text-center p-6">
+            <div className="w-14 h-14 bg-brand-muted rounded-container flex items-center justify-center mx-auto mb-4">
+              <Settings className="w-7 h-7 text-brand" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-bold text-text-primary mb-2">
               {language === 'ja' ? '2. デザインを作成' : '2. Create Design'}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-text-secondary">
               {language === 'ja'
                 ? 'テンプレートに沿ってデザインを作成します'
                 : 'Create your design following the template guidelines'
@@ -286,14 +282,14 @@ export function DataTemplateGuide({
             </p>
           </Card>
 
-          <Card className="text-center p-6 hover:shadow-lg transition-shadow">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Upload className="w-8 h-8 text-purple-600" />
+          <Card className="text-center p-6">
+            <div className="w-14 h-14 bg-brand-muted rounded-container flex items-center justify-center mx-auto mb-4">
+              <Upload className="w-7 h-7 text-brand" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-bold text-text-primary mb-2">
               {language === 'ja' ? '3. データを提出' : '3. Submit Data'}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-text-secondary">
               {language === 'ja'
                 ? '完成したデザインデータをご提出ください'
                 : 'Submit your completed design files'
@@ -307,36 +303,35 @@ export function DataTemplateGuide({
       <div className="space-y-4">
         {templateData.map((template, index) => (
           <MotionWrapper key={template.id} delay={0.3 + index * 0.1}>
-            <Card className="overflow-hidden border-2 transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
-                <div className="flex items-center justify-between">
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-bg-secondary">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-brixa-600 rounded-lg flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 bg-brand rounded-container flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-6 h-6 text-on-brand" aria-hidden="true" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">
                         {language === 'ja' ? template.nameJa : template.name}
                       </CardTitle>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-text-secondary">
                         {template.format} • {template.fileSize}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {downloadedTemplates.has(template.id) && (
-                      <div className="flex items-center space-x-1 text-green-600 bg-green-100 px-2 py-1 rounded-full text-sm">
-                        <CheckCircle className="w-4 h-4" />
+                      <Badge variant="success" size="lg" className="gap-1">
+                        <CheckCircle className="w-4 h-4" aria-hidden="true" />
                         <span>{language === 'ja' ? 'ダウンロード済み' : 'Downloaded'}</span>
-                      </div>
+                      </Badge>
                     )}
 
                     <Button
                       onClick={() => handleDownload(template)}
-                      className="flex items-center space-x-2"
+                      icon={<Download className="w-4 h-4" aria-hidden="true" />}
                     >
-                      <Download className="w-4 h-4" />
                       <span>{language === 'ja' ? 'ダウンロード' : 'Download'}</span>
                     </Button>
                   </div>
@@ -344,29 +339,26 @@ export function DataTemplateGuide({
               </CardHeader>
 
               <CardContent className="p-6">
-                <p className="text-gray-600 mb-4">
+                <p className="text-text-secondary mb-4">
                   {language === 'ja' ? template.descriptionJa : template.description}
                 </p>
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {template.compatibleWith.map((product, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-navy-600 text-navy-600 rounded-full text-xs"
-                    >
+                    <Badge key={idx} variant="secondary">
                       {product}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
 
                 {/* Expandable Details */}
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => toggleExpand(template.id)}
-                  className="w-full flex items-center justify-center space-x-2"
+                  className="w-full"
+                  aria-expanded={expandedTemplate === template.id}
+                  icon={<Eye className="w-4 h-4" aria-hidden="true" />}
                 >
-                  <Eye className="w-4 h-4" />
                   <span>
                     {language === 'ja'
                       ? `${expandedTemplate === template.id ? '詳細を非表示' : '詳細を表示'}`
@@ -374,25 +366,25 @@ export function DataTemplateGuide({
                     }
                   </span>
                   {expandedTemplate === template.id ? (
-                    <ChevronUp className="w-4 h-4" />
+                    <ChevronUp className="ml-2 w-4 h-4" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="ml-2 w-4 h-4" aria-hidden="true" />
                   )}
                 </Button>
 
                 {expandedTemplate === template.id && (
-                  <div className="mt-4 space-y-6 border-t pt-6">
+                  <div className="mt-4 space-y-6 border-t border-border-medium pt-6">
                     {/* Technical Specifications */}
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                        <Ruler className="w-5 h-5 mr-2 text-gray-600" />
+                      <h4 className="font-bold text-text-primary mb-3 flex items-center">
+                        <Ruler className="w-5 h-5 mr-2 text-brand" />
                         {language === 'ja' ? '技術仕様' : 'Technical Specifications'}
                       </h4>
                       <ul className="space-y-2">
                         {(language === 'ja' ? template.specsJa : template.specs).map((spec, idx) => (
                           <li key={idx} className="flex items-start space-x-2 text-sm">
-                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                            <span className="text-gray-700">{spec}</span>
+                            <CheckCircle className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                            <span className="text-text-secondary">{spec}</span>
                           </li>
                         ))}
                       </ul>
@@ -400,15 +392,15 @@ export function DataTemplateGuide({
 
                     {/* Recommended Uses */}
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                        <Info className="w-5 h-5 mr-2 text-gray-600" />
+                      <h4 className="font-bold text-text-primary mb-3 flex items-center">
+                        <Info className="w-5 h-5 mr-2 text-brand" />
                         {language === 'ja' ? '推奨用途' : 'Recommended Uses'}
                       </h4>
                       <ul className="space-y-2">
                         {(language === 'ja' ? template.recommendedUsesJa : template.recommendedUses).map((use, idx) => (
                           <li key={idx} className="flex items-start space-x-2 text-sm">
-                            <CheckCircle className="w-4 h-4 text-navy-600 flex-shrink-0 mt-0.5" />
-                            <span className="text-gray-700">{use}</span>
+                            <CheckCircle className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                            <span className="text-text-secondary">{use}</span>
                           </li>
                         ))}
                       </ul>
@@ -423,20 +415,20 @@ export function DataTemplateGuide({
 
       {/* Important Notes */}
       <MotionWrapper delay={0.8}>
-        <Card className="bg-gradient-to-r from-yellow-50 to-brixa-50 border-yellow-200">
+        <Card className="bg-warning-muted border-warning">
           <CardContent className="p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-              <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600" />
+            <h3 className="font-bold text-on-warning-muted mb-4 flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-2 text-warning" />
               {language === 'ja' ? '重要な注意事項' : 'Important Notes'}
             </h3>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <h4 className="font-medium text-gray-800 flex items-center">
-                  <Palette className="w-4 h-4 mr-2 text-navy-700" />
+                <h4 className="font-medium text-on-warning-muted flex items-center">
+                  <Palette className="w-4 h-4 mr-2 text-warning" />
                   {language === 'ja' ? 'カラー設定' : 'Color Settings'}
                 </h4>
-                <ul className="text-sm text-gray-700 space-y-1 ml-6">
+                <ul className="text-sm text-on-warning-muted space-y-1 ml-6">
                   <li>• {language === 'ja' ? 'CMYKモードで作成してください' : 'Create in CMYK mode'}</li>
                   <li>• {language === 'ja' ? 'RGBは印刷で色が変わります' : 'RGB will change colors in printing'}</li>
                   <li>• {language === 'ja' ? '特色グラビアは事前にお問い合わせください' : 'Inquire about special gravure colors'}</li>
@@ -444,11 +436,11 @@ export function DataTemplateGuide({
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-medium text-gray-800 flex items-center">
-                  <Printer className="w-4 h-4 mr-2 text-green-600" />
+                <h4 className="font-medium text-on-warning-muted flex items-center">
+                  <Printer className="w-4 h-4 mr-2 text-warning" />
                   {language === 'ja' ? '印刷仕様' : 'Print Specifications'}
                 </h4>
-                <ul className="text-sm text-gray-700 space-y-1 ml-6">
+                <ul className="text-sm text-on-warning-muted space-y-1 ml-6">
                   <li>• {language === 'ja' ? '解像度は300DPI以上で作成' : 'Create at 300DPI or higher'}</li>
                   <li>• {language === 'ja' ? 'テキストはアウトライン化してください' : 'Convert text to outlines'}</li>
                   <li>• {language === 'ja' ? '画像は埋め込みまたはリンクを含めて' : 'Embed images or include links'}</li>
@@ -461,27 +453,26 @@ export function DataTemplateGuide({
 
       {/* Call to Action */}
       <MotionWrapper delay={0.9}>
-        <div className="text-center bg-gradient-to-r from-brixa-600 to-brixa-700 rounded-lg p-8 text-white">
-          <h3 className="text-2xl font-bold mb-4">
+        <div className="rounded-container border border-border-medium bg-bg-secondary p-8 text-center">
+          <h3 className="font-heading text-xl leading-[1.4] text-text-primary mb-4 [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-2xl">
             {language === 'ja'
               ? '準備ができましたら、お見積りへ'
               : 'Ready to Get Your Quote?'
             }
           </h3>
-          <p className="text-lg mb-6 opacity-90">
+          <p className="mx-auto mb-6 max-w-[40em] leading-[1.8] text-text-secondary">
             {language === 'ja'
               ? 'テンプレートを使用してデザインを準備し、正確なお見積りをご依頼ください'
               : 'Prepare your design using our templates and get an accurate quote'
             }
           </p>
           <Button
-            variant="secondary"
+            variant="primary"
             size="lg"
             onClick={() => {
               // Navigate to quote simulator
               window.location.href = '/quote-simulator'
             }}
-            className="bg-white text-brixa-700 hover:bg-gray-50"
           >
             {language === 'ja' ? 'お見積りを開始' : 'Get Your Quote'}
           </Button>
