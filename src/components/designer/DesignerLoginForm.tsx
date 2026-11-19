@@ -111,8 +111,8 @@ export default function DesignerLoginForm({
     <Card className={`p-6 md:p-8 ${className}`}>
       {/* Error Message */}
       {errorMessage && (
-        <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
-          <p className="text-sm text-error-600 dark:text-error-400">{errorMessage}</p>
+        <div className="mb-6 p-4 bg-error-muted border border-error rounded-lg">
+          <p className="text-sm text-on-error-muted">{errorMessage}</p>
         </div>
       )}
 
@@ -166,11 +166,11 @@ export default function DesignerLoginForm({
       </Button>
 
       {/* Info Section */}
-      <div className="mt-6 p-4 bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 rounded-lg">
-        <h3 className="text-sm font-semibold text-info-800 dark:text-info-200 mb-2">
+      <div className="mt-6 p-4 bg-info-muted border border-info rounded-lg">
+        <h3 className="text-sm font-semibold text-on-info-muted mb-2">
           Designer Access Information
         </h3>
-        <ul className="text-xs text-info-700 dark:text-info-300 space-y-1">
+        <ul className="text-xs text-on-info-muted space-y-1">
           <li>• You must have an active designer account</li>
           <li>• Contact administrator if you cannot access</li>
           <li>• Korean language comments are auto-translated to Japanese</li>

@@ -17,7 +17,9 @@ import {
   Shield
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
-import { Button } from '@/components/ui/Button'
+import { Button, buttonVariants } from '@/components/ui/Button'
+import { PageHeader } from '@/components/layout'
+import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
@@ -34,42 +36,32 @@ export function ComparisonClient() {
 
   if (!state.compareMode || state.selectedProducts.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-navy-50">
+      <div className="min-h-screen bg-bg-primary">
+        <PageHeader
+          title="製品比較"
+          lead="製品を比較して、プロジェクトに最適な包装ソリューションを見つけましょう"
+          actions={
+            <Link href="/catalog" className={buttonVariants({ variant: 'outline', size: 'md' })}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              カタログに戻る
+            </Link>
+          }
+        />
         <Container size="6xl" className="py-16">
           <MotionWrapper delay={0.1}>
             <div className="text-center">
-              <Link href="/catalog">
-                <Button variant="outline" className="inline-flex items-center mb-6 group">
-                  <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                  カタログに戻る
-                </Button>
-              </Link>
-
-              <div className="w-24 h-24 bg-gradient-to-br from-navy-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <GitCompare className="w-12 h-12 text-white" />
-              </div>
-
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                製品比較
-              </h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-                製品を比較して、プロジェクトに最適な包装ソリューションを見つけましょう
-              </p>
-
-              <Card className="max-w-md mx-auto p-8 bg-yellow-50 border-yellow-200">
+              <Card className="max-w-md mx-auto p-8 bg-warning-muted border-warning">
                 <div className="text-center">
-                  <Package className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <Package className="w-12 h-12 text-warning mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">
                     比較する製品がありません
                   </h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-text-secondary mb-6">
                     カタログページで製品を選択して比較を開始してください
                   </p>
-                  <Link href="/catalog">
-                    <Button variant="primary" size="lg" className="w-full">
+                  <Link href="/catalog" className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}>
                       製品カタログへ移動
-                    </Button>
-                  </Link>
+                    </Link>
                 </div>
               </Card>
             </div>
@@ -89,50 +81,33 @@ export function ComparisonClient() {
   const uniqueMaterials = getUniqueMaterials(state.selectedProducts)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-navy-50">
+    <div className="min-h-screen bg-bg-primary">
       {/* Header */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-navy-600/30 via-transparent to-brixa-600/30"></div>
-        <Container size="6xl" className="relative z-10 py-8">
-          <MotionWrapper delay={0.1}>
-            <div className="flex items-center justify-between mb-6">
-              <Link href="/catalog">
-                <Button variant="outline" className="inline-flex items-center group">
-                  <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                  カタログに戻る
-                </Button>
-              </Link>
-
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={clearSelection}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <GitCompare className="w-4 h-4 mr-2" />
-                  比較をクリア
-                </Button>
-
-                <div className="flex items-center bg-white rounded-lg border border-gray-200 px-4 py-2">
-                  <GitCompare className="w-5 h-5 text-navy-600 mr-2" />
-                  <span className="font-medium text-gray-900">
-                    {state.selectedProducts.length}個の製品を比較中
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                製品比較分析
-              </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                選択された{state.selectedProducts.length}個の製品を詳細に比較分析
-              </p>
-            </div>
-          </MotionWrapper>
-        </Container>
-      </section>
+      <PageHeader
+        title="製品比較分析"
+        lead={`選択された${state.selectedProducts.length}個の製品を詳細に比較分析`}
+        actions={
+          <>
+            <Link href="/catalog" className={buttonVariants({ variant: 'outline', size: 'md' })}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              カタログに戻る
+            </Link>
+            <Button
+              variant="ghost"
+              onClick={clearSelection}
+              className="text-error hover:bg-error-muted"
+            >
+              <GitCompare className="w-4 h-4 mr-2" />
+              比較をクリア
+            </Button>
+          </>
+        }
+      >
+        <p className="flex items-center text-sm font-medium text-text-primary">
+          <GitCompare className="w-5 h-5 text-brand mr-2" />
+          {state.selectedProducts.length}個の製品を比較中
+        </p>
+      </PageHeader>
 
       <Container size="6xl" className="py-12">
         <MotionWrapper delay={0.2}>
@@ -177,81 +152,81 @@ export function ComparisonClient() {
           {showRecommendations && (
             <div className="mb-8">
               <Grid xs={1} md={2} lg={4} gap={6}>
-                <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                <Card className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
-                      <Trophy className="w-5 h-5 text-green-600" />
-                      <h3 className="font-bold text-gray-900">総合評価1位</h3>
+                      <Trophy className="w-5 h-5 text-success" />
+                      <h3 className="font-bold text-text-primary">総合評価1位</h3>
                     </div>
-                    <Badge variant="success" className="bg-green-600 text-white">
+                    <Badge variant="default">
                       #1
                     </Badge>
                   </div>
                   <div className="text-center">
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-text-primary mb-2">
                       {overallBest?.name_ja || '-'}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-text-secondary">
                       バランスの取れた最適選択
                     </p>
                   </div>
                 </Card>
 
-                <Card className="p-6 bg-gradient-to-br from-navy-50 to-brixa-100 border-navy-600">
+                <Card className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
-                      <DollarSign className="w-5 h-5 text-navy-700" />
-                      <h3 className="font-bold text-gray-900">コストパフォーマンス</h3>
+                      <DollarSign className="w-5 h-5 text-brand" />
+                      <h3 className="font-bold text-text-primary">コストパフォーマンス</h3>
                     </div>
-                    <Badge variant="info" className="bg-navy-700 text-white">
+                    <Badge variant="default">
                       #1
                     </Badge>
                   </div>
                   <div className="text-center">
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-text-primary mb-2">
                       {priceBest?.name_ja || '-'}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-text-secondary">
                       最も費用対効果が高い選択
                     </p>
                   </div>
                 </Card>
 
-                <Card className="p-6 bg-gradient-to-br from-brixa-50 to-brixa-100 border-brixa-600">
+                <Card className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
-                      <Clock className="w-5 h-5 text-brixa-700" />
-                      <h3 className="font-bold text-gray-900">最速納期</h3>
+                      <Clock className="w-5 h-5 text-brand" />
+                      <h3 className="font-bold text-text-primary">最速納期</h3>
                     </div>
-                    <Badge variant="secondary" className="bg-brixa-700 text-white">
+                    <Badge variant="default">
                       #1
                     </Badge>
                   </div>
                   <div className="text-center">
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-text-primary mb-2">
                       {speedBest?.name_ja || '-'}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-text-secondary">
                       最短納期で対応可能
                     </p>
                   </div>
                 </Card>
 
-                <Card className="p-6 bg-gradient-to-br from-purple-50 to-navy-100 border-purple-200">
+                <Card className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
-                      <Zap className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-bold text-gray-900">柔軟性</h3>
+                      <Zap className="w-5 h-5 text-brand" />
+                      <h3 className="font-bold text-text-primary">柔軟性</h3>
                     </div>
-                    <Badge variant="secondary" className="bg-purple-600 text-white">
+                    <Badge variant="default">
                       #1
                     </Badge>
                   </div>
                   <div className="text-center">
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-text-primary mb-2">
                       {flexibleBest?.name_ja || '-'}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-text-secondary">
                       小ロットでも対応可能
                     </p>
                   </div>
@@ -265,11 +240,11 @@ export function ComparisonClient() {
             <Card className="overflow-hidden mb-8">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-bg-secondary border-b">
                     <tr>
-                      <th className="text-left p-4 font-semibold text-gray-900">比較項目</th>
+                      <th className="text-left p-4 font-semibold text-text-primary">比較項目</th>
                       {state.selectedProducts.map((product) => (
-                        <th key={product.id} className="text-left p-4 font-semibold text-gray-900">
+                        <th key={product.id} className="text-left p-4 font-semibold text-text-primary">
                           <div className="space-y-2">
                             <div>{product.name_ja}</div>
                             <Badge variant="outline" className="text-xs">
@@ -282,32 +257,32 @@ export function ComparisonClient() {
                   </thead>
                   <tbody>
                     {/* Basic Info */}
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">説明</td>
+                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">説明</td>
                       {state.selectedProducts.map((product) => (
-                        <td key={product.id} className="p-4 text-gray-600">
+                        <td key={product.id} className="p-4 text-text-secondary">
                           {product.description_ja}
                         </td>
                       ))}
                     </tr>
 
                     {/* Pricing */}
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">初期費用</td>
+                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">初期費用</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-semibold text-text-primary">
                             {formatCurrency((product.pricing_formula as { base_cost?: number })?.base_cost || 0)}
                           </span>
                         </td>
                       ))}
                     </tr>
 
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">単価</td>
+                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">単価</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-text-primary">
                             {formatCurrency((product.pricing_formula as { per_unit_cost?: number })?.per_unit_cost || 0)}/個
                           </span>
                         </td>
@@ -315,8 +290,8 @@ export function ComparisonClient() {
                     </tr>
 
                     {/* Specifications */}
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">最低注文数量</td>
+                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">最低注文数量</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
                           {product.min_order_quantity.toLocaleString()}個
@@ -324,12 +299,12 @@ export function ComparisonClient() {
                       ))}
                     </tr>
 
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">納期</td>
+                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">納期</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
                           <div className="flex items-center space-x-2">
-                            <Clock className="w-4 h-4 text-navy-600" />
+                            <Clock className="w-4 h-4 text-brand" />
                             <span>{product.lead_time_days}日</span>
                           </div>
                         </td>
@@ -337,8 +312,8 @@ export function ComparisonClient() {
                     </tr>
 
                     {/* Materials */}
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">対応素材</td>
+                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">対応素材</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
                           <div className="flex flex-wrap gap-1">
@@ -353,15 +328,15 @@ export function ComparisonClient() {
                     </tr>
 
                     {/* Materials */}
-                    <tr className="hover:bg-gray-50">
-                      <td className="p-4 font-medium text-gray-900">素材</td>
+                    <tr className="hover:bg-bg-secondary">
+                      <td className="p-4 font-medium text-text-primary">素材</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
                           <div className="space-y-1">
                             {product.materials.map((material, index) => (
                               <div key={index} className="flex items-center space-x-2">
-                                <CheckCircle className="w-3 h-3 text-green-500" />
-                                <span className="text-sm text-gray-700">{material}</span>
+                                <CheckCircle className="w-3 h-3 text-success" />
+                                <span className="text-sm text-text-secondary">{material}</span>
                               </div>
                             ))}
                           </div>
@@ -379,37 +354,37 @@ export function ComparisonClient() {
             <Grid xs={1} md={2} lg={3} gap={8}>
               {state.selectedProducts.map((product, index) => (
                 <MotionWrapper key={product.id} delay={index * 0.1}>
-                  <Card className="p-6 hover:shadow-lg transition-shadow">
+                  <Card className="p-6 hover:shadow-low transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        <h3 className="text-xl font-bold text-text-primary mb-2">
                           {product.name_ja}
                         </h3>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-text-secondary text-sm">
                           {product.description_ja}
                         </p>
                       </div>
                       <div className="flex space-x-2">
                         {product === overallBest && (
-                          <Badge variant="success" className="bg-green-600 text-white">
+                          <Badge variant="default">
                             <Trophy className="w-3 h-3 mr-1" />
                             総合1位
                           </Badge>
                         )}
                         {product === priceBest && (
-                          <Badge variant="info" className="bg-navy-700 text-white">
+                          <Badge variant="default">
                             <DollarSign className="w-3 h-3 mr-1" />
                             コスト1位
                           </Badge>
                         )}
                         {product === speedBest && (
-                          <Badge variant="secondary" className="bg-brixa-700 text-white">
+                          <Badge variant="default">
                             <Clock className="w-3 h-3 mr-1" />
                             速度1位
                           </Badge>
                         )}
                         {product === flexibleBest && (
-                          <Badge variant="secondary" className="bg-purple-600 text-white">
+                          <Badge variant="default">
                             <Zap className="w-3 h-3 mr-1" />
                             柔軟1位
                           </Badge>
@@ -419,27 +394,27 @@ export function ComparisonClient() {
 
                     {/* Specs */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-600 mb-1">初期費用</p>
-                        <p className="font-bold text-gray-900">
+                      <div className="text-center p-3 bg-bg-secondary rounded-lg">
+                        <p className="text-xs text-text-secondary mb-1">初期費用</p>
+                        <p className="font-bold text-text-primary">
                           {formatCurrency((product.pricing_formula as { base_cost?: number })?.base_cost || 0)}
                         </p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-600 mb-1">単価</p>
-                        <p className="font-bold text-gray-900">
+                      <div className="text-center p-3 bg-bg-secondary rounded-lg">
+                        <p className="text-xs text-text-secondary mb-1">単価</p>
+                        <p className="font-bold text-text-primary">
                           {formatCurrency((product.pricing_formula as { per_unit_cost?: number })?.per_unit_cost || 0)}/個
                         </p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-600 mb-1">最低注文数</p>
-                        <p className="font-bold text-gray-900">
+                      <div className="text-center p-3 bg-bg-secondary rounded-lg">
+                        <p className="text-xs text-text-secondary mb-1">最低注文数</p>
+                        <p className="font-bold text-text-primary">
                           {product.min_order_quantity.toLocaleString()}個
                         </p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-600 mb-1">納期</p>
-                        <p className="font-bold text-gray-900">
+                      <div className="text-center p-3 bg-bg-secondary rounded-lg">
+                        <p className="text-xs text-text-secondary mb-1">納期</p>
+                        <p className="font-bold text-text-primary">
                           {product.lead_time_days}日
                         </p>
                       </div>
@@ -447,7 +422,7 @@ export function ComparisonClient() {
 
                     {/* Materials */}
                     <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-3">対応素材</h4>
+                      <h4 className="font-semibold text-text-primary mb-3">対応素材</h4>
                       <div className="flex flex-wrap gap-2">
                         {product.materials.map((material) => (
                           <Badge key={material} variant="outline" className="text-xs">
@@ -459,17 +434,17 @@ export function ComparisonClient() {
 
                     {/* Materials */}
                     <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-3">素材</h4>
+                      <h4 className="font-semibold text-text-primary mb-3">素材</h4>
                       <div className="space-y-2">
                         {product.materials?.slice(0, 3).map((material, index) => (
                           <div key={index} className="flex items-center space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                            <span className="text-sm text-gray-700">{material}</span>
+                            <CheckCircle className="w-4 h-4 text-success" />
+                            <span className="text-sm text-text-secondary">{material}</span>
                           </div>
                         )) || [
                           <div key="default" className="flex items-center space-x-2">
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                            <span className="text-sm text-gray-700">高品質素材</span>
+                            <CheckCircle className="w-4 h-4 text-success" />
+                            <span className="text-sm text-text-secondary">高品質素材</span>
                           </div>
                         ]}
                       </div>
@@ -477,23 +452,19 @@ export function ComparisonClient() {
 
                     {/* Actions */}
                     <div className="flex gap-3">
-                      <Link href={`/catalog/${product.id}`}>
-                        <Button variant="outline" size="sm" className="flex-1">
+                      <Link href={`/catalog/${product.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1 max-sm:min-h-11')}>
                           <Eye className="w-4 h-4 mr-2" />
                           詳細
-                        </Button>
-                      </Link>
-                      <Link href="/quote-simulator">
-                        <Button variant="primary" size="sm" className="flex-1">
+                        </Link>
+                      <Link href="/quote-simulator" className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'flex-1 max-sm:min-h-11')}>
                           <BarChart3 className="w-4 h-4 mr-2" />
                           見積
-                        </Button>
-                      </Link>
+                        </Link>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => removeProduct(product.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-error hover:bg-error-muted"
                       >
                         <GitCompare className="w-4 h-4 mr-2" />
                         削除
@@ -508,17 +479,17 @@ export function ComparisonClient() {
           {/* Feature Comparison */}
           {uniqueMaterials.length > 0 && (
             <Card className="p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <Shield className="w-6 h-6 mr-2 text-navy-600" />
+              <h3 className="text-xl font-bold text-text-primary mb-4 flex items-center">
+                <Shield className="w-6 h-6 mr-2 text-brand" />
                 素材比較マトリクス
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-3 font-semibold text-gray-900">素材</th>
+                      <th className="text-left p-3 font-semibold text-text-primary">素材</th>
                       {state.selectedProducts.map((product) => (
-                        <th key={product.id} className="text-center p-3 font-semibold text-gray-900">
+                        <th key={product.id} className="text-center p-3 font-semibold text-text-primary">
                           <div className="text-sm">{product.name_ja}</div>
                         </th>
                       ))}
@@ -526,12 +497,12 @@ export function ComparisonClient() {
                   </thead>
                   <tbody>
                     {uniqueMaterials.map((material) => (
-                      <tr key={material} className="border-b hover:bg-gray-50">
-                        <td className="p-3 font-medium text-gray-700">{material}</td>
+                      <tr key={material} className="border-b border-border-medium hover:bg-bg-secondary">
+                        <td className="p-3 font-medium text-text-secondary">{material}</td>
                         {state.selectedProducts.map((product) => (
                           <td key={product.id} className="p-3 text-center">
                             {product.materials?.includes(material) ? (
-                              <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
+                              <CheckCircle className="w-5 h-5 text-success mx-auto" />
                             ) : (
                             <div className="w-5 h-5 mx-auto"></div>
                             )}
@@ -546,37 +517,25 @@ export function ComparisonClient() {
           )}
 
           {/* Call to Action */}
-          <Card className="p-8 bg-gradient-to-r from-navy-600 to-indigo-600 text-white border-navy-600">
+          <div className="rounded-container bg-bg-inverted p-8 text-text-inverse">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-4">
                 比較結果から最適な製品を選択
               </h2>
-              <p className="text-lg mb-8 text-navy-600">
+              <p className="text-lg mb-8 text-text-inverse">
                 専門スタッフが最適な包装ソリューションをご提案いたします
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="bg-white text-navy-700 hover:bg-gray-100 px-8 py-4"
-                  >
-                    専門家に相談
-                  </Button>
+                <Link href="/contact" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+                  専門家に相談
                 </Link>
-                <Link href="/quote-simulator">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-white text-white hover:bg-white hover:text-navy-700 px-8 py-4"
-                  >
-                    <BarChart3 className="w-5 h-5 mr-2" />
-                    見積シミュレーション
-                  </Button>
+                <Link href="/quote-simulator" className={buttonVariants({ variant: 'secondary', size: 'lg' })}>
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  見積シミュレーション
                 </Link>
               </div>
             </div>
-          </Card>
+          </div>
         </MotionWrapper>
       </Container>
     </div>

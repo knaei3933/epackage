@@ -46,12 +46,12 @@ export function SKUUploadCard({
         }
       }}
       className={`
-        relative p-4 rounded-xl border-2 transition-all duration-200
+        relative p-4 rounded-container border-2 transition-all duration-200
         ${skuState.isUploaded
-          ? 'border-green-300 bg-green-50 cursor-default'
+          ? 'border-success bg-success-muted cursor-default'
           : isSelected
-            ? 'border-blue-500 bg-blue-50 shadow-lg cursor-pointer'
-            : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md cursor-pointer'
+            ? 'border-brand bg-brand-muted cursor-pointer'
+            : 'border-border-medium bg-white hover:border-brand-soft hover:shadow-low cursor-pointer'
         }
         ${isUploading && isSelected ? 'opacity-70' : ''}
       `}
@@ -59,27 +59,27 @@ export function SKUUploadCard({
       {/* Upload Status Icon */}
       <div className="absolute top-3 right-3">
         {skuState.isUploaded ? (
-          <CheckCircle2 className="w-6 h-6 text-green-600" />
+          <CheckCircle2 className="w-6 h-6 text-success" />
         ) : isSelected ? (
-          <Upload className="w-6 h-6 text-blue-600" />
+          <Upload className="w-6 h-6 text-brand" />
         ) : (
-          <div className="w-6 h-6 rounded-full border-2 border-gray-300" />
+          <div className="w-6 h-6 rounded-full border-2 border-border-strong" />
         )}
       </div>
 
       {/* SKU Name */}
       <div className="pr-8">
-        <h4 className="font-semibold text-gray-900 mb-1 truncate">
+        <h4 className="font-semibold text-text-primary mb-1 truncate">
           {displayName}
         </h4>
 
         {skuState.isUploaded ? (
-          <div className="flex items-center gap-2 text-sm text-green-700">
+          <div className="flex items-center gap-2 text-sm text-on-success-muted">
             <FileText className="w-4 h-4" />
             <span className="truncate">{skuState.uploadedFileName}</span>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-text-muted">
             クリックしてファイルを選択
           </p>
         )}
@@ -87,8 +87,8 @@ export function SKUUploadCard({
 
       {/* Loading Overlay */}
       {isUploading && isSelected && (
-        <div className="absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <div className="absolute inset-0 bg-bg-primary rounded-container flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand" />
         </div>
       )}
     </div>

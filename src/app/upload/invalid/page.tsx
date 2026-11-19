@@ -20,6 +20,9 @@ import {
   Home,
 } from 'lucide-react';
 import { Suspense } from 'react';
+import { PageHeader } from '@/components/layout';
+import { Badge } from '@/components/ui/Badge';
+import { buttonVariants } from '@/components/ui/Button';
 
 // =====================================================
 // Component
@@ -84,94 +87,67 @@ function InvalidTokenContent() {
   const ErrorIcon = errorDetails.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center p-4">
-      <div className="max-w-lg w-full">
-        {/* Error Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-red-200 p-8 md:p-12">
-          {/* Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-              <ErrorIcon className="w-10 h-10 text-red-600" />
-            </div>
-          </div>
+    <div className="min-h-screen bg-bg-primary">
+      <PageHeader title={errorDetails.titleKo} lead={errorDetails.messageKo}>
+        <div className="flex items-center gap-3">
+          <ErrorIcon className="w-5 h-5 text-error" aria-hidden="true" />
+          <Badge variant="error" className="font-mono">
+            {errorDetails.code}
+          </Badge>
+        </div>
+      </PageHeader>
 
-          {/* Error Code */}
-          <div className="text-center mb-4">
-            <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-mono">
-              {errorDetails.code}
-            </span>
-          </div>
-
-          {/* Korean Text */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-slate-900 mb-3">
-              {errorDetails.titleKo}
-            </h1>
-            <p className="text-slate-600 leading-relaxed">
-              {errorDetails.messageKo}
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-slate-400 text-sm">한국어 / 日本語</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
-          </div>
-
-          {/* Japanese Text */}
-          <div className="text-center mb-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-3">
+      <section className="py-16 md:py-24 bg-bg-primary">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+          <div className="max-w-xl">
+            {/* Japanese Text */}
+            <h2 className="font-heading text-2xl text-text-primary mb-3">
               {errorDetails.titleJa}
             </h2>
-            <p className="text-slate-600 leading-relaxed">
+            <p className="text-text-secondary leading-[1.8] mb-8">
               {errorDetails.messageJa}
             </p>
-          </div>
 
-          {/* Actions */}
-          <div className="space-y-3">
-            {/* Contact Support */}
-            <a
-              href="mailto:support@epackage-lab.com"
-              className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Mail className="w-5 h-5" />
-              <span>サポートにお問い合わせ</span>
-            </a>
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Contact Support */}
+              <a
+                href="mailto:support@epackage-lab.com"
+                className={buttonVariants({ variant: 'primary', size: 'md' })}
+              >
+                <Mail className="w-5 h-5 mr-2" />
+                <span>サポートにお問い合わせ</span>
+              </a>
 
-            {/* Back to Home */}
-            <Link
-              href="/"
-              className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium"
-            >
-              <Home className="w-5 h-5" />
-              <span>ホームに戻る</span>
-            </Link>
-          </div>
+              {/* Back to Home */}
+              <Link href="/" className={buttonVariants({ variant: 'secondary', size: 'md' })}>
+                <Home className="w-5 h-5 mr-2" />
+                <span>ホームに戻る</span>
+              </Link>
+            </div>
 
-          {/* Additional Help Text */}
-          <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-sm text-slate-600 text-center leading-relaxed">
-              <span className="font-medium">도움이 필요하신가요?</span>
-              <br />
-              <span className="font-medium">お困りですか?</span>
-              <br />
-              お問い合わせ: <a href="mailto:support@epackage-lab.com" className="text-blue-600 hover:underline">support@epackage-lab.com</a>
+            {/* Additional Help Text */}
+            <div className="mt-8 p-4 bg-bg-secondary rounded-container border border-border-medium">
+              <p className="text-sm text-text-secondary leading-relaxed">
+                <span className="font-medium">도움이 필요하신가요?</span>
+                <br />
+                <span className="font-medium">お困りですか?</span>
+                <br />
+                お問い合わせ: <a href="mailto:support@epackage-lab.com" className="text-brand underline-offset-4 hover:underline">support@epackage-lab.com</a>
+              </p>
+            </div>
+
+            {/* Footer */}
+            <p className="mt-8 text-sm text-text-muted">
+              © {new Date().getFullYear()} Epackage Lab. All rights reserved.
             </p>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} Epackage Lab. All rights reserved.
-          </p>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
+
 
 // =====================================================
 // Page Component
@@ -180,8 +156,8 @@ function InvalidTokenContent() {
 export default function InvalidTokenPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-bg-secondary">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
       </div>
     }>
       <InvalidTokenContent />

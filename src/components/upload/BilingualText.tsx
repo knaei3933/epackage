@@ -80,12 +80,12 @@ export function BilingualText({
         ${hasTranslation ? 'pb-2' : ''}
       `}>
         <div className="flex items-center gap-2 mb-1">
-          <Globe className="w-3 h-3 text-slate-400" />
-          <span className="text-xs font-medium text-slate-500 uppercase">
+          <Globe className="w-3 h-3 text-text-muted" />
+          <span className="text-xs font-medium text-text-muted uppercase">
             [{languageLabel}] {languageLabel === '韓国語' ? '原文' : 'Original'}
           </span>
         </div>
-        <p className="text-slate-900 whitespace-pre-wrap break-words">
+        <p className="text-text-primary whitespace-pre-wrap break-words">
           {content}
         </p>
       </div>
@@ -96,7 +96,7 @@ export function BilingualText({
           {compact && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+              className="flex items-center gap-1 text-xs text-brand hover:text-brand transition-colors"
               aria-expanded={isExpanded}
               aria-label={`翻訳を${isExpanded ? '非表示' : '表示'}`}
             >
@@ -110,14 +110,14 @@ export function BilingualText({
           )}
 
           {(isExpanded || !compact) && (
-            <div className="pt-2 border-t border-slate-200">
+            <div className="pt-2 border-t border-border-medium">
               <div className="flex items-center gap-2 mb-1">
-                <Globe className="w-3 h-3 text-green-500" />
-                <span className="text-xs font-medium text-green-600 uppercase">
+                <Globe className="w-3 h-3 text-success" />
+                <span className="text-xs font-medium text-success uppercase">
                   [{translationLabel}] 翻訳
                 </span>
               </div>
-              <p className="text-slate-700 whitespace-pre-wrap break-words">
+              <p className="text-text-secondary whitespace-pre-wrap break-words">
                 {content_translated}
               </p>
             </div>

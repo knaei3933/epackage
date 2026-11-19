@@ -253,12 +253,12 @@ export function TokenUploadForm({
   const hasExistingUploads = tokenData.upload_count > 0;
 
   return (
-    <section className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-      <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-        <Upload className="w-6 h-6 text-blue-600" />
+    <section className="bg-white rounded-container border border-border-medium p-6">
+      <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+        <Upload className="w-6 h-6 text-brand" />
         修正データアップロード
         {hasExistingUploads && (
-          <span className="text-sm font-normal text-slate-500">
+          <span className="text-sm font-normal text-text-muted">
             (追加アップロード)
           </span>
         )}
@@ -266,15 +266,15 @@ export function TokenUploadForm({
 
       {/* Local Error Display */}
       {localError && (
-        <div role="alert" aria-live="assertive" className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+        <div role="alert" aria-live="assertive" className="mb-4 bg-error-muted border border-error rounded-lg p-3">
           <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+            <AlertCircle className="h-5 w-5 text-error mr-2 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm text-red-700">{localError}</p>
+              <p className="text-sm text-on-error-muted">{localError}</p>
             </div>
             <button
               onClick={handleClearError}
-              className="text-red-600 hover:text-red-800"
+              className="text-error hover:text-on-error-muted"
               aria-label="エラーメッセージを閉じる"
             >
               <X className="h-4 w-4" />
@@ -287,11 +287,11 @@ export function TokenUploadForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Preview Image Upload */}
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
-            <FileImage className="w-5 h-5 text-blue-600" />
+          <h3 className="text-lg font-semibold text-text-primary mb-2 flex items-center gap-2">
+            <FileImage className="w-5 h-5 text-brand" />
             プレビュー画像 (JPG/PNG)
           </h3>
-          <p className="text-sm text-slate-600 mb-4">1920x1080px以上、5MB以下</p>
+          <p className="text-sm text-text-secondary mb-4">1920x1080px以上、5MB以下</p>
 
           <div
             role="button"
@@ -303,8 +303,8 @@ export function TokenUploadForm({
             className={`
               border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200
               ${isUploading
-                ? 'border-slate-300 bg-slate-50 cursor-not-allowed opacity-60'
-                : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50 hover:shadow-md'
+                ? 'border-border-strong bg-bg-secondary cursor-not-allowed opacity-60'
+                : 'border-brand-soft hover:border-brand hover:bg-brand-subtle hover:shadow-low'
               }
             `}
           >
@@ -324,11 +324,11 @@ export function TokenUploadForm({
                   alt="プレビュー"
                   className="mx-auto h-32 object-contain rounded mb-3"
                 />
-                <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
-                <p className="text-sm font-medium text-slate-900 truncate">
+                <CheckCircle className="mx-auto h-8 w-8 text-success mb-2" />
+                <p className="text-sm font-medium text-text-primary truncate">
                   {previewFile?.name}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-muted">
                   {previewFile && formatFileSize(previewFile.size)}
                 </p>
                 <button
@@ -337,15 +337,15 @@ export function TokenUploadForm({
                     setPreviewFile(null);
                     setPreviewPreview(null);
                   }}
-                  className="mt-2 text-sm text-red-600 hover:text-red-800"
+                  className="mt-2 text-sm text-error hover:text-on-error-muted"
                 >
                   クリア
                 </button>
               </div>
             ) : (
               <div>
-                <FileImage className="mx-auto h-12 w-12 text-slate-400 mb-3" />
-                <p className="text-sm text-slate-600">
+                <FileImage className="mx-auto h-12 w-12 text-text-muted mb-3" />
+                <p className="text-sm text-text-secondary">
                   クリックまたはドラッグ&ドロップ
                 </p>
               </div>
@@ -355,11 +355,11 @@ export function TokenUploadForm({
 
         {/* Original File Upload */}
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-purple-600" />
+          <h3 className="text-lg font-semibold text-text-primary mb-2 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-brand" />
             原版デザインファイル (AI/PDF/PSD)
           </h3>
-          <p className="text-sm text-slate-600 mb-4">50MB以下</p>
+          <p className="text-sm text-text-secondary mb-4">50MB以下</p>
 
           <div
             role="button"
@@ -371,8 +371,8 @@ export function TokenUploadForm({
             className={`
               border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200
               ${isUploading
-                ? 'border-slate-300 bg-slate-50 cursor-not-allowed opacity-60'
-                : 'border-purple-300 hover:border-purple-500 hover:bg-purple-50 hover:shadow-md'
+                ? 'border-border-strong bg-bg-secondary cursor-not-allowed opacity-60'
+                : 'border-brand-soft hover:border-brand hover:bg-brand-subtle hover:shadow-low'
               }
             `}
           >
@@ -387,11 +387,11 @@ export function TokenUploadForm({
 
             {originalFile ? (
               <div>
-                <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-3" />
-                <p className="text-sm font-medium text-slate-900 truncate">
+                <CheckCircle className="mx-auto h-12 w-12 text-success mb-3" />
+                <p className="text-sm font-medium text-text-primary truncate">
                   {originalFile.name}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-muted">
                   {formatFileSize(originalFile.size)}
                 </p>
                 <button
@@ -399,15 +399,15 @@ export function TokenUploadForm({
                     e.stopPropagation();
                     setOriginalFile(null);
                   }}
-                  className="mt-2 text-sm text-red-600 hover:text-red-800"
+                  className="mt-2 text-sm text-error hover:text-on-error-muted"
                 >
                   クリア
                 </button>
               </div>
             ) : (
               <div>
-                <FileText className="mx-auto h-12 w-12 text-slate-400 mb-3" />
-                <p className="text-sm text-slate-600">
+                <FileText className="mx-auto h-12 w-12 text-text-muted mb-3" />
+                <p className="text-sm text-text-secondary">
                   クリックまたはドラッグ&ドロップ
                 </p>
               </div>
@@ -418,9 +418,9 @@ export function TokenUploadForm({
 
       {/* Korean Comment */}
       <div className="mb-6">
-        <label htmlFor="korean-comment" className="block text-sm font-medium text-slate-900 mb-2">
+        <label htmlFor="korean-comment" className="block text-sm font-medium text-text-primary mb-2">
           韓国語コメント（修正内容など）
-          <span className="text-slate-400 font-normal ml-1">任意</span>
+          <span className="text-text-muted font-normal ml-1">任意</span>
         </label>
         <textarea
           id="korean-comment"
@@ -428,29 +428,29 @@ export function TokenUploadForm({
           onChange={(e) => setKoreanComment(e.target.value)}
           placeholder="한국어로 수정 내용을 입력하세요..."
           rows={4}
-          className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+          className="min-h-24 py-2 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted resize-none"
           disabled={isUploading}
         />
-        <p className="text-sm text-slate-500 mt-2">
+        <p className="text-sm text-text-muted mt-2">
           修正内容について顧客への説明を韓国語で入力してください
         </p>
       </div>
 
       {/* Upload Progress */}
       {isUploading && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-6 p-4 bg-brand-muted rounded-lg border border-brand-soft">
           <div className="flex items-center gap-4">
-            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+            <Loader2 className="w-6 h-6 text-brand animate-spin" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">アップロード中...</p>
-              <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+              <p className="text-sm font-medium text-text-primary">アップロード中...</p>
+              <div className="w-full bg-bg-muted rounded-full h-2 mt-2">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-brand h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
             </div>
-            <span className="text-sm font-medium text-slate-600">{uploadProgress}%</span>
+            <span className="text-sm font-medium text-text-secondary">{uploadProgress}%</span>
           </div>
         </div>
       )}
@@ -463,8 +463,8 @@ export function TokenUploadForm({
           className={`
             px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200
             ${!canSubmit
-              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
+              ? 'bg-bg-muted text-text-muted cursor-not-allowed'
+              : 'bg-brand text-white hover:bg-brand-hover'
             }
           `}
           aria-label={!canSubmit ? 'ファイルを選択してください' : '修正データをアップロード'}
@@ -485,27 +485,27 @@ export function TokenUploadForm({
 
       {/* Filename Info Display (after successful upload) */}
       {lastUploadedRevision && (
-        <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
+        <div className="mt-6 p-4 bg-success-muted rounded-lg border border-success">
+          <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-success" />
             アップロード完了 - ファイル名情報
           </h3>
           <div className="space-y-2 text-sm">
             <div className="flex items-start gap-2">
-              <span className="text-slate-600 font-medium min-w-[120px]">元ファイル名:</span>
-              <span className="text-slate-900 break-all font-mono text-xs">
+              <span className="text-text-secondary font-medium min-w-[120px]">元ファイル名:</span>
+              <span className="text-text-primary break-all font-mono text-xs">
                 {lastUploadedRevision.original_customer_filename || '-'}
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-slate-600 font-medium min-w-[120px]">生成ファイル名:</span>
-              <span className="text-slate-900 break-all font-mono text-xs">
+              <span className="text-text-secondary font-medium min-w-[120px]">生成ファイル名:</span>
+              <span className="text-text-primary break-all font-mono text-xs">
                 {lastUploadedRevision.generated_correction_filename || '-'}
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-slate-600 font-medium min-w-[120px]">リビジョン番号:</span>
-              <span className="text-slate-900">
+              <span className="text-text-secondary font-medium min-w-[120px]">リビジョン番号:</span>
+              <span className="text-text-primary">
                 R{lastUploadedRevision.revision_number}
               </span>
             </div>

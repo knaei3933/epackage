@@ -58,20 +58,20 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
   }
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow">
+    <Card className="p-6 hover:shadow-low transition-shadow">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Product Info */}
         <div className="lg:col-span-6 space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
-                <Package className="w-6 h-6 text-brixa-600" />
-                <h3 className="text-lg font-semibold text-gray-900">{item.product.name_ja}</h3>
+                <Package className="w-6 h-6 text-brand" />
+                <h3 className="text-lg font-semibold text-text-primary">{item.product.name_ja}</h3>
                 <Badge variant="secondary" className="text-xs">
                   {item.product.category.replace('_', ' ').toUpperCase()}
                 </Badge>
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-text-secondary text-sm leading-relaxed">
                 {item.product.description_ja}
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
@@ -87,7 +87,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
           {/* Specifications */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-gray-900">仕様詳細</h4>
+              <h4 className="font-medium text-text-primary">仕様詳細</h4>
               <Button
                 variant="outline"
                 size="sm"
@@ -100,17 +100,17 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
             </div>
 
             {isEditingSpecs ? (
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+              <div className="space-y-4 p-4 bg-bg-secondary rounded-lg border">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">素材</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">素材</label>
                     <select
                       value={tempSpecifications.material || ''}
                       onChange={(e) => setTempSpecifications({
                         ...tempSpecifications,
                         material: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-brixa-600"
+                      className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
                     >
                       <option value="">選択してください</option>
                       {item.product.materials.map((material) => (
@@ -121,7 +121,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">厚さ (μm)</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">厚さ (μm)</label>
                     <Input
                       type="number"
                       value={tempSpecifications.thickness || ''}
@@ -133,7 +133,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">幅 (mm)</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">幅 (mm)</label>
                     <Input
                       type="number"
                       value={tempSpecifications.width || ''}
@@ -145,7 +145,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">高さ (mm)</label>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">高さ (mm)</label>
                     <Input
                       type="number"
                       value={tempSpecifications.height || ''}
@@ -160,10 +160,10 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
 
                 {tempSpecifications.printing && (
                   <div className="space-y-4 pt-4 border-t">
-                    <h5 className="font-medium text-gray-900">印刷仕様</h5>
+                    <h5 className="font-medium text-text-primary">印刷仕様</h5>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">色数</label>
+                        <label className="block text-sm font-medium text-text-secondary mb-1">色数</label>
                         <Input
                           type="number"
                           min="1"
@@ -180,7 +180,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">面</label>
+                        <label className="block text-sm font-medium text-text-secondary mb-1">面</label>
                         <select
                           value={tempSpecifications.printing.sides}
                           onChange={(e) => setTempSpecifications({
@@ -191,7 +191,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                               method: tempSpecifications.printing?.method || "offset"
                             }
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-brixa-600"
+                          className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
                         >
                           <option value="front">片面</option>
                           <option value="back">裏面</option>
@@ -199,7 +199,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">方式</label>
+                        <label className="block text-sm font-medium text-text-secondary mb-1">方式</label>
                         <select
                           value={tempSpecifications.printing.method}
                           onChange={(e) => setTempSpecifications({
@@ -210,7 +210,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                               method: e.target.value as 'digital' | 'offset' | 'flexographic'
                             }
                           })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-brixa-600"
+                          className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
                         >
                           <option value="digital">デジタル</option>
                           <option value="offset">オフセット</option>
@@ -243,31 +243,31 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {tempSpecifications.material && (
                   <div>
-                    <span className="text-gray-600">素材:</span>
+                    <span className="text-text-secondary">素材:</span>
                     <span className="ml-2 font-medium">{getMaterialName(tempSpecifications.material)}</span>
                   </div>
                 )}
                 {tempSpecifications.thickness && (
                   <div>
-                    <span className="text-gray-600">厚さ:</span>
+                    <span className="text-text-secondary">厚さ:</span>
                     <span className="ml-2 font-medium">{tempSpecifications.thickness}μm</span>
                   </div>
                 )}
                 {tempSpecifications.width && (
                   <div>
-                    <span className="text-gray-600">幅:</span>
+                    <span className="text-text-secondary">幅:</span>
                     <span className="ml-2 font-medium">{tempSpecifications.width}mm</span>
                   </div>
                 )}
                 {tempSpecifications.height && (
                   <div>
-                    <span className="text-gray-600">高さ:</span>
+                    <span className="text-text-secondary">高さ:</span>
                     <span className="ml-2 font-medium">{tempSpecifications.height}mm</span>
                   </div>
                 )}
                 {tempSpecifications.printing && (
                   <div className="col-span-2">
-                    <span className="text-gray-600">印刷:</span>
+                    <span className="text-text-secondary">印刷:</span>
                     <span className="ml-2 font-medium">
                       {tempSpecifications.printing.colors}色 /
                       {tempSpecifications.printing.sides === 'front' ? '片面' :
@@ -286,7 +286,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
         <div className="lg:col-span-4 space-y-4">
           {/* Quantity Controls */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">数量</label>
+            <label className="block text-sm font-medium text-text-secondary mb-2">数量</label>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -312,7 +312,7 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-text-muted mt-1">
               最低注文数量: {item.product.min_order_quantity.toLocaleString()}個
             </p>
           </div>
@@ -320,23 +320,23 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
           {/* Price Breakdown */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">単価:</span>
+              <span className="text-text-secondary">単価:</span>
               <span className="font-medium">{formatCurrency(item.unitPrice)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">数量:</span>
+              <span className="text-text-secondary">数量:</span>
               <span className="font-medium">{item.quantity.toLocaleString()}個</span>
             </div>
             <div className="border-t pt-2">
               <div className="flex justify-between font-semibold">
                 <span>小計:</span>
-                <span className="text-brixa-700">{formatCurrency(item.totalPrice)}</span>
+                <span className="text-brand">{formatCurrency(item.totalPrice)}</span>
               </div>
             </div>
           </div>
 
           {/* Lead Time */}
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-text-secondary">
             <AlertCircle className="w-4 h-4" />
             <span>納期: 約 {item.product.lead_time_days} 日</span>
           </div>
@@ -348,17 +348,17 @@ export function CartItemComponent({ item }: CartItemComponentProps) {
             variant="outline"
             size="sm"
             onClick={() => removeItem(item.id)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="text-error hover:text-on-error-muted hover:bg-error-muted"
           >
             <Trash2 className="w-4 h-4 mr-1" />
             削除
           </Button>
 
           <div className="text-right">
-            <p className="text-lg font-bold text-brixa-700">
+            <p className="text-lg font-bold text-brand">
               {formatCurrency(item.totalPrice)}
             </p>
-            <p className="text-xs text-gray-500">税別</p>
+            <p className="text-xs text-text-muted">税別</p>
           </div>
 
           <Button

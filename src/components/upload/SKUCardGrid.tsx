@@ -29,7 +29,7 @@ export function SKUCardGrid({
 }: SKUCardGridProps) {
   if (skuStates.length === 0) {
     return (
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-text-muted">
         SKU情報がありません
       </div>
     );
@@ -43,10 +43,10 @@ export function SKUCardGrid({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-900">
+        <h3 className="text-sm font-medium text-text-primary">
           SKU選択
         </h3>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-text-muted">
           {skuStates.filter(s => s.isUploaded).length} / {skuStates.length} 完了
         </span>
       </div>

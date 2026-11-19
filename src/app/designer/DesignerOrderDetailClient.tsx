@@ -89,15 +89,15 @@ const FILE_SIZE_LIMITS = {
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   CORRECTION_IN_PROGRESS: {
     label: '教正作業中',
-    color: 'bg-blue-100 text-blue-800 border-blue-200',
+    color: 'bg-brand-muted text-brand border-brand-soft',
   },
   CUSTOMER_APPROVAL_PENDING: {
     label: '顧客承認待ち',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    color: 'bg-warning-muted text-on-warning-muted border-warning',
   },
   APPROVED: {
     label: '承認済み',
-    color: 'bg-green-100 text-green-800 border-green-200',
+    color: 'bg-success-muted text-on-success-muted border-success',
   },
 };
 
@@ -286,7 +286,7 @@ export function DesignerOrderDetailClient({
 
   const statusInfo = STATUS_LABELS[order.status] || {
     label: order.status,
-    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    color: 'bg-bg-muted text-text-primary border-border-medium',
   };
 
   return (
@@ -294,7 +294,7 @@ export function DesignerOrderDetailClient({
       {/* Back Button */}
       <Link
         href="/designer"
-        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+        className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         ダッシュボードに戻る
@@ -302,16 +302,16 @@ export function DesignerOrderDetailClient({
 
       {/* Error Display */}
       {error && (
-        <div role="alert" aria-live="assertive" className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div role="alert" aria-live="assertive" className="bg-error-muted border border-error rounded-lg p-4">
           <div className="flex items-start">
-            <AlertCircle className="h-6 w-6 text-red-600 mr-3 flex-shrink-0" />
+            <AlertCircle className="h-6 w-6 text-error mr-3 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-red-800">エラー</h3>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <h3 className="text-sm font-medium text-on-error-muted">エラー</h3>
+              <p className="text-sm text-on-error-muted mt-1">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-red-600 hover:text-red-800"
+              className="text-error hover:text-on-error-muted"
               aria-label="エラーメッセージを閉じる"
             >
               <X className="h-5 w-5" />
@@ -322,15 +322,15 @@ export function DesignerOrderDetailClient({
 
       {/* Success Display */}
       {successMessage && (
-        <div role="status" aria-live="polite" className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div role="status" aria-live="polite" className="bg-success-muted border border-success rounded-lg p-4">
           <div className="flex items-start">
-            <CheckCircle className="h-6 w-6 text-green-600 mr-3 flex-shrink-0" />
+            <CheckCircle className="h-6 w-6 text-success mr-3 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-green-800">{successMessage}</p>
+              <p className="text-sm font-medium text-on-success-muted">{successMessage}</p>
             </div>
             <button
               onClick={() => setSuccessMessage(null)}
-              className="text-green-600 hover:text-green-800"
+              className="text-success hover:text-on-success-muted"
               aria-label="成功メッセージを閉じる"
             >
               <X className="h-5 w-5" />
@@ -340,46 +340,46 @@ export function DesignerOrderDetailClient({
       )}
 
       {/* Order Header */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div className="bg-white rounded-container shadow-sm border border-border-medium p-6">
         <div className="flex items-start justify-between mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold text-slate-900">{order.order_number}</h1>
+              <h1 className="text-2xl font-bold text-text-primary">{order.order_number}</h1>
               <span className={`
-                px-3 py-1 rounded-full text-sm font-medium border
+                px-3 py-1 rounded-inner text-sm font-medium border
                 ${statusInfo.color}
               `}>
                 {statusInfo.label}
               </span>
             </div>
-            <p className="text-slate-600">注文詳細・教正データアップロード</p>
+            <p className="text-text-secondary">注文詳細・教正データアップロード</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-slate-500">注文金額</p>
-            <p className="text-2xl font-bold text-slate-900">{formatCurrency(order.total_amount)}</p>
+            <p className="text-sm text-text-muted">注文金額</p>
+            <p className="text-2xl font-bold text-text-primary">{formatCurrency(order.total_amount)}</p>
           </div>
         </div>
 
         {/* Customer Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-bg-secondary rounded-lg">
           <div className="flex items-center gap-3">
-            <User className="w-5 h-5 text-slate-400" />
+            <User className="w-5 h-5 text-text-muted" />
             <div>
-              <p className="text-xs text-slate-500">顧客名</p>
-              <p className="font-medium text-slate-900">{order.customer_name}</p>
+              <p className="text-xs text-text-muted">顧客名</p>
+              <p className="font-medium text-text-primary">{order.customer_name}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-slate-400" />
+            <Calendar className="w-5 h-5 text-text-muted" />
             <div>
-              <p className="text-xs text-slate-500">注文日</p>
-              <p className="font-medium text-slate-900">{formatDateTimeJa(order.created_at)}</p>
+              <p className="text-xs text-text-muted">注文日</p>
+              <p className="font-medium text-text-primary">{formatDateTimeJa(order.created_at)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Package className="w-5 h-5 text-slate-400" />
+            <Package className="w-5 h-5 text-text-muted" />
             <div>
-              <p className="text-xs text-slate-500">SKU</p>
+              <p className="text-xs text-text-muted">SKU</p>
               <div className="flex flex-wrap gap-1">
                 {order.items.map((item) => (
                   <span key={item.id} className="bg-white px-2 py-0.5 rounded text-xs">
@@ -391,10 +391,10 @@ export function DesignerOrderDetailClient({
           </div>
           {order.delivery_address && (
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-slate-400" />
+              <MapPin className="w-5 h-5 text-text-muted" />
               <div>
-                <p className="text-xs text-slate-500">納品先</p>
-                <p className="font-medium text-slate-900 text-sm">
+                <p className="text-xs text-text-muted">納品先</p>
+                <p className="font-medium text-text-primary text-sm">
                   {order.delivery_address.prefecture} {order.delivery_address.city}
                 </p>
               </div>
@@ -403,8 +403,8 @@ export function DesignerOrderDetailClient({
         </div>
 
         {order.notes && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-slate-700">
+          <div className="mt-4 p-4 bg-brand-muted rounded-lg">
+            <p className="text-sm text-text-secondary">
               <span className="font-medium">備考:</span> {order.notes}
             </p>
           </div>
@@ -412,22 +412,22 @@ export function DesignerOrderDetailClient({
       </div>
 
       {/* Upload Form */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-          <Upload className="w-6 h-6 text-blue-600" />
+      <div className="bg-white rounded-container shadow-sm border border-border-medium p-6">
+        <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+          <Upload className="w-6 h-6 text-brand" />
           教正データアップロード
         </h2>
 
         {/* SKU Selection */}
         {order.items.length > 1 && (
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-900 mb-2">
-              SKU <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              SKU <span className="text-error">*</span>
             </label>
             <select
               value={selectedOrderItemId || ''}
               onChange={(e) => setSelectedOrderItemId(e.target.value || null)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
               disabled={isUploading}
               required
             >
@@ -445,11 +445,11 @@ export function DesignerOrderDetailClient({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Preview Image Upload */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
-              <FileImage className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-text-primary mb-2 flex items-center gap-2">
+              <FileImage className="w-5 h-5 text-brand" />
               プレビュー画像 (JPG/PNG)
             </h3>
-            <p className="text-sm text-slate-600 mb-4">1920x1080px以上、5MB以下</p>
+            <p className="text-sm text-text-secondary mb-4">1920x1080px以上、5MB以下</p>
 
             <div
               role="button"
@@ -461,8 +461,8 @@ export function DesignerOrderDetailClient({
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                 ${isUploading
-                  ? 'border-slate-300 bg-slate-50 cursor-not-allowed'
-                  : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50'
+                  ? 'border-border-strong bg-bg-secondary cursor-not-allowed'
+                  : 'border-brand-soft hover:border-brand hover:bg-brand-subtle'
                 }
               `}
             >
@@ -477,11 +477,11 @@ export function DesignerOrderDetailClient({
 
               {previewFile ? (
                 <div>
-                  <CheckCircle className="mx-auto h-12 w-12 text-green-600" />
-                  <p className="mt-4 text-sm font-medium text-slate-900">
+                  <CheckCircle className="mx-auto h-12 w-12 text-success" />
+                  <p className="mt-4 text-sm font-medium text-text-primary">
                     {previewFile.name}
                   </p>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-text-muted mt-1">
                     {formatFileSize(previewFile.size)}
                   </p>
                   <button
@@ -489,15 +489,15 @@ export function DesignerOrderDetailClient({
                       e.stopPropagation();
                       setPreviewFile(null);
                     }}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800"
+                    className="mt-2 text-sm text-error hover:text-on-error-muted"
                   >
                     クリア
                   </button>
                 </div>
               ) : (
                 <div>
-                  <FileImage className="mx-auto h-12 w-12 text-slate-400" />
-                  <p className="mt-4 text-sm text-slate-600">
+                  <FileImage className="mx-auto h-12 w-12 text-text-muted" />
+                  <p className="mt-4 text-sm text-text-secondary">
                     クリックまたはドラッグ&ドロップ
                   </p>
                 </div>
@@ -507,11 +507,11 @@ export function DesignerOrderDetailClient({
 
           {/* Original File Upload */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-purple-600" />
+            <h3 className="text-lg font-semibold text-text-primary mb-2 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-brand" />
               原版デザインファイル (AI/PDF/PSD)
             </h3>
-            <p className="text-sm text-slate-600 mb-4">50MB以下</p>
+            <p className="text-sm text-text-secondary mb-4">50MB以下</p>
 
             <div
               role="button"
@@ -523,8 +523,8 @@ export function DesignerOrderDetailClient({
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                 ${isUploading
-                  ? 'border-slate-300 bg-slate-50 cursor-not-allowed'
-                  : 'border-purple-300 hover:border-purple-500 hover:bg-purple-50'
+                  ? 'border-border-strong bg-bg-secondary cursor-not-allowed'
+                  : 'border-brand-soft hover:border-brand hover:bg-brand-subtle'
                 }
               `}
             >
@@ -539,11 +539,11 @@ export function DesignerOrderDetailClient({
 
               {originalFile ? (
                 <div>
-                  <CheckCircle className="mx-auto h-12 w-12 text-green-600" />
-                  <p className="mt-4 text-sm font-medium text-slate-900">
+                  <CheckCircle className="mx-auto h-12 w-12 text-success" />
+                  <p className="mt-4 text-sm font-medium text-text-primary">
                     {originalFile.name}
                   </p>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-text-muted mt-1">
                     {formatFileSize(originalFile.size)}
                   </p>
                   <button
@@ -551,15 +551,15 @@ export function DesignerOrderDetailClient({
                       e.stopPropagation();
                       setOriginalFile(null);
                     }}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800"
+                    className="mt-2 text-sm text-error hover:text-on-error-muted"
                   >
                     クリア
                   </button>
                 </div>
               ) : (
                 <div>
-                  <FileText className="mx-auto h-12 w-12 text-slate-400" />
-                  <p className="mt-4 text-sm text-slate-600">
+                  <FileText className="mx-auto h-12 w-12 text-text-muted" />
+                  <p className="mt-4 text-sm text-text-secondary">
                     クリックまたはドラッグ&ドロップ
                   </p>
                 </div>
@@ -570,7 +570,7 @@ export function DesignerOrderDetailClient({
 
         {/* Korean Comment */}
         <div className="mt-6">
-          <label htmlFor="korean-comment" className="block text-sm font-medium text-slate-900 mb-2">
+          <label htmlFor="korean-comment" className="block text-sm font-medium text-text-primary mb-2">
             韓国語コメント（修正内容など）
           </label>
           <textarea
@@ -579,29 +579,29 @@ export function DesignerOrderDetailClient({
             onChange={(e) => setKoreanComment(e.target.value)}
             placeholder="한국어로 수정 내용을 입력하세요..."
             rows={4}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="min-h-24 py-2 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
             disabled={isUploading}
           />
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-text-muted mt-2">
             修正内容について顧客への説明を韓国語で入力してください（任意）
           </p>
         </div>
 
         {/* Upload Progress */}
         {isUploading && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mt-6 p-4 bg-brand-muted rounded-lg">
             <div className="flex items-center gap-4">
-              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+              <Loader2 className="w-6 h-6 text-brand animate-spin" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900">アップロード中...</p>
-                <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                <p className="text-sm font-medium text-text-primary">アップロード中...</p>
+                <div className="w-full bg-bg-muted rounded-full h-2 mt-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-brand h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
               </div>
-              <span className="text-sm text-slate-600">{uploadProgress}%</span>
+              <span className="text-sm text-text-secondary">{uploadProgress}%</span>
             </div>
           </div>
         )}
@@ -614,8 +614,8 @@ export function DesignerOrderDetailClient({
             className={`
               px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all
               ${!previewFile || !originalFile || isUploading
-                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                ? 'bg-bg-muted text-text-muted cursor-not-allowed'
+                : 'bg-brand text-white hover:bg-brand-hover'
               }
             `}
           >
@@ -636,9 +636,9 @@ export function DesignerOrderDetailClient({
 
       {/* Previous Revisions */}
       {revisions.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-blue-600" />
+        <div className="bg-white rounded-container shadow-sm border border-border-medium p-6">
+          <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-brand" />
             過去の教正データ ({revisions.length})
           </h2>
 
@@ -646,24 +646,24 @@ export function DesignerOrderDetailClient({
             {revisions.map((revision) => (
               <div
                 key={revision.id}
-                className="p-4 bg-slate-50 rounded-lg border border-slate-200"
+                className="p-4 bg-bg-secondary rounded-lg border border-border-medium"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-slate-900">
+                      <h3 className="font-semibold text-text-primary">
                         リビジョン #{revision.revision_number}
                       </h3>
                       {revision.order_item_id && (
-                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                        <span className="bg-brand-muted text-brand px-2 py-0.5 rounded text-xs font-medium">
                           {order.items.find(i => i.id === revision.order_item_id)?.product_name}
                         </span>
                       )}
                       <span className={`
-                        px-2 py-1 rounded-full text-xs font-medium
-                        ${revision.approval_status === 'approved' ? 'bg-green-100 text-green-800' : ''}
-                        ${revision.approval_status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                        ${revision.approval_status === 'rejected' ? 'bg-red-100 text-red-800' : ''}
+                        px-2 py-1 rounded-inner text-xs font-medium
+                        ${revision.approval_status === 'approved' ? 'bg-success-muted text-on-success-muted' : ''}
+                        ${revision.approval_status === 'pending' ? 'bg-warning-muted text-on-warning-muted' : ''}
+                        ${revision.approval_status === 'rejected' ? 'bg-error-muted text-on-error-muted' : ''}
                       `}>
                         {revision.approval_status === 'approved' && '承認済み'}
                         {revision.approval_status === 'pending' && '承認待ち'}
@@ -671,13 +671,13 @@ export function DesignerOrderDetailClient({
                       </span>
                     </div>
 
-                    <p className="text-sm text-slate-600 mb-2">
+                    <p className="text-sm text-text-secondary mb-2">
                       {formatDateTimeJa(revision.created_at)}
                     </p>
 
                     {revision.partner_comment && (
-                      <div className="p-3 bg-white rounded border border-slate-200 mb-3">
-                        <p className="text-sm text-slate-700">{revision.partner_comment}</p>
+                      <div className="p-3 bg-white rounded border border-border-medium mb-3">
+                        <p className="text-sm text-text-secondary">{revision.partner_comment}</p>
                       </div>
                     )}
 
@@ -686,7 +686,7 @@ export function DesignerOrderDetailClient({
                         href={revision.preview_image_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-brand-muted text-brand rounded hover:bg-brand-subtle transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         プレビュー
@@ -695,7 +695,7 @@ export function DesignerOrderDetailClient({
                         href={revision.original_file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-brand-muted text-brand rounded hover:bg-brand-subtle transition-colors"
                       >
                         <Download className="w-4 h-4" />
                         原版ダウンロード

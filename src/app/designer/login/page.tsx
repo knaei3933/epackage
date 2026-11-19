@@ -26,18 +26,18 @@ export const metadata: Metadata = {
 
 export default function DesignerLoginPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-bg-secondary">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
-            <h1 className="text-3xl font-bold text-brixa-600 dark:text-brixa-400">
+            <span className="text-3xl font-bold text-brand">
               Epackage Lab
-            </h1>
+            </span>
           </Link>
-          <h2 className="text-2xl font-semibold text-text-primary mb-2">
+          <h1 className="font-heading text-2xl font-semibold text-text-primary mb-2">
             Designer Login
-          </h2>
+          </h1>
           <p className="text-text-muted">
             Korean designer portal for correction workflow
           </p>
@@ -53,7 +53,7 @@ export default function DesignerLoginPage() {
         <div className="text-center mt-6">
           <Link
             href="/"
-            className="text-sm text-brixa-500 hover:text-brixa-600"
+            className="text-sm text-brand hover:text-brand-pressed underline-offset-4 hover:underline"
           >
             Back to Main Site
           </Link>

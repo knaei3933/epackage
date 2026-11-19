@@ -1,4 +1,7 @@
 import { Metadata } from "next"
+import Link from "next/link"
+import { PageHeader } from "@/components/layout"
+import { buttonVariants } from "@/components/ui/Button"
 
 export const metadata: Metadata = {
   title: "Shared Comparison",
@@ -7,21 +10,16 @@ export const metadata: Metadata = {
 
 export default function SharedComparisonPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Shared Comparison
-        </h1>
-        <p className="text-gray-600 mb-6">
-          This page is currently under maintenance.
-        </p>
-        <a
-          href="/compare"
-          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Back to Compare
-        </a>
-      </div>
+    <div className="min-h-screen bg-bg-primary">
+      <PageHeader
+        title="Shared Comparison"
+        lead="This page is currently under maintenance."
+        actions={
+          <Link href="/compare" className={buttonVariants({ variant: "primary", size: "md" })}>
+            Back to Compare
+          </Link>
+        }
+      />
     </div>
   )
 }

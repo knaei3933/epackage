@@ -102,36 +102,36 @@ export default async function DesignerLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-bg-secondary">
       {/* Designer Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-white border-b border-border-medium sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo & Brand */}
             <Link href="/designer" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-brand">
                 <LayoutDashboard className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                <span className="block text-xl font-bold text-text-primary">
                   EPackage Lab
-                </h1>
-                <p className="text-xs text-slate-500 font-medium">デザイナーポータル</p>
+                </span>
+                <p className="text-xs text-text-muted font-medium">デザイナーポータル</p>
               </div>
             </Link>
 
             {/* Designer Info & Actions */}
             <div className="flex items-center gap-4">
               {/* Designer Profile */}
-              <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+              <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-bg-secondary rounded-lg border border-border-medium">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-brand">
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-slate-800">
+                  <span className="text-sm font-semibold text-text-primary">
                     {designer.name || 'デザイナー'}
                   </span>
-                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                  <span className="text-xs text-text-muted flex items-center gap-1">
                     <Mail className="w-3 h-3" />
                     {designer.email}
                   </span>
@@ -142,7 +142,7 @@ export default async function DesignerLayout({
               <form action="/auth/signout" method="post">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium text-sm"
+                  className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-error hover:bg-error-muted rounded-lg transition-all duration-200 font-medium text-sm"
                   aria-label="ログアウト"
                 >
                   <LogOut className="w-4 h-4" />
@@ -160,8 +160,8 @@ export default async function DesignerLayout({
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 py-6 border-t border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
+      <footer className="mt-16 py-6 border-t border-border-medium bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-text-muted">
           <p>&copy; {new Date().getFullYear()} EPackage Lab. All rights reserved.</p>
         </div>
       </footer>

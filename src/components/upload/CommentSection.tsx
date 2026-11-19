@@ -66,13 +66,13 @@ function formatTime(dateString: string): string {
 function getLanguageBadgeInfo(language: string): { label: string; color: string } {
   switch (language) {
     case 'ko':
-      return { label: 'KO', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+      return { label: 'KO', color: 'bg-brand-muted text-brand border-brand-soft' };
     case 'ja':
-      return { label: 'JA', color: 'bg-green-100 text-green-800 border-green-200' };
+      return { label: 'JA', color: 'bg-success-muted text-on-success-muted border-success' };
     case 'en':
-      return { label: 'EN', color: 'bg-purple-100 text-purple-800 border-purple-200' };
+      return { label: 'EN', color: 'bg-brand-muted text-brand border-brand-soft' };
     default:
-      return { label: language.toUpperCase(), color: 'bg-gray-100 text-gray-800 border-gray-200' };
+      return { label: language.toUpperCase(), color: 'bg-bg-muted text-text-primary border-border-medium' };
   }
 }
 
@@ -167,13 +167,13 @@ export function CommentSection({
   };
 
   return (
-    <section className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+    <section className="bg-white rounded-container border border-border-medium overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <Send className="w-5 h-5 text-blue-600" />
+      <div className="p-4 border-b border-border-medium bg-bg-secondary">
+        <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+          <Send className="w-5 h-5 text-brand" />
           コメント
-          <span className="text-sm font-normal text-slate-600">
+          <span className="text-sm font-normal text-text-secondary">
             ({comments.length})
           </span>
         </h2>
@@ -183,12 +183,12 @@ export function CommentSection({
       <div className="p-4 max-h-[500px] overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-            <span className="ml-2 text-sm text-slate-600">読み込み中...</span>
+            <Loader2 className="w-6 h-6 text-brand animate-spin" />
+            <span className="ml-2 text-sm text-text-secondary">読み込み中...</span>
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-text-muted">
               コメントはまだありません
             </p>
           </div>
@@ -203,19 +203,19 @@ export function CommentSection({
                   key={comment.id}
                   className={`p-3 rounded-lg ${
                     isDesigner
-                      ? 'bg-blue-50 border border-blue-200'
-                      : 'bg-slate-50 border border-slate-200'
+                      ? 'bg-brand-muted border border-brand-soft'
+                      : 'bg-bg-secondary border border-border-medium'
                   }`}
                 >
                   {/* Comment Header */}
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-slate-400" />
-                      <span className="text-sm font-medium text-slate-900">
+                      <User className="w-4 h-4 text-text-muted" />
+                      <span className="text-sm font-medium text-text-primary">
                         {comment.author_name_display}
                       </span>
                       {isDesigner && (
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                        <span className="px-2 py-0.5 bg-brand-muted text-brand rounded text-xs font-medium">
                           デザイナー
                         </span>
                       )}
@@ -226,7 +226,7 @@ export function CommentSection({
                         {langBadge.label}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs text-text-muted">
                       <Clock className="w-3 h-3" />
                       {formatTime(comment.created_at)}
                     </div>
@@ -249,11 +249,11 @@ export function CommentSection({
       </div>
 
       {/* Comment Input */}
-      <div className="p-4 border-t border-slate-200 bg-slate-50">
+      <div className="p-4 border-t border-border-medium bg-bg-secondary">
         <div className="space-y-3">
           {/* Error Display */}
           {submitError && (
-            <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+            <div className="p-2 bg-error-muted border border-error rounded text-sm text-on-error-muted">
               {submitError}
             </div>
           )}
@@ -268,14 +268,14 @@ export function CommentSection({
             onKeyDown={handleKeyDown}
             placeholder="한국어로 댓글을 입력하세요..."
             rows={3}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+            className="min-h-24 py-2 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted resize-none"
             disabled={isSubmitting}
             aria-label="コメント入力（Ctrl+Enterで送信）"
           />
 
           {/* Submit Button */}
           <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-text-muted">
               Ctrl+Enter または Cmd+Enter で送信
             </p>
             <button
@@ -284,8 +284,8 @@ export function CommentSection({
               className={`
                 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all
                 ${!newComment.trim() || isSubmitting
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'bg-bg-muted text-text-muted cursor-not-allowed'
+                  : 'bg-brand text-white hover:bg-brand-hover'
                 }
               `}
             >

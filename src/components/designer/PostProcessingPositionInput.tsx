@@ -56,27 +56,27 @@ export function PostProcessingPositionInput({
   };
 
   return (
-    <div className="space-y-6 bg-white rounded-lg p-6 border border-gray-200">
+    <div className="space-y-6 bg-white rounded-lg p-6 border border-border-medium">
       {/* ヘッダー */}
-      <div className="border-b border-gray-200 pb-4">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Ruler className="w-5 h-5 text-blue-600" />
+      <div className="border-b border-border-medium pb-4">
+        <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+          <Ruler className="w-5 h-5 text-brand" />
           後加工位置情報入력 / 후가공 위치 입력
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-text-secondary mt-1">
           SKU: {skuName}
         </p>
       </div>
 
       {/* ノッチ位置 */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-          <Scissors className="w-4 h-4 text-gray-600" />
+        <h4 className="font-semibold text-text-primary flex items-center gap-2">
+          <Scissors className="w-4 h-4 text-text-secondary" />
           노치 위치
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               위에서
             </label>
             <input
@@ -85,11 +85,11 @@ export function PostProcessingPositionInput({
               onChange={(e) => handleChange('notch_top', e.target.value)}
               placeholder="例: 20mm / 예: 20mm"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               아래에서
             </label>
             <input
@@ -98,7 +98,7 @@ export function PostProcessingPositionInput({
               onChange={(e) => handleChange('notch_bottom', e.target.value)}
               placeholder="例: 15mm / 예: 15mm"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
             />
           </div>
         </div>
@@ -106,20 +106,20 @@ export function PostProcessingPositionInput({
 
       {/* 吊り下げ加工 */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-          <Circle className="w-4 h-4 text-gray-600" />
+        <h4 className="font-semibold text-text-primary flex items-center gap-2">
+          <Circle className="w-4 h-4 text-text-secondary" />
           현수공加工
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               구멍 지름
             </label>
             <select
               value={formData.hang_hole_diameter || ''}
               onChange={(e) => handleChange('hang_hole_diameter', e.target.value)}
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
             >
               <option value="">선택하세요</option>
               <option value="6mm">6mm / 6mm</option>
@@ -129,7 +129,7 @@ export function PostProcessingPositionInput({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               位置 / 위치
             </label>
             <input
@@ -138,7 +138,7 @@ export function PostProcessingPositionInput({
               onChange={(e) => handleChange('hang_hole_position', e.target.value)}
               placeholder="예: 위에서 15mm"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+              className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
             />
           </div>
         </div>
@@ -146,8 +146,8 @@ export function PostProcessingPositionInput({
 
       {/* チャック位置 */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-          <Package className="w-4 h-4 text-gray-600" />
+        <h4 className="font-semibold text-text-primary flex items-center gap-2">
+          <Package className="w-4 h-4 text-text-secondary" />
           지퍼 위치
         </h4>
         <div>
@@ -157,15 +157,15 @@ export function PostProcessingPositionInput({
             onChange={(e) => handleChange('zipper_position', e.target.value)}
             placeholder="例: 上から30mm / 예: 위에서 30mm"
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
           />
         </div>
       </div>
 
       {/* 印刷位置 */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-gray-600" />
+        <h4 className="font-semibold text-text-primary flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-text-secondary" />
           印刷位置 / 인쇄 위치
         </h4>
         <div>
@@ -175,14 +175,14 @@ export function PostProcessingPositionInput({
             onChange={(e) => handleChange('print_position', e.target.value)}
             placeholder="印刷位置を入力してください / 인쇄 위치를 입력하세요"
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            className="h-10 max-sm:h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
           />
         </div>
       </div>
 
       {/* その他特殊加工 */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-800">
+        <h4 className="font-semibold text-text-primary">
           기타 특수가공
         </h4>
         <div>
@@ -192,17 +192,17 @@ export function PostProcessingPositionInput({
             placeholder="特殊加工に関するメモを入力してください / 특수가공에 대한 메모를 입력하세요"
             disabled={disabled}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            className="min-h-24 py-2 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
           />
         </div>
       </div>
 
       {/* 保存ボタン */}
       {!disabled && (
-        <div className="flex justify-end pt-4 border-t border-gray-200">
+        <div className="flex justify-end pt-4 border-t border-border-medium">
           <button
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-brand text-white font-medium rounded-lg hover:bg-brand-hover transition-colors"
           >
             저장하기
           </button>

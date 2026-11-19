@@ -207,7 +207,7 @@ export default async function TokenUploadPage({ params }: TokenUploadPageProps) 
   const { tokenData, order, revisions, comments } = data;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-bg-secondary">
       <TokenUploadClient
         token={token}
         tokenData={tokenData}

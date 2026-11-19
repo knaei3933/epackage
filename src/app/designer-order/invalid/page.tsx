@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { PageHeader } from '@/components/layout';
 
 export default async function InvalidTokenPage({
   searchParams,
@@ -8,17 +9,15 @@ export default async function InvalidTokenPage({
   const { reason } = await searchParams;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="text-center p-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-4">
-          링크가 유효하지 않습니다
-        </h1>
-        <p className="text-slate-600">
-          {reason === 'expired'
+    <div className="min-h-screen bg-bg-primary">
+      <PageHeader
+        title="링크가 유효하지 않습니다"
+        lead={
+          reason === 'expired'
             ? '링크가 만료되었습니다. 새 링크를 요청해 주세요.'
-            : '올바른 링크인지 확인해 주세요.'}
-        </p>
-      </div>
+            : '올바른 링크인지 확인해 주세요.'
+        }
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@
  * Route: /designer-order/[token]
  */
 
+import { PageHeader } from '@/components/layout';
 import { notFound, redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase';
 import { hashToken, isTokenExpired } from '@/lib/designer-tokens';
@@ -220,21 +221,19 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
     const isExpired = data && 'expired' in data;
     const isCancelled = data && 'cancelled' in data;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">
-            링크가 유효하지 않습니다
-          </h1>
-          <p className="text-slate-600">
-            {isExpired
+      <div className="min-h-screen bg-bg-primary">
+        <PageHeader
+          title="링크가 유효하지 않습니다"
+          lead={
+            isExpired
               ? '링크가 만료되었습니다. 새 링크를 요청해 주세요.'
               : isCancelled
                 ? '이 주문은 취소되었습니다.'
                 : tokenFormatValid
                   ? '올바른 링크인지 확인해 주세요.'
-                  : '잘못된 토큰 형식입니다.'}
-          </p>
-        </div>
+                  : '잘못된 토큰 형식입니다.'
+          }
+        />
       </div>
     );
   }
@@ -242,7 +241,7 @@ export default async function DesignerOrderPage({ params }: DesignerOrderPagePro
   const { assignmentData, order, revisions, comments, customerUploads } = data;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-bg-secondary">
       <DesignerOrderTokenClient
         token={token}
         assignmentData={assignmentData}

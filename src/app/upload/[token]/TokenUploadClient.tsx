@@ -12,6 +12,7 @@
 
 'use client';
 
+import { PageHeader } from '@/components/layout';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -162,31 +163,31 @@ export function TokenUploadClient({
       case 'active':
         return {
           label: '有効',
-          color: 'bg-green-100 text-green-800 border-green-200',
+          color: 'bg-success-muted text-on-success-muted border-success',
           icon: CheckCircle,
         };
       case 'used':
         return {
           label: '使用済み',
-          color: 'bg-blue-100 text-blue-800 border-blue-200',
+          color: 'bg-brand-muted text-brand border-brand-soft',
           icon: CheckCircle,
         };
       case 'expired':
         return {
           label: '期限切れ',
-          color: 'bg-red-100 text-red-800 border-red-200',
+          color: 'bg-error-muted text-on-error-muted border-error',
           icon: X,
         };
       case 'revoked':
         return {
           label: '無効',
-          color: 'bg-red-100 text-red-800 border-red-200',
+          color: 'bg-error-muted text-on-error-muted border-error',
           icon: X,
         };
       default:
         return {
           label: tokenData.status,
-          color: 'bg-gray-100 text-gray-800 border-gray-200',
+          color: 'bg-bg-muted text-text-primary border-border-medium',
           icon: AlertCircle,
         };
     }
@@ -202,52 +203,47 @@ export function TokenUploadClient({
   const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Header */}
-      <header className="mb-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 md:p-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-                修正データアップロード
-              </h1>
-              <p className="text-slate-600">
-                注文番号: <span className="font-semibold text-slate-900">{order.order_number}</span>
-              </p>
-            </div>
-            <div className="flex flex-col items-start md:items-end gap-2">
-              <div className="flex items-center gap-2">
-                <StatusIcon className="w-5 h-5" />
-                <span className={`
-                  px-3 py-1 rounded-full text-sm font-medium border
-                  ${statusInfo.color}
-                `}>
-                  {statusInfo.label}
-                </span>
-              </div>
-              {isExpiringSoon && (
-                <p className="text-sm text-orange-600 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  トークン有効期限まであと {daysUntilExpiry} 日
-                </p>
-              )}
-            </div>
+    <>
+      <PageHeader
+        title="修正データアップロード"
+        lead={
+          <>
+            注文番号: <span className="font-semibold text-text-primary">{order.order_number}</span>
+          </>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex items-center gap-2">
+            <StatusIcon className="w-5 h-5" aria-hidden="true" />
+            <span className={`
+              px-3 py-1 rounded-inner text-sm font-medium border
+              ${statusInfo.color}
+            `}>
+              {statusInfo.label}
+            </span>
           </div>
+          {isExpiringSoon && (
+            <p className="text-sm text-warning flex items-center gap-1">
+              <AlertCircle className="w-4 h-4" />
+              トークン有効期限まであと {daysUntilExpiry} 日
+            </p>
+          )}
         </div>
-      </header>
+      </PageHeader>
 
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Error Display */}
       {error && (
-        <div role="alert" aria-live="assertive" className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+        <div role="alert" aria-live="assertive" className="mb-6 bg-error-muted border border-error rounded-container p-4">
           <div className="flex items-start">
-            <AlertCircle className="h-6 w-6 text-red-600 mr-3 flex-shrink-0" />
+            <AlertCircle className="h-6 w-6 text-error mr-3 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-red-800">エラー</h3>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <h3 className="text-sm font-medium text-on-error-muted">エラー</h3>
+              <p className="text-sm text-on-error-muted mt-1">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-red-600 hover:text-red-800"
+              className="text-error hover:text-on-error-muted"
               aria-label="エラーメッセージを閉じる"
             >
               <X className="h-5 w-5" />
@@ -258,15 +254,15 @@ export function TokenUploadClient({
 
       {/* Success Display */}
       {successMessage && (
-        <div role="status" aria-live="polite" className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+        <div role="status" aria-live="polite" className="mb-6 bg-success-muted border border-success rounded-container p-4">
           <div className="flex items-start">
-            <CheckCircle className="h-6 w-6 text-green-600 mr-3 flex-shrink-0" />
+            <CheckCircle className="h-6 w-6 text-success mr-3 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-green-800">{successMessage}</p>
+              <p className="text-sm font-medium text-on-success-muted">{successMessage}</p>
             </div>
             <button
               onClick={() => setSuccessMessage(null)}
-              className="text-green-600 hover:text-green-800"
+              className="text-success hover:text-on-success-muted"
               aria-label="成功メッセージを閉じる"
             >
               <X className="h-5 w-5" />
@@ -279,49 +275,49 @@ export function TokenUploadClient({
         {/* Main Content (Left 2 columns) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Order Details */}
-          <section className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Package className="w-6 h-6 text-blue-600" />
+          <section className="bg-white rounded-container border border-border-medium p-6">
+            <h2 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+              <Package className="w-6 h-6 text-brand" />
               注文詳細
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                <User className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg">
+                <User className="w-5 h-5 text-text-muted" />
                 <div>
-                  <p className="text-xs text-slate-500">顧客名</p>
-                  <p className="font-medium text-slate-900">{order.customer_name}</p>
+                  <p className="text-xs text-text-muted">顧客名</p>
+                  <p className="font-medium text-text-primary">{order.customer_name}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg">
+                <Calendar className="w-5 h-5 text-text-muted" />
                 <div>
-                  <p className="text-xs text-slate-500">注文日</p>
-                  <p className="font-medium text-slate-900">{formatDate(order.created_at)}</p>
+                  <p className="text-xs text-text-muted">注文日</p>
+                  <p className="font-medium text-text-primary">{formatDate(order.created_at)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                <Package className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg">
+                <Package className="w-5 h-5 text-text-muted" />
                 <div>
-                  <p className="text-xs text-slate-500">SKU</p>
-                  <p className="font-medium text-slate-900">
+                  <p className="text-xs text-text-muted">SKU</p>
+                  <p className="font-medium text-text-primary">
                     全製品
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                <span className="text-2xl">¥</span>
+              <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg">
+                <span className="text-2xl text-text-muted">¥</span>
                 <div>
-                  <p className="text-xs text-slate-500">注文金額</p>
-                  <p className="font-medium text-slate-900">{formatCurrency(order.total_amount)}</p>
+                  <p className="text-xs text-text-muted">注文金額</p>
+                  <p className="font-medium text-text-primary">{formatCurrency(order.total_amount)}</p>
                 </div>
               </div>
             </div>
 
             {/* Upload count info */}
             {tokenData.upload_count > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-slate-700">
+              <div className="mt-4 p-3 bg-brand-muted rounded-lg border border-brand-soft">
+                <p className="text-sm text-text-secondary">
                   これまで {tokenData.upload_count} 回のアップロードがあります
                 </p>
               </div>
@@ -338,9 +334,9 @@ export function TokenUploadClient({
 
           {/* Existing Revisions (if any) */}
           {revisions.length > 0 && (
-            <section className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-              <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <FileText className="w-6 h-6 text-green-600" />
+            <section className="bg-white rounded-container border border-border-medium p-6">
+              <h2 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+                <FileText className="w-6 h-6 text-success" />
                 アップロード済み修正データ ({revisions.length})
               </h2>
 
@@ -348,15 +344,15 @@ export function TokenUploadClient({
                 {revisions.map((revision) => (
                   <div
                     key={revision.id}
-                    className="p-4 bg-green-50 rounded-lg border border-green-200"
+                    className="p-4 bg-success-muted rounded-lg border border-success"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-sm font-medium text-slate-900">
+                        <CheckCircle className="w-5 h-5 text-success" />
+                        <span className="text-sm font-medium text-text-primary">
                           リビジョン {revision.revision_number}
                         </span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-text-muted">
                           {formatDate(revision.created_at)}
                         </span>
                       </div>
@@ -366,7 +362,7 @@ export function TokenUploadClient({
                             href={revision.preview_image_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-brand-muted text-brand rounded-lg hover:bg-brand-subtle transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                             プレビュー
@@ -377,7 +373,7 @@ export function TokenUploadClient({
                             href={revision.original_file_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-success-muted text-on-success-muted rounded-lg hover:bg-success-muted transition-colors"
                           >
                             <Download className="w-4 h-4" />
                             ダウンロード
@@ -391,16 +387,16 @@ export function TokenUploadClient({
                       <div className="mb-2 p-2 bg-white rounded text-xs space-y-1">
                         {revision.original_customer_filename && (
                           <div className="flex items-start gap-2">
-                            <span className="text-slate-500 font-medium min-w-[80px]">元ファイル:</span>
-                            <span className="text-slate-700 break-all font-mono">
+                            <span className="text-text-muted font-medium min-w-[80px]">元ファイル:</span>
+                            <span className="text-text-secondary break-all font-mono">
                               {revision.original_customer_filename}
                             </span>
                           </div>
                         )}
                         {revision.generated_correction_filename && (
                           <div className="flex items-start gap-2">
-                            <span className="text-slate-500 font-medium min-w-[80px]">生成ファイル:</span>
-                            <span className="text-slate-900 break-all font-mono font-medium">
+                            <span className="text-text-muted font-medium min-w-[80px]">生成ファイル:</span>
+                            <span className="text-text-primary break-all font-mono font-medium">
                               {revision.generated_correction_filename}
                             </span>
                           </div>
@@ -437,5 +433,6 @@ export function TokenUploadClient({
         </div>
       </div>
     </div>
+    </>
   );
 }
