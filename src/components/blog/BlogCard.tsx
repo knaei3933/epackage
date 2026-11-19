@@ -10,6 +10,7 @@ import { Calendar, Clock, Eye } from 'lucide-react';
 import { BlogPostListItem } from '@/lib/types/blog';
 import { getCategoryLabel } from '@/lib/types/blog';
 import { formatDate } from '@/lib/format-date';
+import { Badge } from '@/components/ui/Badge';
 
 interface BlogCardProps {
   post: BlogPostListItem;
@@ -24,14 +25,14 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
   const imageUrl = post.og_image_path || '/images/og-image.jpg';
 
   return (
-    <article className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8380FF]/30 transition-all duration-300">
+    <article className="group bg-bg-primary rounded-container border border-border-medium overflow-hidden hover:shadow-none hover:border-border-strong transition-colors">
       <Link href={`/blog/${post.slug}`} className="block">
         {/* Image */}
-        <div className="aspect-video overflow-hidden bg-gray-100">
+        <div className="aspect-video overflow-hidden rounded-inner bg-bg-muted">
           <img
             src={imageUrl}
             alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover  "
             loading="lazy"
           />
         </div>
@@ -40,19 +41,19 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
         <div className="p-6">
           {/* Category Badge */}
           <div className="mb-3">
-            <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20">
+            <Badge>
               {categoryLabel}
-            </span>
+            </Badge>
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-bold text-[#1D1D1F] mb-2 line-clamp-2 group-hover:text-[#8380FF] transition-colors">
+          <h3 className="text-xl font-bold text-text-primary mb-2 line-clamp-2 group-hover:text-brand transition-colors">
             {post.title}
           </h3>
 
           {/* Excerpt */}
           {post.excerpt && (
-            <p className="text-gray-600 mb-4 line-clamp-2">
+            <p className="text-text-secondary mb-4 line-clamp-2">
               {post.excerpt}
             </p>
           )}
@@ -63,7 +64,7 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
               {post.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-md border border-gray-200"
+                  className="px-2 py-1 text-[13px] bg-bg-muted text-text-secondary rounded-inner"
                 >
                   #{tag}
                 </span>
@@ -72,7 +73,7 @@ export function BlogCard({ post, showAuthor = true, showViews = false }: BlogCar
           )}
 
           {/* Meta */}
-          <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-4 text-sm text-text-muted">
             {/* Date */}
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
@@ -123,8 +124,8 @@ interface BlogGridProps {
 export function BlogGrid({ posts, showAuthor, showViews }: BlogGridProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-        <p className="text-gray-500">記事が見つかりませんでした。</p>
+      <div className="text-center py-16 bg-bg-primary rounded-container border border-border-medium">
+        <p className="text-text-muted">記事が見つかりませんでした。</p>
       </div>
     );
   }
@@ -156,8 +157,8 @@ interface BlogListProps {
 export function BlogList({ posts, showAuthor, showViews }: BlogListProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-        <p className="text-gray-500">記事が見つかりませんでした。</p>
+      <div className="text-center py-16 bg-bg-primary rounded-container border border-border-medium">
+        <p className="text-text-muted">記事が見つかりませんでした。</p>
       </div>
     );
   }
@@ -165,14 +166,14 @@ export function BlogList({ posts, showAuthor, showViews }: BlogListProps) {
   return (
     <div className="space-y-6">
       {posts.map((post) => (
-        <article key={post.id} className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8380FF]/30 transition-all duration-300">
+        <article key={post.id} className="group bg-bg-primary rounded-container border border-border-medium overflow-hidden hover:shadow-none hover:border-border-strong transition-colors">
           <Link href={`/blog/${post.slug}`} className="block md:flex">
             {/* Image */}
-            <div className="md:w-1/3 aspect-video md:aspect-square overflow-hidden bg-gray-100">
+            <div className="md:w-1/3 aspect-video md:aspect-square overflow-hidden bg-bg-muted">
               <img
                 src={post.og_image_path || '/images/blog-placeholder.jpg'}
                 alt={post.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover  "
                 loading="lazy"
               />
             </div>
@@ -181,25 +182,25 @@ export function BlogList({ posts, showAuthor, showViews }: BlogListProps) {
             <div className="md:w-2/3 p-6">
               {/* Category Badge */}
               <div className="mb-2">
-                <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20">
+                <Badge>
                   {getCategoryLabel(post.category, 'ja')}
-                </span>
+                </Badge>
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-[#1D1D1F] mb-2 line-clamp-2 group-hover:text-[#8380FF] transition-colors">
+              <h3 className="text-xl font-bold text-text-primary mb-2 line-clamp-2 group-hover:text-brand transition-colors">
                 {post.title}
               </h3>
 
               {/* Excerpt */}
               {post.excerpt && (
-                <p className="text-gray-600 mb-4 line-clamp-2">
+                <p className="text-text-secondary mb-4 line-clamp-2">
                   {post.excerpt}
                 </p>
               )}
 
               {/* Meta */}
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-sm text-text-muted">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   <time dateTime={post.published_at || post.created_at}>

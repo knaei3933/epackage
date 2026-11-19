@@ -19,6 +19,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { type TradeRecord } from "@/types/archives";
 
 interface ArchiveDetailModalProps {
@@ -41,14 +42,6 @@ const projectTypeLabels = {
   custom_manufacturing: "カスタム製造",
   technology_transfer: "技術移転",
   other: "その他",
-};
-
-const industryColors = {
-  manufacturing: "bg-navy-100 text-navy-700 border-navy-200",
-  cosmetics: "bg-pink-100 text-pink-700 border-pink-200",
-  food: "bg-green-100 text-green-700 border-green-200",
-  pharmaceutical: "bg-purple-100 text-purple-700 border-purple-200",
-  other: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
 export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailModalProps) {
@@ -83,36 +76,36 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto"
       onClick={onClose}
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
       <div
-        className="bg-white rounded-2xl max-w-5xl w-full my-8 overflow-hidden shadow-2xl"
+        className="bg-bg-primary rounded-container max-w-5xl w-full my-8 overflow-hidden shadow-high"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex items-center justify-between p-6 border-b border-border-medium bg-bg-secondary">
           <div className="flex items-center space-x-3">
             {record.featured && (
-              <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
+              <Badge variant="default" size="lg" className="gap-2">
                 <Star className="h-4 w-4" />
                 <span>特集</span>
-              </div>
+              </Badge>
             )}
 
-            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${industryColors[record.industry]}`}>
+            <Badge variant="secondary" size="lg">
               <Building className="h-4 w-4 mr-1.5" />
               {industryLabels[record.industry]}
-            </span>
+            </Badge>
           </div>
 
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-600 hover:text-gray-900"
+              className="text-text-secondary hover:text-text-primary"
               onClick={() => {/* Share functionality */}}
             >
               <Share2 className="h-4 w-4" />
@@ -121,7 +114,7 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-600 hover:text-gray-900"
+              className="text-text-secondary hover:text-text-primary"
               onClick={() => {/* Download functionality */}}
             >
               <Download className="h-4 w-4" />
@@ -130,7 +123,7 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-600 hover:text-gray-900"
+              className="text-text-secondary hover:text-text-primary"
               onClick={onClose}
             >
               <X className="h-5 w-5" />
@@ -142,7 +135,7 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
         <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
           {/* Hero Section with Image */}
           <div className="relative">
-            <div className="aspect-[21/9] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+            <div className="aspect-[21/9] bg-bg-muted relative overflow-hidden">
               <Image
                 src={currentImage?.url || mainImage.url}
                 alt={currentImage?.alt || mainImage.alt}
@@ -157,14 +150,14 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
                 <>
                   <button
                     onClick={handlePreviousImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 rounded-full p-2 shadow-lg transition-all"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-bg-primary text-text-primary border border-border-medium hover:bg-bg-secondary rounded-full p-2 transition-colors"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
 
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 rounded-full p-2 shadow-lg transition-all"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-bg-primary text-text-primary border border-border-medium hover:bg-bg-secondary rounded-full p-2 transition-colors"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
@@ -175,7 +168,7 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
 
           {/* Article Header */}
           <div className="px-8 pt-8 pb-6">
-            <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+            <div className="flex items-center gap-4 text-sm text-text-secondary mb-4">
               {record.publishedAt && (
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1.5" />
@@ -198,11 +191,11 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4 leading-tight">
               {record.title}
-            </h1>
+            </h2>
 
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-text-secondary leading-relaxed">
               {record.description}
             </p>
           </div>
@@ -221,22 +214,22 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
                 {/* Fallback to original layout if no content */}
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gray-50 rounded-lg p-5">
-                      <div className="flex items-center text-sm text-gray-600 mb-2">
+                    <div className="bg-bg-secondary rounded-container p-5">
+                      <div className="flex items-center text-sm text-text-secondary mb-2">
                         <Package className="h-4 w-4 mr-2" />
                         プロジェクトタイプ
                       </div>
-                      <div className="font-semibold text-gray-900">
+                      <div className="font-bold text-text-primary">
                         {projectTypeLabels[record.projectType]}
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-5">
-                      <div className="flex items-center text-sm text-gray-600 mb-2">
+                    <div className="bg-bg-secondary rounded-container p-5">
+                      <div className="flex items-center text-sm text-text-secondary mb-2">
                         <Calendar className="h-4 w-4 mr-2" />
                         実施期間
                       </div>
-                      <div className="font-semibold text-gray-900">
+                      <div className="font-bold text-text-primary">
                         {new Date(record.startDate).toLocaleDateString("ja-JP")} -
                         {new Date(record.endDate).toLocaleDateString("ja-JP")}
                       </div>
@@ -245,11 +238,11 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
 
                   {/* Technical Specifications */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                    <h3 className="text-xl font-bold text-text-primary mb-4">
                       技術仕様
                     </h3>
-                    <div className="bg-navy-50 border-l-4 border-navy-600 rounded-r-lg p-5">
-                      <p className="text-navy-700 font-mono text-sm leading-relaxed">
+                    <div className="bg-bg-secondary border border-border-medium rounded-container p-5">
+                      <p className="text-text-primary font-mono text-sm leading-relaxed">
                         {record.technicalSpec}
                       </p>
                     </div>
@@ -257,18 +250,18 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
 
                   {/* Results */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                      <TrendingUp className="h-6 w-6 mr-2 text-green-600" />
+                    <h3 className="text-xl font-bold text-text-primary mb-4 flex items-center">
+                      <TrendingUp className="h-6 w-6 mr-2 text-brand" />
                       成果
                     </h3>
                     <div className="space-y-3">
                       {record.results.map((result, index) => (
                         <div
                           key={index}
-                          className="flex items-center bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4"
+                          className="flex items-center bg-brand-muted border border-brand-soft rounded-container p-4"
                         >
-                          <div className="w-2 h-2 bg-green-600 rounded-full mr-4 flex-shrink-0"></div>
-                          <span className="text-green-900 font-medium">{result}</span>
+                          <div className="w-2 h-2 bg-brand rounded-full mr-4 flex-shrink-0"></div>
+                          <span className="text-on-brand-muted font-medium">{result}</span>
                         </div>
                       ))}
                     </div>
@@ -279,16 +272,16 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
 
             {/* Tags */}
             {record.tags && record.tags.length > 0 && (
-              <div className="mt-8 pt-8 border-t border-gray-200">
+              <div className="mt-8 pt-8 border-t border-border-medium">
                 <div className="flex items-center mb-4">
-                  <Tag className="h-5 w-5 text-gray-600 mr-2" />
-                  <h3 className="text-lg font-semibold text-gray-900">タグ</h3>
+                  <Tag className="h-5 w-5 text-text-secondary mr-2" />
+                  <h3 className="text-lg font-bold text-text-primary">タグ</h3>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {record.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-colors cursor-pointer"
+                      className="inline-flex items-center px-3 py-1.5 bg-bg-muted hover:bg-bg-secondary text-text-secondary border border-border-medium rounded-md text-sm font-medium transition-colors cursor-pointer"
                     >
                       #{tag}
                     </span>
@@ -298,11 +291,11 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
             )}
 
             {/* Related Cases */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="mt-8 pt-8 border-t border-border-medium">
+              <h3 className="text-lg font-bold text-text-primary mb-4">
                 同業界の他の事例
               </h3>
-              <div className="flex items-center text-brixa-600 hover:text-brixa-700 font-medium cursor-pointer">
+              <div className="flex items-center text-brand hover:text-brand-pressed font-medium cursor-pointer">
                 すべての{industryLabels[record.industry]}事例を見る
                 <ArrowRight className="h-5 w-5 ml-2" />
               </div>
@@ -311,8 +304,8 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-          <div className="text-sm text-gray-600">
+        <div className="flex items-center justify-between p-6 border-t border-border-medium bg-bg-secondary">
+          <div className="text-sm text-text-secondary">
             最終更新: {new Date(record.updatedAt).toLocaleDateString("ja-JP")}
           </div>
 
@@ -322,7 +315,6 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
             </Button>
 
             <Button
-              className="bg-navy-700 hover:bg-navy-600 text-white"
               onClick={() => {/* Contact form or inquiry */}}
             >
               このソリューションについて問い合わせ
@@ -337,7 +329,7 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
           font-weight: 700;
           margin-top: 2rem;
           margin-bottom: 1rem;
-          color: #1f2937;
+          color: var(--color-text-primary);
         }
 
         .blog-content h3 {
@@ -345,13 +337,13 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
           font-weight: 600;
           margin-top: 1.5rem;
           margin-bottom: 0.75rem;
-          color: #374151;
+          color: var(--color-text-primary);
         }
 
         .blog-content p {
           margin-bottom: 1rem;
           line-height: 1.75;
-          color: #4b5563;
+          color: var(--color-text-secondary);
         }
 
         .blog-content ul,
@@ -363,7 +355,7 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
         .blog-content li {
           margin-bottom: 0.5rem;
           line-height: 1.75;
-          color: #4b5563;
+          color: var(--color-text-secondary);
         }
 
         .blog-content ul li {
@@ -378,26 +370,26 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
           width: 100%;
           border-collapse: collapse;
           margin: 1.5rem 0;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--color-border);
           border-radius: 0.5rem;
           overflow: hidden;
         }
 
         .blog-content thead {
-          background-color: #f3f4f6;
+          background-color: var(--color-background-muted);
         }
 
         .blog-content th {
           padding: 0.75rem 1rem;
           text-align: left;
           font-weight: 600;
-          color: #1f2937;
-          border-bottom: 1px solid #e5e7eb;
+          color: var(--color-text-primary);
+          border-bottom: 1px solid var(--color-border);
         }
 
         .blog-content td {
           padding: 0.75rem 1rem;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid var(--color-border);
         }
 
         .blog-content tbody tr:last-child td {
@@ -405,19 +397,19 @@ export function ArchiveDetailModal({ record, isOpen, onClose }: ArchiveDetailMod
         }
 
         .blog-content tbody tr:hover {
-          background-color: #f9fafb;
+          background-color: var(--color-background-subtle);
         }
 
         .blog-content strong {
           font-weight: 600;
-          color: #1f2937;
+          color: var(--color-text-primary);
         }
 
         .blog-content blockquote {
-          border-left: 4px solid #3b82f6;
+          border-left: 4px solid var(--color-brand);
           padding-left: 1rem;
           margin: 1.5rem 0;
-          color: #6b7280;
+          color: var(--color-text-secondary);
           font-style: italic;
         }
       `}</style>

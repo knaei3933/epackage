@@ -12,7 +12,9 @@
  */
 
 import { useEffect } from 'react';
+import { Lock, AlertTriangle, Globe, Search, Database, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/layout';
 import { isAppError, getErrorTypeFromCode } from '@/types/errors';
 
 interface ErrorProps {
@@ -32,7 +34,7 @@ function getErrorUIConfig(error: Error) {
       case 'authentication':
       case 'session':
         return {
-          icon: '🔒',
+          icon: Lock,
           title: '認証エラー',
           message: error.getUserMessage(),
           showReset: true,
@@ -41,7 +43,7 @@ function getErrorUIConfig(error: Error) {
 
       case 'validation':
         return {
-          icon: '⚠️',
+          icon: AlertTriangle,
           title: '入力エラー',
           message: error.getUserMessage(),
           showReset: false,
@@ -52,7 +54,7 @@ function getErrorUIConfig(error: Error) {
       case 'api':
       case 'timeout':
         return {
-          icon: '🌐',
+          icon: Globe,
           title: 'ネットワークエラー',
           message: error.getUserMessage(),
           showReset: true,
@@ -61,7 +63,7 @@ function getErrorUIConfig(error: Error) {
 
       case 'not_found':
         return {
-          icon: '🔍',
+          icon: Search,
           title: 'ページが見つかりません',
           message: error.getUserMessage(),
           showReset: false,
@@ -70,7 +72,7 @@ function getErrorUIConfig(error: Error) {
 
       case 'database':
         return {
-          icon: '🗄️',
+          icon: Database,
           title: 'データベースエラー',
           message: error.getUserMessage(),
           showReset: true,
@@ -84,7 +86,7 @@ function getErrorUIConfig(error: Error) {
 
   // デフォルトエラーUI
   return {
-    icon: '⚠️',
+    icon: AlertTriangle,
     title: '予期しないエラーが発生しました',
     message: '申し訳ございません。予期しないエラーが発生しました。ページを更新するか、サポートまでご連絡ください。',
     showReset: true,
@@ -115,127 +117,106 @@ export default function GlobalError({ error, reset }: ErrorProps) {
   }, [error]);
 
 
+  const Icon = uiConfig.icon;
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
-      <div className="max-w-lg w-full bg-white rounded-2xl shadow-2xl p-10 text-center">
-        {/* Error Icon */}
-        <div className="relative mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-5xl">{uiConfig.icon}</span>
-          </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">!</span>
-          </div>
-        </div>
+    <div className="min-h-screen bg-bg-primary">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-3">
+            <Icon className="h-7 w-7 shrink-0 text-error" aria-hidden="true" />
+            {uiConfig.title}
+          </span>
+        }
+        lead={uiConfig.message}
+        actions={
+          <>
+            {uiConfig.showReset && (
+              <Button onClick={reset} variant="primary">
+                もう一度試す
+              </Button>
+            )}
 
-        {/* Error Message */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          {uiConfig.title}
-        </h1>
-        <p className="text-gray-600 mb-8 leading-relaxed text-lg">
-          {uiConfig.message}
-        </p>
-
-        {/* Error Digest (for debugging) */}
-        {error.digest && process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-xs text-amber-800 font-mono">
-              Error ID: {error.digest}
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          {uiConfig.showReset && (
             <Button
-              onClick={reset}
-              variant="primary"
-              className="w-full shadow-lg hover:shadow-xl transition-all text-lg py-6"
+              onClick={() => window.location.reload()}
+              variant={uiConfig.showReset ? 'outline' : 'primary'}
             >
-              もう一度試す
+              ページを更新
             </Button>
+
+            <a
+              href="/"
+              className="inline-flex min-h-11 items-center text-brand underline underline-offset-4 hover:text-brand-pressed"
+            >
+              ホームに戻る
+            </a>
+          </>
+        }
+      />
+
+      <div className="mx-auto max-w-[1120px] px-4 py-12 sm:px-6">
+        <div className="max-w-2xl">
+          {/* Error Digest (for debugging) */}
+          {error.digest && process.env.NODE_ENV === 'development' && (
+            <div className="mb-6 rounded-container border border-warning bg-warning-muted px-4 py-3">
+              <p className="font-mono text-[13px] text-on-warning-muted">
+                Error ID: {error.digest}
+              </p>
+            </div>
           )}
 
-          <Button
-            onClick={() => window.location.reload()}
-            variant="secondary"
-            className="w-full text-lg py-6"
-          >
-            ページを更新
-          </Button>
-
-          <Button
-            onClick={() => window.location.href = '/'}
-            variant="outline"
-            className="w-full text-lg py-6"
-          >
-            ホームに戻る
-          </Button>
-        </div>
-
-        {/* Support Contact */}
-        {uiConfig.showContact && (
-          <div className="pt-6 mt-8 border-t border-gray-200">
-            <p className="text-gray-600 mb-3">
-              問題が解決しない場合は、サポートチームにお問い合わせください
-            </p>
-            <a
-              href="/contact"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {/* Support Contact */}
+          {uiConfig.showContact && (
+            <div>
+              <p className="mb-3 text-text-secondary">
+                問題が解決しない場合は、サポートチームにお問い合わせください
+              </p>
+              <a
+                href="/contact"
+                className="inline-flex min-h-11 items-center gap-2 font-medium text-brand underline underline-offset-4 transition-colors hover:text-brand-pressed"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              お問い合わせフォーム
-            </a>
-          </div>
-        )}
+                <Mail className="h-5 w-5" aria-hidden="true" />
+                お問い合わせフォーム
+              </a>
+            </div>
+          )}
 
-        {/* Error Details (Development Only) */}
-        {process.env.NODE_ENV === 'development' && (
-          <details className="mt-8 text-left">
-            <summary className="cursor-pointer text-sm font-semibold text-gray-700 mb-3 hover:text-gray-900 transition-colors">
-              🔍 エラー詳細 (開発モード)
-            </summary>
-            <div className="bg-gray-900 rounded-lg p-4 text-xs overflow-auto max-h-80">
-              {isAppError(error) && (
-                <div className="mb-3 pb-3 border-b border-gray-700">
-                  <div className="text-gray-400 mb-1">Error Code:</div>
-                  <div className="text-red-400 font-mono">{error.code}</div>
+          {/* Error Details (Development Only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <details className="mt-8 text-left">
+              <summary className="mb-3 flex cursor-pointer items-center gap-2 text-sm font-bold text-text-primary transition-colors hover:text-brand">
+                <Search className="h-4 w-4" aria-hidden="true" />
+                エラー詳細 (開発モード)
+              </summary>
+              <div className="max-h-80 overflow-auto rounded-container border border-border-medium bg-bg-secondary p-4 text-xs">
+                {isAppError(error) && (
+                  <div className="mb-3 border-b border-border-medium pb-3">
+                    <div className="mb-1 text-text-muted">Error Code:</div>
+                    <div className="font-mono text-error">{error.code}</div>
+                  </div>
+                )}
+                <div className="mb-3">
+                  <div className="mb-1 text-text-muted">Error Name:</div>
+                  <div className="font-mono text-warning">{error.name}</div>
                 </div>
-              )}
-              <div className="mb-3">
-                <div className="text-gray-400 mb-1">Error Name:</div>
-                <div className="text-yellow-400 font-mono">{error.name}</div>
-              </div>
-              <div className="mb-3">
-                <div className="text-gray-400 mb-1">Error Message:</div>
-                <pre className="whitespace-pre-wrap text-red-400 font-mono">
-                  {error.message}
-                </pre>
-              </div>
-              {error.stack && (
-                <div>
-                  <div className="text-gray-400 mb-1">Stack Trace:</div>
-                  <pre className="whitespace-pre-wrap text-gray-300 font-mono text-xs">
-                    {error.stack}
+                <div className="mb-3">
+                  <div className="mb-1 text-text-muted">Error Message:</div>
+                  <pre className="whitespace-pre-wrap font-mono text-error">
+                    {error.message}
                   </pre>
                 </div>
-              )}
-            </div>
-          </details>
-        )}
+                {error.stack && (
+                  <div>
+                    <div className="mb-1 text-text-muted">Stack Trace:</div>
+                    <pre className="whitespace-pre-wrap font-mono text-xs text-text-secondary">
+                      {error.stack}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </details>
+          )}
+        </div>
       </div>
     </div>
   );

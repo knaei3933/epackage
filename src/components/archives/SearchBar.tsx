@@ -34,7 +34,7 @@ export function SearchBar({ value, onChange, placeholder = "検索...", disabled
     <div className="relative w-full max-w-md">
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className={`h-5 w-5 transition-colors ${isFocused ? "text-navy-600" : "text-gray-400"}`} />
+          <Search className={`h-5 w-5 transition-colors ${isFocused ? "text-brand" : "text-text-muted"}`} />
         </div>
 
         <input
@@ -48,13 +48,12 @@ export function SearchBar({ value, onChange, placeholder = "検索...", disabled
           placeholder={placeholder}
           disabled={disabled}
           className={`
-            w-full pl-10 pr-10 py-3
-            border border-gray-300 rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent
+            h-10 w-full pl-10 pr-10 max-sm:h-11
+            border border-border-strong rounded-md text-sm
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:border-brand
             transition-colors duration-200
-            placeholder:text-gray-400
-            ${disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white text-gray-900"}
-            ${isFocused ? "border-navy-600" : "border-gray-300"}
+            placeholder:text-text-muted
+            ${disabled ? "bg-bg-muted text-text-muted cursor-not-allowed" : "bg-bg-primary text-text-primary"}
           `}
         />
 
@@ -64,7 +63,7 @@ export function SearchBar({ value, onChange, placeholder = "検索...", disabled
               variant="ghost"
               size="sm"
               onClick={handleClear}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              className="h-8 w-8 p-0 text-text-secondary hover:text-text-primary transition-colors duration-200"
               aria-label="検索をクリア"
             >
               <X className="h-4 w-4" />

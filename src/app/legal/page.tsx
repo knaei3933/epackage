@@ -1,6 +1,7 @@
 import React from 'react'
 import { Building2, CreditCard, Package, Truck, Users, FileText, Clock, Phone, Mail, MapPin, AlertTriangle, CheckCircle } from 'lucide-react'
-import { Container } from '@/components/ui/Container'
+import { PageHeader } from '@/components/layout'
+import { headingFont } from '@/components/home/fonts'
 
 export default function LegalPage() {
   const currentDate = new Date().toLocaleDateString('ja-JP', {
@@ -10,27 +11,16 @@ export default function LegalPage() {
   })
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <Container size="4xl" className="py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <div className="p-3 bg-brixa-100 dark:bg-brixa-900 rounded-full">
-                <FileText className="h-12 w-12 text-brixa-600" />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold text-text-primary mb-4">
-              特定商取引法に基づく表示
-            </h1>
-            <p className="text-lg text-text-secondary">
-              通信販売・オンラインサービスに関する法令表示事項
-            </p>
-          </div>
-
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
+      <PageHeader
+        title="特定商取引法に基づく表示"
+        lead="通信販売・オンラインサービスに関する法令表示事項"
+      />
+      <div className="py-16 md:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
           {/* Company Information */}
-          <div className="bg-surface-secondary rounded-xl p-6 mb-8 border border-border-medium">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">販売業者情報</h2>
+          <div className="mb-12 rounded-container border border-border-medium bg-bg-secondary p-6">
+            <h2 className="mb-4 font-heading text-xl font-medium text-text-primary">販売業者情報</h2>
             <div className="grid md:grid-cols-2 gap-4 text-text-secondary">
               <div>
                 <span className="font-medium">販売業者：</span>
@@ -76,20 +66,20 @@ export default function LegalPage() {
           </div>
 
           {/* Main Content */}
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* 1. Overview */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <FileText className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">1. 表示の概要</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">1. 表示の概要</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本表示は、特定商取引に関する法律（特定商取引法、平成12年法律第109号）および関連政令・省令に基づき、金井貿易株式会社が運営するEpackage Labサービスにおける通信販売に関する表示事項を記載したものです。
                     </p>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>注意：</strong>本表示は電子消費者契約法における電子情報処理組織の電磁的記録による表示として有効です。
                       </p>
@@ -100,14 +90,14 @@ export default function LegalPage() {
             </section>
 
             {/* 2. Products */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Package className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Package className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">2. 販品・サービスの内容</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">2. 販品・サービスの内容</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社が提供する製品・サービスは以下の通りです。
                     </p>
@@ -137,7 +127,7 @@ export default function LegalPage() {
                       </div>
                     </div>
 
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-warning bg-warning-muted text-on-warning-muted p-4">
                       <p className="text-sm">
                         <strong>ご注意：</strong>製品の仕様、価格、納期等については、個別のご見積において明確にご提示いたします。
                       </p>
@@ -148,14 +138,14 @@ export default function LegalPage() {
             </section>
 
             {/* 3. Pricing */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <CreditCard className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">3. 対価および代金</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">3. 対価および代金</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       製品・サービスの価格は以下の要素を考慮して算定します。
                     </p>
@@ -168,7 +158,7 @@ export default function LegalPage() {
                       <li>消費税（10%）</li>
                     </ul>
 
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>表示：</strong>当社が表示する価格は、消費税を含む総額表示です。
                       </p>
@@ -179,14 +169,14 @@ export default function LegalPage() {
             </section>
 
             {/* 4. Payment */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <CreditCard className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">4. 支払時期および方法</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">4. 支払時期および方法</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
 
                     <h3 className="font-semibold text-text-primary mb-2">支払時期：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
@@ -203,7 +193,7 @@ export default function LegalPage() {
                       <li>現金（対面取引の場合に限る）</li>
                     </ul>
 
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-warning bg-warning-muted text-on-warning-muted p-4">
                       <p className="text-sm">
                         <strong>注意：</strong>代金のお支払いが遅延した場合、年14.6%の遅延損害金が発生する場合があります。
                       </p>
@@ -214,14 +204,14 @@ export default function LegalPage() {
             </section>
 
             {/* 5. Delivery */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Truck className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Truck className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">5. 商品引渡</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">5. 商品引渡</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
 
                     <h3 className="font-semibold text-text-primary mb-2">引渡時期：</h3>
                     <p>
@@ -252,14 +242,14 @@ export default function LegalPage() {
             </section>
 
             {/* 6. Cancellation */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Clock className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="textth-2xl font-bold text-text-primary mb-4">6. 申込みの取消し</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">6. 申込みの取消し</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       お客様の都合により、申込みを取り消すことができます。
                     </p>
@@ -283,7 +273,7 @@ export default function LegalPage() {
                       </div>
                     </div>
 
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-error bg-error-muted text-on-error-muted p-4">
                       <p className="text-sm">
                         <strong>注意：</strong>生産開始後の取消しには、発生した費用（材料費、加工費等）の実費相当額をご請求いただく場合があります。
                       </p>
@@ -294,14 +284,14 @@ export default function LegalPage() {
             </section>
 
             {/* 7. Returns */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Package className="h-5 w-5 text-brixa-620" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Package className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">7. 返品・交換・キャンセル</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">7. 返品・交換・キャンセル</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
 
                     <h3 className="font-semibold text-text-primary mb-2">キャンセルについて：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
@@ -324,21 +314,21 @@ export default function LegalPage() {
                       <li>その他、お客様に起因する理由または当社の責めに帰すべき事由がない場合</li>
                     </ul>
 
-                    <p className="text-xs text-text-muted mt-4">※2026年8月3日以降のご注文に適用します。</p>
+                    <p className="mt-4 text-[13px] text-text-muted">※2026年8月3日以降のご注文に適用します。</p>
                   </div>
                 </div>
               </div>
             </section>
 
             {/* 8. Sales Method */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Building2 className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">8. 販売方法</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">8. 販売方法</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は、以下の方法で製品・サービスを販売します。
                     </p>
@@ -355,14 +345,14 @@ export default function LegalPage() {
             </section>
 
             {/* 9. Communication */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Users className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Users className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">9. コミュニケーション</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">9. コミュニケーション</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社は、お客様との円滑なコミュニケーションのため、以下の方法でお問い合わせに対応します。
                     </p>
@@ -374,7 +364,7 @@ export default function LegalPage() {
                           電話
                         </h3>
                         <p className="text-sm">050-3613-9673</p>
-                        <p className="text-sm text-gray-500">営業時間：平日9:00-18:00</p>
+                        <p className="text-sm text-text-muted">営業時間：平日9:00-18:00</p>
                       </div>
                       <div>
                         <h3 className="font-semibold text-text-primary mb-2">
@@ -382,7 +372,7 @@ export default function LegalPage() {
                           メール
                         </h3>
                         <p className="text-sm">info@package-lab.com</p>
-                        <p className="text-sm text-gray-500">24時間対応</p>
+                        <p className="text-sm text-text-muted">24時間対応</p>
                       </div>
                       <div>
                         <h3 className="font-semibold text-text-primary mb-2">
@@ -390,7 +380,7 @@ export default function LegalPage() {
                           所在地
                         </h3>
                         <p className="text-sm">〒673-0892 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</p>
-                        <p className="text-sm text-gray-500">面談予約要</p>
+                        <p className="text-sm text-text-muted">面談予約要</p>
                       </div>
                     </div>
                   </div>
@@ -399,14 +389,14 @@ export default function LegalPage() {
             </section>
 
             {/* 10. Guarantee */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <CheckCircle className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-text-primary mb-4">10. 保証</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">10. 保証</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社は、提供する製品・サービスについて、以下の保証を行います。
                     </p>
@@ -418,7 +408,7 @@ export default function LegalPage() {
                       <li>秘密保持義務の遵守</li>
                     </ul>
 
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>安心のマーク：</strong>当社の製品は、品質管理基準を満たしており、お客様に安心してご利用いただけます。
                       </p>
@@ -429,14 +419,14 @@ export default function LegalPage() {
             </section>
 
             {/* 11. Important Notes */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <AlertTriangle className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">11. 重要事項</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">11. 重要事項</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本サービスの利用にあたり、お客様には以下の重要事項についてご理解いただけますようお願いします。
                     </p>
@@ -448,7 +438,7 @@ export default function LegalPage() {
                       <li>大口注文の場合、納期が延長することがあります</li>
                     </ul>
 
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>技術サポート：</strong>製品の使用方法やトラブルシューティングについて、専門の技術スタッフが対応いたします。
                       </p>
@@ -459,8 +449,8 @@ export default function LegalPage() {
             </section>
 
             {/* Update Information */}
-            <section className="bg-surface-secondary rounded-xl p-6 border border-border-medium">
-              <div className="text-center text-text-secondary">
+            <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
+              <div className="text-text-secondary">
                 <p className="mb-2">
                   <strong>最終更新日：</strong>{currentDate}
                 </p>
@@ -471,7 +461,7 @@ export default function LegalPage() {
             </section>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   )
 }

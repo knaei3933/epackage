@@ -12,6 +12,8 @@ import { getCategoryLabel, BLOG_CATEGORIES } from '@/lib/types/blog';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { SITE_URL } from '@/lib/seo/canonical';
+import { PageHeader } from '@/components/layout';
+import { headingFont } from '@/components/home/fonts';
 
 // =====================================================
 // Generate Metadata
@@ -86,26 +88,23 @@ export default async function BlogCategoryPage({
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       <BreadcrumbJsonLd pathname={`/blog/category/${category}`} />
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <PageHeader
+        title={categoryName}
+        lead={`${categoryName}に関する記事一覧（全${postsData.total}件）`}
+        actions={
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition-colors"
+            className="inline-flex min-h-11 items-center gap-2 text-brand underline underline-offset-4 hover:text-brand-pressed"
           >
             <ArrowLeft className="w-4 h-4" />
             ブログ一覧に戻る
           </Link>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{categoryName}</h1>
-          <p className="text-lg text-gray-600">
-            {categoryName}に関する記事一覧（全{postsData.total}件）
-          </p>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6">
         {/* Posts Grid */}
         <div className="mb-8">
           <BlogGrid posts={postsData.posts} />
@@ -116,10 +115,10 @@ export default async function BlogCategoryPage({
           <nav className="flex items-center justify-between" aria-label="Pagination">
             <Link
               href={page > 1 ? `/blog/category/${category}?page=${page - 1}` : '#'}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+              className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 max-sm:min-h-11 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                 page > 1
-                  ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ? 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+                  : 'cursor-not-allowed border-border-medium bg-bg-muted text-text-muted'
               }`}
               aria-disabled={page <= 1}
             >
@@ -127,16 +126,16 @@ export default async function BlogCategoryPage({
               前へ
             </Link>
 
-            <div className="text-gray-600">
+            <div className="text-text-secondary">
               {page} / {postsData.totalPages} ページ
             </div>
 
             <Link
               href={page < postsData.totalPages ? `/blog/category/${category}?page=${page + 1}` : '#'}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+              className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 max-sm:min-h-11 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                 page < postsData.totalPages
-                  ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ? 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+                  : 'cursor-not-allowed border-border-medium bg-bg-muted text-text-muted'
               }`}
               aria-disabled={page >= postsData.totalPages}
             >

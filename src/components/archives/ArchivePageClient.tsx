@@ -9,7 +9,8 @@ import { ArchiveFilters } from "./ArchiveFilters";
 import { ArchiveGrid } from "./ArchiveGrid";
 import { Pagination } from "./Pagination";
 import { type TradeRecord, type ArchiveFilters as FilterType, type PaginationState } from "@/types/archives";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonVariants } from "@/components/ui/Button";
+import { PageHeader } from "@/components/layout";
 import { Container } from "@/components/ui/Container";
 
 // 動的インポートによるバンドルサイズ最適化 (Vercel Best Practices: bundle-dynamic-imports)
@@ -19,7 +20,7 @@ const ArchiveDetailModal = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
       </div>
     )
   }
@@ -148,52 +149,26 @@ export function ArchivePageClient({ initialRecords }: ArchivePageClientProps) {
   return (
     <>
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-brixa-600 to-amber-600 text-white">
-        <Container size="6xl" className="py-16">
-          <div className="text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl md:text-5xl font-bold mb-4"
-            >
-              パウチ導入実績
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-xl text-brixa-100 max-w-3xl mx-auto mb-8"
-            >
-              化粧品、食品、健康食品など様々な業界のパウチ包装導入事例をご紹介します
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex justify-center gap-4"
-            >
-              <Button
-                variant="secondary"
-                size="lg"
-                className="bg-white/20 backdrop-blur-sm text-white border-white hover:bg-white/30"
-              >
-                <Package className="w-5 h-5 mr-2" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <PageHeader
+          title="パウチ導入実績"
+          lead="化粧品、食品、健康食品など様々な業界のパウチ包装導入事例をご紹介します"
+          actions={
+            <>
+              <Link href="/contact" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+                パウチ導入相談
+              </Link>
+              <Button variant="outline" size="lg" icon={<Package className="h-5 w-5" />}>
                 すべての実績 ({records.length})
               </Button>
-              <Link href="/contact">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-white text-white hover:bg-white hover:text-brixa-700"
-                >
-                  パウチ導入相談
-                </Button>
-              </Link>
-            </motion.div>
-          </div>
-        </Container>
-      </section>
+            </>
+          }
+        />
+      </motion.div>
 
       <Container size="6xl" className="py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -210,17 +185,16 @@ export function ArchivePageClient({ initialRecords }: ArchivePageClientProps) {
             {/* Results Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
-                <p className="text-gray-600">
+                <p className="text-text-secondary">
                   {isLoading ? "読み込み中..." : `${filteredRecords.length}件の実績`}
                 </p>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-gray-600">導入事例</span>
+                  <TrendingUp className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">導入事例</span>
                 </div>
               </div>
               {(filters.industry !== null || filters.projectType !== null) && (
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  <X className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={clearFilters} className="max-sm:h-11" icon={<X className="h-4 w-4" />}>
                   フィルターをクリア
                 </Button>
               )}
@@ -230,12 +204,12 @@ export function ArchivePageClient({ initialRecords }: ArchivePageClientProps) {
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {[...Array(6)].map((_, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-lg p-8 animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded mb-6"></div>
+                  <div key={index} className="rounded-container border border-border-medium bg-bg-primary p-8 animate-pulse">
+                    <div className="h-8 bg-bg-muted rounded mb-6"></div>
                     <div className="space-y-4">
-                      <div className="h-6 bg-gray-200 rounded"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-6 bg-bg-muted rounded"></div>
+                      <div className="h-4 bg-bg-muted rounded w-3/4"></div>
+                      <div className="h-4 bg-bg-muted rounded w-1/2"></div>
                     </div>
                   </div>
                 ))}
@@ -257,11 +231,11 @@ export function ArchivePageClient({ initialRecords }: ArchivePageClientProps) {
               </>
             ) : (
               <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <Package className="w-16 h-16 text-text-muted mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-text-primary mb-2">
                   該当する実績が見つかりませんでした
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-text-secondary mb-4">
                   フィルターを変更してもう一度お試しください
                 </p>
                 <Button onClick={clearFilters}>
@@ -287,7 +261,7 @@ export function ArchivePageClient({ initialRecords }: ArchivePageClientProps) {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-bg-primary rounded-container max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <ArchiveDetailModal

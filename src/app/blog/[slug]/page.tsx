@@ -21,6 +21,8 @@ import { Calendar, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { SITE_URL } from '@/lib/seo/canonical';
+import { PageHeader } from '@/components/layout';
+import { headingFont } from '@/components/home/fonts';
 
 // =====================================================
 // Generate Metadata
@@ -100,6 +102,11 @@ export async function generateMetadata(
 // Page Component
 // =====================================================
 
+// 本文の中の h1 は、ページの h1（記事タイトル）と重なるので h2 にする（見た目は prose の h2 に従う）
+function demoteH1(html: string): string {
+  return html.replace(/<h1(\s|>)/g, '<h2$1').replace(/<\/h1>/g, '</h2>');
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const post = await getPublishedPostBySlug(slug);
@@ -167,34 +174,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }}
       />
 
-      <div className="min-h-screen bg-[#F7F7FF]">
-        {/* Breadcrumb */}
-        <nav className="bg-white border-b border-gray-100" aria-label="パンくずリスト">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <ol className="flex items-center gap-2 text-sm">
-              <li>
-                <Link href="/" className="text-gray-500 hover:text-[#8380FF] transition-colors">
-                  ホーム
-                </Link>
-              </li>
-              <li className="text-gray-400">/</li>
-              <li>
-                <Link href="/blog" className="text-gray-500 hover:text-[#8380FF] transition-colors">
-                  導入事例
-                </Link>
-              </li>
-              <li className="text-gray-400">/</li>
-              <li className="text-gray-900 line-clamp-1">{post.title}</li>
-            </ol>
-          </div>
-        </nav>
-
+      <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
         {/* Back Button */}
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-bg-primary border-b border-border-medium">
+          <div className="mx-auto max-w-[1120px] px-4 py-2 sm:px-6">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 text-[#8380FF] hover:text-[#6b5dd6] transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 text-brand hover:text-brand-pressed transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               導入事例一覧に戻る
@@ -202,74 +188,69 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+        <PageHeader
+          title={post.title}
+        >
+          <div className="mb-4">
+            <Link
+              href={`/blog/category/${post.category}`}
+              className="inline-flex min-h-10 items-center rounded-inner bg-brand-muted px-3 text-sm font-medium text-on-brand-muted transition-colors hover:bg-brand-subtle max-sm:min-h-11"
+            >
+              {getCategoryLabel(post.category, 'ja')}
+            </Link>
+          </div>
+
+          {/* Meta */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted">
+            {post.published_at && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                <time dateTime={post.published_at}>
+                  {new Date(post.published_at).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>{readingTime}分で読めます</span>
+            </div>
+
+            {post.author && (
+              <div className="flex items-center gap-1">
+                <User className="w-4 h-4" />
+                <span>{(post.author as any).name}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/blog/tag/${encodeURIComponent(tag)}`}
+                  className="inline-flex min-h-10 items-center rounded-md border border-border-medium bg-bg-primary px-3 text-sm text-text-secondary transition-colors hover:bg-bg-secondary max-sm:min-h-11"
+                >
+                  #{tag}
+                </Link>
+              ))}
+            </div>
+          )}
+        </PageHeader>
+
+        <div className="mx-auto max-w-[1120px] px-4 py-12 sm:px-6 relative">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Main Content */}
             <article className="flex-1 min-w-0 lg:w-2/3 lg:pr-8">
-              {/* Article Header */}
-              <header className="mb-8">
-                {/* Category Badge */}
-                <div className="mb-4">
-                  <Link
-                    href={`/blog/category/${post.category}`}
-                    className="inline-block px-3 py-1 text-sm font-medium rounded-full bg-[#8380FF]/10 text-[#8380FF] border border-[#8380FF]/20 hover:bg-[#8380FF]/20 transition-colors"
-                  >
-                    {getCategoryLabel(post.category, 'ja')}
-                  </Link>
-                </div>
-
-                {/* Title */}
-                <h1 className="text-3xl md:text-5xl font-bold text-[#1D1D1F] mb-6 leading-tight">
-                  {post.title}
-                </h1>
-
-                {/* Meta */}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  {post.published_at && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <time dateTime={post.published_at}>
-                        {new Date(post.published_at).toLocaleDateString('ja-JP', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{readingTime}分で読めます</span>
-                  </div>
-
-                  {post.author && (
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      <span>{(post.author as any).name}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
-                      <Link
-                        key={tag}
-                        href={`/blog/tag/${encodeURIComponent(tag)}`}
-                        className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors border border-gray-200"
-                      >
-                        #{tag}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </header>
-
               {/* Featured Image */}
               {post.og_image_path && (
-                <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                <div className="mb-8 rounded-container overflow-hidden border border-border-medium">
                   <img
                     src={post.og_image_path}
                     alt={post.title}
@@ -282,8 +263,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <div className="space-y-8">
                 {/* First part - before mid-article CTA */}
                 <div
-                  className="prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: beforeMid }}
+                  className="prose prose-blog prose-base max-w-none prose-headings:font-bold prose-headings:text-text-primary prose-h2:text-2xl prose-h2:font-heading prose-h2:font-medium prose-h2:border-t prose-h2:border-border-medium prose-h2:pt-8 prose-h3:text-xl prose-p:leading-[1.8] prose-li:leading-[1.8] prose-p:text-text-primary prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-strong:text-text-primary prose-code:text-text-primary prose-pre:bg-bg-muted prose-blockquote:border-l-4 prose-blockquote:border-brand prose-blockquote:pl-4 prose-blockquote:text-text-primary"
+                  dangerouslySetInnerHTML={{ __html: demoteH1(beforeMid) }}
                 />
 
                 {/* Mid-article CTA */}
@@ -297,9 +278,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {afterMid && (
                   <div className="relative">
                     <div
-                      className="prose prose-blog prose-lg max-w-none prose-headings:font-bold prose-headings:text-[#1D1D1F] prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-a:text-[#8380FF] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1D1D1F] prose-code:text-gray-800 prose-pre:bg-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-[#8380FF] prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-700"
+                      className="prose prose-blog prose-base max-w-none prose-headings:font-bold prose-headings:text-text-primary prose-h2:text-2xl prose-h2:font-heading prose-h2:font-medium prose-h2:border-t prose-h2:border-border-medium prose-h2:pt-8 prose-h3:text-xl prose-p:leading-[1.8] prose-li:leading-[1.8] prose-p:text-text-primary prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-strong:text-text-primary prose-code:text-text-primary prose-pre:bg-bg-muted prose-blockquote:border-l-4 prose-blockquote:border-brand prose-blockquote:pl-4 prose-blockquote:text-text-primary"
                       dangerouslySetInnerHTML={{
-                        __html: afterMid.replace(CTA_PLACEHOLDERS.END, ''),
+                        __html: demoteH1(afterMid.replace(CTA_PLACEHOLDERS.END, '')),
                       }}
                     />
                   </div>
@@ -322,9 +303,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
               {/* Author Bio */}
               {post.author && (
-                <div className="mt-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                  <h3 className="text-lg font-bold text-[#1D1D1F] mb-2">著者について</h3>
-                  <p className="text-gray-700">{(post.author as any).name}</p>
+                <div className="mt-12 p-6 bg-bg-primary rounded-container border border-border-medium">
+                  <h3 className="text-lg font-bold text-text-primary mb-2">著者について</h3>
+                  <p className="text-text-primary">{(post.author as any).name}</p>
                 </div>
               )}
             </article>
@@ -348,13 +329,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </div>
               ) : (
                 /* Fallback: Category link if no related posts */
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    <span className="text-blue-600">{getCategoryLabel(post.category, 'ja')}</span>の記事をもっと見る
+                <div className="bg-bg-primary rounded-container border border-border-medium p-6">
+                  <h3 className="text-lg font-bold text-text-primary mb-4">
+                    <span className="text-brand">{getCategoryLabel(post.category, 'ja')}</span>の記事をもっと見る
                   </h3>
                   <Link
                     href={`/blog/category/${post.category}`}
-                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    className="inline-flex items-center gap-2 text-brand hover:text-brand-pressed font-medium transition-colors"
                   >
                     すべての{getCategoryLabel(post.category, 'ja')}記事を見る
                     <ArrowRight className="w-4 h-4" />

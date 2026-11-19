@@ -56,12 +56,12 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
     <div className="flex flex-wrap gap-4 items-center">
       {/* Industry Filter */}
       <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium text-gray-700 whitespace-nowrap">業種:</span>
+        <span className="text-sm font-medium text-text-primary whitespace-nowrap">業種:</span>
         <div className="relative">
           <select
             value={filters.industry || ""}
             onChange={(e) => handleIndustryChange(e.target.value as Industry | null)}
-            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+            className="appearance-none h-10 rounded-md border border-border-strong bg-bg-primary px-3 pr-8 text-sm text-text-primary focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11"
           >
             {industryOptions.map((option) => (
               <option key={option.value || "all"} value={option.value || ""}>
@@ -69,7 +69,7 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-primary">
             <Building className="h-4 w-4" />
           </div>
         </div>
@@ -77,12 +77,12 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
 
       {/* Project Type Filter */}
       <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium text-gray-700 whitespace-nowrap">タイプ:</span>
+        <span className="text-sm font-medium text-text-primary whitespace-nowrap">タイプ:</span>
         <div className="relative">
           <select
             value={filters.projectType || ""}
             onChange={(e) => handleProjectTypeChange(e.target.value as ProjectType | null)}
-            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+            className="appearance-none h-10 rounded-md border border-border-strong bg-bg-primary px-3 pr-8 text-sm text-text-primary focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11"
           >
             {projectTypeOptions.map((option) => (
               <option key={option.value || "all"} value={option.value || ""}>
@@ -90,7 +90,7 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-primary">
             <Package className="h-4 w-4" />
           </div>
         </div>
@@ -98,12 +98,12 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
 
       {/* Sort */}
       <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium text-gray-700 whitespace-nowrap">並び替え:</span>
+        <span className="text-sm font-medium text-text-primary whitespace-nowrap">並び替え:</span>
         <div className="relative">
           <select
             value={filters.sortBy}
             onChange={(e) => handleSortChange(e.target.value as FilterType["sortBy"])}
-            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+            className="appearance-none h-10 rounded-md border border-border-strong bg-bg-primary px-3 pr-8 text-sm text-text-primary focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -119,7 +119,7 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
         variant={filters.featured ? "primary" : "outline"}
         size="sm"
         onClick={handleFeaturedToggle}
-        className="flex items-center space-x-2"
+        className="flex items-center space-x-2 max-sm:h-11"
       >
         <Star className="h-4 w-4" />
         <span>特集のみ</span>
@@ -127,8 +127,8 @@ export function ArchiveFilters({ filters, onChange }: ArchiveFiltersProps) {
 
       {/* Date Range Filter (未実装) */}
       <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
-        <Calendar className="h-4 w-4 text-gray-500" />
-        <span className="text-sm text-gray-500">日付範囲 (準備中)</span>
+        <Calendar className="h-4 w-4 text-text-muted" />
+        <span className="text-sm text-text-muted">日付範囲 (準備中)</span>
       </div>
     </div>
   );

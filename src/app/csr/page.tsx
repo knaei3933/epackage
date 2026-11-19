@@ -14,7 +14,8 @@ import {
   Factory,
   GraduationCap
 } from 'lucide-react'
-import { Container } from '@/components/ui/Container'
+import { PageHeader } from '@/components/layout'
+import { headingFont } from '@/components/home/fonts'
 
 export default function CorporateSocialResponsibility() {
   const currentDate = new Date().toLocaleDateString('ja-JP', {
@@ -24,27 +25,16 @@ export default function CorporateSocialResponsibility() {
   })
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <Container size="4xl" className="py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                <Heart className="h-12 w-12 text-green-600" />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold text-text-primary mb-4">
-              社会的責任 (CSR)
-            </h1>
-            <p className="text-lg text-text-secondary">
-              環境保護と社会的責任を果たし、持続可能な未来を創造します
-            </p>
-          </div>
-
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
+      <PageHeader
+        title="社会的責任 (CSR)"
+        lead="環境保護と社会的責任を果たし、持続可能な未来を創造します"
+      />
+      <div className="py-16 md:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
           {/* Company Information */}
-          <div className="bg-surface-secondary rounded-xl p-6 mb-8 border border-border-medium">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">運営企業情報</h2>
+          <div className="mb-12 rounded-container border border-border-medium bg-bg-secondary p-6">
+            <h2 className="mb-4 font-heading text-xl font-medium text-text-primary">運営企業情報</h2>
             <div className="grid md:grid-cols-2 gap-4 text-text-secondary">
               <div>
                 <span className="font-medium">会社名：</span>
@@ -66,16 +56,16 @@ export default function CorporateSocialResponsibility() {
           </div>
 
           {/* Main Content */}
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* 1. Environmental Protection */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                  <Leaf className="h-5 w-5 text-green-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Leaf className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">1. 環境保護政策</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">1. 環境保護政策</h2>
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は、環境負荷の低減と資源の持続可能な利用を最優先事項と位置づけ、事業活動の全側面で環境保護に取り組んでいます。
                     </p>
@@ -83,7 +73,7 @@ export default function CorporateSocialResponsibility() {
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Recycle className="h-4 w-4 mr-2 text-green-600" />
+                          <Recycle className="h-4 w-4 mr-2 text-brand" />
                           資源循環の推進
                         </h3>
                         <ul className="space-y-2">
@@ -96,7 +86,7 @@ export default function CorporateSocialResponsibility() {
 
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Droplets className="h-4 w-4 mr-2 text-green-600" />
+                          <Droplets className="h-4 w-4 mr-2 text-brand" />
                           環境負荷低減策
                         </h3>
                         <ul className="space-y-2">
@@ -108,7 +98,7 @@ export default function CorporateSocialResponsibility() {
                       </div>
                     </div>
 
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>環境目標：</strong>2030年までに生産工程におけるCO2排出量を50%削減し、100%リサイクル可能な製品ラインを拡充します。
                       </p>
@@ -119,14 +109,14 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* 2. Quality Management */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-blue-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Shield className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">2. 品質管理と認証</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">2. 品質管理と認証</h2>
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       高品質な製品とサービスの提供は、当社の社会的責任の根幹をなすものです。国際的な品質管理基準に準拠し、継続的な改善活動を行っています。
                     </p>
@@ -134,7 +124,7 @@ export default function CorporateSocialResponsibility() {
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Award className="h-4 w-4 mr-2 text-blue-600" />
+                          <Award className="h-4 w-4 mr-2 text-brand" />
                           品質保証体制
                         </h3>
                         <ul className="space-y-2">
@@ -147,7 +137,7 @@ export default function CorporateSocialResponsibility() {
 
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Target className="h-4 w-4 mr-2 text-blue-600" />
+                          <Target className="h-4 w-4 mr-2 text-brand" />
                           品質目標と改善
                         </h3>
                         <ul className="space-y-2">
@@ -159,7 +149,7 @@ export default function CorporateSocialResponsibility() {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>品質方針：</strong>「顧客満足の最大化を通じて、社会から信頼される企業となる」を品質方針とし、全従業員が品質経営に参画しています。
                       </p>
@@ -170,14 +160,14 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* 3. Community Contribution */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                  <Users className="h-5 w-5 text-purple-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Users className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">3. 地域社会への貢献</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">3. 地域社会への貢献</h2>
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       事業活動を通じて得た資源と能力を活用し、地域社会の発展と活性化に貢献することを重要な使命と考えています。
                     </p>
@@ -185,7 +175,7 @@ export default function CorporateSocialResponsibility() {
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <GraduationCap className="h-4 w-4 mr-2 text-purple-600" />
+                          <GraduationCap className="h-4 w-4 mr-2 text-brand" />
                           教育支援活動
                         </h3>
                         <ul className="space-y-2">
@@ -198,7 +188,7 @@ export default function CorporateSocialResponsibility() {
 
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <TreePine className="h-4 w-4 mr-2 text-purple-600" />
+                          <TreePine className="h-4 w-4 mr-2 text-brand" />
                           環境保全活動
                         </h3>
                         <ul className="space-y-2">
@@ -210,7 +200,7 @@ export default function CorporateSocialResponsibility() {
                       </div>
                     </div>
 
-                    <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>地域貢献実績：</strong>年間50時間以上のボランティア活動、地域団体への100万円以上の寄付、従業員の地域活動参加率85%以上を維持しています。
                       </p>
@@ -221,14 +211,14 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* 4. Sustainable Management */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
-                  <Globe className="h-5 w-5 text-amber-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Globe className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">4. 持続可能な経営戦略</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">4. 持続可能な経営戦略</h2>
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       経済的価値、社会的価値、環境的価値の調和を実現し、長期的視点に立った持続可能な企業経営を目指しています。
                     </p>
@@ -236,7 +226,7 @@ export default function CorporateSocialResponsibility() {
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Factory className="h-4 w-4 mr-2 text-amber-600" />
+                          <Factory className="h-4 w-4 mr-2 text-brand" />
                           サプライチェーン管理
                         </h3>
                         <ul className="space-y-2">
@@ -249,7 +239,7 @@ export default function CorporateSocialResponsibility() {
 
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Target className="h-4 w-4 mr-2 text-amber-600" />
+                          <Target className="h-4 w-4 mr-2 text-brand" />
                           SDGsへの貢献
                         </h3>
                         <ul className="space-y-2">
@@ -262,7 +252,7 @@ export default function CorporateSocialResponsibility() {
                       </div>
                     </div>
 
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-warning bg-warning-muted text-on-warning-muted p-4">
                       <p className="text-sm">
                         <strong>持続可能性目標：</strong>2050年までにカーボンニュートラル達成、100%再生可能エネルギー化、サーキュラー経済の完全実現を目指します。
                       </p>
@@ -273,14 +263,14 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* 5. Ethical Management */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
-                  <Handshake className="h-5 w-5 text-red-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Handshake className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">5. 倫理的経営ガイドライン</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">5. 倫理的経営ガイドライン</h2>
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       高い倫理基準を維持し、法令遵守と透明性の高い経営を通じて、全てのステークホルダーからの信頼を得ることを目指します。
                     </p>
@@ -288,7 +278,7 @@ export default function CorporateSocialResponsibility() {
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Shield className="h-4 w-4 mr-2 text-red-600" />
+                          <Shield className="h-4 w-4 mr-2 text-brand" />
                           コンプライアンス体制
                         </h3>
                         <ul className="space-y-2">
@@ -301,7 +291,7 @@ export default function CorporateSocialResponsibility() {
 
                       <div>
                         <h3 className="font-semibold text-text-primary mb-3 flex items-center">
-                          <Heart className="h-4 w-4 mr-2 text-red-600" />
+                          <Heart className="h-4 w-4 mr-2 text-brand" />
                           人権と労働環境
                         </h3>
                         <ul className="space-y-2">
@@ -313,7 +303,7 @@ export default function CorporateSocialResponsibility() {
                       </div>
                     </div>
 
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-error bg-error-muted text-on-error-muted p-4">
                       <p className="text-sm">
                         <strong>倫理方針：</strong>「企業倫理の徹底を通じて、社会の持続可能な発展に貢献する」を基本理念とし、全従業員が倫理的行動規範を遵守します。
                       </p>
@@ -324,14 +314,14 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* CSR Performance Metrics */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
-                  <Target className="h-5 w-5 text-indigo-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Target className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">CSR実績と目標</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       CSR活動の成果を定期的に測定・評価し、継続的な改善に取り組んでいます。
                     </p>
@@ -368,7 +358,7 @@ export default function CorporateSocialResponsibility() {
                       </div>
                     </div>
 
-                    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>外部評価：</strong>GRIスタンダードに基づいたサステナビリティ報告書を年次で発行し、第三者機関による保証を受けています。
                       </p>
@@ -379,14 +369,14 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* Future Commitments */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-teal-100 dark:bg-teal-900 rounded-lg flex items-center justify-center">
-                  <Globe className="h-5 w-5 text-teal-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Globe className="h-5 w-5 text-brand" />
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">今後の取り組み</h2>
-                  <div className="space-y-4 text-text-secondary leading-relaxed">
+                  <div className="space-y-4 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       社会の変化とニーズに対応し、継続的なCSR活動の高度化に取り組んでいきます。
                     </p>
@@ -418,19 +408,19 @@ export default function CorporateSocialResponsibility() {
             </section>
 
             {/* Update Information */}
-            <section className="bg-surface-secondary rounded-xl p-6 border border-border-medium">
-              <div className="text-center text-text-secondary">
+            <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
+              <div className="text-text-secondary">
                 <p className="mb-2">
                   <strong>最終更新日：</strong>{currentDate}
                 </p>
                 <p className="text-sm">
                   本CSR活動報告は、事業活動の実績や社会のニーズの変化に応じて、年次で更新いたします。
                 </p>
-                <div className="mt-4 flex justify-center space-x-6 text-sm">
-                  <a href="mailto:csr@epackage-lab.com" className="text-brixa-600 hover:text-brixa-700 transition-colors">
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <a href="mailto:csr@epackage-lab.com" className="inline-flex min-h-11 items-center text-brand underline hover:text-brand-pressed transition-colors">
                     CSRに関するお問い合わせ
                   </a>
-                  <a href="/privacy" className="text-brixa-600 hover:text-brixa-700 transition-colors">
+                  <a href="/privacy" className="inline-flex min-h-11 items-center text-brand underline hover:text-brand-pressed transition-colors">
                     個人情報保護方針
                   </a>
                 </div>
@@ -438,7 +428,7 @@ export default function CorporateSocialResponsibility() {
             </section>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   )
 }

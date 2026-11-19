@@ -29,10 +29,10 @@ export default function GlobalError({
     <html lang="ja">
       <body style={{ fontFamily: 'sans-serif', padding: '40px', textAlign: 'center' }}>
         <h2>システムエラーが発生しました</h2>
-        <p style={{ color: '#666' }}>お手数ですが、時間をおいて再度お試しください。</p>
+        <p style={{ color: '#545D66' }}>お手数ですが、時間をおいて再度お試しください。</p>
         <button
           onClick={() => reset()}
-          style={{ padding: '10px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+          style={{ padding: '10px 24px', background: '#3A827B', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}
         >
           再試行
         </button>

@@ -17,8 +17,9 @@ import {
   Star
 } from 'lucide-react'
 import { formatDateJa } from '@/utils/formatters'
-import { Button } from '@/components/ui/Button'
-import { Container } from '@/components/ui/Container'
+import { Button, buttonVariants } from '@/components/ui/Button'
+import { PageHeader } from '@/components/layout'
+import { headingFont } from '@/components/home/fonts'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
@@ -182,6 +183,14 @@ const samplePouchNews: NewsArticle[] = [
   }
 ]
 
+const INNER = 'mx-auto max-w-[1120px] px-4 sm:px-6'
+const H2 = 'font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] [overflow-wrap:anywhere] md:text-[2rem]'
+const CONTROL = 'h-10 w-full rounded-md border border-border-strong bg-bg-primary text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11'
+const SELECT = CONTROL.replace('w-full ', '')
+const CHIP = 'min-h-10 rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11'
+const CHIP_ON = 'border-brand bg-brand text-on-brand'
+const CHIP_OFF = 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+
 const categoryInfo = {
   'pouch-product': { name: 'パウチ製品', icon: Package, color: 'green' },
   'pouch-case': { name: '導入事例', icon: Star, color: 'blue' },
@@ -255,53 +264,45 @@ export function NewsClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       {/* Header */}
-      <section className="bg-gradient-to-r from-brixa-600 to-amber-600 text-white">
-        <Container size="6xl" className="py-16">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                パウチ包装ニュース
-              </h1>
-              <p className="text-xl text-brixa-600 max-w-3xl mx-auto">
-                Epackage Labのパウチ製品最新情報、導入事例、業界動向をお届けします
-              </p>
-            </motion.div>
-          </div>
-        </Container>
-      </section>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <PageHeader
+          title="パウチ包装ニュース"
+          lead="Epackage Labのパウチ製品最新情報、導入事例、業界動向をお届けします"
+        />
+      </motion.div>
 
       {/* Filters and Search */}
       <section className="py-8">
-        <Container size="6xl">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex flex-col lg:flex-row gap-6">
+        <div className={INNER}>
+          <div className="rounded-container border border-border-medium bg-bg-primary p-6">
+            <div className="flex flex-col gap-6 lg:flex-row">
               {/* Search */}
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     placeholder="パウチ関連ニュースを検索..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                    className={`${CONTROL} pl-10 pr-4`}
                   />
                 </div>
               </div>
 
               {/* Category Filter */}
               <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-gray-500" />
+                <Tag className="h-4 w-4 text-text-secondary" />
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className={`${SELECT} px-4`}
                 >
                   <option value="all">すべてのカテゴリー</option>
                   {Object.entries(categoryInfo).map(([key, info]) => (
@@ -314,11 +315,11 @@ export function NewsClient() {
 
               {/* Sort */}
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-500" />
+                <Clock className="h-4 w-4 text-text-secondary" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className={`${SELECT} px-4`}
                 >
                   <option value="latest">最新順</option>
                   <option value="popular">人気順</option>
@@ -328,14 +329,10 @@ export function NewsClient() {
             </div>
 
             {/* Category Pills */}
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-border-medium pt-4">
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === 'all'
-                    ? 'bg-brixa-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`${CHIP} ${selectedCategory === 'all' ? CHIP_ON : CHIP_OFF}`}
               >
                 すべて
               </button>
@@ -343,48 +340,44 @@ export function NewsClient() {
                 <button
                   key={key}
                   onClick={() => setSelectedCategory(key)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === key
-                      ? 'bg-brixa-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`${CHIP} ${selectedCategory === key ? CHIP_ON : CHIP_OFF}`}
                 >
                   {info.name}
                 </button>
               ))}
             </div>
           </div>
-        </Container>
+        </div>
       </section>
 
       {/* Featured Articles */}
       {filteredArticles.filter(article => article.featured).length > 0 && (
-        <section className="py-12">
-          <Container size="6xl">
+        <section className="bg-bg-secondary py-16">
+          <div className={INNER}>
             <div className="mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              <h2 className={H2}>
                 注目のニュース
               </h2>
-              <p className="text-gray-600">
+              <p className="mt-2 text-text-secondary">
                 最新の重要なパウチ包装情報や人気の記事
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {filteredArticles.filter(article => article.featured).slice(0, 2).map((article, index) => (
                 <MotionWrapper key={article.id} delay={index * 0.1}>
-                  <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+                  <Card className="group overflow-hidden transition-colors hover:border-border-strong hover:shadow-low">
                     <div className="relative">
-                      <div className="aspect-video bg-gradient-to-br from-brixa-600 to-amber-100 flex items-center justify-center">
-                        <Package className="w-16 h-16 text-brixa-600" />
+                      <div className="flex aspect-video items-center justify-center bg-bg-secondary">
+                        <Package className="h-16 w-16 text-brand" />
                       </div>
-                      <div className="absolute top-4 left-4">
-                        <Badge variant="default" className="bg-brixa-600 text-white">
+                      <div className="absolute left-4 top-4">
+                        <Badge variant="default">
                           注目
                         </Badge>
                       </div>
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="secondary" className="bg-black/70 text-white">
+                      <div className="absolute right-4 top-4">
+                        <Badge variant="secondary">
                           {categoryInfo[article.category].name}
                         </Badge>
                       </div>
@@ -392,39 +385,38 @@ export function NewsClient() {
 
                     <div className="p-6">
                       <div className="mb-4">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-brixa-700 transition-colors">
+                        <h3 className="mb-2 text-xl font-bold text-text-primary transition-colors group-hover:text-brand">
                           {article.title}
                         </h3>
-                        <p className="text-gray-600 mb-4 line-clamp-2">
+                        <p className="mb-4 line-clamp-2 text-text-secondary">
                           {article.excerpt}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                      <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-text-muted">
                         <div className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
+                          <User className="h-4 w-4" />
                           <span>{article.author}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="h-4 w-4" />
                           <span>{formatDateJa(article.publishedAt)}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="h-4 w-4" />
                           <span>{formatReadTime(article.readTime)}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-4 text-sm text-text-muted">
                           <div className="flex items-center gap-1">
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-4 w-4" />
                             <span>{article.views.toLocaleString()}</span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="max-sm:h-11" icon={<ArrowRight className="h-4 w-4" />} iconPosition="right">
                           続きを読む
-                          <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                       </div>
                     </div>
@@ -432,53 +424,53 @@ export function NewsClient() {
                 </MotionWrapper>
               ))}
             </div>
-          </Container>
+          </div>
         </section>
       )}
 
       {/* All Articles */}
-      <section className="py-12">
-        <Container size="6xl">
+      <section className="py-16">
+        <div className={INNER}>
           <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <h2 className={H2}>
               すべてのニュース
             </h2>
-            <p className="text-gray-600">
+            <p className="mt-2 text-text-secondary">
               {filteredArticles.length}件のパウチ包装関連記事
             </p>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, index) => (
                 <Card key={index} className="animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <div className="p-6 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                  <div className="h-48 bg-bg-muted"></div>
+                  <div className="space-y-3 p-6">
+                    <div className="h-4 w-3/4 rounded-inner bg-bg-muted"></div>
+                    <div className="h-3 w-full rounded-inner bg-bg-muted"></div>
+                    <div className="h-3 w-5/6 rounded-inner bg-bg-muted"></div>
                   </div>
                 </Card>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredArticles.map((article, index) => (
                 <MotionWrapper key={article.id} delay={index * 0.05}>
-                  <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+                  <Card className="group overflow-hidden transition-colors hover:border-border-strong hover:shadow-low">
                     <div className="relative">
-                      <div className="aspect-video bg-gradient-to-br from-brixa-50 to-brixa-100 flex items-center justify-center">
-                        <Package className="w-12 h-12 text-brixa-600" />
+                      <div className="flex aspect-video items-center justify-center bg-bg-secondary">
+                        <Package className="h-12 w-12 text-brand" />
                       </div>
                       {article.featured && (
-                        <div className="absolute top-4 left-4">
-                          <Badge variant="default" className="bg-brixa-600 text-white text-xs">
+                        <div className="absolute left-4 top-4">
+                          <Badge variant="default">
                             注目
                           </Badge>
                         </div>
                       )}
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="secondary" className="bg-black/70 text-white text-xs">
+                      <div className="absolute right-4 top-4">
+                        <Badge variant="secondary">
                           {categoryInfo[article.category].name}
                         </Badge>
                       </div>
@@ -486,51 +478,51 @@ export function NewsClient() {
 
                     <div className="p-6">
                       <div className="mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-brixa-700 transition-colors">
+                        <h3 className="mb-2 line-clamp-2 text-lg font-bold text-text-primary transition-colors group-hover:text-brand">
                           {article.title}
                         </h3>
-                        <p className="text-gray-600 text-sm line-clamp-2">
+                        <p className="line-clamp-2 text-sm text-text-secondary">
                           {article.excerpt}
                         </p>
                       </div>
 
                       {/* Tags */}
-                      <div className="flex flex-wrap gap-1 mb-4">
+                      <div className="mb-4 flex flex-wrap gap-1">
                         {article.tags.slice(0, 3).map((tag, tagIndex) => (
-                          <span key={tagIndex} className="text-xs bg-brixa-600 text-brixa-600 px-2 py-1 rounded">
+                          <span key={tagIndex} className="rounded-inner bg-bg-muted px-2 py-1 text-[13px] text-text-secondary">
                             {tag}
                           </span>
                         ))}
                         {article.tags.length > 3 && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-[13px] text-text-muted">
                             +{article.tags.length - 3}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-[13px] text-text-muted">
                         <div className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
+                          <User className="h-3 w-3" />
                           <span>{article.author}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                          <Calendar className="h-3 w-3" />
                           <span>{formatDateJa(article.publishedAt)}</span>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <div className="mt-4 flex items-center justify-between border-t border-border-medium pt-4">
+                        <div className="flex items-center gap-3 text-[13px] text-text-muted">
                           <div className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
+                            <Eye className="h-3 w-3" />
                             <span>{article.views}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
+                            <Clock className="h-3 w-3" />
                             <span>{article.readTime}分</span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="max-sm:h-11">
                           続きを読む
                         </Button>
                       </div>
@@ -542,12 +534,12 @@ export function NewsClient() {
           )}
 
           {!isLoading && filteredArticles.length === 0 && (
-            <div className="text-center py-16">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <div className="py-16 text-center">
+              <Package className="mx-auto mb-4 h-16 w-16 text-text-muted" />
+              <h3 className="mb-2 text-lg font-bold text-text-primary">
                 パウチ関連ニュースが見つかりませんでした
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="mb-4 text-text-secondary">
                 検索条件を変更してもう一度お試しください
               </p>
               <Button onClick={() => {
@@ -558,33 +550,27 @@ export function NewsClient() {
               </Button>
             </div>
           )}
-        </Container>
+        </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-navy-700 to-indigo-600 text-white">
-        <Container size="4xl">
-          <div className="text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">
-              パウチ包装の最新情報をお届けします
-            </h2>
-            <p className="text-navy-600 mb-8 max-w-2xl mx-auto">
-              新製品情報、導入事例、業界動向などをいち早くお届けします
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact">
-                <Button variant="secondary" className="bg-white text-navy-700 hover:bg-gray-100 px-8 py-4">
-                  パウチ専門家に相談
-                </Button>
-              </Link>
-              <Link href="/samples">
-                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-navy-700 px-8 py-4">
-                  無料サンプル請求
-                </Button>
-              </Link>
-            </div>
+      <section className="bg-bg-inverted py-16 text-text-inverse md:py-24">
+        <div className={INNER}>
+          <h2 className="font-heading text-2xl leading-[1.4] [word-break:keep-all] [overflow-wrap:anywhere] md:text-[2rem]">
+            パウチ包装の最新情報をお届けします
+          </h2>
+          <p className="mt-4 max-w-[40em] leading-[1.8]">
+            新製品情報、導入事例、業界動向などをいち早くお届けします
+          </p>
+          <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-x-8">
+            <Link href="/contact" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+              パウチ専門家に相談
+            </Link>
+            <Link href="/samples" className="inline-flex min-h-11 items-center text-base underline underline-offset-4 hover:text-brand-soft">
+              無料サンプル請求
+            </Link>
           </div>
-        </Container>
+        </div>
       </section>
     </div>
   )

@@ -1,7 +1,8 @@
 import React from 'react'
 import { Metadata } from 'next'
 import { FileText, Users, CreditCard, AlertTriangle, Scale, Clock, Mail, CheckCircle } from 'lucide-react'
-import { Container } from '@/components/ui/Container'
+import { PageHeader } from '@/components/layout'
+import { headingFont } from '@/components/home/fonts'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export async function generateMetadata({ params }: { params: {} }): Promise<Metadata> {
@@ -27,28 +28,17 @@ export default function TermsOfService() {
   })
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       <BreadcrumbJsonLd pathname="/terms" />
-      <Container size="4xl" className="py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <div className="p-3 bg-brixa-100 dark:bg-brixa-900 rounded-full">
-                <FileText className="h-12 w-12 text-brixa-600" />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold text-text-primary mb-4">
-              利用規約
-            </h1>
-            <p className="text-lg text-text-secondary">
-              Epackage Labサービスの利用条件に関する規約
-            </p>
-          </div>
-
+      <PageHeader
+        title="利用規約"
+        lead="Epackage Labサービスの利用条件に関する規約"
+      />
+      <div className="py-16 md:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
           {/* Company Information */}
-          <div className="bg-surface-secondary rounded-xl p-6 mb-8 border border-border-medium">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">契約当事者</h2>
+          <div className="mb-12 rounded-container border border-border-medium bg-bg-secondary p-6">
+            <h2 className="mb-4 font-heading text-xl font-medium text-text-primary">契約当事者</h2>
             <div className="grid md:grid-cols-2 gap-4 text-text-secondary">
               <div>
                 <span className="font-medium">事業者：</span>
@@ -62,16 +52,16 @@ export default function TermsOfService() {
           </div>
 
           {/* Main Content */}
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* 1. General Provisions */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Users className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Users className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第1条 総則</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本利用規約（以下「本規約」という）は、金井貿易株式会社（以下「当社」という）が提供するEpackage Labウェブサイトおよび関連サービス（以下「本サービス」という）の利用条件を定めるものです。
                     </p>
@@ -87,14 +77,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 2. Service Description */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <FileText className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第2条 サービスの内容</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本サービスの内容は以下の通りです：
                     </p>
@@ -115,14 +105,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 3. Registration and User Responsibilities */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Users className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Users className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第3条 登録および利用者の責任</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <h3 className="font-semibold text-text-primary">利用者の責務：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
                       <li>真実、正確、最新の情報を登録すること</li>
@@ -132,7 +122,7 @@ export default function TermsOfService() {
                       <li>法令、公序良俗に反する行為をしないこと</li>
                       <li>他の利用者や第三者の権利を侵害しないこと</li>
                     </ul>
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-error bg-error-muted text-on-error-muted p-4">
                       <p className="text-sm">
                         <strong>注意：</strong>利用者が自身の責任で管理するIDおよびパスワードを用いて行われたすべての行為について、当社は責任を負いません。
                       </p>
@@ -143,14 +133,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 4. Fees and Payment */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <CreditCard className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第4条 利用料金および支払方法</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <h3 className="font-semibold text-text-primary">利用料金：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
                       <li>本サービスの基本的な利用は無料とします。</li>
@@ -174,14 +164,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 5. Intellectual Property */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <FileText className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第5条 知的財産権</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本サービスに関連するすべての知的財産権（著作権、商標権、意匠権等）は当社または正当な権利者に帰属します。
                     </p>
@@ -196,14 +186,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 6. Prohibited Acts */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <AlertTriangle className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第6条 禁止行為</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       利用者は、本サービスの利用に際して、以下の行為を行ってはなりません。
                     </p>
@@ -223,14 +213,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 7. Disclaimer */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <AlertTriangle className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第7条 免責事項</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社は、以下の場合について、一切の責任を負いません。
                     </p>
@@ -247,14 +237,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 8. Limitation of Liability */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Scale className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Scale className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第8条 賠償責任の制限</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社が本サービスに関して利用者に賠償すべき損害賠償責任は、当該損害が発生した月における利用者が当社に支払った利用料金の月額（無料の場合は0円）を上限とします。
                     </p>
@@ -267,14 +257,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 9. Cancellation */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Clock className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第9条 契約の解除</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       利用者は、いつでも本規約に同意しないものとして、本サービスの利用を中止することができます。
                     </p>
@@ -292,14 +282,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 10. Dispute Resolution */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Users className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Users className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第10条 紛争解決</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本サービスに関連する紛争については、当事者間の誠意ある協議により解決を図るものとします。
                     </p>
@@ -319,14 +309,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 11. Electronic Contract */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <CheckCircle className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第11条 電子契約の成立</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本規約に関する合意は、利用者が本サービスにアクセスし、本規約に同意する操作を行った時点で成立するものとします。
                     </p>
@@ -339,14 +329,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 12. Refund Policy */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <CreditCard className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第12条 返金・交換ポリシー</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <h3 className="font-semibold text-text-primary">基本方針：</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
                       <li>本サービスは受託製造（オーダーメイド）のため、お客様都合による返金・交換は原則として行えません。</li>
@@ -368,14 +358,14 @@ export default function TermsOfService() {
             </section>
 
             {/* 13. Modifications */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <FileText className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第13条 規約の変更</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社は、必要と判断した場合、利用者に事前に通知することなく本規約を変更できるものとします。
                     </p>
@@ -391,19 +381,19 @@ export default function TermsOfService() {
             </section>
 
             {/* 14. Personal Information Protection */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Mail className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Mail className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">第14条 個人情報の取扱い</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       当社は、利用者の個人情報を個人情報保護法その他関連法規に従い、適切に取り扱うものとします。
                     </p>
                     <p>
-                      個人情報の取得、利用、管理、第三者提供等に関する詳細は、<a href="/privacy" className="text-brixa-600 hover:underline">個人情報保護方針</a>に定めるとおりです。
+                      個人情報の取得、利用、管理、第三者提供等に関する詳細は、<a href="/privacy" className="text-brand underline hover:text-brand-pressed">個人情報保護方針</a>に定めるとおりです。
                     </p>
                   </div>
                 </div>
@@ -411,14 +401,14 @@ export default function TermsOfService() {
             </section>
 
             {/* Contact Information */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Mail className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Mail className="h-5 w-5 text-brand" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">お問い合わせ</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       本規約に関するご質問やご不明な点がございましたら、以下までお問い合わせください。
                     </p>
@@ -434,8 +424,8 @@ export default function TermsOfService() {
             </section>
 
             {/* Update Information */}
-            <section className="bg-surface-secondary rounded-xl p-6 border border-border-medium">
-              <div className="text-center text-text-secondary">
+            <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
+              <div className="text-text-secondary">
                 <p className="mb-2">
                   <strong>最終更新日：</strong>{currentDate}
                 </p>
@@ -446,7 +436,7 @@ export default function TermsOfService() {
             </section>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   )
 }

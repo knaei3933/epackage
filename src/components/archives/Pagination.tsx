@@ -76,11 +76,11 @@ export function Pagination({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
       {/* Results Info */}
-      <div className="text-sm text-gray-700">
+      <div className="text-sm text-text-primary">
         <span className="font-medium">
           {startItem}-{endItem}
         </span>
-        <span className="text-gray-500">
+        <span className="text-text-muted">
           {" "}
           全{totalItems}件
         </span>
@@ -94,7 +94,7 @@ export function Pagination({
           size="sm"
           onClick={handlePrevious}
           disabled={currentPage === 1}
-          className="flex items-center"
+          className="flex items-center max-sm:h-11"
         >
           <ChevronLeft className="h-4 w-4" />
           前へ
@@ -110,16 +110,12 @@ export function Pagination({
                   size="sm"
                   onClick={() => handlePageClick(page)}
                   disabled={page === currentPage}
-                  className={`min-w-[2.5rem] ${
-                    page === currentPage
-                      ? "bg-navy-700 text-white hover:bg-navy-600"
-                      : "hover:bg-gray-50"
-                  }`}
+                  className="min-w-[2.5rem] max-sm:h-11 max-sm:min-w-11"
                 >
                   {page}
                 </Button>
               ) : (
-                <span className="px-3 py-1 text-gray-500">...</span>
+                <span className="px-3 py-1 text-text-muted">...</span>
               )}
             </React.Fragment>
           ))}
@@ -131,7 +127,7 @@ export function Pagination({
           size="sm"
           onClick={handleNext}
           disabled={currentPage === totalPages}
-          className="flex items-center"
+          className="flex items-center max-sm:h-11"
         >
           次へ
           <ChevronRight className="h-4 w-4" />
@@ -139,7 +135,7 @@ export function Pagination({
       </div>
 
       {/* Page Size Info */}
-      <div className="text-sm text-gray-500 sm:hidden">
+      <div className="text-sm text-text-muted sm:hidden">
         {totalPages}ページ中{currentPage}ページ目
       </div>
     </div>

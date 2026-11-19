@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { MessageSquare, FileText } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/Button';
 import { pushToDataLayer } from '@/lib/analytics/dataLayer';
 
 interface ArticleCTAProps {
@@ -14,7 +15,7 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
   return (
     <div
       className={`
-        my-8 rounded-2xl border border-[#8380FF]/20 bg-gradient-to-r from-[#8380FF]/5 to-[#8380FF]/10
+        my-8 rounded-container border border-border-medium bg-bg-secondary
         ${isCompact
           ? 'py-4 px-4 sm:py-5 sm:px-6 lg:py-6 lg:px-8'
           : 'py-6 px-4 sm:py-8 sm:px-6 lg:py-10 lg:px-8'
@@ -24,7 +25,7 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
       {/* Title */}
       <h3
         className={`
-          font-bold text-[#1D1D1F] mb-2
+          font-bold text-text-primary mb-2
           ${isCompact ? 'text-sm sm:text-base' : 'text-base sm:text-lg'}
         `}
       >
@@ -34,7 +35,7 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
       {/* Description */}
       <p
         className={`
-          text-gray-600 mb-4
+          text-text-secondary mb-4
           ${isCompact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}
         `}
       >
@@ -49,35 +50,16 @@ export function ArticleCTA({ variant = 'mid-article' }: ArticleCTAProps) {
         <Link
           href="/contact"
           onClick={() => pushToDataLayer('cta_click', { cta_type: 'contact', location: variant })}
-          className="
-            inline-flex items-center justify-center gap-2
-            min-h-[44px] min-w-[44px]
-            px-5 py-3
-            bg-[#8380FF] text-white
-            font-medium text-sm sm:text-base
-            rounded-xl
-            hover:bg-[#6B6AFF] transition-colors
-            focus:outline-none focus:ring-2 focus:ring-[#8380FF] focus:ring-offset-2
-          "
+          className={buttonVariants({ variant: 'primary', size: 'md' })}
         >
-          <MessageSquare className="w-4 h-4" aria-hidden="true" />
+          <MessageSquare className="h-4 w-4" aria-hidden="true" />
           お問い合わせ
         </Link>
 
         <Link
           href="/quote-simulator"
           onClick={() => pushToDataLayer('cta_click', { cta_type: 'quote', location: variant })}
-          className="
-            inline-flex items-center justify-center gap-2
-            min-h-[44px] min-w-[44px]
-            px-5 py-3
-            bg-white text-[#8380FF]
-            font-medium text-sm sm:text-base
-            rounded-xl
-            border border-[#8380FF]
-            hover:bg-[#8380FF]/5 transition-colors
-            focus:outline-none focus:ring-2 focus:ring-[#8380FF] focus:ring-offset-2
-          "
+          className={buttonVariants({ variant: 'outline', size: 'md' })}
         >
           <FileText className="w-4 h-4" aria-hidden="true" />
           見積もり依頼

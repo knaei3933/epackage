@@ -13,6 +13,8 @@ import { BlogListParams } from '@/lib/types/blog';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { SITE_URL } from '@/lib/seo/canonical';
+import { PageHeader } from '@/components/layout';
+import { headingFont } from '@/components/home/fonts';
 
 // =====================================================
 // Metadata
@@ -101,21 +103,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const categories = await getCategoriesWithCounts();
 
   return (
-    <div className="min-h-screen bg-[#F7F7FF]">
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       <BreadcrumbJsonLd pathname="/blog" />
-      {/* Header - Brixa style */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#1D1D1F] mb-4">
-            導入事例
-          </h1>
-          <p className="text-lg text-gray-600 leading-relaxed">
-            包装資材・印刷の最新情報、技術情報、業界動向をお届けします
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="導入事例"
+        lead="包装資材・印刷の最新情報、技術情報、業界動向をお届けします"
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="lg:w-3/4">
@@ -130,8 +125,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             {/* Posts Grid */}
             <div className="mt-8">
               {search && (
-                <div className="mb-6 p-4 bg-[#8380FF]/10 border border-[#8380FF]/20 rounded-lg">
-                  <p className="text-[#8380FF]">
+                <div className="mb-6 rounded-container border border-brand-soft bg-brand-muted p-4">
+                  <p className="text-on-brand-muted">
                     検索結果: <strong>&quot;{search}&quot;</strong>
                     <span className="ml-2">({postsData.total}件)</span>
                   </p>
@@ -182,10 +177,10 @@ function CategoryFilter({ categories, activeCategory }: CategoryFilterProps) {
     <div className="flex flex-wrap gap-2">
       <Link
         href="/blog"
-        className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+        className={`inline-flex min-h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11 ${
           !activeCategory
-            ? 'bg-[#8380FF] text-white border-[#8380FF]'
-            : 'bg-white text-gray-700 border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF]'
+            ? 'border-brand bg-brand text-on-brand'
+            : 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
         }`}
       >
         すべて ({categories.reduce((sum, cat) => sum + cat.count, 0)})
@@ -195,10 +190,10 @@ function CategoryFilter({ categories, activeCategory }: CategoryFilterProps) {
         <Link
           key={cat.category}
           href={`/blog/category/${cat.category}`}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+          className={`inline-flex min-h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11 ${
             activeCategory === cat.category
-              ? 'bg-[#8380FF] text-white border-[#8380FF]'
-              : 'bg-white text-gray-700 border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF]'
+              ? 'border-brand bg-brand text-on-brand'
+              : 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
           }`}
         >
           {cat.name_ja} ({cat.count})
@@ -214,7 +209,7 @@ function CategoryFilterSkeleton() {
       {[1, 2, 3, 4, 5].map((i) => (
         <div
           key={i}
-          className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"
+          className="h-10 w-24 bg-bg-muted rounded-md animate-pulse"
         />
       ))}
     </div>
@@ -248,10 +243,10 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
       {/* Previous Button */}
       <Link
         href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+        className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11 ${
           currentPage > 1
-            ? 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF] shadow-sm'
-            : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'
+            ? 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+            : 'cursor-not-allowed border-border-medium bg-bg-muted text-text-muted'
         }`}
         aria-disabled={currentPage <= 1}
       >
@@ -272,7 +267,7 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
             // Show ellipsis for skipped pages
             if (i > 0 && arr[i - 1] !== page - 1) {
               return (
-                <span key={`ellipsis-${page}`} className="text-gray-400">
+                <span key={`ellipsis-${page}`} className="text-text-muted">
                   ...
                 </span>
               );
@@ -282,10 +277,10 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
               <Link
                 key={page}
                 href={buildUrl(page)}
-                className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium border transition-all ${
+                className={`flex h-10 w-10 items-center justify-center rounded-md border font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:h-11 max-sm:w-11 ${
                   page === currentPage
-                    ? 'bg-[#8380FF] text-white border-[#8380FF]'
-                    : 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF] shadow-sm'
+                    ? 'border-brand bg-brand text-on-brand'
+                    : 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
                 }`}
               >
                 {page}
@@ -297,10 +292,10 @@ function Pagination({ currentPage, totalPages, category, tag, search }: Paginati
       {/* Next Button */}
       <Link
         href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
+        className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11 ${
           currentPage < totalPages
-            ? 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#8380FF] hover:text-[#8380FF] shadow-sm'
-            : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'
+            ? 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+            : 'cursor-not-allowed border-border-medium bg-bg-muted text-text-muted'
         }`}
         aria-disabled={currentPage >= totalPages}
       >
@@ -328,16 +323,16 @@ function Sidebar({ categories }: SidebarProps) {
   return (
     <div className="space-y-6">
       {/* Categories */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-[#1D1D1F] mb-4">カテゴリ</h3>
+      <div className="rounded-container border border-border-medium bg-bg-primary p-6">
+        <h2 className="mb-4 text-lg font-bold text-text-primary">カテゴリ</h2>
         <ul className="space-y-2">
           <li>
             <Link
               href="/blog"
-              className="flex items-center justify-between text-gray-600 hover:text-[#8380FF] transition-colors group"
+              className="group flex min-h-11 items-center justify-between text-text-secondary transition-colors hover:text-brand"
             >
-              <span className="group-hover:translate-x-1 transition-transform">すべて</span>
-              <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span>すべて</span>
+              <span className="rounded-inner bg-bg-muted px-2 py-0.5 text-[13px] text-text-secondary">
                 {categories.reduce((sum, cat) => sum + cat.count, 0)}
               </span>
             </Link>
@@ -346,10 +341,10 @@ function Sidebar({ categories }: SidebarProps) {
             <li key={cat.category}>
               <Link
                 href={`/blog/category/${cat.category}`}
-                className="flex items-center justify-between text-gray-600 hover:text-[#8380FF] transition-colors group"
+                className="group flex min-h-11 items-center justify-between text-text-secondary transition-colors hover:text-brand"
               >
-                <span className="group-hover:translate-x-1 transition-transform">{cat.name_ja}</span>
-                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{cat.count}</span>
+                <span>{cat.name_ja}</span>
+                <span className="rounded-inner bg-bg-muted px-2 py-0.5 text-[13px] text-text-secondary">{cat.count}</span>
               </Link>
             </li>
           ))}
@@ -357,9 +352,9 @@ function Sidebar({ categories }: SidebarProps) {
       </div>
 
       {/* About */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-[#1D1D1F] mb-4">このブログについて</h3>
-        <p className="text-sm text-gray-600 leading-relaxed">
+      <div className="rounded-container border border-border-medium bg-bg-primary p-6">
+        <h2 className="mb-4 text-lg font-bold text-text-primary">このブログについて</h2>
+        <p className="text-sm leading-[1.8] text-text-secondary">
           Epackage Labのブログでは、包装資材・印刷に関する最新情報、技術情報、業界動向をお届けします。
           小ロットパッケージ製造の専門家として、実践的な情報を提供します。
         </p>

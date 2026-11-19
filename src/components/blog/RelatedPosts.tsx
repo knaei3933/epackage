@@ -30,9 +30,9 @@ export function RelatedPosts({ posts, currentPostId, category }: RelatedPostsPro
   const categoryLabel = getCategoryLabel(category as any, 'ja');
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-6">
-        <span className="text-blue-600">{categoryLabel}</span>の関連記事
+    <div className="bg-bg-primary rounded-container border border-border-medium p-6 mb-6">
+      <h3 className="text-xl font-bold text-text-primary mb-6">
+        <span className="text-brand">{categoryLabel}</span>の関連記事
       </h3>
 
       <div className="space-y-4">
@@ -44,7 +44,7 @@ export function RelatedPosts({ posts, currentPostId, category }: RelatedPostsPro
       {/* View All Link */}
       <Link
         href={`/blog/category/${category}`}
-        className="mt-6 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+        className="mt-6 inline-flex items-center gap-2 text-brand hover:text-brand-pressed font-medium transition-colors"
       >
         すべての{categoryLabel}記事を見る
         <ArrowRight className="w-4 h-4" />
@@ -63,14 +63,14 @@ function RelatedPostCard({ post }: RelatedPostCardProps) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+      className="group flex gap-4 p-3 rounded-lg hover:bg-bg-secondary transition-colors"
     >
       {/* Thumbnail */}
-      <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-gray-200">
+      <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-bg-muted">
         <img
           src={imageUrl}
           alt={post.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover  transition-transform duration-300"
           loading="lazy"
         />
       </div>
@@ -78,12 +78,12 @@ function RelatedPostCard({ post }: RelatedPostCardProps) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         {/* Title */}
-        <h4 className="font-medium text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <h4 className="font-medium text-text-primary mb-1 line-clamp-2 group-hover:text-brand transition-colors">
           {post.title}
         </h4>
 
         {/* Date & Reading Time */}
-        <div className="flex items-center gap-3 text-sm text-gray-500">
+        <div className="flex items-center gap-3 text-sm text-text-muted">
           <time dateTime={post.published_at || post.created_at}>
             {formatDate(post.published_at || post.created_at)}
           </time>
@@ -120,8 +120,8 @@ export function CompactRelatedPosts({ posts, currentPostId, maxPosts = 5 }: Comp
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">関連記事</h3>
+    <div className="bg-bg-primary rounded-container border border-border-medium p-6 mb-6">
+      <h3 className="text-lg font-bold text-text-primary mb-4">関連記事</h3>
 
       <ul className="space-y-3">
         {relatedPosts.map((post) => (
@@ -130,10 +130,10 @@ export function CompactRelatedPosts({ posts, currentPostId, maxPosts = 5 }: Comp
               href={`/blog/${post.slug}`}
               className="group block"
             >
-              <h4 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+              <h4 className="text-sm font-medium text-text-primary line-clamp-2 group-hover:text-brand transition-colors">
                 {post.title}
               </h4>
-              <time className="text-xs text-gray-500">
+              <time className="text-xs text-text-muted">
                 {formatDate(post.published_at || post.created_at)}
               </time>
             </Link>

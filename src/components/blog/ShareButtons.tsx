@@ -90,15 +90,15 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">シェア</h3>
+    <div className="bg-bg-primary rounded-lg p-6">
+      <h3 className="text-lg font-bold text-text-primary mb-4">シェア</h3>
 
       <div className="flex flex-wrap gap-3">
         {/* Native Share (mobile only) - rendered only on client after hydration */}
         {hasNativeShare && (
           <button
             onClick={nativeShare}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong bg-bg-primary px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11"
             aria-label="Share"
           >
             <Share2 className="w-5 h-5" />
@@ -109,7 +109,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
         {/* Twitter */}
         <button
           onClick={shareOnTwitter}
-          className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong bg-bg-primary px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11"
           aria-label="Share on X (Twitter)"
         >
           <Twitter className="w-5 h-5" />
@@ -119,7 +119,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
         {/* Facebook */}
         <button
           onClick={shareOnFacebook}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong bg-bg-primary px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11"
           aria-label="Share on Facebook"
         >
           <Facebook className="w-5 h-5" />
@@ -129,7 +129,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
         {/* LINE */}
         <button
           onClick={shareOnLine}
-          className="flex items-center gap-2 px-4 py-2 bg-[#06C755] text-white rounded-lg hover:bg-[#05b04c] transition-colors"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong bg-bg-primary px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11"
           aria-label="LINEでシェア"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
         {/* LinkedIn */}
         <button
           onClick={shareOnLinkedIn}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+          className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border-strong bg-bg-primary px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11"
           aria-label="Share on LinkedIn"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -153,10 +153,10 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
         {/* Copy Link */}
         <button
           onClick={copyToClipboard}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+          className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:min-h-11 ${
             copied
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'border-success bg-success-muted text-on-success-muted'
+              : 'border-border-strong bg-bg-primary text-text-primary hover:bg-bg-secondary'
           }`}
           aria-label="Copy link"
         >
@@ -202,7 +202,7 @@ export function InlineShareButtons({ url, title, description }: InlineShareButto
 
   return (
     <div className="flex items-center gap-4">
-      <span className="text-sm text-gray-500">シェア:</span>
+      <span className="text-sm text-text-muted">シェア:</span>
 
       <div className="flex items-center gap-2">
         {/* Twitter */}
@@ -211,7 +211,7 @@ export function InlineShareButtons({ url, title, description }: InlineShareButto
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => pushToDataLayer('share', { method: 'Twitter', content_type: 'article' })}
-          className="p-2 text-gray-400 hover:text-black transition-colors"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11"
           aria-label="Share on X (Twitter)"
         >
           <Twitter className="w-5 h-5" />
@@ -223,7 +223,7 @@ export function InlineShareButtons({ url, title, description }: InlineShareButto
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => pushToDataLayer('share', { method: 'Facebook', content_type: 'article' })}
-          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11"
           aria-label="Share on Facebook"
         >
           <Facebook className="w-5 h-5" />
@@ -235,7 +235,7 @@ export function InlineShareButtons({ url, title, description }: InlineShareButto
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => pushToDataLayer('share', { method: 'LINE', content_type: 'article' })}
-          className="p-2 text-gray-400 hover:text-[#06C755] transition-colors"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11"
           aria-label="LINEでシェア"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -246,8 +246,8 @@ export function InlineShareButtons({ url, title, description }: InlineShareButto
         {/* Copy Link */}
         <button
           onClick={copyToClipboard}
-          className={`p-2 transition-colors ${
-            copied ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11 ${
+            copied ? 'text-success' : 'text-text-secondary hover:text-text-primary'
           }`}
           aria-label="Copy link"
         >

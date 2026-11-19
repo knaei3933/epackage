@@ -78,8 +78,8 @@ export function TableOfContents({ headings, activeId }: TableOfContentsProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 mb-4">
+    <div className="bg-bg-primary rounded-container border border-border-medium p-6 mb-6">
+      <h3 className="flex items-center gap-2 text-lg font-bold text-text-primary mb-4">
         <List className="w-5 h-5" />
         目次
       </h3>
@@ -117,8 +117,8 @@ function TableOfContentsItem({ heading, isActive, onClick }: TableOfContentsItem
         className={`
           block w-full text-left py-1 px-2 rounded text-sm transition-colors
           ${isActive
-            ? 'bg-blue-100 text-blue-700 font-medium'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            ? 'bg-brand-muted text-on-brand-muted font-medium'
+            : 'text-text-secondary hover:bg-bg-muted hover:text-text-primary'
           }
         `}
         style={{ paddingLeft: `${paddingLeft + 8}px` }}
@@ -163,9 +163,9 @@ export function MiniTableOfContents({ headings }: MiniTableOfContentsProps) {
     <div className="md:hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-lg shadow-md"
+        className="w-full flex items-center justify-between px-4 py-3 min-h-11 bg-bg-primary border border-border-medium rounded-container"
       >
-        <span className="font-medium text-gray-900">目次</span>
+        <span className="font-medium text-text-primary">目次</span>
         <svg
           className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
@@ -182,7 +182,7 @@ export function MiniTableOfContents({ headings }: MiniTableOfContentsProps) {
             <li key={heading.id}>
               <a
                 href={`#${heading.id}`}
-                className="block py-2 text-sm text-gray-600 hover:text-blue-600"
+                className="block py-2 text-sm text-text-secondary hover:text-brand"
                 onClick={() => setIsOpen(false)}
               >
                 {heading.text}

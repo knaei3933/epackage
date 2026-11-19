@@ -1,7 +1,8 @@
 import React from 'react'
 import { Metadata } from 'next'
 import { Shield, Lock, Mail, Database, Eye, Trash2, Globe, Clock, FileText } from 'lucide-react'
-import { Container } from '@/components/ui/Container'
+import { PageHeader } from '@/components/layout'
+import { headingFont } from '@/components/home/fonts'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
@@ -20,28 +21,17 @@ export default function PrivacyPolicy() {
   })
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       <BreadcrumbJsonLd pathname="/privacy" />
-      <Container size="4xl" className="py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <div className="p-3 bg-brixa-100 dark:bg-brixa-900 rounded-full">
-                <Shield className="h-12 w-12 text-brixa-600" />
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold text-text-primary mb-4">
-              個人情報保護方針
-            </h1>
-            <p className="text-lg text-text-secondary">
-              お客様の個人情報を適切に保護することをお約束します
-            </p>
-          </div>
-
+      <PageHeader
+        title="個人情報保護方針"
+        lead="お客様の個人情報を適切に保護することをお約束します"
+      />
+      <div className="py-16 md:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
           {/* Company Information */}
-          <div className="bg-surface-secondary rounded-xl p-6 mb-8 border border-border-medium">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">運営者情報</h2>
+          <div className="mb-12 rounded-container border border-border-medium bg-bg-secondary p-6">
+            <h2 className="mb-4 font-heading text-xl font-medium text-text-primary">運営者情報</h2>
             <div className="grid md:grid-cols-2 gap-4 text-text-secondary">
               <div>
                 <span className="font-medium">会社名：</span>
@@ -71,16 +61,16 @@ export default function PrivacyPolicy() {
           </div>
 
           {/* Main Content */}
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* 1. Basic Principles */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Lock className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Lock className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">1. 基本原則</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">1. 基本原則</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は、個人情報保護法（平成15年法律第57号）および関連法規を遵守し、お客様の個人情報を適切に取り扱うことを基本原則とします。
                     </p>
@@ -96,14 +86,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 2. Types of Personal Information */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Database className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Database className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">2. 取得する個人情報の種類</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">2. 取得する個人情報の種類</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社が事業活動の過程で取得する個人情報は以下の通りです：
                     </p>
@@ -135,14 +125,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 3. Purpose of Use */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Eye className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Eye className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">3. 利用目的</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">3. 利用目的</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社が個人情報を利用する目的は以下の通りです：
                     </p>
@@ -161,14 +151,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 4. Collection Method */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Globe className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Globe className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">4. 取得方法</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">4. 取得方法</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は以下の方法で個人情報を取得します：
                     </p>
@@ -178,7 +168,7 @@ export default function PrivacyPolicy() {
                       <li>クッキー及び類似技術を通じて収集される行動情報</li>
                       <li>営業活動、商談等における対面での情報収集</li>
                     </ul>
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-warning bg-warning-muted text-on-warning-muted p-4">
                       <p className="text-sm">
                         <strong>注意：</strong>お客様は個人情報の提供を拒否することができます。ただし、必要な情報が提供されない場合、サービスの全部または一部をご利用いただけないことがあります。
                       </p>
@@ -189,14 +179,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 5. Third-party Sharing */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Mail className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Mail className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">5. 第三者提供</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">5. 第三者提供</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は、法令で定められた場合を除き、お客様の個人情報を事前に同意を得ることなく第三者に提供することはありません。
                     </p>
@@ -215,14 +205,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 6. Retention Period */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Clock className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">6. 保存期間</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">6. 保存期間</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は、個人情報の利用目的が達成された場合、法令で定められた期間を超えて保存することはありません。保存期間は以下の通りです：
                     </p>
@@ -245,14 +235,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 7. Cookie Policy */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <FileText className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">7. クッキーポリシー</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">7. クッキーポリシー</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社ウェブサイトでは、利便性の向上と分析の目的でクッキーを使用しています。クッキーとは、ウェブサイトがお客様のブラウザに保存する小さなテキストファイルです。
                     </p>
@@ -276,14 +266,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 8. User Rights */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Trash2 className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Trash2 className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">8. お客様の権利</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">8. お客様の権利</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       お客様には以下の権利があります。ご希望の場合は、所定の手続きに従ってご請求いただけます。
                     </p>
@@ -307,7 +297,7 @@ export default function PrivacyPolicy() {
                         </ul>
                       </div>
                     </div>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+                    <div className="mt-4 rounded-container border border-brand-soft bg-brand-muted text-on-brand-muted p-4">
                       <p className="text-sm">
                         <strong>ご連絡先：</strong>個人情報に関するお問い合わせは、info@package-lab.com までご連絡ください。
                       </p>
@@ -318,14 +308,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 9. Security Measures */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Shield className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">9. 安全管理措置</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">9. 安全管理措置</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       弊社は、個人情報の安全確保のため、以下の措置を講じています：
                     </p>
@@ -341,14 +331,14 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* 10. Inquiries */}
-            <section className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-border-medium">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-brixa-100 dark:bg-brixa-900 rounded-lg flex items-center justify-center">
-                  <Mail className="h-5 w-5 text-brixa-600" />
+            <section className="border-t border-border-medium pt-10">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-muted">
+                  <Mail className="h-5 w-5 text-brand" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-primary mb-4">10. お問い合わせ窓口</h2>
-                  <div className="space-y-3 text-text-secondary leading-relaxed">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-4 font-heading text-xl font-medium text-text-primary md:text-2xl [word-break:keep-all] [overflow-wrap:anywhere]">10. お問い合わせ窓口</h2>
+                  <div className="space-y-3 text-[15px] leading-[1.8] text-text-secondary md:text-base">
                     <p>
                       個人情報の取扱いに関するご質問や苦情については、以下の窓口までお問い合わせください。
                     </p>
@@ -368,8 +358,8 @@ export default function PrivacyPolicy() {
             </section>
 
             {/* Update Information */}
-            <section className="bg-surface-secondary rounded-xl p-6 border border-border-medium">
-              <div className="text-center text-text-secondary">
+            <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
+              <div className="text-text-secondary">
                 <p className="mb-2">
                   <strong>最終更新日：</strong>{currentDate}
                 </p>
@@ -380,7 +370,7 @@ export default function PrivacyPolicy() {
             </section>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   )
 }

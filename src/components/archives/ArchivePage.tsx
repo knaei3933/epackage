@@ -115,7 +115,7 @@ export default function ArchivePage() {
         }}
       />
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-bg-primary">
         <ArchivePageClient initialRecords={sampleRecords} />
       </div>
     </>

@@ -11,6 +11,8 @@ import { BlogGrid } from '@/components/blog/BlogCard';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { SITE_URL } from '@/lib/seo/canonical';
+import { PageHeader } from '@/components/layout';
+import { headingFont } from '@/components/home/fonts';
 
 // =====================================================
 // Generate Metadata
@@ -88,28 +90,23 @@ export default async function BlogTagPage({
   const allTags = await getTagsWithCounts();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       <BreadcrumbJsonLd pathname={`/blog/tag/${tagParam}`} />
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <PageHeader
+        title={`タグ: ${tag}`}
+        lead={`#${tag}タグ付きの記事一覧（全${postsData.total}件）`}
+        actions={
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition-colors"
+            className="inline-flex min-h-11 items-center gap-2 text-brand underline underline-offset-4 hover:text-brand-pressed"
           >
             <ArrowLeft className="w-4 h-4" />
             ブログ一覧に戻る
           </Link>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            タグ: {tag}
-          </h1>
-          <p className="text-lg text-gray-600">
-            #{tag}タグ付きの記事一覧（全{postsData.total}件）
-          </p>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-[1120px] px-4 py-16 sm:px-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="lg:w-3/4">
@@ -123,10 +120,10 @@ export default async function BlogTagPage({
               <nav className="flex items-center justify-between" aria-label="Pagination">
                 <Link
                   href={page > 1 ? `/blog/tag/${tagParam}?page=${page - 1}` : '#'}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 max-sm:min-h-11 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                     page > 1
-                      ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      ? 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+                      : 'cursor-not-allowed border-border-medium bg-bg-muted text-text-muted'
                   }`}
                   aria-disabled={page <= 1}
                 >
@@ -134,16 +131,16 @@ export default async function BlogTagPage({
                   前へ
                 </Link>
 
-                <div className="text-gray-600">
+                <div className="text-text-secondary">
                   {page} / {postsData.totalPages} ページ
                 </div>
 
                 <Link
                   href={page < postsData.totalPages ? `/blog/tag/${tagParam}?page=${page + 1}` : '#'}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-4 max-sm:min-h-11 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                     page < postsData.totalPages
-                      ? 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      ? 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
+                      : 'cursor-not-allowed border-border-medium bg-bg-muted text-text-muted'
                   }`}
                   aria-disabled={page >= postsData.totalPages}
                 >
@@ -157,21 +154,21 @@ export default async function BlogTagPage({
           {/* Sidebar */}
           <aside className="lg:w-1/4">
             {/* Tag Cloud */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">人気のタグ</h3>
+            <div className="rounded-container border border-border-medium bg-bg-primary p-6">
+              <h2 className="text-lg font-bold text-text-primary mb-4">人気のタグ</h2>
               <div className="flex flex-wrap gap-2">
                 {allTags.slice(0, 20).map((t) => (
                   <Link
                     key={t.tag}
                     href={`/blog/tag/${encodeURIComponent(t.tag)}`}
-                    className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                    className={`inline-flex min-h-10 items-center rounded-md border px-3 text-sm transition-colors max-sm:min-h-11 ${
                       t.tag === tag
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'border-brand bg-brand text-on-brand'
+                        : 'border-border-medium bg-bg-primary text-text-primary hover:bg-bg-secondary'
                     }`}
                   >
                     #{t.tag}
-                    <span className="ml-1 text-xs opacity-75">({t.count})</span>
+                    <span className="ml-1 text-[13px]">({t.count})</span>
                   </Link>
                 ))}
               </div>
