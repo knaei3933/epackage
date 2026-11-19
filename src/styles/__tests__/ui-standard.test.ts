@@ -18,6 +18,7 @@ const GOVERNED_FILES = [
   'src/components/layout/Header.tsx',
   'src/components/layout/HeaderWrapper.tsx',
   'src/components/layout/Footer.tsx',
+  'src/components/layout/PageHeader.tsx',
   'src/components/auth/UserMenu.tsx',
   'src/components/home/AnnouncementBanner.tsx',
   'src/components/home/BeforeAfterSection.tsx',

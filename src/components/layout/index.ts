@@ -4,6 +4,7 @@ export { Layout, SimpleLayout, CenteredLayout } from './Layout'
 // Individual Layout Components
 export { Header } from './Header'
 export { Footer } from './Footer'
+export { PageHeader, FactList } from './PageHeader'
 export { Navigation, MobileNavigation, SidebarNavigation, defaultNavigationItems } from './Navigation'
 
 // Utility Components
