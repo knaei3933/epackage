@@ -45,12 +45,30 @@ const GOVERNED_PAGE_FILES: string[] = [
   'src/app/auth/signin/page.tsx',
   'src/app/auth/signout/page.tsx',
   'src/app/auth/suspended/page.tsx',
+  'src/app/blog/[slug]/page.tsx',
+  'src/app/blog/category/[category]/page.tsx',
+  'src/app/blog/page.tsx',
+  'src/app/blog/tag/[tag]/page.tsx',
+  'src/app/cart/CartPageClient.tsx',
   'src/app/catalog/CatalogClient.tsx',
   'src/app/catalog/[slug]/ProductDetailClient.tsx',
   'src/app/catalog/[slug]/loading.tsx',
+  'src/app/compare/ComparisonClient.tsx',
+  'src/app/compare/shared/page.tsx',
   'src/app/contact/page.tsx',
   'src/app/contact/thank-you/page.tsx',
+  'src/app/csr/page.tsx',
+  'src/app/data-templates/page.tsx',
+  'src/app/designer-order/[token]/DesignerOrderTokenClient.tsx',
+  'src/app/designer-order/[token]/page.tsx',
+  'src/app/designer-order/invalid/page.tsx',
+  'src/app/designer/DesignerDashboardClient.tsx',
+  'src/app/designer/DesignerOrderDetailClient.tsx',
+  'src/app/designer/layout.tsx',
+  'src/app/designer/login/page.tsx',
+  'src/app/error.tsx',
   'src/app/flow/page.tsx',
+  'src/app/global-error.tsx',
   'src/app/guide/GuideSidebarNav.tsx',
   'src/app/guide/color/page.tsx',
   'src/app/guide/environmentaldisplay/page.tsx',
@@ -60,7 +78,30 @@ const GOVERNED_PAGE_FILES: string[] = [
   'src/app/guide/shirohan/page.tsx',
   'src/app/guide/size/page.tsx',
   'src/app/industry/[slug]/loading.tsx',
+  'src/app/inquiry/detailed/page.tsx',
+  'src/app/legal/page.tsx',
+  'src/app/news/NewsClient.tsx',
+  'src/app/not-found.tsx',
+  'src/app/premium-content/page.tsx',
+  'src/app/print/page.tsx',
+  'src/app/privacy/page.tsx',
   'src/app/quote-simulator/page.tsx',
+  'src/app/samples/MemberSampleConfirmation.tsx',
+  'src/app/samples/SampleRequestFormWrapper.tsx',
+  'src/app/samples/page.tsx',
+  'src/app/samples/thank-you/page.tsx',
+  'src/app/terms/page.tsx',
+  'src/app/upload/[token]/TokenUploadClient.tsx',
+  'src/app/upload/[token]/page.tsx',
+  'src/app/upload/invalid/page.tsx',
+  // src/components/archives
+  'src/components/archives/ArchiveDetailModal.tsx',
+  'src/components/archives/ArchiveFilters.tsx',
+  'src/components/archives/ArchiveGrid.tsx',
+  'src/components/archives/ArchivePage.tsx',
+  'src/components/archives/ArchivePageClient.tsx',
+  'src/components/archives/Pagination.tsx',
+  'src/components/archives/SearchBar.tsx',
   // src/components/auth
   'src/components/auth/AuthModal.tsx',
   'src/components/auth/AuthShell.tsx',
@@ -71,6 +112,15 @@ const GOVERNED_PAGE_FILES: string[] = [
   'src/components/auth/ProtectedRoute.tsx',
   'src/components/auth/RegistrationForm.tsx',
   'src/components/auth/ResetPasswordForm.tsx',
+  // src/components/blog
+  'src/components/blog/ArticleCTA.tsx',
+  'src/components/blog/BlogCard.tsx',
+  'src/components/blog/RelatedPosts.tsx',
+  'src/components/blog/ShareButtons.tsx',
+  'src/components/blog/TableOfContents.tsx',
+  // src/components/cart
+  'src/components/cart/CartItem.tsx',
+  'src/components/cart/CartSidebar.tsx',
   // src/components/catalog
   'src/components/catalog/AdvancedFilters.tsx',
   'src/components/catalog/CatalogFilters.tsx',
@@ -97,6 +147,9 @@ const GOVERNED_PAGE_FILES: string[] = [
   'src/components/contact/SampleRequestForm.tsx',
   'src/components/contact/SampleRequestModal.tsx',
   'src/components/contact/SampleRequestSuccess.tsx',
+  // src/components/designer
+  'src/components/designer/DesignerLoginForm.tsx',
+  'src/components/designer/PostProcessingPositionInput.tsx',
   // src/components/home
   'src/components/home/AnnouncementBanner.tsx',
   'src/components/home/BeforeAfterSection.tsx',
@@ -120,14 +173,35 @@ const GOVERNED_PAGE_FILES: string[] = [
   'src/components/industry/ROISection.tsx',
   'src/components/industry/TechnicalSpecsSection.tsx',
   'src/components/industry/TestimonialsSection.tsx',
+  // src/components/inquiry
+  'src/components/inquiry/DetailedInquiryForm.tsx',
+  'src/components/inquiry/steps/AdditionalInfoStep.tsx',
+  'src/components/inquiry/steps/BasicInfoStep.tsx',
+  'src/components/inquiry/steps/CompanyInfoStep.tsx',
+  'src/components/inquiry/steps/ProjectRequirementsStep.tsx',
+  'src/components/inquiry/steps/TechnicalRequirementsStep.tsx',
+  // src/components/lp
+  'src/components/lp/StrongCTA.tsx',
+  'src/components/lp/TrustSignals.tsx',
+  // src/components/premium-content
+  'src/components/premium-content/PremiumContentSection.tsx',
   // src/components/quote
   'src/components/quote/sections/PageHeaderSection.tsx',
   'src/components/quote/sections/QuickActionsSection.tsx',
   'src/components/quote/sections/QuoteSimulatorHeader.tsx',
+  'src/components/quote/shared/DataTemplateGuide.tsx',
   'src/components/quote/shared/ResponsiveStepIndicators.tsx',
   'src/components/quote/wizards/ImprovedQuotingWizard.tsx',
   // src/components/seo
   'src/components/seo/BreadcrumbNav.tsx',
+  // src/components/service
+  'src/components/service/ServicePage.tsx',
+  // src/components/upload
+  'src/components/upload/BilingualText.tsx',
+  'src/components/upload/CommentSection.tsx',
+  'src/components/upload/SKUCardGrid.tsx',
+  'src/components/upload/SKUUploadCard.tsx',
+  'src/components/upload/TokenUploadForm.tsx',
 ]
 
 function walk(dir: string): string[] {
@@ -191,5 +265,23 @@ describe('規則の自己確認', () => {
     expect(pattern.test('<Badge className="bg-brand-muted text-on-brand-muted">')).toBe(false)
     expect(pattern.test('<div className="hover:bg-brand text-brand">')).toBe(false)
     expect(pattern.test('<div className={cn("bg-brand", active && "text-brand")}>')).toBe(false)
+  })
+})
+
+// 見出しの折り返しは、見出しごとのクラスではなく、globals.css の基本の指定で決める（付け忘れを防ぐ）
+describe('全体の指定（globals.css）', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'src/app/globals.css'), 'utf8')
+
+  it('見出し（h1〜h6）は、語の途中で切らない指定を持つ', () => {
+    const rule = css.match(/h1,\s*h2,\s*h3,\s*h4,\s*h5,\s*h6\s*\{([^}]*)\}/)
+    expect(rule).not.toBeNull()
+    const body = (rule as RegExpMatchArray)[1]
+    expect(body).toMatch(/word-break:\s*keep-all/)
+    expect(body).toMatch(/overflow-wrap:\s*anywhere/)
+    expect(body).toMatch(/text-wrap:\s*balance/)
+  })
+
+  it('auto-phrase が使えるブラウザでは、文節の切れ目で切る', () => {
+    expect(css).toMatch(/@supports\s*\(word-break:\s*auto-phrase\)\s*\{[^}]*h1,[^}]*word-break:\s*auto-phrase/)
   })
 })

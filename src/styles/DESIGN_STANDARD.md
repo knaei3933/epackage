@@ -108,9 +108,8 @@
 
 - 書体: `font-sans`（Noto Sans JP → Hiragino Sans → Yu Gothic）、`font-heading`（Shippori Mincho B1 → Hiragino Mincho ProN → Yu Mincho → serif）。
   明朝は `src/components/home/fonts.ts` が読み込む（変数 `--font-heading`）。読み込んだ範囲の外では、明朝系のシステム書体になる。
-- h1 は 1 ページに 1 つ。見出しは `[word-break:keep-all] [overflow-wrap:anywhere]` で、語の途中で切らない。
-  日本語は語の切れ目が空白で示されないので、`keep-all` だけでは行末で機械的に切れる（「パッケージ／ング」）。
-  文節の切れ目で改行するため、`supports-[word-break:auto-phrase]:[word-break:auto-phrase]` と `text-balance` を足す（Chrome 系。使えないブラウザでは `keep-all` のまま）。`PageHeader` と `AuthShell` の h1 は、これを含んでいる。
+- h1 は 1 ページに 1 つ。見出し（h1〜h6）は、語の途中で切らない。**この指定は、`src/app/globals.css` の基本の指定（`h1, h2, … h6`）が 1 回で決める**（`word-break: keep-all`、`overflow-wrap: anywhere`、`text-wrap: balance`。`auto-phrase` が使えるブラウザでは、文節の切れ目で切る）。見出しごとにクラスを付けない（第 2b 段階の検収で、付け忘れが 64 件見つかったため）。`jest src/styles` が、この指定を守る。
+  日本語は語の切れ目が空白で示されないので、`keep-all` だけでは行末で機械的に切れる（「パッケージ／ング」）。Chrome 系は `auto-phrase` が文節を見分けるが、カタカナの複合語の中は見分けられない。
   スマホの文字は `text-[length:clamp(1.375rem,6.4vw,1.75rem)]`。14 字の長いカタカナ語（パッケージングソリューション）が、343px の幅に 1 行で入るようにしてある。
   それでも、カタカナの複合語の中は、ブラウザが見分けられない。長い複合語の前には、改行してよい位置 `<wbr />` を置く（例: `industry/HeaderSection.tsx` の `breakBeforeLongWords`）。表示される文字は変わらない。
 - 本文の 1 行は、全角で 40 字（`max-w-[40em]`）まで。
@@ -297,9 +296,17 @@
 | `/design-system` ページ（この基準の見本） | 完了 |
 | 適合テスト（`jest src/styles`。適用ずみの範囲に、透明度つきのトークン色・グラデーション・ぼかし・大きな影・色の 16 進数が入ると落ちる） | 完了。公開ページに適用を広げるたび、テストの対象（`ui-standard.test.ts` の `GOVERNED_*`）に足す |
 | 公開ページ（第 2 段階の主要 26 本: `/about` `/contact`（+ thank-you）`/catalog`（+ 詳細）`/flow` `/quote-simulator`（上部）`/guide`（+ 5 つ）`/industry` 4 本 `/auth` 9 本。ページの頭は `PageHeader`） | 完了。変換した 86 ファイル（トップの 8 を含む）は、`GOVERNED_PAGE_FILES` で機械的に守る |
-| 公開ページ（残り約 30 本: `/pricing` `/service` `/samples` `/blog` `/news` `/legal` `/privacy` `/terms` `/csr` `/archives` `/cart` `/compare` `/designer*` `/inquiry/detailed` ほか）と `src/components/lp/**` | 未着手 |
-| 見積りシミュレーターの内部（`SpecsStep` の本体、`previews/**`、`MaterialSelection`、`PriceBreakdown`） | 未着手（色の見本として意味のある色を含むため、個別に判断する） |
+| 公開ページ（第 2b 段階: `/legal` `/privacy` `/terms` `/csr` `/news` `/blog`（4 種類）`/archives`、404・エラー画面、`/service` `/samples` `/inquiry/detailed` `/premium-content` `/data-templates` `/print`、`src/components/lp/**`、`/cart` `/compare` `/designer*` `/designer-order*` `/upload*`） | 完了（変換した 65 ファイル + `DataTemplateGuide`）。ログイン必須の画面（`/samples` `/designer` `/designer/login` `/designer/orders/[id]`）と、有効なトークンの本体は、画面では見ていない（コードを読んで、見た目のクラスだけを変えた）。`GOVERNED_PAGE_FILES` は 151 ファイル |
+| 公開ページの残り（`/pricing` `/profile` `/auth` は転送だけ） | なし |
+| 見積りシミュレーターの内部（`SpecsStep` の本体、`previews/**`、`MaterialSelection`、`PriceBreakdown`、`quote/shared/` の `DataTemplateGuide` 以外） | 未着手（色見本として意味のある色を含むため、個別に判断する） |
 | 会員・管理画面 | 共通部品と値の更新で自動的にそろう。個別の整理は未着手 |
+
+### 基準書と共通部品で、足りないもの（第 2b 段階の作業で出た。次に作る候補）
+
+- `PageHeader` に、アイコンを置く場所がない（今は、タイトルの中に `inline-block` で置いている）。
+- `FactList` は文字だけで、アイコンつきの数字の行に使えない。
+- 紺の帯（`bg-bg-inverted`）の中で使う副ボタンの型がない（今は、下線つきのテキストリンクで代用）。
+- ボタンでないリンクで、スマホの 44px を保つ共通のクラスがない（今は `min-h-11` を書く）。
 
 ## 14. PR のチェックリスト
 
