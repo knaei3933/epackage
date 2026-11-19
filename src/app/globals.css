@@ -360,6 +360,25 @@
     font-weight: 700;
   }
 
+  /* 見出しは、語の途中で切らない（Epackage UI 基準 v1、4 章）。
+     keep-all: 日本語を文字の間で切らず、空白のある所だけで切る。
+     auto-phrase（Chrome 系）: 文節の切れ目で切る。使えないブラウザは keep-all のまま。
+     overflow-wrap:anywhere: 1 行に入らない長い語は、あふれさせずに折る。
+     text-wrap:balance: 折れた行の長さをそろえる。
+     長いカタカナの複合語の前には、HTML に <wbr /> を置く（industry/HeaderSection.tsx の breakBeforeLongWords）。
+     見出しごとにクラスを付けると付け忘れる（第 2b 段階の検収で、付いていない h2/h3 が 64 件見つかった）ので、ここで 1 回だけ決める。 */
+  h1, h2, h3, h4, h5, h6 {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  @supports (word-break: auto-phrase) {
+    h1, h2, h3, h4, h5, h6 {
+      word-break: auto-phrase;
+    }
+  }
+
   /* Focus Styles — リングはブランドの基準色（白の上で 4.51:1。旧 #5EB6AC は 2.40:1 で基準未達） */
   :focus-visible {
     outline: 2px solid var(--color-ring);
