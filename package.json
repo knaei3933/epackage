@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "dev": "next dev",
+    "dev:light": "next dev -p 3100 --turbopack",
     "build": "next build",
     "build:webpack": "next build --webpack",
     "start": "next start",
