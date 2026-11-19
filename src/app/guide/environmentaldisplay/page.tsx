@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
-import { Leaf, Recycle, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Leaf, Recycle, CheckCircle, AlertTriangle, Globe, ClipboardList } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { PageHeader } from '@/components/layout'
 import { HowToSchema } from '@/components/seo/StructuredData'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
@@ -71,19 +72,16 @@ export default function EnvironmentalDisplayGuide() {
       <BreadcrumbJsonLd pathname="/guide/environmentaldisplay" />
       <HowToSchema {...environmentalHowToData} />
       <div className="prose prose-gray max-w-none">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-emerald-100 rounded-lg text-emerald-600">
-          <Leaf className="h-8 w-8" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+      <PageHeader
+        className="mb-10 rounded-container border py-8 md:py-10"
+        title={
+          <>
+            <Leaf className="mr-3 inline-block h-7 w-7 align-[-0.1em] text-brand" aria-hidden="true" />
             環境表示ガイド
-          </h1>
-          <p className="text-text-secondary">
-            サステナビリティ表示と環境対応
-          </p>
-        </div>
-      </div>
+          </>
+        }
+        lead="サステナビリティ表示と環境対応"
+      />
 
       {/* Environmental Display Overview */}
       <section className="mb-12">
@@ -91,29 +89,29 @@ export default function EnvironmentalDisplayGuide() {
           環境表示の重要性
         </h2>
 
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 mb-8">
+        <div className="bg-brand-muted border border-border-medium rounded-lg p-6 mb-8">
           <p className="text-text-secondary leading-relaxed mb-4">
             環境表示は、パッケージの環境配慮を消費者に伝えるための重要な要素です。
             <strong>包装廃棄物法</strong>や国際的な環境基準に基づき、適切な表示を行うことが求められています。
           </p>
           <div className="grid md:grid-cols-3 gap-4 mt-6">
             <div className="text-center">
-              <div className="bg-emerald-100 rounded-lg p-4 mb-2">
-                <span className="text-2xl">🌍</span>
+              <div className="bg-brand-muted rounded-lg p-4 mb-2">
+                <Globe className="mx-auto h-8 w-8 text-brand" aria-hidden="true" />
               </div>
               <h3 className="font-medium text-text-primary mb-1">環境配慮</h3>
               <p className="text-xs text-text-secondary">環境への影響を明確に表示</p>
             </div>
             <div className="text-center">
-              <div className="bg-emerald-100 rounded-lg p-4 mb-2">
-                <span className="text-2xl">♻️</span>
+              <div className="bg-brand-muted rounded-lg p-4 mb-2">
+                <Recycle className="mx-auto h-8 w-8 text-brand" aria-hidden="true" />
               </div>
               <h3 className="font-medium text-text-primary mb-1">リサイクル性</h3>
               <p className="text-xs text-text-secondary">リサイクル可能な素材を表示</p>
             </div>
             <div className="text-center">
-              <div className="bg-emerald-100 rounded-lg p-4 mb-2">
-                <span className="text-2xl">📋</span>
+              <div className="bg-brand-muted rounded-lg p-4 mb-2">
+                <ClipboardList className="mx-auto h-8 w-8 text-brand" aria-hidden="true" />
               </div>
               <h3 className="font-medium text-text-primary mb-1">法規制対応</h3>
               <p className="text-xs text-text-secondary">関連法規を遵守</p>
@@ -133,7 +131,7 @@ export default function EnvironmentalDisplayGuide() {
             包装廃棄物法による表示義務
           </h3>
           <div className="space-y-4">
-            <div className="border-l-4 border-blue-500 pl-4">
+            <div className="border border-info pl-4">
               <h4 className="font-medium text-text-primary">対象事業者</h4>
               <ul className="text-sm text-text-secondary mt-2 ml-4">
                 <li>• 容器包装の利用事業者</li>
@@ -142,7 +140,7 @@ export default function EnvironmentalDisplayGuide() {
               </ul>
             </div>
 
-            <div className="border-l-4 border-blue-500 pl-4">
+            <div className="border border-info pl-4">
               <h4 className="font-medium text-text-primary">表示義務</h4>
               <ul className="text-sm text-text-secondary mt-2 ml-4">
                 <li>• 事業者名と住所</li>
@@ -167,27 +165,27 @@ export default function EnvironmentalDisplayGuide() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between items-center">
                 <span>PET</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">1</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">1</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>HDPE</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">2</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">2</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>PVC</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">3</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">3</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>LDPE</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">4</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">4</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>PP</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">5</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">5</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>PS</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">6</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">6</span>
               </div>
             </div>
           </Card>
@@ -197,19 +195,19 @@ export default function EnvironmentalDisplayGuide() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between items-center">
                 <span>段ボール</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">紙</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">紙</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>紙容器</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">紙</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">紙</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>ラベル用紙</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">紙</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">紙</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>古紙配合率</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">70%</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">70%</span>
               </div>
             </div>
           </Card>
@@ -219,15 +217,15 @@ export default function EnvironmentalDisplayGuide() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between items-center">
                 <span>アルミニウム</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">Al</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">Al</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>スチール</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">Fe</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">Fe</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>金属キャップ</span>
-                <span className="font-mono bg-gray-100 px-2 py-1">金属</span>
+                <span className="font-mono bg-bg-secondary px-2 py-1">金属</span>
               </div>
             </div>
           </Card>
@@ -237,7 +235,7 @@ export default function EnvironmentalDisplayGuide() {
       {/* Recycle Marks */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-text-primary mb-6 flex items-center">
-          <Recycle className="h-6 w-6 mr-2 text-brixa-600" />
+          <Recycle className="h-6 w-6 mr-2 text-brand" />
           リサイクルマーク
         </h2>
 
@@ -246,8 +244,8 @@ export default function EnvironmentalDisplayGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">国際リサイクルマーク</h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                  ♻
+                <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center text-on-brand">
+                  <Recycle className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div>
                   <strong>リサイクル可能マーク</strong>
@@ -255,8 +253,8 @@ export default function EnvironmentalDisplayGuide() {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                  ♻
+                <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center text-on-brand">
+                  <Recycle className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div>
                   <strong>リサイクル推奨マーク</strong>
@@ -270,7 +268,7 @@ export default function EnvironmentalDisplayGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">日本のリサイクルマーク</h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-green-500 rounded flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-brand rounded-inner flex items-center justify-center text-white font-bold">
                   資
                 </div>
                 <div>
@@ -279,7 +277,7 @@ export default function EnvironmentalDisplayGuide() {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-500 rounded flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-brand rounded-inner flex items-center justify-center text-white font-bold">
                   紙
                 </div>
                 <div>
@@ -338,7 +336,7 @@ export default function EnvironmentalDisplayGuide() {
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 border-l-4 border-green-500">
+          <Card className="p-6 border border-brand">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               推奨事項
             </h3>
@@ -352,7 +350,7 @@ export default function EnvironmentalDisplayGuide() {
             </ul>
           </Card>
 
-          <Card className="p-6 border-l-4 border-orange-500">
+          <Card className="p-6 border border-warning">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               注意事項
             </h3>
@@ -381,27 +379,27 @@ export default function EnvironmentalDisplayGuide() {
           <div className="space-y-6">
             <div className="border border-border-medium rounded-lg p-4">
               <h4 className="font-medium text-text-primary mb-2">スタンドパウチの例</h4>
-              <div className="bg-gray-50 p-3 rounded font-mono text-sm">
+              <div className="bg-bg-secondary p-3 rounded font-mono text-sm">
                 <div>金井貿易株式会社 兵庫県明石市本町2-1-29 みなとメゾン明石本町2F</div>
                 <div>容器 包装 紙・プラスチック(PP)・金属</div>
                 <div>プラスチック使用割合 85%</div>
                 <div className="flex items-center space-x-2 mt-2">
-                  <span className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-xs">♻</span>
-                  <span className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-xs">紙</span>
-                  <span className="w-8 h-8 bg-gray-600 rounded flex items-center justify-center text-white text-xs">5</span>
+                  <span className="w-8 h-8 bg-brand rounded-full flex items-center justify-center text-on-brand"><Recycle className="h-4 w-4" aria-hidden="true" /></span>
+                  <span className="w-8 h-8 bg-brand rounded-inner flex items-center justify-center text-white text-xs">紙</span>
+                  <span className="w-8 h-8 bg-text-secondary rounded-inner flex items-center justify-center text-white text-xs">5</span>
                 </div>
               </div>
             </div>
 
             <div className="border border-border-medium rounded-lg p-4">
               <h4 className="font-medium text-text-primary mb-2">三方シール袋の例</h4>
-              <div className="bg-gray-50 p-3 rounded font-mono text-sm">
+              <div className="bg-bg-secondary p-3 rounded font-mono text-sm">
                 <div>金井貿易株式会社</div>
                 <div>プラスチック製容器包装(PE)</div>
                 <div>再生プラスチック含有割合 70%</div>
                 <div className="flex items-center space-x-2 mt-2">
-                  <span className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-white text-xs">プ</span>
-                  <span className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-xs">4</span>
+                  <span className="w-8 h-8 bg-brand rounded-inner flex items-center justify-center text-white text-xs">プ</span>
+                  <span className="w-8 h-8 bg-text-secondary rounded-full flex items-center justify-center text-white text-xs">4</span>
                 </div>
               </div>
             </div>
@@ -410,7 +408,7 @@ export default function EnvironmentalDisplayGuide() {
       </section>
 
       {/* Contact Information */}
-      <section className="bg-emerald-50 rounded-lg p-6">
+      <section className="bg-brand-muted rounded-lg p-6">
         <h3 className="text-lg font-semibold text-text-primary mb-4">
           環境表示に関するご相談
         </h3>
@@ -421,13 +419,13 @@ export default function EnvironmentalDisplayGuide() {
         <div className="flex flex-col sm:flex-row gap-4">
           <a
             href="/contact"
-            className="inline-flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 bg-brand text-on-brand rounded-md hover:bg-brand-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             環境表示について相談
           </a>
           <a
             href="/catalog"
-            className="inline-flex items-center justify-center px-6 py-3 border border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 border border-brand text-brand rounded-md hover:bg-brand-subtle transition-colors duration-200"
           >
             エコフレンドリー製品
           </a>

@@ -134,8 +134,8 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3">
-        <FileText className="w-8 h-8 text-navy-700" />
-        <h3 className="text-2xl font-bold text-gray-900">技術仕様・認証</h3>
+        <FileText className="w-8 h-8 text-brand" />
+        <h3 className="text-2xl font-bold text-text-primary">技術仕様・認証</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,7 +143,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-navy-700" />
+              <Zap className="w-5 h-5 text-brand" />
               <span>使用材料</span>
             </CardTitle>
             <CardDescription>各業界に適した専門素材を使用</CardDescription>
@@ -152,8 +152,8 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
             <ul className="space-y-2">
               {specs.materials.map((material, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-navy-600" />
-                  <span className="text-sm text-gray-700">{material}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{material}</span>
                 </li>
               ))}
             </ul>
@@ -164,7 +164,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Award className="w-5 h-5 text-green-600" />
+              <Award className="w-5 h-5 text-brand" />
               <span>認証・規格</span>
             </CardTitle>
             <CardDescription>国内外の主要規格を取得</CardDescription>
@@ -172,7 +172,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {specs.certifications.map((cert, index) => (
-                <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+                <Badge key={index} variant="secondary" className="bg-brand-muted text-text-primary">
                   {cert}
                 </Badge>
               ))}
@@ -184,7 +184,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
+              <CheckCircle className="w-5 h-5 text-brand" />
               <span>特徴機能</span>
             </CardTitle>
             <CardDescription>独自の機能を実装</CardDescription>
@@ -193,8 +193,8 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
             <ul className="space-y-2">
               {specs.features.map((feature, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -205,7 +205,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-brixa-700" />
+              <FileText className="w-5 h-5 text-brand" />
               <span>適合基準</span>
             </CardTitle>
             <CardDescription>関連法規と業界基準</CardDescription>
@@ -214,8 +214,8 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
             <ul className="space-y-2">
               {specs.standards.map((standard, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-brixa-600" />
-                  <span className="text-sm text-gray-700">{standard}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{standard}</span>
                 </li>
               ))}
             </ul>
@@ -224,16 +224,16 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
       </div>
 
       {/* Quality Assurance */}
-      <Card className="bg-navy-50 border-navy-600">
+      <Card className="bg-brand-muted border-brand">
         <CardHeader>
-          <CardTitle className="text-navy-600">品質保証体制</CardTitle>
+          <CardTitle className="text-brand">品質保証体制</CardTitle>
           <CardDescription>全工程にわたる品質管理システム</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="font-semibold mb-2 text-navy-600">品質管理</h4>
-              <ul className="text-sm space-y-1 text-navy-600">
+              <h4 className="font-semibold mb-2 text-brand">品質管理</h4>
+              <ul className="text-sm space-y-1 text-brand">
                 <li>• 品質管理体制</li>
                 <li>• 製品設計管理（PDCA）</li>
                 <li>• リスクアセスメント</li>
@@ -241,8 +241,8 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-2 text-navy-600">検査体制</h4>
-              <ul className="text-sm space-y-1 text-navy-600">
+              <h4 className="font-semibold mb-2 text-brand">検査体制</h4>
+              <ul className="text-sm space-y-1 text-brand">
                 <li>• 材料検査（入荷時）</li>
                 <li>• 工程検査（製造時）</li>
                 <li>• 完成品検査（出荷時）</li>
@@ -250,8 +250,8 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-2 text-navy-600">改善活動</h4>
-              <ul className="text-sm space-y-1 text-navy-600">
+              <h4 className="font-semibold mb-2 text-brand">改善活動</h4>
+              <ul className="text-sm space-y-1 text-brand">
                 <li>• 継続的改善活動</li>
                 <li>• 顧客フィードバック</li>
                 <li>• 品質目標設定・管理</li>

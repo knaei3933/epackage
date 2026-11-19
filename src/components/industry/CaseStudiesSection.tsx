@@ -114,13 +114,13 @@ export function CaseStudiesSection({ industry }: CaseStudiesSectionProps) {
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3">
-        <Award className="w-8 h-8 text-navy-700" />
-        <h3 className="text-2xl font-bold text-gray-900">導入事例</h3>
+        <Award className="w-8 h-8 text-brand" />
+        <h3 className="text-2xl font-bold text-text-primary">導入事例</h3>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {cases.map((case_, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
+          <Card key={index} className="hover:shadow-low transition-shadow">
             <CardHeader>
               <CardTitle className="text-lg">{'company' in case_ ? case_.company : case_.brand}</CardTitle>
               <CardDescription>
@@ -129,21 +129,21 @@ export function CaseStudiesSection({ industry }: CaseStudiesSectionProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">課題</h4>
-                <p className="text-sm text-gray-600">{case_.challenge}</p>
+                <h4 className="font-semibold text-text-primary mb-2">課題</h4>
+                <p className="text-sm text-text-secondary">{case_.challenge}</p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">ソリューション</h4>
-                <p className="text-sm text-gray-600">{case_.solution}</p>
+                <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
+                <p className="text-sm text-text-secondary">{case_.solution}</p>
               </div>
 
-              <div className="bg-gradient-to-r from-navy-50 to-brixa-50 rounded-lg p-4">
-                <h4 className="font-semibold text-navy-600 mb-3">実績</h4>
+              <div className="bg-bg-secondary rounded-lg p-4">
+                <h4 className="font-semibold text-brand mb-3">実績</h4>
                 <div className="space-y-2 text-sm">
                   {Object.entries((case_ as any).results).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
-                      <span className="text-navy-600">
+                      <span className="text-brand">
                         {key === 'shelfLife' && '賞味期限延長: '}
                         {key === 'costReduction' && 'コスト削減: '}
                         {key === 'wasteReduction' && '廃棄物削減: '}
@@ -169,13 +169,13 @@ export function CaseStudiesSection({ industry }: CaseStudiesSectionProps) {
                         {key === 'reliability' && '信頼性: '}
                         {key === 'lifespan' && '寿命延長: '}
                       </span>
-                      <span className="text-navy-600 font-semibold">{String(value)}</span>
+                      <span className="text-brand font-semibold">{String(value)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-sm text-text-secondary">
                 <Users className="w-4 h-4" />
                 <span>実際の導入実績に基づくデータ</span>
               </div>
@@ -184,28 +184,28 @@ export function CaseStudiesSection({ industry }: CaseStudiesSectionProps) {
         ))}
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-6 text-center">
-        <h4 className="font-semibold text-gray-900 mb-2">導入で実現できる効果</h4>
+      <div className="bg-bg-secondary rounded-lg p-6 text-center">
+        <h4 className="font-semibold text-text-primary mb-2">導入で実現できる効果</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div className="flex flex-col items-center">
-            <TrendingUp className="w-6 h-6 text-green-600 mb-1" />
-            <span className="font-semibold text-green-700">平均30%+</span>
-            <span className="text-gray-600">コスト削減</span>
+            <TrendingUp className="w-6 h-6 text-brand mb-1" />
+            <span className="font-semibold text-brand">平均30%+</span>
+            <span className="text-text-secondary">コスト削減</span>
           </div>
           <div className="flex flex-col items-center">
-            <CheckCircle className="w-6 h-6 text-navy-700 mb-1" />
-            <span className="font-semibold text-navy-600">95%+</span>
-            <span className="text-gray-600">満足度</span>
+            <CheckCircle className="w-6 h-6 text-brand mb-1" />
+            <span className="font-semibold text-brand">95%+</span>
+            <span className="text-text-secondary">満足度</span>
           </div>
           <div className="flex flex-col items-center">
-            <Award className="w-6 h-6 text-purple-600 mb-1" />
-            <span className="font-semibold text-purple-700">100+</span>
-            <span className="text-gray-600">導入実績</span>
+            <Award className="w-6 h-6 text-brand mb-1" />
+            <span className="font-semibold text-brand">100+</span>
+            <span className="text-text-secondary">導入実績</span>
           </div>
           <div className="flex flex-col items-center">
-            <Users className="w-6 h-6 text-brixa-700 mb-1" />
-            <span className="font-semibold text-brixa-600">24時間</span>
-            <span className="text-gray-600">最短対応</span>
+            <Users className="w-6 h-6 text-brand mb-1" />
+            <span className="font-semibold text-brand">24時間</span>
+            <span className="text-text-secondary">最短対応</span>
           </div>
         </div>
       </div>

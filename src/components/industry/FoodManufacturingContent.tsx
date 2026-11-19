@@ -115,11 +115,11 @@ export function FoodManufacturingContent() {
     <div className="space-y-12">
       {/* Hero Content */}
       <div className="text-center space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">
+        <h2 className="text-3xl font-bold text-text-primary">
           食品製造業の課題を解決する
-          <span className="text-green-600">専門ソリューション</span>
+          <span className="text-brand">専門ソリューション</span>
         </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl text-text-secondary max-w-3xl mx-auto">
           厳格な品質管理、鮮度保持技術、コスト削減を実現。
           150社以上の食品メーカーが導入済みの実績あるパッケージングソリューション。
         </p>
@@ -132,14 +132,14 @@ export function FoodManufacturingContent() {
             key={feature.id}
             className={`cursor-pointer transition-all duration-300 ${
               activeFeature === feature.id
-                ? 'ring-2 ring-green-500 bg-green-50'
-                : 'hover:shadow-lg'
+                ? 'ring-2 ring-brand bg-brand-muted'
+                : 'hover:shadow-low'
             }`}
             onClick={() => setActiveFeature(feature.id)}
           >
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-8 h-8 text-green-600" />
+                <feature.icon className="w-8 h-8 text-brand" />
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </div>
               <CardDescription>{feature.description}</CardDescription>
@@ -148,8 +148,8 @@ export function FoodManufacturingContent() {
               <div className="space-y-2">
                 {feature.benefits.slice(0, 2).map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-gray-600">{benefit}</span>
+                    <CheckCircle className="w-4 h-4 text-brand" />
+                    <span className="text-sm text-text-secondary">{benefit}</span>
                   </div>
                 ))}
               </div>
@@ -159,36 +159,36 @@ export function FoodManufacturingContent() {
       </div>
 
       {/* Detailed Feature Content */}
-      <div className="bg-gray-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         {(() => {
           const feature = features.find(f => f.id === activeFeature)!
           return (
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-10 h-10 text-green-600" />
-                <h3 className="text-2xl font-bold text-gray-900">{feature.title}</h3>
+                <feature.icon className="w-10 h-10 text-brand" />
+                <h3 className="text-2xl font-bold text-text-primary">{feature.title}</h3>
               </div>
 
-              <p className="text-lg text-gray-700">{feature.description}</p>
+              <p className="text-lg text-text-secondary">{feature.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">主な利点</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">主な利点</h4>
                   <ul className="space-y-2">
                     {feature.benefits.map((benefit, index) => (
                       <li key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                        <span className="text-gray-700">{benefit}</span>
+                        <CheckCircle className="w-5 h-5 text-brand" />
+                        <span className="text-text-secondary">{benefit}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">関連認証</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">関連認証</h4>
                   <div className="flex flex-wrap gap-2">
                     {feature.certifications.map((cert, index) => (
-                      <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+                      <Badge key={index} variant="secondary" className="bg-brand-muted text-text-primary">
                         {cert}
                       </Badge>
                     ))}
@@ -203,50 +203,50 @@ export function FoodManufacturingContent() {
       {/* Case Studies */}
       <div className="space-y-8">
         <div className="flex items-center space-x-3">
-          <Award className="w-8 h-8 text-green-600" />
-          <h3 className="text-2xl font-bold text-gray-900">導入事例</h3>
+          <Award className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">導入事例</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {caseStudies.map((caseStudy, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index} className="hover:shadow-low transition-shadow">
               <CardHeader>
                 <CardTitle className="text-lg">{caseStudy.company}</CardTitle>
                 <CardDescription>{caseStudy.industry}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">課題</h4>
-                  <p className="text-sm text-gray-600">{caseStudy.challenge}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">課題</h4>
+                  <p className="text-sm text-text-secondary">{caseStudy.challenge}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">ソリューション</h4>
-                  <p className="text-sm text-gray-600">{caseStudy.solution}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
+                  <p className="text-sm text-text-secondary">{caseStudy.solution}</p>
                 </div>
 
-                <div className="bg-green-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-green-900 mb-3">実績</h4>
+                <div className="bg-brand-muted rounded-lg p-4">
+                  <h4 className="font-semibold text-text-primary mb-3">実績</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="font-medium text-green-700">賞味期限延長:</span>
+                      <span className="font-medium text-brand">賞味期限延長:</span>
                       <br />
-                      <span className="text-green-900 font-semibold">{caseStudy.result.shelfLife}</span>
+                      <span className="text-text-primary font-semibold">{caseStudy.result.shelfLife}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-green-700">コスト削減:</span>
+                      <span className="font-medium text-brand">コスト削減:</span>
                       <br />
-                      <span className="text-green-900 font-semibold">{caseStudy.result.costReduction}</span>
+                      <span className="text-text-primary font-semibold">{caseStudy.result.costReduction}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-green-700">廃棄物削減:</span>
+                      <span className="font-medium text-brand">廃棄物削減:</span>
                       <br />
-                      <span className="text-green-900 font-semibold">{caseStudy.result.wasteReduction}</span>
+                      <span className="text-text-primary font-semibold">{caseStudy.result.wasteReduction}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-green-700">満足度:</span>
+                      <span className="font-medium text-brand">満足度:</span>
                       <br />
-                      <span className="text-green-900 font-semibold">{caseStudy.result.satisfaction}</span>
+                      <span className="text-text-primary font-semibold">{caseStudy.result.satisfaction}</span>
                     </div>
                   </div>
                 </div>
@@ -257,30 +257,30 @@ export function FoodManufacturingContent() {
       </div>
 
       {/* Technical Specifications */}
-      <div className="bg-gray-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         <div className="flex items-center space-x-3 mb-6">
-          <FileText className="w-8 h-8 text-green-600" />
-          <h3 className="text-2xl font-bold text-gray-900">技術仕様</h3>
+          <FileText className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">技術仕様</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">使用材料</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">使用材料</h4>
             <ul className="space-y-2">
               {technicalSpecs.materials.map((material, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-gray-700">{material}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{material}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">認証・規格</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">認証・規格</h4>
             <div className="flex flex-wrap gap-2">
               {technicalSpecs.certifications.map((cert, index) => (
-                <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+                <Badge key={index} variant="secondary" className="bg-brand-muted text-text-primary">
                   {cert}
                 </Badge>
               ))}
@@ -288,12 +288,12 @@ export function FoodManufacturingContent() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">特徴機能</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">特徴機能</h4>
             <ul className="space-y-2">
               {technicalSpecs.features.map((feature, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -302,29 +302,29 @@ export function FoodManufacturingContent() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-green-600 to-green-800 rounded-xl p-8 text-center text-white">
+      <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
         <h3 className="text-2xl font-bold mb-4">導入で得られる価値</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">30%+</div>
             <div>コスト削減</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">2倍</div>
             <div>鮮保持続期間</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">150+</div>
             <div>導入実績</div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-white text-green-800 hover:bg-gray-100 font-semibold px-8 py-4">
+          <Button size="lg">
             <Download className="w-5 h-5 mr-2" />
             詳細資料ダウンロード
           </Button>
-          <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-green-800 font-semibold px-8 py-4">
+          <Button size="lg" variant="outline">
             <BarChart className="w-5 h-5 mr-2" />
             ROIシミュレーション
           </Button>

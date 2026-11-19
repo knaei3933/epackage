@@ -90,41 +90,41 @@ export function ROISection({ industry }: ROISectionProps) {
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3">
-        <BarChart className="w-8 h-8 text-green-600" />
-        <h3 className="text-2xl font-bold text-gray-900">ROI分析</h3>
+        <BarChart className="w-8 h-8 text-brand" />
+        <h3 className="text-2xl font-bold text-text-primary">ROI分析</h3>
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-green-50 border-green-200">
+        <Card className="bg-brand-muted border-border-medium">
           <CardContent className="p-6 text-center">
-            <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-green-700">{data.averageROI}</div>
-            <div className="text-sm text-green-600">平均ROI</div>
+            <TrendingUp className="w-8 h-8 text-brand mx-auto mb-2" />
+            <div className="text-2xl font-bold text-brand">{data.averageROI}</div>
+            <div className="text-sm text-brand">平均ROI</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-navy-50 border-navy-600">
+        <Card className="bg-brand-muted border-brand">
           <CardContent className="p-6 text-center">
-            <Calculator className="w-8 h-8 text-navy-700 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-navy-600">{data.paybackPeriod}</div>
-            <div className="text-sm text-navy-700">回収期間</div>
+            <Calculator className="w-8 h-8 text-brand mx-auto mb-2" />
+            <div className="text-2xl font-bold text-brand">{data.paybackPeriod}</div>
+            <div className="text-sm text-brand">回収期間</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-50 border-purple-200">
+        <Card className="bg-brand-muted border-border-medium">
           <CardContent className="p-6 text-center">
-            <DollarSign className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-purple-700">{data.costReduction}</div>
-            <div className="text-sm text-purple-600">コスト削減</div>
+            <DollarSign className="w-8 h-8 text-brand mx-auto mb-2" />
+            <div className="text-2xl font-bold text-brand">{data.costReduction}</div>
+            <div className="text-sm text-brand">コスト削減</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-brixa-50 border-brixa-600">
+        <Card className="bg-brand-muted border-brand">
           <CardContent className="p-6 text-center">
-            <Target className="w-8 h-8 text-brixa-700 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-brixa-600">{data.revenueIncrease}</div>
-            <div className="text-sm text-brixa-700">売上増加</div>
+            <Target className="w-8 h-8 text-brand mx-auto mb-2" />
+            <div className="text-2xl font-bold text-brand">{data.revenueIncrease}</div>
+            <div className="text-sm text-brand">売上増加</div>
           </CardContent>
         </Card>
       </div>
@@ -139,10 +139,10 @@ export function ROISection({ industry }: ROISectionProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.keyFactors.map((factor, index) => (
               <div key={index} className="flex items-start space-x-3">
-                <Badge variant="outline" className="bg-green-100 text-green-800 mt-0.5">
+                <Badge variant="outline" className="bg-brand-muted text-text-primary mt-0.5">
                   {index + 1}
                 </Badge>
-                <span className="text-sm text-gray-700">{factor}</span>
+                <span className="text-sm text-text-secondary">{factor}</span>
               </div>
             ))}
           </div>
@@ -158,21 +158,21 @@ export function ROISection({ industry }: ROISectionProps) {
         <CardContent>
           <div className="space-y-4">
             {data.metrics.map((metric, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-4 bg-bg-secondary rounded-lg">
                 <div className="flex items-center space-x-4">
-                  <div className="w-24 text-sm font-medium text-gray-700">
+                  <div className="w-24 text-sm font-medium text-text-secondary">
                     {metric.metric}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-text-secondary">
                     <span className="line-through">導入前: {metric.before}</span>
                     <span className="mx-2">→</span>
                     <span className="font-semibold">導入後: {metric.after}</span>
                   </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                <div className={`px-3 py-1 rounded-inner text-sm font-medium ${
                   metric.improvement.startsWith('+')
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                    ? 'bg-brand-muted text-on-brand-muted'
+                    : 'bg-error-muted text-on-error-muted'
                 }`}>
                   {metric.improvement}
                 </div>
@@ -183,10 +183,10 @@ export function ROISection({ industry }: ROISectionProps) {
       </Card>
 
       {/* ROI Calculator */}
-      <Card className="bg-gradient-to-r from-navy-50 to-brixa-50">
+      <Card className="bg-bg-secondary">
         <CardHeader>
-          <CardTitle className="text-navy-600">ROI計算ツール</CardTitle>
-          <CardDescription className="text-navy-600">
+          <CardTitle className="text-brand">ROI計算ツール</CardTitle>
+          <CardDescription className="text-brand">
             導入による具体的な投資効果を計算します
           </CardDescription>
         </CardHeader>
@@ -194,39 +194,39 @@ export function ROISection({ industry }: ROISectionProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   月間包装コスト（万円）
                 </label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="例: 1000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   導入費用（万円）
                 </label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="例: 500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   予想削減率（%）
                 </label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="例: 30"
                 />
               </div>
             </div>
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4">
-                <div className="text-sm text-gray-600 mb-2">計算結果</div>
+                <div className="text-sm text-text-secondary mb-2">計算結果</div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>月間削減額:</span>
@@ -238,15 +238,15 @@ export function ROISection({ industry }: ROISectionProps) {
                   </div>
                   <div className="flex justify-between">
                     <span>1年間ROI:</span>
-                    <span className="font-semibold text-green-600">%</span>
+                    <span className="font-semibold text-brand">%</span>
                   </div>
                   <div className="flex justify-between">
                     <span>3年間ROI:</span>
-                    <span className="font-semibold text-green-600">%</span>
+                    <span className="font-semibold text-brand">%</span>
                   </div>
                 </div>
               </div>
-              <Button className="w-full bg-navy-700 text-white hover:bg-navy-600">
+              <Button className="w-full bg-brand text-white hover:bg-brand-hover">
                 <Calculator className="w-4 h-4 mr-2" />
                 ROIを計算する
               </Button>
@@ -257,16 +257,16 @@ export function ROISection({ industry }: ROISectionProps) {
 
       {/* CTA */}
       <div className="text-center space-y-4">
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-text-secondary">
           導入実績に基づいた具体的なROIデータをご提供します。
           あなたのビジネスに最適なソリューションを提案します。
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-green-600 text-white hover:bg-green-700 font-semibold px-8 py-4">
+          <Button size="lg" className="bg-brand text-white hover:bg-brand-hover font-semibold px-8 py-4">
             <Download className="w-5 h-5 mr-2" />
             詳細ROIレポートダウンロード
           </Button>
-          <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold px-8 py-4">
+          <Button size="lg" variant="outline" className="border-border-medium text-text-secondary hover:bg-bg-secondary font-semibold px-8 py-4">
             <Users className="w-5 h-5 mr-2" />
             導入相談を予約
           </Button>

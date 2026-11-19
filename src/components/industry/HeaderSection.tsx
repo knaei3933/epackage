@@ -1,14 +1,27 @@
-'use client'
-
-import { useState } from 'react'
+import { Fragment } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import { ArrowRight, Check, Star } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { ArrowRight, CheckCircle, Star } from 'lucide-react'
+import { PageHeader, FactList } from '@/components/layout'
+
+/**
+ * 長いカタカナ語の前に、改行してよい位置（<wbr>）を置く。
+ * ブラウザの文節の判定は、カタカナの複合語（パッケージングソリューション）の中を見分けられず、
+ * 375px 幅で「パッケージ／ング」のように語の途中で切れる。表示される文字は変えない。
+ */
+function breakBeforeLongWords(text: string) {
+  return text.split(/(?=パッケージング|ソリューション)/).map((part, i) => (
+    <Fragment key={i}>
+      {i > 0 && <wbr />}
+      {part}
+    </Fragment>
+  ))
+}
 
 interface HeaderSectionProps {
   title: string
   subtitle: string
-  icon: string
-  color: string
+  icon: LucideIcon
   features: string[]
   stats: {
     satisfaction: string
@@ -18,126 +31,57 @@ interface HeaderSectionProps {
   }
 }
 
-export function HeaderSection({
-  title,
-  subtitle,
-  icon,
-  color,
-  features,
-  stats
-}: HeaderSectionProps) {
-  const [isHovered, setIsHovered] = useState(false)
-
-  const colorClasses = {
-    green: 'from-green-600 to-green-800',
-    pink: 'from-pink-600 to-pink-800',
-    blue: 'from-navy-700 to-navy-600',
-    purple: 'from-purple-600 to-purple-800'
-  }
-
+export function HeaderSection({ title, subtitle, icon: Icon, features, stats }: HeaderSectionProps) {
   return (
-    <div className={`relative overflow-hidden bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses]} text-white`}>
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
+    <PageHeader
+      title={
+        <>
+          <Icon className="mr-3 inline-block h-7 w-7 align-[-0.1em] text-brand" aria-hidden="true" />
+          {breakBeforeLongWords(title)}
+        </>
+      }
+      lead={subtitle}
+      actions={
+        <>
+          <Button size="lg" variant="primary" icon={<ArrowRight className="h-5 w-5" aria-hidden="true" />} iconPosition="right">
+            導入資料ダウンロード
+          </Button>
+          <Button size="lg" variant="outline">
+            無料相談を予約
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-10">
+        <div>
+          <h2 className="mb-3 text-lg font-bold text-text-primary">主要特長</h2>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+            {features.map((feature) => (
+              <li key={feature} className="flex items-center gap-2 text-text-primary">
+                <Check className="h-5 w-5 flex-shrink-0 text-brand" aria-hidden="true" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Content */}
-          <div className="space-y-8">
-            {/* Badge */}
-            <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
-              <Star className="w-4 h-4" />
-              <span className="text-sm font-medium">業界専門ソリューション</span>
-            </div>
+        <FactList
+          items={[
+            { value: stats.roi, label: 'ROI改善率' },
+            { value: stats.cases, label: '導入事例' },
+            { value: stats.satisfaction, label: '満足度' },
+            { value: stats.delivery, label: '最短納期' },
+          ]}
+        />
 
-            {/* Title */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <span className="text-5xl">{icon}</span>
-                <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
-                  {title}
-                </h1>
-              </div>
-              <p className="text-xl text-gray-100 leading-relaxed">
-                {subtitle}
-              </p>
-            </div>
-
-            {/* Features */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold">主要特長</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="w-5 h-5 text-green-300" />
-                    <span className="text-gray-100">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                size="lg"
-                className="bg-white text-gray-900 hover:bg-gray-100 font-semibold text-lg px-8 py-4 transition-all duration-300 hover:scale-105"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-              >
-                導入資料ダウンロード
-                <ArrowRight className={`w-5 h-5 ml-2 transition-transform ${isHovered ? 'translate-x-1' : ''}`} />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-gray-900 font-semibold text-lg px-8 py-4 transition-all duration-300"
-              >
-                無料相談を予約
-              </Button>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex items-center space-x-6 text-sm">
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-300" />
-                <span>4.9/5.0 ({stats.satisfaction} 満足度)</span>
-              </div>
-              <div>{stats.cases}社の導入実績</div>
-            </div>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-secondary">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 text-brand" aria-hidden="true" />
+            <span>4.9/5.0 ({stats.satisfaction} 満足度)</span>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl font-bold mb-2">{stats.roi}</div>
-              <div className="text-gray-100">ROI改善率</div>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl font-bold mb-2">{stats.cases}</div>
-              <div className="text-gray-100">導入事例</div>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl font-bold mb-2">{stats.satisfaction}</div>
-              <div className="text-gray-100">満足度</div>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl font-bold mb-2">{stats.delivery}</div>
-              <div className="text-gray-100">最短納期</div>
-            </div>
-          </div>
+          <div>{stats.cases}社の導入実績</div>
         </div>
       </div>
-
-      {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 w-full">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white" fillOpacity="0.1"/>
-        </svg>
-      </div>
-    </div>
+    </PageHeader>
   )
 }

@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { Image, FileText, Download, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { PageHeader } from '@/components/layout'
 import { HowToSchema } from '@/components/seo/StructuredData'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
@@ -71,19 +72,16 @@ export default function ImageGuide() {
       <BreadcrumbJsonLd pathname="/guide/image" />
       <HowToSchema {...imageHowToData} />
       <div className="prose prose-gray max-w-none">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-green-100 rounded-lg text-green-600">
-          <Image aria-hidden="true" focusable="false" className="h-8 w-8" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+      <PageHeader
+        className="mb-10 rounded-container border py-8 md:py-10"
+        title={
+          <>
+            <Image className="mr-3 inline-block h-7 w-7 align-[-0.1em] text-brand" aria-hidden="true" />
             画像ガイド
-          </h1>
-          <p className="text-text-secondary">
-            印刷用画像データの仕様と注意事項
-          </p>
-        </div>
-      </div>
+          </>
+        }
+        lead="印刷用画像データの仕様と注意事項"
+      />
 
       {/* Image Specifications Overview */}
       <section className="mb-12">
@@ -96,7 +94,7 @@ export default function ImageGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">推奨仕様</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-brand mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>解像度: 350dpi</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -105,7 +103,7 @@ export default function ImageGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-brand mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>カラーモード: CMYK</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -114,7 +112,7 @@ export default function ImageGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-brand mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>ファイル形式: AI, EPS, PDF</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -129,7 +127,7 @@ export default function ImageGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">最小要件</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>解像度: 300dpi以上</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -138,7 +136,7 @@ export default function ImageGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>ファイルサイズ: 最大50MB</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -147,7 +145,7 @@ export default function ImageGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>フォント: アウトライン化</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -167,79 +165,79 @@ export default function ImageGuide() {
         </h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-6 border-2 border-green-500">
+          <Card className="p-6 border border-brand">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-text-primary">ベクター形式</h3>
-              <FileText className="h-5 w-5 text-green-600" />
+              <FileText className="h-5 w-5 text-brand" />
             </div>
             <div className="space-y-3">
               <div>
-                <strong className="text-green-600">Adobe Illustrator (.ai)</strong>
+                <strong className="text-brand">Adobe Illustrator (.ai)</strong>
                 <p className="text-sm text-text-secondary">最も推奨される形式</p>
               </div>
               <div>
-                <strong className="text-green-600">Encapsulated PostScript (.eps)</strong>
+                <strong className="text-brand">Encapsulated PostScript (.eps)</strong>
                 <p className="text-sm text-text-secondary">他のソフトとの互換性が高い</p>
               </div>
               <div>
-                <strong className="text-green-600">Scalable Vector Graphics (.svg)</strong>
+                <strong className="text-brand">Scalable Vector Graphics (.svg)</strong>
                 <p className="text-sm text-text-secondary">Webと印刷の両方で使用可能</p>
               </div>
             </div>
-            <div className="mt-4 p-3 bg-green-50 rounded-lg">
-              <p className="text-xs text-green-800">
+            <div className="mt-4 p-3 bg-brand-muted rounded-lg">
+              <p className="text-xs text-text-primary">
                 <strong>メリット:</strong> 拡大しても画質が劣化しない、ファイルサイズが小さい
               </p>
             </div>
           </Card>
 
-          <Card className="p-6 border-2 border-blue-500">
+          <Card className="p-6 border border-info">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-text-primary">ラスター形式</h3>
-              <Image aria-hidden="true" focusable="false" className="h-5 w-5 text-blue-600" />
+              <Image aria-hidden="true" focusable="false" className="h-5 w-5 text-brand" />
             </div>
             <div className="space-y-3">
               <div>
-                <strong className="text-blue-600">Portable Document Format (.pdf)</strong>
+                <strong className="text-brand">Portable Document Format (.pdf)</strong>
                 <p className="text-sm text-text-secondary">完成データとして最適</p>
               </div>
               <div>
-                <strong className="text-blue-600">Tagged Image File Format (.tiff)</strong>
+                <strong className="text-brand">Tagged Image File Format (.tiff)</strong>
                 <p className="text-sm text-text-secondary">高品質な印刷用画像</p>
               </div>
               <div>
-                <strong className="text-blue-600">Portable Network Graphics (.png)</strong>
+                <strong className="text-brand">Portable Network Graphics (.png)</strong>
                 <p className="text-sm text-text-secondary">透明背景をサポート</p>
               </div>
             </div>
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-xs text-blue-800">
+            <div className="mt-4 p-3 bg-brand-muted rounded-lg">
+              <p className="text-xs text-text-primary">
                 <strong>注意:</strong> 必ず350dpi以上でCMYKモードで保存
               </p>
             </div>
           </Card>
 
-          <Card className="p-6 border-2 border-red-500">
+          <Card className="p-6 border border-error">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-text-primary">非推奨形式</h3>
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <AlertTriangle className="h-5 w-5 text-error" />
             </div>
             <div className="space-y-3">
               <div>
-                <strong className="text-red-600">Microsoft Office</strong>
+                <strong className="text-error">Microsoft Office</strong>
                 <p className="text-sm text-text-secondary">Word, PowerPoint, Excel</p>
               </div>
               <div>
-                <strong className="text-red-600">JPEG (低品質)</strong>
+                <strong className="text-error">JPEG (低品質)</strong>
                 <p className="text-sm text-text-secondary">圧縮率が高すぎるもの</p>
               </div>
               <div>
-                <strong className="text-red-600">GIF</strong>
+                <strong className="text-error">GIF</strong>
                 <p className="text-sm text-text-secondary">256色限定で印刷に不向き</p>
               </div>
             </div>
-            <div className="mt-4 p-3 bg-red-50 rounded-lg">
-              <p className="text-xs text-red-800">
+            <div className="mt-4 p-3 bg-error-muted rounded-lg">
+              <p className="text-xs text-error">
                 <strong>理由:</strong> 印刷品質を確保できない、フォント問題の可能性
               </p>
             </div>
@@ -299,7 +297,7 @@ export default function ImageGuide() {
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-text-primary mb-4 text-green-600">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 text-brand">
               解像度チェック方法
             </h3>
             <ol className="space-y-3 text-sm text-text-secondary">
@@ -319,7 +317,7 @@ export default function ImageGuide() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-text-primary mb-4 text-blue-600">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 text-brand">
               画質維持のコツ
             </h3>
             <ul className="space-y-2 text-sm text-text-secondary">
@@ -352,8 +350,8 @@ export default function ImageGuide() {
                 <li>• 色の再現性が予測可能</li>
                 <li>• 特色との組み合わせも可能</li>
               </ul>
-              <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                <p className="text-xs text-green-800">
+              <div className="mt-4 p-3 bg-brand-muted rounded-lg">
+                <p className="text-xs text-text-primary">
                   <strong>推奨:</strong> 最終データは必ずCMYKモードで作成
                 </p>
               </div>
@@ -372,8 +370,8 @@ export default function ImageGuide() {
                 <li>• 色の範囲が狭くなる</li>
                 <li>• 事前にカラープルーフを確認</li>
               </ul>
-              <div className="mt-4 p-3 bg-orange-50 rounded-lg">
-                <p className="text-xs text-orange-800">
+              <div className="mt-4 p-3 bg-brand-muted rounded-lg">
+                <p className="text-xs text-text-primary">
                   <strong>注意:</strong> 変換後は必ず色の確認を
                 </p>
               </div>
@@ -389,7 +387,7 @@ export default function ImageGuide() {
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 border-l-4 border-green-500">
+          <Card className="p-6 border border-brand">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               推奨プラクティス
             </h3>
@@ -404,7 +402,7 @@ export default function ImageGuide() {
             </ul>
           </Card>
 
-          <Card className="p-6 border-l-4 border-red-500">
+          <Card className="p-6 border border-error">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               よくある問題と解決策
             </h3>
@@ -433,7 +431,7 @@ export default function ImageGuide() {
       {/* Contact Information */}
       <section className="bg-bg-secondary rounded-lg p-6">
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
-          <Download className="h-5 w-5 mr-2 text-brixa-600" />
+          <Download className="h-5 w-5 mr-2 text-brand" />
           データ作成サポート
         </h3>
         <p className="text-text-secondary mb-4">
@@ -443,13 +441,13 @@ export default function ImageGuide() {
         <div className="flex flex-col sm:flex-row gap-4">
           <a
             href="/contact"
-            className="inline-flex items-center justify-center px-6 py-3 bg-brixa-600 text-white rounded-lg hover:bg-brixa-700 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 bg-brand text-on-brand rounded-md hover:bg-brand-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             データ作成相談
           </a>
           <a
             href="/catalog"
-            className="inline-flex items-center justify-center px-6 py-3 border border-border-medium rounded-lg hover:bg-bg-primary transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 border border-border-strong rounded-md hover:bg-bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors duration-200"
           >
             テンプレートダウンロード
           </a>

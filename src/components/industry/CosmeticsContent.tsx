@@ -115,12 +115,12 @@ export function CosmeticsContent() {
     <div className="space-y-12">
       {/* Hero Content */}
       <div className="text-center space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">
+        <h2 className="text-3xl font-bold text-text-primary">
           化粧品ブランドの価値を
-          <span className="text-pink-600">最大化する</span>
-          <span className="text-pink-600">包装ソリューション</span>
+          <span className="text-brand">最大化する</span>
+          <span className="text-brand">包装ソリューション</span>
         </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl text-text-secondary max-w-3xl mx-auto">
           プレミアムデザイン、国際規格対応、環境配慮の3つの要素を融合。
           化粧品ブランドの販促とブランド価値向上を実現します。
         </p>
@@ -133,14 +133,14 @@ export function CosmeticsContent() {
             key={feature.id}
             className={`cursor-pointer transition-all duration-300 ${
               activeFeature === feature.id
-                ? 'ring-2 ring-pink-500 bg-pink-50'
-                : 'hover:shadow-lg'
+                ? 'ring-2 ring-brand bg-brand-muted'
+                : 'hover:shadow-low'
             }`}
             onClick={() => setActiveFeature(feature.id)}
           >
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-8 h-8 text-pink-600" />
+                <feature.icon className="w-8 h-8 text-brand" />
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </div>
               <CardDescription>{feature.description}</CardDescription>
@@ -149,8 +149,8 @@ export function CosmeticsContent() {
               <div className="space-y-2">
                 {feature.benefits.slice(0, 2).map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-pink-500" />
-                    <span className="text-sm text-gray-600">{benefit}</span>
+                    <CheckCircle className="w-4 h-4 text-brand" />
+                    <span className="text-sm text-text-secondary">{benefit}</span>
                   </div>
                 ))}
               </div>
@@ -160,33 +160,33 @@ export function CosmeticsContent() {
       </div>
 
       {/* Detailed Feature Content */}
-      <div className="bg-gradient-to-br from-pink-50 to-brixa-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         {(() => {
           const feature = features.find(f => f.id === activeFeature)!
           return (
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-10 h-10 text-pink-600" />
-                <h3 className="text-2xl font-bold text-gray-900">{feature.title}</h3>
+                <feature.icon className="w-10 h-10 text-brand" />
+                <h3 className="text-2xl font-bold text-text-primary">{feature.title}</h3>
               </div>
 
-              <p className="text-lg text-gray-700">{feature.description}</p>
+              <p className="text-lg text-text-secondary">{feature.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">主な利点</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">主な利点</h4>
                   <ul className="space-y-2">
                     {feature.benefits.map((benefit, index) => (
                       <li key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5 text-pink-500" />
-                        <span className="text-gray-700">{benefit}</span>
+                        <CheckCircle className="w-5 h-5 text-brand" />
+                        <span className="text-text-secondary">{benefit}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">専門オプション</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">専門オプション</h4>
                   <div className="flex flex-wrap gap-2">
                     {('premiumOptions' in feature && feature.premiumOptions) ||
                      ('certifications' in feature && feature.certifications) ||
@@ -196,7 +196,7 @@ export function CosmeticsContent() {
                         'certifications' in feature ? (feature.certifications || []) : [],
                         'ecoOptions' in feature ? (feature.ecoOptions || []) : []
                       ).map((option, index) => (
-                      <Badge key={index} variant="secondary" className="bg-pink-100 text-pink-800">
+                      <Badge key={index} variant="secondary" className="bg-brand-muted text-text-primary">
                         {option}
                       </Badge>
                     )) : null}
@@ -211,37 +211,37 @@ export function CosmeticsContent() {
       {/* Success Stories */}
       <div className="space-y-8">
         <div className="flex items-center space-x-3">
-          <Award className="w-8 h-8 text-pink-600" />
-          <h3 className="text-2xl font-bold text-gray-900">成功事例</h3>
+          <Award className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">成功事例</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {successStories.map((story, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow border-pink-200">
+            <Card key={index} className="hover:shadow-low transition-shadow border-border-medium">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center space-x-2">
-                  <Star className="w-5 h-5 text-pink-500" />
+                  <Star className="w-5 h-5 text-brand" />
                   <span>{story.brand}</span>
                 </CardTitle>
                 <CardDescription>{story.category}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">課題</h4>
-                  <p className="text-sm text-gray-600">{story.challenge}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">課題</h4>
+                  <p className="text-sm text-text-secondary">{story.challenge}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">ソリューション</h4>
-                  <p className="text-sm text-gray-600">{story.solution}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
+                  <p className="text-sm text-text-secondary">{story.solution}</p>
                 </div>
 
-                <div className="bg-gradient-to-r from-pink-50 to-brixa-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-pink-900 mb-3">実績</h4>
+                <div className="bg-bg-secondary rounded-lg p-4">
+                  <h4 className="font-semibold text-text-primary mb-3">実績</h4>
                   <div className="space-y-2 text-sm">
                     {Object.entries(story.results).map(([key, value]) => (
                       <div key={key} className="flex justify-between">
-                        <span className="text-pink-700">
+                        <span className="text-brand">
                           {key === 'brandValue' && 'ブランド価値: '}
                           {key === 'salesIncrease' && '売上増加: '}
                           {key === 'customerLoyalty' && '顧客ロイヤルティ: '}
@@ -255,7 +255,7 @@ export function CosmeticsContent() {
                           {key === 'socialMedia' && 'ソーシャルメディア: '}
                           {key === 'brandRecognition' && 'ブランド認知度: '}
                         </span>
-                        <span className="text-pink-900 font-semibold">{value}</span>
+                        <span className="text-text-primary font-semibold">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -267,23 +267,23 @@ export function CosmeticsContent() {
       </div>
 
       {/* Packaging Trends */}
-      <div className="bg-gray-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         <div className="flex items-center space-x-3 mb-6">
-          <Palette className="w-8 h-8 text-pink-600" />
-          <h3 className="text-2xl font-bold text-gray-900">最新包装トレンド</h3>
+          <Palette className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">最新包装トレンド</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {packagingTrends.map((trend, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="hover:shadow-low transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg text-pink-700">{trend.trend}</CardTitle>
+                <CardTitle className="text-lg text-brand">{trend.trend}</CardTitle>
                 <CardDescription>{trend.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2 text-gray-900">技術</h4>
+                    <h4 className="font-semibold mb-2 text-text-primary">技術</h4>
                     <div className="flex flex-wrap gap-1">
                       {trend.technologies.map((tech, techIndex) => (
                         <Badge key={techIndex} variant="outline" className="text-xs">
@@ -294,10 +294,10 @@ export function CosmeticsContent() {
                   </div>
 
                   <div>
-                    <h4 className="font-semibold mb-2 text-gray-900">メリット</h4>
+                    <h4 className="font-semibold mb-2 text-text-primary">メリット</h4>
                     <div className="flex flex-wrap gap-1">
                       {trend.benefits.map((benefit, benefitIndex) => (
-                        <Badge key={benefitIndex} variant="secondary" className="text-xs bg-pink-100 text-pink-800">
+                        <Badge key={benefitIndex} variant="secondary" className="text-xs bg-brand-muted text-text-primary">
                           {benefit}
                         </Badge>
                       ))}
@@ -311,18 +311,18 @@ export function CosmeticsContent() {
       </div>
 
       {/* Value Proposition */}
-      <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl p-8 text-center text-white">
+      <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
         <h3 className="text-2xl font-bold mb-4">化粧品包装で実現できる価値</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">35%+</div>
             <div>売上向上</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">85%</div>
             <div>ブランド価値向上</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">80+</div>
             <div>導入実績</div>
           </div>
@@ -334,11 +334,11 @@ export function CosmeticsContent() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-white text-pink-800 hover:bg-gray-100 font-semibold px-8 py-4">
+          <Button size="lg">
             <Sparkles className="w-5 h-5 mr-2" />
             デザインサンプル見る
           </Button>
-          <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-pink-800 font-semibold px-8 py-4">
+          <Button size="lg" variant="outline">
             <TrendingUp className="w-5 h-5 mr-2" />
             成功事例詳細
           </Button>

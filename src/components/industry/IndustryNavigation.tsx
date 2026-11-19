@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { CheckCircle } from 'lucide-react'
+import { Apple, Check, Cpu, Pill, Sparkles } from 'lucide-react'
 import { Suspense } from 'react'
 
 interface IndustryNavigationProps {
@@ -17,67 +17,61 @@ function IndustryNavigationInner({ activeIndustry }: IndustryNavigationProps) {
       key: 'food-manufacturing',
       name: '食品製造業',
       href: '/industry/food-manufacturing',
-      icon: '🍎',
+      icon: Apple,
       description: '厳格な品質管理・コスト削減'
     },
     {
       key: 'cosmetics',
       name: '化粧品業界',
       href: '/industry/cosmetics',
-      icon: '💄',
+      icon: Sparkles,
       description: 'プレミアム包装・ブランド価値向上'
     },
     {
       key: 'pharmaceutical',
       name: '医薬品業界',
       href: '/industry/pharmaceutical',
-      icon: '💊',
+      icon: Pill,
       description: 'GMP準拠・安全包装'
     },
     {
       key: 'electronics',
       name: '電子部品業界',
       href: '/industry/electronics',
-      icon: '🔌',
+      icon: Cpu,
       description: 'ESD防止・精密保護'
     }
   ]
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="inline-block mb-6">
-            <h1 className="text-3xl font-bold text-brixa-600 dark:text-brixa-400">
-              Epackage Lab
-            </h1>
-          </Link>
-        </div>
-        <div className="flex-1">
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            {industries.map((industry) => (
+    // 業界の切り替えは、デスクトップ幅だけに出す（HEAD と同じ。スマホでは出さない）。
+    // ブランド名のリンクは、全ページ共通のヘッダーにあるので、ここには置かない。
+    <nav aria-label="業界別ソリューション" className="hidden border-b border-border-medium bg-bg-primary lg:block">
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+        <div className="flex items-center gap-2 py-3">
+          {industries.map((industry) => {
+            const Icon = industry.icon
+            const isActive = activeIndustry === industry.key
+            return (
               <Link
                 key={industry.key}
                 href={industry.href}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  activeIndustry === industry.key
-                    ? 'bg-brixa-600 text-brixa-600 font-medium'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
+                  isActive
+                    ? 'bg-brand-muted font-medium text-on-brand-muted'
+                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
                 }`}
               >
-                <span className="text-lg">{industry.icon}</span>
+                <Icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                 <div className="text-left">
                   <div className="font-medium">{industry.name}</div>
-                  <div className="text-xs text-gray-500">{industry.description}</div>
+                  <div className={`text-xs ${isActive ? 'text-on-brand-muted' : 'text-text-muted'}`}>{industry.description}</div>
                 </div>
-                {activeIndustry === industry.key && (
-                  <CheckCircle className="w-4 h-4 ml-auto" />
-                )}
+                {isActive && <Check className="ml-auto h-4 w-4" aria-hidden="true" />}
               </Link>
-            ))}
-          </div>
+            )
+          })}
         </div>
       </div>
     </nav>

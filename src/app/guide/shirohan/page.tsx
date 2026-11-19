@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { FileText, Layers, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { PageHeader } from '@/components/layout'
 import { HowToSchema } from '@/components/seo/StructuredData'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
@@ -71,19 +72,16 @@ export default function ShirohanGuide() {
       <BreadcrumbJsonLd pathname="/guide/shirohan" />
       <HowToSchema {...shirohanHowToData} />
       <div className="prose prose-gray max-w-none">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-purple-100 rounded-lg text-purple-600">
-          <FileText className="h-8 w-8" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+      <PageHeader
+        className="mb-10 rounded-container border py-8 md:py-10"
+        title={
+          <>
+            <FileText className="mr-3 inline-block h-7 w-7 align-[-0.1em] text-brand" aria-hidden="true" />
             白版ガイド
-          </h1>
-          <p className="text-text-secondary">
-            白版（しろはん）の制作と用途
-          </p>
-        </div>
-      </div>
+          </>
+        }
+        lead="白版（しろはん）の制作と用途"
+      />
 
       {/* What is Shirohan */}
       <section className="mb-12">
@@ -98,21 +96,21 @@ export default function ShirohanGuide() {
           </p>
           <div className="grid md:grid-cols-3 gap-4 mt-6">
             <div className="text-center">
-              <div className="bg-purple-100 rounded-lg p-4 mb-2">
+              <div className="bg-brand-muted rounded-lg p-4 mb-2">
                 <span className="text-2xl">1</span>
               </div>
               <h3 className="font-medium text-text-primary mb-1">色確認</h3>
               <p className="text-xs text-text-secondary">CMYKや特色の色を実際に確認</p>
             </div>
             <div className="text-center">
-              <div className="bg-purple-100 rounded-lg p-4 mb-2">
+              <div className="bg-brand-muted rounded-lg p-4 mb-2">
                 <span className="text-2xl">2</span>
               </div>
               <h3 className="font-medium text-text-primary mb-1">仕上がり確認</h3>
               <p className="text-xs text-text-secondary">実際の素材での質感と見え方</p>
             </div>
             <div className="text-center">
-              <div className="bg-purple-100 rounded-lg p-4 mb-2">
+              <div className="bg-brand-muted rounded-lg p-4 mb-2">
                 <span className="text-2xl">3</span>
               </div>
               <h3 className="font-medium text-text-primary mb-1">品質保証</h3>
@@ -129,13 +127,13 @@ export default function ShirohanGuide() {
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 border-l-4 border-green-500">
+          <Card className="p-6 border border-success">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               推奨ケース
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>初めてのデザイン印刷</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -144,7 +142,7 @@ export default function ShirohanGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>特色色を使用する場合</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -153,7 +151,7 @@ export default function ShirohanGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>大量生産の場合</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -162,7 +160,7 @@ export default function ShirohanGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>重要商材</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -173,13 +171,13 @@ export default function ShirohanGuide() {
             </ul>
           </Card>
 
-          <Card className="p-6 border-l-4 border-orange-500">
+          <Card className="p-6 border border-warning">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               省略可能なケース
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>再注文・既存デザイン</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -188,7 +186,7 @@ export default function ShirohanGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>シンプルなCMYKのみ</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -197,7 +195,7 @@ export default function ShirohanGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>少量・緊急案件</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -206,7 +204,7 @@ export default function ShirohanGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>試作品・サンプル</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -232,7 +230,7 @@ export default function ShirohanGuide() {
             </h3>
             <div className="space-y-4">
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brixa-600 text-white rounded-full flex items-center justify-center font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center font-bold">
                   1
                 </div>
                 <div className="flex-1">
@@ -244,7 +242,7 @@ export default function ShirohanGuide() {
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brixa-600 text-white rounded-full flex items-center justify-center font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center font-bold">
                   2
                 </div>
                 <div className="flex-1">
@@ -256,7 +254,7 @@ export default function ShirohanGuide() {
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brixa-600 text-white rounded-full flex items-center justify-center font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center font-bold">
                   3
                 </div>
                 <div className="flex-1">
@@ -268,7 +266,7 @@ export default function ShirohanGuide() {
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brixa-600 text-white rounded-full flex items-center justify-center font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center font-bold">
                   4
                 </div>
                 <div className="flex-1">
@@ -280,7 +278,7 @@ export default function ShirohanGuide() {
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brixa-600 text-white rounded-full flex items-center justify-center font-bold">
+                <div className="flex-shrink-0 w-8 h-8 bg-brand text-white rounded-full flex items-center justify-center font-bold">
                   5
                 </div>
                 <div className="flex-1">
@@ -371,8 +369,8 @@ export default function ShirohanGuide() {
               </tbody>
             </table>
           </div>
-          <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
-            <p className="text-sm text-yellow-800">
+          <div className="mt-4 p-4 bg-warning-muted rounded-lg">
+            <p className="text-sm text-on-warning-muted">
               <strong>注意:</strong> 白版費用は本番費用とは別途発生します。ただし、白版で問題が発見・解決されることで、
               大ロットでの大きな損失を防ぐことができます。
             </p>
@@ -387,7 +385,7 @@ export default function ShirohanGuide() {
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 border-l-4 border-green-500">
+          <Card className="p-6 border border-success">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               効果的な活用方法
             </h3>
@@ -401,7 +399,7 @@ export default function ShirohanGuide() {
             </ul>
           </Card>
 
-          <Card className="p-6 border-l-4 border-blue-500">
+          <Card className="p-6 border border-info">
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               よくある問題と対策
             </h3>
@@ -439,13 +437,13 @@ export default function ShirohanGuide() {
         <div className="flex flex-col sm:flex-row gap-4">
           <a
             href="/contact"
-            className="inline-flex items-center justify-center px-6 py-3 bg-brixa-600 text-white rounded-lg hover:bg-brixa-700 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 bg-brand text-on-brand rounded-md hover:bg-brand-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             白版について相談
           </a>
           <a
             href="tel:080-6942-7235"
-            className="inline-flex items-center justify-center px-6 py-3 border border-border-medium rounded-lg hover:bg-bg-primary transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 border border-border-strong rounded-md hover:bg-bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors duration-200"
           >
             電話で相談
           </a>

@@ -99,8 +99,8 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3">
-        <Calculator className="w-8 h-8 text-navy-700" />
-        <h3 className="text-2xl font-bold text-gray-900">業別カスタム計算ツール</h3>
+        <Calculator className="w-8 h-8 text-brand" />
+        <h3 className="text-2xl font-bold text-text-primary">業別カスタム計算ツール</h3>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -113,51 +113,51 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   月間包装コスト（万円）
                 </label>
                 <input
                   type="number"
                   value={formData.monthlyCost}
                   onChange={(e) => setFormData({...formData, monthlyCost: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="例: 1000"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   月間包装数量（個）
                 </label>
                 <input
                   type="number"
                   value={formData.currentVolume}
                   onChange={(e) => setFormData({...formData, currentVolume: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="例: 100000"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   目標削減率（%）
                 </label>
                 <input
                   type="number"
                   value={formData.targetReduction}
                   onChange={(e) => setFormData({...formData, targetReduction: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="例: 30"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-text-secondary mb-3">
                   必要な機能を選択
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {features.map((feature) => (
-                    <div key={feature.id} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <div key={feature.id} className="flex items-center space-x-3 p-3 border border-border-medium rounded-md cursor-pointer hover:bg-bg-secondary">
                       <input
                         type="checkbox"
                         id={feature.id}
@@ -175,9 +175,9 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
                             })
                           }
                         }}
-                        className="w-4 h-4 text-navy-700 rounded focus:ring-navy-600"
+                        className="w-4 h-4 text-brand rounded focus:ring-brand"
                       />
-                      <label htmlFor={feature.id} className="flex-1 text-sm font-medium text-gray-700">
+                      <label htmlFor={feature.id} className="flex-1 text-sm font-medium text-text-secondary">
                         {feature.name}
                       </label>
                       <Badge variant="outline" className="text-xs">
@@ -188,7 +188,7 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
                 </div>
               </div>
 
-              <Button onClick={calculateROI} className="w-full bg-navy-700 text-white hover:bg-navy-600">
+              <Button onClick={calculateROI} className="w-full bg-brand text-white hover:bg-brand-hover">
                 <Calculator className="w-4 h-4 mr-2" />
                 ROIを計算する
               </Button>
@@ -199,10 +199,10 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
         {/* Results Panel */}
         <div className="lg:col-span-1">
           {results ? (
-            <Card className="bg-gradient-to-br from-navy-50 to-brixa-50">
+            <Card className="bg-bg-secondary">
               <CardHeader>
-                <CardTitle className="text-navy-600">計算結果</CardTitle>
-                <CardDescription className="text-navy-600">
+                <CardTitle className="text-brand">計算結果</CardTitle>
+                <CardDescription className="text-brand">
                   導入による具体的な効果
                 </CardDescription>
               </CardHeader>
@@ -210,26 +210,26 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
                 <div className="bg-white rounded-lg p-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex flex-col">
-                      <span className="text-gray-600">月間削減額</span>
-                      <span className="text-xl font-bold text-green-600">
+                      <span className="text-text-secondary">月間削減額</span>
+                      <span className="text-xl font-bold text-brand">
                         {results.adjustedMonthlySavings.toFixed(0)}万円
                       </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-gray-600">年間削減額</span>
-                      <span className="text-xl font-bold text-green-600">
+                      <span className="text-text-secondary">年間削減額</span>
+                      <span className="text-xl font-bold text-brand">
                         {results.adjustedYearlySavings.toFixed(0)}万円
                       </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-gray-600">調整後削減率</span>
-                      <span className="text-xl font-bold text-navy-700">
+                      <span className="text-text-secondary">調整後削減率</span>
+                      <span className="text-xl font-bold text-brand">
                         {results.adjustedReduction.toFixed(1)}%
                       </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-gray-600">回収期間</span>
-                      <span className="text-xl font-bold text-purple-600">
+                      <span className="text-text-secondary">回収期間</span>
+                      <span className="text-xl font-bold text-brand">
                         {results.paybackPeriod.toFixed(1)}ヶ月
                       </span>
                     </div>
@@ -238,37 +238,37 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">投資費用</span>
+                    <span className="text-sm text-text-secondary">投資費用</span>
                     <span className="font-semibold">{results.totalInvestment.toLocaleString()}万円</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">機能追加効果</span>
-                    <span className="font-semibold text-green-600">+{results.featureImpact}%</span>
+                    <span className="text-sm text-text-secondary">機能追加効果</span>
+                    <span className="font-semibold text-brand">+{results.featureImpact}%</span>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-navy-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">ROI分析</h4>
+                <div className="bg-bg-secondary rounded-lg p-4">
+                  <h4 className="font-semibold text-text-primary mb-2">ROI分析</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>1年間ROI:</span>
-                      <span className="font-semibold text-green-600">
+                      <span className="font-semibold text-brand">
                         {results.roi1Year.toFixed(1)}%
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>3年間ROI:</span>
-                      <span className="font-semibold text-green-600">
+                      <span className="font-semibold text-brand">
                         {results.roi3Years.toFixed(1)}%
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="bg-brand-muted border border-border-medium rounded-lg p-3">
                   <div className="flex items-start space-x-2">
-                    <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                    <div className="text-xs text-yellow-800">
+                    <AlertCircle className="w-4 h-4 text-brand mt-0.5" />
+                    <div className="text-xs text-text-primary">
                       計算結果は目安です。実際の効果は導入規模やビジネスモデルによって異なります。
                     </div>
                   </div>
@@ -278,9 +278,9 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
           ) : (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Calculator className="w-12 h-12 text-gray-400 mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 mb-2">計算結果</h4>
-                <p className="text-sm text-gray-600 text-center">
+                <Calculator className="w-12 h-12 text-text-muted mb-4" />
+                <h4 className="text-lg font-medium text-text-primary mb-2">計算結果</h4>
+                <p className="text-sm text-text-secondary text-center">
                   左のフォームに情報を入力して<br />
                   ROIを計算してください
                 </p>
@@ -291,7 +291,7 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
       </div>
 
       {/* Additional Information */}
-      <Card className="bg-gray-50">
+      <Card className="bg-bg-secondary">
         <CardHeader>
           <CardTitle>計算に含まれる要素</CardTitle>
           <CardDescription>ROI計算に考慮された主な要素</CardDescription>
@@ -299,24 +299,24 @@ export function IndustryCalculator({ industry }: IndustryCalculatorProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-start space-x-2">
-              <TrendingUp className="w-4 h-4 text-green-600 mt-0.5" />
+              <TrendingUp className="w-4 h-4 text-brand mt-0.5" />
               <div>
-                <div className="font-medium text-gray-900">直接的なコスト削減</div>
-                <div className="text-gray-600">材料費、労務費、エネルギー費の削減</div>
+                <div className="font-medium text-text-primary">直接的なコスト削減</div>
+                <div className="text-text-secondary">材料費、労務費、エネルギー費の削減</div>
               </div>
             </div>
             <div className="flex items-start space-x-2">
-              <Package className="w-4 h-4 text-navy-700 mt-0.5" />
+              <Package className="w-4 h-4 text-brand mt-0.5" />
               <div>
-                <div className="font-medium text-gray-900">間接的な効果</div>
-                <div className="text-gray-600">品質向上、納期改善、顧客満足度</div>
+                <div className="font-medium text-text-primary">間接的な効果</div>
+                <div className="text-text-secondary">品質向上、納期改善、顧客満足度</div>
               </div>
             </div>
             <div className="flex items-start space-x-2">
-              <Users className="w-4 h-4 text-purple-600 mt-0.5" />
+              <Users className="w-4 h-4 text-brand mt-0.5" />
               <div>
-                <div className="font-medium text-gray-900">長期的な価値</div>
-                <div className="text-gray-600">ブランド価値、環境配慮、競争優位性</div>
+                <div className="font-medium text-text-primary">長期的な価値</div>
+                <div className="text-text-secondary">ブランド価値、環境配慮、競争優位性</div>
               </div>
             </div>
           </div>

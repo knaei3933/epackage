@@ -4,6 +4,7 @@ import { Container } from '@/components/ui/Container'
 import { Card } from '@/components/ui/Card'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/layout'
 import Link from 'next/link'
 import {
   Palette,
@@ -17,7 +18,6 @@ import {
   ArrowRight,
   ChevronRight,
   Check,
-  Sparkles,
   Info
 } from 'lucide-react'
 import { useState } from 'react'
@@ -29,9 +29,6 @@ const accordionSections = [
     title: 'カラー',
     description: 'パッケージ印刷の色指定とカラーマッチング',
     icon: Palette,
-    color: 'from-red-500 to-rose-600',
-    bgColor: 'bg-red-50 dark:bg-red-950',
-    borderColor: 'border-red-200 dark:border-red-800',
     content: {
       summary: 'CMYK指定、PANTONE対応、色校正、特殊インクによる精密な色再現',
       details: [
@@ -63,9 +60,6 @@ const accordionSections = [
     title: 'サイズ',
     description: 'パッケージサイズと寸法の仕様',
     icon: Ruler,
-    color: 'from-blue-500 to-indigo-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-950',
-    borderColor: 'border-blue-200 dark:border-blue-800',
     content: {
       summary: '精密測定、許容範囲、拡縮対応、自動検証システムによる正確なサイズ管理',
       details: [
@@ -97,9 +91,6 @@ const accordionSections = [
     title: '画像',
     description: '画像データの仕様と解像度',
     icon: ImageIcon,
-    color: 'from-green-500 to-emerald-600',
-    bgColor: 'bg-green-50 dark:bg-green-950',
-    borderColor: 'border-green-200 dark:border-green-800',
     content: {
       summary: '高解像度、フォーマット変換、色変換、自動最適化による品質保証',
       details: [
@@ -131,9 +122,6 @@ const accordionSections = [
     title: '白版',
     description: '白版（しろはん）の作成と用途',
     icon: FileText,
-    color: 'from-purple-500 to-violet-600',
-    bgColor: 'bg-purple-50 dark:bg-purple-950',
-    borderColor: 'border-purple-200 dark:border-purple-800',
     content: {
       summary: 'レイアウト作成、寸法指定、配置ルール、印刷対応による白版作成支援',
       details: [
@@ -165,9 +153,6 @@ const accordionSections = [
     title: '環境表示',
     description: '環境ラベルとサステナビリティ表示',
     icon: Leaf,
-    color: 'from-emerald-500 to-teal-600',
-    bgColor: 'bg-emerald-50 dark:bg-emerald-950',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
     content: {
       summary: '環境マーク、リサイクル表示、原材料情報、法規対応の徹底',
       details: [
@@ -213,68 +198,38 @@ export default function GuidePage() {
 
   return (
     <>
-      {/* Hero Section - 改善版 */}
-      <section className="relative py-24 bg-gradient-to-br from-slate-900 via-navy-800 to-brixa-900 overflow-hidden">
-        {/* 背景デコレーション */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-brixa-500 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-        </div>
-
-        <Container size="6xl" className="relative z-10">
-          <div className="text-center max-w-4xl mx-auto space-y-8">
-            <MotionWrapper delay={0.1}>
-              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm text-white px-5 py-2.5 rounded-full text-sm font-medium mb-6 border border-white/20">
-                <Sparkles className="w-4 h-4 text-yellow-400" />
-                <span>デザイン制作ガイド</span>
-              </div>
-
-              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-                プロフェッショナルな
-                <span className="block bg-gradient-to-r from-brixa-300 to-emerald-300 bg-clip-text text-transparent">
-                  パッケージデザイン
-                </span>
-              </h1>
-            </MotionWrapper>
-
-            <MotionWrapper delay={0.2}>
-              <p className="text-xl text-gray-300 leading-relaxed">
-                Epackage Labの厳格な品質基準で
-                <br />
-                最高品質のパッケージを作成しましょう
-              </p>
-            </MotionWrapper>
-
-            {/* 統計情報 */}
-            <MotionWrapper delay={0.3}>
-              <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-400">
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-green-400" />
-                  <span>5つのガイドカテゴリ</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-green-400" />
-                  <span>詳細な仕様説明</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-green-400" />
-                  <span>プロフェッショナル対応</span>
-                </div>
-              </div>
-            </MotionWrapper>
-          </div>
-        </Container>
-      </section>
+      {/* ページの頭（基準書「ページの型」） */}
+      <MotionWrapper delay={0.1}>
+        <PageHeader
+          title="プロフェッショナルなパッケージデザイン"
+          lead={
+            <>
+              Epackage Labの厳格な品質基準で
+              <br />
+              最高品質のパッケージを作成しましょう
+            </>
+          }
+        >
+          <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-text-secondary">
+            {['5つのガイドカテゴリ', '詳細な仕様説明', 'プロフェッショナル対応'].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-brand" aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </PageHeader>
+      </MotionWrapper>
 
       {/* アコーディオンガイドセクション - 新デザイン */}
-      <section className="py-20 bg-white">
+      <section className="py-16 md:py-24 bg-bg-primary">
         <Container size="6xl">
           <MotionWrapper delay={0.4}>
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
                 デザインガイドカテゴリ
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-text-secondary max-w-2xl mx-auto">
                 各カテゴリーを展開して詳細なガイドを確認してください
               </p>
             </div>
@@ -287,30 +242,30 @@ export default function GuidePage() {
 
               return (
                 <MotionWrapper key={section.id} delay={0.5 + index * 0.1}>
-                  <div className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${
+                  <div className={`border rounded-container overflow-hidden transition-colors duration-300 ${
                     isExpanded
-                      ? `${section.borderColor} ${section.bgColor}`
-                      : 'border-gray-200 bg-white hover:shadow-lg'
+                      ? 'border-brand bg-brand-subtle'
+                      : 'border-border-medium bg-bg-primary hover:shadow-low'
                   }`}>
                     {/* アコーディオンヘッダー */}
                     <button
                       onClick={() => toggleSection(section.id)}
-                      className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/50 transition-colors"
+                      className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                          <IconComponent className="w-7 h-7 text-white" />
+                        <div className={`w-14 h-14 rounded-md bg-brand-muted flex items-center justify-center flex-shrink-0`}>
+                          <IconComponent className="w-7 h-7 text-brand" aria-hidden="true" />
                         </div>
                         <div>
-                          <h3 className={`text-xl font-bold ${isExpanded ? section.color.replace('from-', 'text-').split(' ')[0] : 'text-gray-900'}`}>
+                          <h3 className="text-xl font-bold text-text-primary">
                             {section.title}
                           </h3>
-                          <p className={`text-sm ${isExpanded ? 'text-gray-600' : 'text-gray-500'}`}>
+                          <p className="text-sm text-text-secondary">
                             {section.description}
                           </p>
                         </div>
                       </div>
-                      <ChevronRight className={`w-6 h-6 text-gray-400 transition-transform duration-300 ${
+                      <ChevronRight className={`w-6 h-6 text-text-muted transition-transform duration-300 ${
                         isExpanded ? 'rotate-90' : ''
                       }`} />
                     </button>
@@ -319,10 +274,10 @@ export default function GuidePage() {
                     {isExpanded && (
                       <div className="px-6 pb-6">
                         {/* サマリー */}
-                        <div className="mb-6 p-4 bg-white/50 rounded-lg border border-gray-200">
+                        <div className="mb-6 p-4 bg-bg-primary rounded-md border border-border-medium">
                           <div className="flex items-start space-x-3">
-                            <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-gray-700 leading-relaxed">
+                            <Info className="w-5 h-5 text-brand flex-shrink-0 mt-0.5" aria-hidden="true" />
+                            <p className="text-sm text-text-secondary leading-relaxed">
                               {section.content.summary}
                             </p>
                           </div>
@@ -331,17 +286,17 @@ export default function GuidePage() {
                         {/* 詳細カード */}
                         <div className="grid md:grid-cols-2 gap-4">
                           {section.content.details.map((detail, idx) => (
-                            <Card key={idx} className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                            <Card key={idx} className="p-5">
                               <div className="flex items-center space-x-3 mb-3">
-                                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${section.color} flex items-center justify-center flex-shrink-0`}>
-                                  <Check className="w-4 h-4 text-white" />
+                                <div className={`w-8 h-8 rounded-inner bg-brand flex items-center justify-center flex-shrink-0`}>
+                                  <Check className="w-4 h-4 text-on-brand" aria-hidden="true" />
                                 </div>
-                                <h4 className="font-semibold text-gray-900">{detail.title}</h4>
+                                <h4 className="font-semibold text-text-primary">{detail.title}</h4>
                               </div>
-                              <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                              <p className="text-sm text-text-secondary mb-3 leading-relaxed">
                                 {detail.description}
                               </p>
-                              <div className="flex items-start space-x-2 text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg">
+                              <div className="flex items-start space-x-2 text-xs bg-brand-muted text-on-brand-muted px-3 py-2 rounded-md">
                                 <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                 <span className="font-medium">{detail.tips}</span>
                               </div>
@@ -359,14 +314,14 @@ export default function GuidePage() {
       </section>
 
       {/* クイックリファレンス - カード形式で改善 */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-16 md:py-24 bg-bg-secondary">
         <Container size="6xl">
           <MotionWrapper delay={0.8}>
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
                 クイックリファレンス
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-text-secondary max-w-2xl mx-auto">
                 よく使う基本仕様の早見表
               </p>
             </div>
@@ -379,18 +334,18 @@ export default function GuidePage() {
 
               return (
                 <MotionWrapper key={index} delay={0.9 + index * 0.1}>
-                  <Card className="p-6 border-t-4 border-t-brixa-600 hover:shadow-xl transition-all duration-300 bg-white">
+                  <Card className="p-6">
                     <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-12 h-12 bg-brixa-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <IconComponent className="w-6 h-6 text-brixa-700" />
+                      <div className="w-12 h-12 bg-brand-muted rounded-md flex items-center justify-center flex-shrink-0">
+                        <IconComponent className="w-6 h-6 text-brand" aria-hidden="true" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900">{ref.category}</h3>
+                      <h3 className="text-lg font-bold text-text-primary">{ref.category}</h3>
                     </div>
                     <div className="space-y-2">
                       {ref.items.map((item, idx) => (
                         <div key={idx} className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                          <span className="text-sm text-gray-700">{item}</span>
+                          <div className="w-2 h-2 bg-brand rounded-full flex-shrink-0"></div>
+                          <span className="text-sm text-text-secondary">{item}</span>
                         </div>
                       ))}
                     </div>
@@ -402,38 +357,35 @@ export default function GuidePage() {
         </Container>
       </section>
 
-      {/* CTA Section - 改善版 */}
-      <section className="py-20 bg-gradient-to-r from-brixa-600 via-navy-700 to-navy-800">
+      {/* CTA Section（ページ末尾の紺の帯） */}
+      <section className="py-16 md:py-24 bg-bg-inverted">
         <Container size="4xl" className="text-center">
           <MotionWrapper delay={1.0}>
             <div className="space-y-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
+              <h2 className="text-3xl md:text-4xl font-bold text-text-inverse">
                 デザインに関するご相談
               </h2>
-              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              <p className="text-lg text-text-inverse max-w-2xl mx-auto">
                 デザインガイドに関するご質問や、専門家によるデザインサポートをご希望の場合は、
                 お気軽にお問い合わせください
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-center justify-center">
                 <Link href="/contact">
                   <Button
-                    variant="secondary"
+                    variant="primary"
                     size="lg"
-                    className="justify-center bg-white text-brixa-700 hover:bg-gray-50 font-medium min-w-[200px] shadow-lg"
+                    className="justify-center min-w-[200px]"
                   >
-                    <HelpCircle className="mr-2 h-5 w-5" />
+                    <HelpCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                     専門家相談
                   </Button>
                 </Link>
-                <Link href="/samples">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="justify-center border-white text-white hover:bg-white hover:text-brixa-700 font-medium min-w-[200px]"
-                  >
-                    <Download className="mr-2 h-5 w-5" />
-                    テンプレート
-                  </Button>
+                <Link
+                  href="/samples"
+                  className="inline-flex min-h-[44px] items-center font-medium text-text-inverse underline underline-offset-4 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  <Download className="mr-2 h-5 w-5" aria-hidden="true" />
+                  テンプレート
                 </Link>
               </div>
             </div>

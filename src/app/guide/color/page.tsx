@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { Palette, Droplets, Eye, CheckCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { PageHeader } from '@/components/layout'
 import { HowToSchema } from '@/components/seo/StructuredData'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
@@ -72,24 +73,21 @@ export default function ColorGuide() {
       <BreadcrumbJsonLd pathname="/guide/color" />
       <HowToSchema {...colorHowToData} />
       <div className="prose prose-gray max-w-none">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-red-100 rounded-lg text-red-600">
-          <Palette className="h-8 w-8" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+      <PageHeader
+        className="mb-10 rounded-container border py-8 md:py-10"
+        title={
+          <>
+            <Palette className="mr-3 inline-block h-7 w-7 align-[-0.1em] text-brand" aria-hidden="true" />
             カラーガイド
-          </h1>
-          <p className="text-text-secondary">
-            パッケージ印刷における色指定と特色印刷
-          </p>
-        </div>
-      </div>
+          </>
+        }
+        lead="パッケージ印刷における色指定と特色印刷"
+      />
 
       {/* Color Printing Overview */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-text-primary mb-6 flex items-center">
-          <Droplets className="h-6 w-6 mr-2 text-brixa-600" />
+          <Droplets className="h-6 w-6 mr-2 text-brand" />
           色指定の基本
         </h2>
 
@@ -98,7 +96,7 @@ export default function ColorGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">CMYKカラー</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong> Cyan, Magenta, Yellow, Black</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -107,7 +105,7 @@ export default function ColorGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>写真やグラデーションに最適</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -116,7 +114,7 @@ export default function ColorGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>コスト効率が良い</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -131,7 +129,7 @@ export default function ColorGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">特色印刷</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>特定の色を単独で使用</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -140,7 +138,7 @@ export default function ColorGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>鮮やかで一貫性のある色再現</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -149,7 +147,7 @@ export default function ColorGuide() {
                 </div>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-success mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong>金属光沢や蛍光色も可能</strong>
                   <p className="text-sm text-text-secondary mt-1">
@@ -171,7 +169,7 @@ export default function ColorGuide() {
             <h3 className="text-lg font-semibold text-text-primary mb-4">
               1. PANTONEカラーガイドでの指定
             </h3>
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <div className="bg-bg-secondary p-4 rounded-lg mb-4">
               <p className="text-sm text-text-secondary mb-2">
                 推奨: PANTONEカラーガイドを使用した色指定
               </p>
@@ -234,54 +232,54 @@ export default function ColorGuide() {
       {/* Best Practices */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-text-primary mb-6 flex items-center">
-          <Eye className="h-6 w-6 mr-2 text-brixa-600" />
+          <Eye className="h-6 w-6 mr-2 text-brand" />
           デザインのベストプラクティス
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-text-primary mb-4 text-green-600">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 text-success">
               推奨事項
             </h3>
             <ul className="space-y-2 text-sm">
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-success mr-2 mt-0.5" />
                 <span>RGBではなくCMYKでデザインを作成する</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-success mr-2 mt-0.5" />
                 <span>特色は4色以内に抑える</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-success mr-2 mt-0.5" />
                 <span>濃度4%以下の薄い色は避ける</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-green-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-success mr-2 mt-0.5" />
                 <span>カラープルーフを必ず確認する</span>
               </li>
             </ul>
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-text-primary mb-4 text-red-600">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 text-error">
               注意事項
             </h3>
             <ul className="space-y-2 text-sm">
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-error mr-2 mt-0.5" />
                 <span>画面と印刷では色が異なる場合がある</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-error mr-2 mt-0.5" />
                 <span>素材によって色の見え方が変わる</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-error mr-2 mt-0.5" />
                 <span>特色数が多いとコストが増加する</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-error mr-2 mt-0.5" />
                 <span>グラデーションは特色で表現できない</span>
               </li>
             </ul>
@@ -301,13 +299,13 @@ export default function ColorGuide() {
         <div className="flex flex-col sm:flex-row gap-4">
           <a
             href="/contact"
-            className="inline-flex items-center justify-center px-6 py-3 bg-brixa-600 text-white rounded-lg hover:bg-brixa-700 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 bg-brand text-on-brand rounded-md hover:bg-brand-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             お問い合わせフォーム
           </a>
           <a
             href="tel:080-6942-7235"
-            className="inline-flex items-center justify-center px-6 py-3 border border-border-medium rounded-lg hover:bg-bg-primary transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 border border-border-strong rounded-md hover:bg-bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors duration-200"
           >
             電話で相談
           </a>

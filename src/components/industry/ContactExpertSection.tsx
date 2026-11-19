@@ -154,8 +154,8 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3">
-        <Users className="w-8 h-8 text-navy-700" />
-        <h3 className="text-2xl font-bold text-gray-900">専門家へ相談</h3>
+        <Users className="w-8 h-8 text-brand" />
+        <h3 className="text-2xl font-bold text-text-primary">専門家へ相談</h3>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -171,9 +171,9 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
             <CardContent>
               {isSubmitted ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">ご相談ありがとうございます！</h4>
-                  <p className="text-gray-600">
+                  <CheckCircle className="w-16 h-16 text-brand mx-auto mb-4" />
+                  <h4 className="text-lg font-semibold text-text-primary mb-2">ご相談ありがとうございます！</h4>
+                  <p className="text-text-secondary">
                     専門家が24時間以内にご連絡いたします。<br />
                     しばらくお待ちください。
                   </p>
@@ -182,11 +182,11 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        氏名 <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        氏名 <span className="text-error">*</span>
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                         <Input
                           type="text"
                           value={formData.name}
@@ -198,11 +198,11 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        会社名 <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        会社名 <span className="text-error">*</span>
                       </label>
                       <div className="relative">
-                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                         <Input
                           type="text"
                           value={formData.company}
@@ -217,11 +217,11 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        メールアドレス <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        メールアドレス <span className="text-error">*</span>
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                         <Input
                           type="email"
                           value={formData.email}
@@ -233,11 +233,11 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
                         電話番号
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                         <Input
                           type="tel"
                           value={formData.phone}
@@ -250,11 +250,11 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ご相談内容 <span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
+                      ご相談内容 <span className="text-error">*</span>
                     </label>
                     <div className="relative">
-                      <MessageCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <MessageCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                       <Textarea
                         value={formData.message}
                         onChange={(e) => setFormData({...formData, message: e.target.value})}
@@ -267,15 +267,15 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
                       ご希望のご連絡時間帯
                     </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                       <select
                         value={formData.preferredTime}
                         onChange={(e) => setFormData({...formData, preferredTime: e.target.value})}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-600"
+                        className="w-full pl-10 pr-3 py-2 border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brand"
                       >
                         <option value="">指定なし</option>
                         <option value="morning">午前中（9:00-12:00）</option>
@@ -289,7 +289,7 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full bg-navy-700 text-white hover:bg-navy-600 font-semibold py-3"
+                    className="w-full bg-brand text-white hover:bg-brand-hover font-semibold py-3"
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
                     無料相談を申し込む
@@ -310,17 +310,17 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               {industryExperts.map((expert, index) => (
-                <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div key={index} className="border rounded-lg p-4 hover:shadow-low transition-shadow">
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-navy-600 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-navy-700" />
+                    <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-on-brand" aria-hidden="true" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{expert.name}</h4>
-                      <p className="text-sm text-gray-600">{expert.title}</p>
+                      <h4 className="font-semibold text-text-primary">{expert.name}</h4>
+                      <p className="text-sm text-text-secondary">{expert.title}</p>
                       <div className="flex items-center space-x-3 mt-2 text-xs">
                         <div className="flex items-center space-x-1">
-                          <Star className="w-3 h-3 text-yellow-500" />
+                          <Star className="w-3 h-3 text-brand" />
                           <span>{expert.rating}</span>
                         </div>
                         <span>{expert.experience}経験</span>
@@ -350,55 +350,55 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-start space-x-3">
-                <FileText className="w-5 h-5 text-navy-700 mt-0.5" />
+                <FileText className="w-5 h-5 text-brand mt-0.5" />
                 <div>
-                  <div className="font-medium text-gray-900">技術相談</div>
-                  <div className="text-sm text-gray-600">包装技術に関する専門的なご相談</div>
+                  <div className="font-medium text-text-primary">技術相談</div>
+                  <div className="text-sm text-text-secondary">包装技術に関する専門的なご相談</div>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <Award className="w-5 h-5 text-green-600 mt-0.5" />
+                <Award className="w-5 h-5 text-brand mt-0.5" />
                 <div>
-                  <div className="font-medium text-gray-900">規格取得支援</div>
-                  <div className="text-sm text-gray-600">国内外の規格取得をサポート</div>
+                  <div className="font-medium text-text-primary">規格取得支援</div>
+                  <div className="text-sm text-text-secondary">国内外の規格取得をサポート</div>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <Users className="w-5 h-5 text-purple-600 mt-0.5" />
+                <Users className="w-5 h-5 text-brand mt-0.5" />
                 <div>
-                  <div className="font-medium text-gray-900">導入支援</div>
-                  <div className="text-sm text-gray-600">初回導入から導入後までのサポート</div>
+                  <div className="font-medium text-text-primary">導入支援</div>
+                  <div className="text-sm text-text-secondary">初回導入から導入後までのサポート</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Contact Info */}
-          <Card className="bg-navy-50 border-navy-600">
+          <Card className="bg-brand-muted border-brand">
             <CardHeader>
-              <CardTitle className="text-navy-600">お問い合わせ</CardTitle>
-              <CardDescription className="text-navy-600">その他のお問い合わせ方法</CardDescription>
+              <CardTitle className="text-brand">お問い合わせ</CardTitle>
+              <CardDescription className="text-brand">その他のお問い合わせ方法</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center space-x-3">
-                <Phone className="w-4 h-4 text-navy-700" />
+                <Phone className="w-4 h-4 text-brand" />
                 <div>
-                  <div className="font-medium text-navy-600">電話</div>
-                  <div className="text-sm text-navy-600">03-1234-5678</div>
+                  <div className="font-medium text-brand">電話</div>
+                  <div className="text-sm text-brand">03-1234-5678</div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-navy-700" />
+                <Mail className="w-4 h-4 text-brand" />
                 <div>
-                  <div className="font-medium text-navy-600">メール</div>
-                  <div className="text-sm text-navy-600">info@package-lab.com</div>
+                  <div className="font-medium text-brand">メール</div>
+                  <div className="text-sm text-brand">info@package-lab.com</div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Clock className="w-4 h-4 text-navy-700" />
+                <Clock className="w-4 h-4 text-brand" />
                 <div>
-                  <div className="font-medium text-navy-600">営業時間</div>
-                  <div className="text-sm text-navy-600">9:00-18:00（土日祝休み）</div>
+                  <div className="font-medium text-brand">営業時間</div>
+                  <div className="text-sm text-brand">9:00-18:00（土日祝休み）</div>
                 </div>
               </div>
             </CardContent>
@@ -407,7 +407,7 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
       </div>
 
       {/* Specialty Areas */}
-      <Card className="bg-gray-50">
+      <Card className="bg-bg-secondary">
         <CardHeader>
           <CardTitle>専門分野</CardTitle>
           <CardDescription>この業界で特に強みを持つ領域</CardDescription>
@@ -415,7 +415,7 @@ export function ContactExpertSection({ industry }: ContactExpertSectionProps) {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {specialties.map((specialty, index) => (
-              <Badge key={index} variant="secondary" className="bg-navy-600 text-navy-600 justify-center py-2 px-4">
+              <Badge key={index} className="justify-center py-2 px-4">
                 {specialty}
               </Badge>
             ))}

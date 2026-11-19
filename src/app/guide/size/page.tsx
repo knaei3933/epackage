@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { Ruler, Package, CheckCircle, AlertTriangle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { PageHeader } from '@/components/layout'
 import { HowToSchema } from '@/components/seo/StructuredData'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
@@ -72,24 +73,21 @@ export default function SizeGuide() {
       <BreadcrumbJsonLd pathname="/guide/size" />
       <HowToSchema {...sizeHowToData} />
       <div className="prose prose-gray max-w-none">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-blue-100 rounded-lg text-blue-600">
-          <Ruler className="h-8 w-8" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+      <PageHeader
+        className="mb-10 rounded-container border py-8 md:py-10"
+        title={
+          <>
+            <Ruler className="mr-3 inline-block h-7 w-7 align-[-0.1em] text-brand" aria-hidden="true" />
             サイズガイド
-          </h1>
-          <p className="text-text-secondary">
-            パッケージ寸法と製造仕様
-          </p>
-        </div>
-      </div>
+          </>
+        }
+        lead="パッケージ寸法と製造仕様"
+      />
 
       {/* Size Specification Overview */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-text-primary mb-6 flex items-center">
-          <Package className="h-6 w-6 mr-2 text-brixa-600" />
+          <Package className="h-6 w-6 mr-2 text-brand" />
           サイズ指定の基本
         </h2>
 
@@ -100,28 +98,28 @@ export default function SizeGuide() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="bg-bg-primary rounded-lg p-4 mb-2">
-                <span className="text-2xl font-bold text-brixa-600">W</span>
+                <span className="text-2xl font-bold text-brand">W</span>
               </div>
               <p className="text-sm font-medium text-text-primary">Width (幅)</p>
               <p className="text-xs text-text-secondary">パッケージの横幅</p>
             </div>
             <div className="text-center">
               <div className="bg-bg-primary rounded-lg p-4 mb-2">
-                <span className="text-2xl font-bold text-brixa-600">H</span>
+                <span className="text-2xl font-bold text-brand">H</span>
               </div>
               <p className="text-sm font-medium text-text-primary">Height (高さ)</p>
               <p className="text-xs text-text-secondary">パッケージの高さ</p>
             </div>
             <div className="text-center">
               <div className="bg-bg-primary rounded-lg p-4 mb-2">
-                <span className="text-2xl font-bold text-brixa-600">D</span>
+                <span className="text-2xl font-bold text-brand">D</span>
               </div>
               <p className="text-sm font-medium text-text-primary">Depth (奥行)</p>
               <p className="text-xs text-text-secondary">パッケージの奥行き</p>
             </div>
             <div className="text-center">
               <div className="bg-bg-primary rounded-lg p-4 mb-2">
-                <span className="text-2xl font-bold text-brixa-600">G</span>
+                <span className="text-2xl font-bold text-brand">G</span>
               </div>
               <p className="text-sm font-medium text-text-primary">Gusset (マチ)</p>
               <p className="text-xs text-text-secondary">底部の拡張部分</p>
@@ -178,7 +176,7 @@ export default function SizeGuide() {
         <div className="space-y-6">
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <CheckCircle className="h-5 w-5 text-success mr-2" />
               推奨寸法と制約
             </h3>
             <div className="overflow-x-auto">
@@ -256,9 +254,9 @@ export default function SizeGuide() {
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 border-l-4 border-green-500">
+          <Card className="p-6 border border-success">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <CheckCircle className="h-5 w-5 text-success mr-2" />
               適切なサイズ決定のポイント
             </h3>
             <ol className="space-y-3 text-sm text-text-secondary">
@@ -281,9 +279,9 @@ export default function SizeGuide() {
             </ol>
           </Card>
 
-          <Card className="p-6 border-l-4 border-orange-500">
+          <Card className="p-6 border border-warning">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
-              <AlertTriangle className="h-5 w-5 text-orange-600 mr-2" />
+              <AlertTriangle className="h-5 w-5 text-warning mr-2" />
               よくある間違い
             </h3>
             <ul className="space-y-2 text-sm text-text-secondary">
@@ -309,13 +307,13 @@ export default function SizeGuide() {
         <div className="flex flex-col sm:flex-row gap-4">
           <a
             href="/contact"
-            className="inline-flex items-center justify-center px-6 py-3 bg-brixa-600 text-white rounded-lg hover:bg-brixa-700 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 bg-brand text-on-brand rounded-md hover:bg-brand-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             デザイン相談
           </a>
           <a
             href="/catalog"
-            className="inline-flex items-center justify-center px-6 py-3 border border-border-medium rounded-lg hover:bg-bg-primary transition-colors duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 border border-border-strong rounded-md hover:bg-bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors duration-200"
           >
             製品カタログ
           </a>

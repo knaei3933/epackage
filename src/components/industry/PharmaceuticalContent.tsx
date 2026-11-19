@@ -158,12 +158,12 @@ export function PharmaceuticalContent() {
     <div className="space-y-12">
       {/* Hero Content */}
       <div className="text-center space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">
+        <h2 className="text-3xl font-bold text-text-primary">
           医薬品業界の厳しい基準を
-          <span className="text-navy-700">クリアする</span>
-          <span className="text-navy-700">包装ソリューション</span>
+          <span className="text-brand">クリアする</span>
+          <span className="text-brand">包装ソリューション</span>
         </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl text-text-secondary max-w-3xl mx-auto">
           GMP準拠、安全包装、品質保護の3本柱で医薬品企業の信頼をサポート。
           60社以上の医薬品企業が実績のある専門ソリューション。
         </p>
@@ -176,14 +176,14 @@ export function PharmaceuticalContent() {
             key={feature.id}
             className={`cursor-pointer transition-all duration-300 ${
               activeFeature === feature.id
-                ? 'ring-2 ring-navy-600 bg-navy-50'
-                : 'hover:shadow-lg'
+                ? 'ring-2 ring-brand bg-brand-muted'
+                : 'hover:shadow-low'
             }`}
             onClick={() => setActiveFeature(feature.id)}
           >
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-8 h-8 text-navy-700" />
+                <feature.icon className="w-8 h-8 text-brand" />
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </div>
               <CardDescription>{feature.description}</CardDescription>
@@ -200,8 +200,8 @@ export function PharmaceuticalContent() {
                   return validFeatures.slice(0, 4);
                 })().map((item, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-navy-600" />
-                    <span className="text-sm text-gray-600">{item}</span>
+                    <CheckCircle className="w-4 h-4 text-brand" />
+                    <span className="text-sm text-text-secondary">{item}</span>
                   </div>
                 ))}
               </div>
@@ -211,36 +211,36 @@ export function PharmaceuticalContent() {
       </div>
 
       {/* Detailed Feature Content */}
-      <div className="bg-gradient-to-br from-navy-50 to-navy-100 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         {(() => {
           const feature = features.find(f => f.id === activeFeature)!
           return (
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-10 h-10 text-navy-700" />
-                <h3 className="text-2xl font-bold text-gray-900">{feature.title}</h3>
+                <feature.icon className="w-10 h-10 text-brand" />
+                <h3 className="text-2xl font-bold text-text-primary">{feature.title}</h3>
               </div>
 
-              <p className="text-lg text-gray-700">{feature.description}</p>
+              <p className="text-lg text-text-secondary">{feature.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">主要特性</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">主要特性</h4>
                   <ul className="space-y-2">
                     {(feature.compliance || feature.safetyFeatures || feature.protectionTech).map((item, index) => (
                       <li key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5 text-navy-600" />
-                        <span className="text-gray-700">{item}</span>
+                        <CheckCircle className="w-5 h-5 text-brand" />
+                        <span className="text-text-secondary">{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">認証・基準</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">認証・基準</h4>
                   <div className="flex flex-wrap gap-2">
                     {(feature.standards || feature.tests || feature.stability).map((item, index) => (
-                      <Badge key={index} variant="secondary" className="bg-navy-600 text-navy-600">
+                      <Badge key={index}>
                         {item}
                       </Badge>
                     ))}
@@ -255,34 +255,34 @@ export function PharmaceuticalContent() {
       {/* Implementation Cases */}
       <div className="space-y-8">
         <div className="flex items-center space-x-3">
-          <Award className="w-8 h-8 text-navy-700" />
-          <h3 className="text-2xl font-bold text-gray-900">導入事例</h3>
+          <Award className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">導入事例</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {implementationCases.map((case_, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow border-navy-600">
+            <Card key={index} className="hover:shadow-low transition-shadow border-brand">
               <CardHeader>
                 <CardTitle className="text-lg">{case_.company}</CardTitle>
                 <CardDescription>{case_.product}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">課題</h4>
-                  <p className="text-sm text-gray-600">{case_.challenge}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">課題</h4>
+                  <p className="text-sm text-text-secondary">{case_.challenge}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">ソリューション</h4>
-                  <p className="text-sm text-gray-600">{case_.solution}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
+                  <p className="text-sm text-text-secondary">{case_.solution}</p>
                 </div>
 
-                <div className="bg-gradient-to-r from-navy-50 to-navy-100 rounded-lg p-4">
-                  <h4 className="font-semibold text-navy-600 mb-3">実績</h4>
+                <div className="bg-bg-secondary rounded-lg p-4">
+                  <h4 className="font-semibold text-brand mb-3">実績</h4>
                   <div className="space-y-2 text-sm">
                     {Object.entries(case_.results).map(([key, value]) => (
                       <div key={key} className="flex justify-between">
-                        <span className="text-navy-600">
+                        <span className="text-brand">
                           {key === 'stability' && '安定性期間: '}
                           {key === 'compliance' && 'コンプライアンス: '}
                           {key === 'patientAdherence' && '患者服薬アドherence: '}
@@ -296,7 +296,7 @@ export function PharmaceuticalContent() {
                           {key === 'productionEfficiency' && '生産効率: '}
                           {key === 'marketShare' && '市場シェア: '}
                         </span>
-                        <span className="text-navy-600 font-semibold">{value}</span>
+                        <span className="text-brand font-semibold">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -308,32 +308,32 @@ export function PharmaceuticalContent() {
       </div>
 
       {/* Global Regulations */}
-      <div className="bg-gray-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         <div className="flex items-center space-x-3 mb-6">
-          <Globe className="w-8 h-8 text-navy-700" />
-          <h3 className="text-2xl font-bold text-gray-900">世界各国の規制対応</h3>
+          <Globe className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">世界各国の規制対応</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {regulations.map((reg, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="hover:shadow-low transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg text-navy-600">{reg.country}</CardTitle>
+                <CardTitle className="text-lg text-brand">{reg.country}</CardTitle>
                 <CardDescription>{reg.authority}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-semibold mb-1 text-gray-900">主要法律</h4>
-                    <p className="text-sm text-navy-700 font-medium">{reg.mainLaw}</p>
+                    <h4 className="font-semibold mb-1 text-text-primary">主要法律</h4>
+                    <p className="text-sm text-brand font-medium">{reg.mainLaw}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-1 text-gray-900">主な要件</h4>
+                    <h4 className="font-semibold mb-1 text-text-primary">主な要件</h4>
                     <ul className="text-sm space-y-1">
                       {reg.requirements.slice(0, 3).map((req, reqIndex) => (
                         <li key={reqIndex} className="flex items-start space-x-1">
-                          <CheckCircle className="w-3 h-3 text-navy-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-600">{req}</span>
+                          <CheckCircle className="w-3 h-3 text-brand mt-0.5 flex-shrink-0" />
+                          <span className="text-text-secondary">{req}</span>
                         </li>
                       ))}
                     </ul>
@@ -346,44 +346,44 @@ export function PharmaceuticalContent() {
       </div>
 
       {/* Quality Management System */}
-      <div className="bg-white rounded-xl p-8 border border-navy-600">
+      <div className="bg-white rounded-container p-8 border border-brand">
         <div className="flex items-center space-x-3 mb-6">
-          <FileCheck className="w-8 h-8 text-navy-700" />
-          <h3 className="text-2xl font-bold text-gray-900">品質マネジメントシステム</h3>
+          <FileCheck className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">品質マネジメントシステム</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">文書管理</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">文書管理</h4>
             <ul className="space-y-2">
               {qualitySystem.documentation.map((doc, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-navy-600" />
-                  <span className="text-sm text-gray-700">{doc}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{doc}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">プロセス</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">プロセス</h4>
             <ul className="space-y-2">
               {qualitySystem.processes.map((process, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-navy-600" />
-                  <span className="text-sm text-gray-700">{process}</span>
+                  <Users className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{process}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">検証活動</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">検証活動</h4>
             <ul className="space-y-2">
               {qualitySystem.validations.map((validation, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4 text-navy-600" />
-                  <span className="text-sm text-gray-700">{validation}</span>
+                  <Shield className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{validation}</span>
                 </li>
               ))}
             </ul>
@@ -392,29 +392,29 @@ export function PharmaceuticalContent() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-navy-700 to-indigo-600 rounded-xl p-8 text-center text-white">
+      <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
         <h3 className="text-2xl font-bold mb-4">医薬品包装で実現価値</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">99%</div>
             <div>コンプライアンス達成率</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">60+</div>
             <div>医薬品企業導入実績</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+          <div className="bg-bg-primary text-text-primary rounded-md p-6">
             <div className="text-3xl font-bold mb-2">20%+</div>
             <div>品質安定性向上</div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-white text-navy-600 hover:bg-gray-100 font-semibold px-8 py-4">
+          <Button size="lg" className="bg-white text-brand hover:bg-bg-secondary font-semibold px-8 py-4">
             <FileCheck className="w-5 h-5 mr-2" />
             規格対応資料ダウンロード
           </Button>
-          <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-navy-600 font-semibold px-8 py-4">
+          <Button size="lg" variant="outline">
             <Users className="w-5 h-5 mr-2" />
             専門家相談を予約
           </Button>

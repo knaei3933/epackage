@@ -169,11 +169,11 @@ export function ElectronicsContent() {
     <div className="space-y-12">
       {/* Hero Content */}
       <div className="text-center space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">
+        <h2 className="text-3xl font-bold text-text-primary">
           電子部品の価値を守る
-          <span className="text-purple-600">先進的包装ソリューション</span>
+          <span className="text-brand">先進的包装ソリューション</span>
         </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl text-text-secondary max-w-3xl mx-auto">
           ESD防止、衝撃吸収、精密保護の3大機能で電子部品の品質と信頼性を徹底守る。
           120社以上の電子企業が導入済みの実績あるソリューション。
         </p>
@@ -186,14 +186,14 @@ export function ElectronicsContent() {
             key={feature.id}
             className={`cursor-pointer transition-all duration-300 ${
               activeFeature === feature.id
-                ? 'ring-2 ring-purple-500 bg-purple-50'
-                : 'hover:shadow-lg'
+                ? 'ring-2 ring-brand bg-brand-muted'
+                : 'hover:shadow-low'
             }`}
             onClick={() => setActiveFeature(feature.id)}
           >
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-8 h-8 text-purple-600" />
+                <feature.icon className="w-8 h-8 text-brand" />
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </div>
               <CardDescription>{feature.description}</CardDescription>
@@ -210,8 +210,8 @@ export function ElectronicsContent() {
                   return validFeatures.slice(0, 4);
                 })().map((item, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-purple-500" />
-                    <span className="text-sm text-gray-600">{item}</span>
+                    <CheckCircle className="w-4 h-4 text-brand" />
+                    <span className="text-sm text-text-secondary">{item}</span>
                   </div>
                 ))}
               </div>
@@ -221,36 +221,36 @@ export function ElectronicsContent() {
       </div>
 
       {/* Detailed Feature Content */}
-      <div className="bg-gradient-to-br from-purple-50 to-navy-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         {(() => {
           const feature = features.find(f => f.id === activeFeature)!
           return (
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
-                <feature.icon className="w-10 h-10 text-purple-600" />
-                <h3 className="text-2xl font-bold text-gray-900">{feature.title}</h3>
+                <feature.icon className="w-10 h-10 text-brand" />
+                <h3 className="text-2xl font-bold text-text-primary">{feature.title}</h3>
               </div>
 
-              <p className="text-lg text-gray-700">{feature.description}</p>
+              <p className="text-lg text-text-secondary">{feature.description}</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">主要技術</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">主要技術</h4>
                   <ul className="space-y-2">
                     {(feature.esdProtection || feature.shockAbsorption || feature.protectionTech).map((item, index) => (
                       <li key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5 text-purple-500" />
-                        <span className="text-gray-700">{item}</span>
+                        <CheckCircle className="w-5 h-5 text-brand" />
+                        <span className="text-text-secondary">{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-3 text-gray-900">関連素材・技術</h4>
+                  <h4 className="font-semibold mb-3 text-text-primary">関連素材・技術</h4>
                   <div className="flex flex-wrap gap-2">
                     {(feature.materials || feature.testing || feature.precision).map((item, index) => (
-                      <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800">
+                      <Badge key={index} variant="secondary" className="bg-brand-muted text-text-primary">
                         {item}
                       </Badge>
                     ))}
@@ -265,34 +265,34 @@ export function ElectronicsContent() {
       {/* Supply Chain Cases */}
       <div className="space-y-8">
         <div className="flex items-center space-x-3">
-          <Award className="w-8 h-8 text-purple-600" />
-          <h3 className="text-2xl font-bold text-gray-900">供給網安定化事例</h3>
+          <Award className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">供給網安定化事例</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {supplyChainCases.map((case_, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow border-purple-200">
+            <Card key={index} className="hover:shadow-low transition-shadow border-border-medium">
               <CardHeader>
                 <CardTitle className="text-lg">{case_.company}</CardTitle>
                 <CardDescription>{case_.product}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">課題</h4>
-                  <p className="text-sm text-gray-600">{case_.challenge}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">課題</h4>
+                  <p className="text-sm text-text-secondary">{case_.challenge}</p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">ソリューション</h4>
-                  <p className="text-sm text-gray-600">{case_.solution}</p>
+                  <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
+                  <p className="text-sm text-text-secondary">{case_.solution}</p>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-50 to-navy-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-purple-900 mb-3">実績</h4>
+                <div className="bg-bg-secondary rounded-lg p-4">
+                  <h4 className="font-semibold text-text-primary mb-3">実績</h4>
                   <div className="space-y-2 text-sm">
                     {Object.entries(case_.results).map(([key, value]) => (
                       <div key={key} className="flex justify-between">
-                        <span className="text-purple-700">
+                        <span className="text-brand">
                           {key === 'esdFailures' && 'ESD不良率: '}
                           {key === 'shippingCost' && '輸送コスト: '}
                           {key === 'handlingTime' && '取り扱い時間: '}
@@ -306,7 +306,7 @@ export function ElectronicsContent() {
                           {key === 'humidityControl' && '湿度管理: '}
                           {key === 'lifespan' && '寿命延長: '}
                         </span>
-                        <span className="text-purple-900 font-semibold">{value}</span>
+                        <span className="text-text-primary font-semibold">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -318,29 +318,29 @@ export function ElectronicsContent() {
       </div>
 
       {/* Global Standards */}
-      <div className="bg-gray-50 rounded-xl p-8">
+      <div className="bg-bg-secondary rounded-container p-8">
         <div className="flex items-center space-x-3 mb-6">
-          <Globe className="w-8 h-8 text-purple-600" />
-          <h3 className="text-2xl font-bold text-gray-900">国際規格対応</h3>
+          <Globe className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">国際規格対応</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {globalStandards.map((standard, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="hover:shadow-low transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg text-purple-700">{standard.standard}</CardTitle>
+                <CardTitle className="text-lg text-brand">{standard.standard}</CardTitle>
                 <CardDescription>{standard.organization}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">{standard.description}</p>
+                  <p className="text-sm text-text-secondary">{standard.description}</p>
                   <div>
-                    <h4 className="font-semibold mb-1 text-gray-900">対応範囲</h4>
+                    <h4 className="font-semibold mb-1 text-text-primary">対応範囲</h4>
                     <ul className="text-sm space-y-1">
                       {standard.compliance.slice(0, 2).map((item, itemIndex) => (
                         <li key={itemIndex} className="flex items-start space-x-1">
-                          <CheckCircle className="w-3 h-3 text-purple-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-600">{item}</span>
+                          <CheckCircle className="w-3 h-3 text-brand mt-0.5 flex-shrink-0" />
+                          <span className="text-text-secondary">{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -356,44 +356,44 @@ export function ElectronicsContent() {
       </div>
 
       {/* Technology Stack */}
-      <div className="bg-white rounded-xl p-8 border border-purple-200">
+      <div className="bg-white rounded-container p-8 border border-border-medium">
         <div className="flex items-center space-x-3 mb-6">
-          <Zap className="w-8 h-8 text-purple-600" />
-          <h3 className="text-2xl font-bold text-gray-900">技術ポートフォリオ</h3>
+          <Zap className="w-8 h-8 text-brand" />
+          <h3 className="text-2xl font-bold text-text-primary">技術ポートフォリオ</h3>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">先進素材</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">先進素材</h4>
             <ul className="space-y-2">
               {technologies.materials.map((material, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-gray-700">{material}</span>
+                  <CheckCircle className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{material}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">製造技術</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">製造技術</h4>
             <ul className="space-y-2">
               {technologies.manufacturing.map((tech, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-gray-700">{tech}</span>
+                  <Users className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{tech}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3 text-gray-900">検証技術</h4>
+            <h4 className="font-semibold mb-3 text-text-primary">検証技術</h4>
             <ul className="space-y-2">
               {technologies.testing.map((test, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <Shield className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-gray-700">{test}</span>
+                  <Shield className="w-4 h-4 text-brand" />
+                  <span className="text-sm text-text-secondary">{test}</span>
                 </li>
               ))}
             </ul>
@@ -402,11 +402,11 @@ export function ElectronicsContent() {
       </div>
 
       {/* Supply Chain Benefits */}
-      <div className="bg-gradient-to-r from-purple-600 to-navy-700 rounded-xl p-8 text-center text-white">
+      <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
         <h3 className="text-2xl font-bold mb-4">供給網安定化で実現価値</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {supplyChainBenefits.map((benefit, index) => (
-            <div key={index} className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+            <div key={index} className="bg-bg-primary text-text-primary rounded-md p-4">
               <div className="text-2xl font-bold mb-1">{benefit.improvement}</div>
               <div className="text-sm font-medium mb-2">{benefit.metric}</div>
               <div className="text-xs opacity-90">{benefit.impact}</div>
@@ -415,11 +415,11 @@ export function ElectronicsContent() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-white text-purple-800 hover:bg-gray-100 font-semibold px-8 py-4">
+          <Button size="lg">
             <Link className="w-5 h-5 mr-2" />
             規格対応詳細
           </Button>
-          <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-800 font-semibold px-8 py-4">
+          <Button size="lg" variant="outline">
             <TrendingUp className="w-5 h-5 mr-2" />
             ROI分析レポート
           </Button>
