@@ -34,6 +34,14 @@ const CORE_RULES = [
     message: '廃止の variant（metallic / brixa-gradient）は使わない',
     pattern: /variant=["'](?:metallic|brixa-gradient)["']/,
   },
+  {
+    id: 'same-color-text',
+    message: '同じ文字列の中で、面の色と文字の色が同じトークン（bg-brand と text-brand など）になっている。文字が消える。文字は text-on-brand / text-on-error など、-muted の面なら text-on-*-muted にする',
+    // 引用符で囲んだ 1 つのクラス列の中に、bg-X と text-X（X は同じ）が両方ある（順序は問わない）。
+    // 前が「英数字と : と -」のときは見ない（hover:bg-brand や text-on-brand に誤って一致しないため）。
+    // " / " を含む文字列は、クラス列ではなく説明の文なので見ない（例: 'text-brand / bg-brand'）。
+    pattern: /(["'`])(?!(?:(?!\1).)* \/ )(?=(?:(?!\1).)*?(?<![\w:-])bg-(brand|success|warning|error|info)(?![\w-]))(?=(?:(?!\1).)*?(?<![\w:-])text-\2(?![\w-]))(?:(?!\1).)*\1/,
+  },
 ]
 
 const HUES = 'blue|indigo|purple|violet|pink|rose|fuchsia|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|red'

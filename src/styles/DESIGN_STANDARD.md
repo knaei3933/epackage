@@ -99,7 +99,7 @@
 | 役割 | 使う場所 | 大きさ（スマホ → PC） | 太さ | 行の高さ | 書体 |
 |---|---|---|---|---|---|
 | display | トップのヒーローの h1 | 28 → 40 → 48px | 400〜600 | 1.35 | `font-heading` |
-| title | 公開ページの h1 | 28 → 36px | 500 | 1.4 | `font-heading` |
+| title | 公開ページの h1 | 22〜28 → 36px（スマホは画面幅の 6.4%。375px で 24px、437px 以上で 28px） | 500 | 1.4 | `font-heading` |
 | section | h2 | 24 → 32px | 500 | 1.4 | 公開ページは `font-heading`、画面の部品は sans の 700 |
 | subsection | h3 | 18 → 20px | 700 | 1.5 | sans |
 | body | 本文 | 15 → 16px | 400 | 1.8 | sans |
@@ -109,6 +109,10 @@
 - 書体: `font-sans`（Noto Sans JP → Hiragino Sans → Yu Gothic）、`font-heading`（Shippori Mincho B1 → Hiragino Mincho ProN → Yu Mincho → serif）。
   明朝は `src/components/home/fonts.ts` が読み込む（変数 `--font-heading`）。読み込んだ範囲の外では、明朝系のシステム書体になる。
 - h1 は 1 ページに 1 つ。見出しは `[word-break:keep-all] [overflow-wrap:anywhere]` で、語の途中で切らない。
+  日本語は語の切れ目が空白で示されないので、`keep-all` だけでは行末で機械的に切れる（「パッケージ／ング」）。
+  文節の切れ目で改行するため、`supports-[word-break:auto-phrase]:[word-break:auto-phrase]` と `text-balance` を足す（Chrome 系。使えないブラウザでは `keep-all` のまま）。`PageHeader` と `AuthShell` の h1 は、これを含んでいる。
+  スマホの文字は `text-[length:clamp(1.375rem,6.4vw,1.75rem)]`。14 字の長いカタカナ語（パッケージングソリューション）が、343px の幅に 1 行で入るようにしてある。
+  それでも、カタカナの複合語の中は、ブラウザが見分けられない。長い複合語の前には、改行してよい位置 `<wbr />` を置く（例: `industry/HeaderSection.tsx` の `breakBeforeLongWords`）。表示される文字は変わらない。
 - 本文の 1 行は、全角で 40 字（`max-w-[40em]`）まで。
 - 使わない: グラデーション文字、英字の全大文字の小ラベル、`tracking-widest`、0.02em を超える字間。
 - 太字は、見出しとラベルだけ。
@@ -175,6 +179,8 @@
 - 角: `rounded-element`。
 - `metallic` と `brixa-gradient` は廃止。型には残してあり、`primary` と同じ見た目で表示される。`Badge` / `Card` / `Input` の `metallic` も同じ扱い（`Badge` の呼び出しは `default` に置き換えずみ）。
 - 無効は不透明度 50%。読み込み中は、大きさを変えずにスピナーを出す。
+- アイコンは `icon` プロップに渡す（右側は `iconPosition="right"`）。子に直接置いた svg も、文字と同じ行に出る（余白は `mr-2` / `ml-2`）。
+- リンクをボタンの見た目にするときは、`<Link className={buttonVariants({ variant, size })}>` にする。`<Link><Button>…</Button></Link>` の入れ子にしない（押せる範囲が `a` と `button` に分かれ、スマホの 44px も測れなくなる）。
 
 ### 入力欄（Input / Select / Textarea）
 
@@ -290,7 +296,9 @@
 | トップページ（トークンへの置き換え、ボタンの色） | 完了 |
 | `/design-system` ページ（この基準の見本） | 完了 |
 | 適合テスト（`jest src/styles`。適用ずみの範囲に、透明度つきのトークン色・グラデーション・ぼかし・大きな影・色の 16 進数が入ると落ちる） | 完了。公開ページに適用を広げるたび、テストの対象（`ui-standard.test.ts` の `GOVERNED_*`）に足す |
-| 公開ページ 60 本（ヒーロー、色、飾りの整理） | 未着手 |
+| 公開ページ（第 2 段階の主要 26 本: `/about` `/contact`（+ thank-you）`/catalog`（+ 詳細）`/flow` `/quote-simulator`（上部）`/guide`（+ 5 つ）`/industry` 4 本 `/auth` 9 本。ページの頭は `PageHeader`） | 完了。変換した 86 ファイル（トップの 8 を含む）は、`GOVERNED_PAGE_FILES` で機械的に守る |
+| 公開ページ（残り約 30 本: `/pricing` `/service` `/samples` `/blog` `/news` `/legal` `/privacy` `/terms` `/csr` `/archives` `/cart` `/compare` `/designer*` `/inquiry/detailed` ほか）と `src/components/lp/**` | 未着手 |
+| 見積りシミュレーターの内部（`SpecsStep` の本体、`previews/**`、`MaterialSelection`、`PriceBreakdown`） | 未着手（色の見本として意味のある色を含むため、個別に判断する） |
 | 会員・管理画面 | 共通部品と値の更新で自動的にそろう。個別の整理は未着手 |
 
 ## 14. PR のチェックリスト
@@ -302,6 +310,7 @@
 - [ ] 文字は 4.5:1、部品の枠は 3:1 以上（薄い灰色を文字に使っていない）
 - [ ] 状態は、色だけで伝えていない（アイコンか言葉がある）
 - [ ] フォーカスが見える。スマホで押せる範囲が 44px 以上
+- [ ] ボタンの中のアイコンは `icon` プロップ。リンクをボタンの見た目にするときは `buttonVariants`（`<Link><Button>` の入れ子にしない）
 - [ ] 375px 幅で横にはみ出さない。見出しが語の途中で切れない
 - [ ] `/design-system` に載せる必要がある変更なら、見本も更新した
 - [ ] `./node_modules/.bin/jest src/styles` が通る（基準を適用ずみの範囲を機械で守る）
