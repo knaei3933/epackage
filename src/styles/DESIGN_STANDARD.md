@@ -109,7 +109,8 @@
 - 書体: `font-sans`（Noto Sans JP → Hiragino Sans → Yu Gothic）、`font-heading`（Shippori Mincho B1 → Hiragino Mincho ProN → Yu Mincho → serif）。
   明朝は `src/components/home/fonts.ts` が読み込む（変数 `--font-heading`）。読み込んだ範囲の外では、明朝系のシステム書体になる。
 - h1 は 1 ページに 1 つ。見出し（h1〜h6）は、語の途中で切らない。**この指定は、`src/app/globals.css` の基本の指定（`h1, h2, … h6`）が 1 回で決める**（`word-break: keep-all`、`overflow-wrap: anywhere`、`text-wrap: balance`。`auto-phrase` が使えるブラウザでは、文節の切れ目で切る）。見出しごとにクラスを付けない（第 2b 段階の検収で、付け忘れが 64 件見つかったため）。`jest src/styles` が、この指定を守る。
-  日本語は語の切れ目が空白で示されないので、`keep-all` だけでは行末で機械的に切れる（「パッケージ／ング」）。Chrome 系は `auto-phrase` が文節を見分けるが、カタカナの複合語の中は見分けられない。
+  日本語は語の切れ目が空白で示されないので、`keep-all` だけでは行末で機械的に切れる（「パッケージ／ング」）。Chrome 系の `auto-phrase` は文節を見分けるが、**見分けられるのは一部**。名詞が長く続く語（カタカナの複合語、「…展示会」「…導入事例」のような漢字の複合語）は 1 つのまとまりと見なされ、幅に入らないと行末で切れる（第 2b 段階の検収で確認。変更前から切れていて、退行ではない。計算値は `word-break: auto-phrase`、`html lang="ja"` で効いている）。
+  確実に防ぎたい見出し（ページのタイトル、固定の見出し）は、まとまりの前に `<wbr />` を置く。記事や事例のタイトルのように、データから来る見出しは、データの側に区切りを持たせるか、見出しの文字を小さくする（今回はしていない）。
   スマホの文字は `text-[length:clamp(1.375rem,6.4vw,1.75rem)]`。14 字の長いカタカナ語（パッケージングソリューション）が、343px の幅に 1 行で入るようにしてある。
   それでも、カタカナの複合語の中は、ブラウザが見分けられない。長い複合語の前には、改行してよい位置 `<wbr />` を置く（例: `industry/HeaderSection.tsx` の `breakBeforeLongWords`）。表示される文字は変わらない。
 - 本文の 1 行は、全角で 40 字（`max-w-[40em]`）まで。
