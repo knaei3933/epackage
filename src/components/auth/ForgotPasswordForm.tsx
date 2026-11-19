@@ -13,7 +13,7 @@ import React, { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { Input, Button, Card } from '@/components/ui';
+import { Input, Button, Card, Alert } from '@/components/ui';
 import { z } from 'zod';
 
 // =====================================================
@@ -117,21 +117,17 @@ export default function ForgotPasswordForm({
       <form onSubmit={handleSubmit(onSubmit)} className={className}>
         {/* サーバーエラーメッセージ */}
         {serverError && (
-          <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
-            <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
-          </div>
+          <Alert variant="destructive" className="mb-6">{serverError}</Alert>
         )}
 
         {/* 成功メッセージ */}
         {successMessage && (
-          <div className="mb-6 p-4 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg">
-            <p className="text-sm text-success-600 dark:text-success-400">
-              {successMessage}
-            </p>
-            <p className="text-xs text-success-600 dark:text-success-400 mt-2">
+          <Alert variant="success" className="mb-6">
+            <p>{successMessage}</p>
+            <p className="mt-2 text-xs">
               メールが届かない場合は、迷惑メールフォルダをご確認ください。
             </p>
-          </div>
+          </Alert>
         )}
 
         {/* =====================================================
@@ -146,7 +142,7 @@ export default function ForgotPasswordForm({
             required
             {...register('email')}
           />
-          <p className="text-xs text-text-muted mt-2">
+          <p className="mt-2 text-sm text-text-secondary">
             ご登録のメールアドレスにパスワード再設定用のリンクをお送りします。
           </p>
         </div>

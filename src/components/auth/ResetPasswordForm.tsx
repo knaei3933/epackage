@@ -14,7 +14,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Input, Button, Card } from '@/components/ui';
+import { Eye, EyeOff } from 'lucide-react';
+import { Input, Button, Card, Alert } from '@/components/ui';
 import { z } from 'zod';
 
 // =====================================================
@@ -148,10 +149,8 @@ function ResetPasswordFormContent({
   if (!token) {
     return (
       <Card className="p-6 md:p-8">
-        <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
-          <p className="text-sm text-error-600 dark:text-error-400 mb-4">
-            {serverError || '無効なリンクです。'}
-          </p>
+        <Alert variant="destructive" className="mb-6">
+          <p className="mb-4">{serverError || '無効なリンクです。'}</p>
           <Button
             variant="primary"
             size="lg"
@@ -160,7 +159,7 @@ function ResetPasswordFormContent({
           >
             パスワード再設定をやり直す
           </Button>
-        </div>
+        </Alert>
       </Card>
     );
   }
@@ -170,9 +169,7 @@ function ResetPasswordFormContent({
       <form onSubmit={handleSubmit(onSubmit)} className={className}>
         {/* サーバーエラーメッセージ */}
         {serverError && (
-          <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
-            <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
-          </div>
+          <Alert variant="destructive" className="mb-6">{serverError}</Alert>
         )}
 
         {/* =====================================================
@@ -188,10 +185,11 @@ function ResetPasswordFormContent({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-text-muted hover:text-text-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-md text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11"
+              aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示'}
               tabIndex={-1}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           }
           {...register('password')}
@@ -211,10 +209,11 @@ function ResetPasswordFormContent({
             <button
               type="button"
               onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-              className="text-text-muted hover:text-text-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-md text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11"
+              aria-label={showPasswordConfirm ? 'パスワードを隠す' : 'パスワードを表示'}
               tabIndex={-1}
             >
-              {showPasswordConfirm ? '👁️' : '👁️‍🗨️'}
+              {showPasswordConfirm ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           }
           {...register('passwordConfirm')}
@@ -241,7 +240,7 @@ function ResetPasswordFormContent({
 //Suspense boundary for useSearchParams
 export default function ResetPasswordForm(props: ResetPasswordFormProps) {
   return (
-    <Suspense fallback={<div className="animate-pulse bg-gray-200 rounded-lg h-96" />}>
+    <Suspense fallback={<div className="h-96 animate-pulse rounded-container bg-bg-muted" />}>
       <ResetPasswordFormContent {...props} />
     </Suspense>
   );

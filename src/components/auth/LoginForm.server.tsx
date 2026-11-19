@@ -7,7 +7,13 @@
  * - JavaScript不要で確実にクッキーが保存される
  */
 
-import { Card } from '@/components/ui';
+import { Card, buttonVariants } from '@/components/ui';
+
+// 素の <input> は、共通の Input と同じ見た目になるクラスにそろえる（フォームの処理は変えない）
+const FIELD_CLASS =
+  'h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11';
+const LINK_CLASS =
+  'inline-flex min-h-11 items-center rounded-inner text-sm text-brand underline underline-offset-4 hover:text-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 interface LoginFormServerProps {
   redirectUrl?: string;
@@ -28,8 +34,8 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             メールアドレス
             ===================================================== */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
-            メールアドレス<span className="text-error-500">*</span>
+          <label htmlFor="email" className="mb-2 block text-sm font-medium text-text-primary">
+            メールアドレス<span className="ml-1 text-error">*</span>
           </label>
           <input
             id="email"
@@ -37,7 +43,7 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             type="email"
             required
             placeholder="example@company.com"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+            className={FIELD_CLASS}
           />
         </div>
 
@@ -45,8 +51,8 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             パスワード
             ===================================================== */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-1">
-            パスワード<span className="text-error-500">*</span>
+          <label htmlFor="password" className="mb-2 block text-sm font-medium text-text-primary">
+            パスワード<span className="ml-1 text-error">*</span>
           </label>
           <input
             id="password"
@@ -54,7 +60,7 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             type="password"
             required
             placeholder="••••••••"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+            className={FIELD_CLASS}
           />
         </div>
 
@@ -62,11 +68,11 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             ログイン維持 & パスワード再設定
             ===================================================== */}
         <div className="flex items-center justify-between">
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label className="flex min-h-11 cursor-pointer items-center space-x-2">
             <input
               name="remember"
               type="checkbox"
-              className="w-4 h-4 text-brixa-500"
+              className="h-4 w-4 rounded-inner border-border-strong accent-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             />
             <span className="text-sm text-text-primary">
               ログイン状態を保持
@@ -75,7 +81,7 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
 
           <a
             href="/auth/forgot-password"
-            className="text-sm text-brixa-500 hover:text-brixa-600"
+            className={LINK_CLASS}
           >
             パスワードを忘れた方
           </a>
@@ -86,7 +92,7 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             ===================================================== */}
         <button
           type="submit"
-          className="w-full px-4 py-2 bg-brixa-500 text-white rounded-lg hover:bg-brixa-600 transition-colors"
+          className={buttonVariants({ variant: 'primary', size: 'lg', fullWidth: true })}
         >
           ログイン
         </button>
@@ -95,11 +101,11 @@ export default function LoginFormServer({ redirectUrl = '/member/dashboard' }: L
             会員登録リンク
             ===================================================== */}
         <div className="text-center">
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-secondary">
             まだアカウントをお持ちでない方{' '}
             <a
               href="/auth/register"
-              className="text-brixa-500 hover:text-brixa-600 font-medium"
+              className={`${LINK_CLASS} font-medium`}
             >
               会員登録
             </a>

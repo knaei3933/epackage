@@ -23,27 +23,27 @@ export function AuthModal({ isOpen, onClose, featureName }: AuthModalProps) {
       aria-labelledby="auth-modal-title"
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl"
+        className="mx-4 w-full max-w-md rounded-container border border-border-medium bg-bg-primary p-6 shadow-high"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h3
             id="auth-modal-title"
-            className="text-lg font-semibold flex items-center text-gray-900 dark:text-white"
+            className="flex items-center text-lg font-bold text-text-primary"
           >
-            <Lock className="w-5 h-5 mr-2 text-brixa-600" />
+            <Lock className="mr-2 h-5 w-5 text-brand" aria-hidden="true" />
             会員限定機能
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-md text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             aria-label="閉じる"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
+        <p className="mb-6 text-text-secondary">
           「{featureName}」機能は会員登録後にご利用いただけます。
         </p>
 
@@ -58,12 +58,12 @@ export function AuthModal({ isOpen, onClose, featureName }: AuthModalProps) {
           </Button>
         </div>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 text-center">
+        <p className="mt-4 text-center text-sm text-text-secondary">
           すでに会員の方は
           <Link
             href="/auth/signin"
             onClick={onClose}
-            className="text-brixa-600 hover:text-brixa-700 hover:underline ml-1"
+            className="ml-1 inline-flex min-h-11 items-center text-brand underline underline-offset-4 hover:text-brand-pressed"
           >
             こちらからログイン
           </Link>

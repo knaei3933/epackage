@@ -6,6 +6,14 @@
  */
 
 import { redirect } from 'next/navigation';
+import { AuthShell } from '@/components/auth/AuthShell';
+import { Card, buttonVariants } from '@/components/ui';
+
+// 素の <input> は、共通の Input と同じ見た目になるクラスにそろえる（フォームの処理は変えない）
+const FIELD_CLASS =
+  'h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11';
+const LINK_CLASS =
+  'inline-flex min-h-11 items-center rounded-inner text-sm text-brand underline underline-offset-4 hover:text-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
 
 // =====================================================
 // Page Component
@@ -20,89 +28,77 @@ export default async function SignInPage({
   const redirectUrl = params.redirect || '/member/dashboard';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full">
-        {/* Card container - using div instead of Card component */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-          <h1 className="text-2xl font-bold text-center mb-6">ログイン</h1>
-          <p className="text-center text-gray-600 mb-6">アカウント情報を入力してください。</p>
+    <AuthShell title="ログイン" description="アカウント情報を入力してください。" brand={false}>
+      <Card className="p-6 md:p-8">
+        {/* Traditional form POST - server will handle cookies */}
+        <form action="/api/auth/signin" method="POST">
+          <input type="hidden" name="redirect" value={redirectUrl} />
 
-          {/* Traditional form POST - server will handle cookies */}
-          <form action="/api/auth/signin" method="POST">
-            <input type="hidden" name="redirect" value={redirectUrl} />
+          {/* Email */}
+          <div className="mb-4">
+            <label htmlFor="email" className="mb-2 block text-sm font-medium text-text-primary">
+              メールアドレス
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              placeholder="example@company.com"
+              className={FIELD_CLASS}
+            />
+          </div>
 
-            {/* Email */}
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                メールアドレス
-              </label>
+          {/* Password */}
+          <div className="mb-4">
+            <label htmlFor="password" className="mb-2 block text-sm font-medium text-text-primary">
+              パスワード
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              placeholder="•••••••••"
+              className={FIELD_CLASS}
+            />
+          </div>
+
+          {/* Remember me */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4">
+            <label className="flex min-h-11 items-center">
               <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                placeholder="example@company.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="checkbox"
+                name="remember"
+                className="h-4 w-4 rounded-inner border-border-strong accent-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               />
-            </div>
+              <span className="ml-2 text-sm text-text-primary">
+                ログイン状態を保持
+              </span>
+            </label>
 
-            {/* Password */}
-            <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                パスワード
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder="•••••••••"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <a href="/auth/forgot-password" className={LINK_CLASS}>
+              パスワードを忘れた方
+            </a>
+          </div>
 
-            {/* Remember me */}
-            <div className="flex items-center justify-between mb-6">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="remember"
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  ログイン状態を保持
-                </span>
-              </label>
+          {/* Submit button */}
+          <button
+            type="submit"
+            className={buttonVariants({ variant: 'primary', size: 'lg', fullWidth: true })}
+          >
+            ログイン
+          </button>
 
-              <a
-                href="/auth/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                パスワードを忘れた方
-              </a>
-            </div>
-
-            {/* Submit button */}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              ログイン
-            </button>
-
-            {/* Register link */}
-            <p className="text-center text-sm text-gray-600 mt-4">
-              まだアカウントをお持ちでない方{' '}
-              <a
-                href="/auth/register"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                会員登録
-              </a>
-            </p>
-          </form>
-        </div>
-      </div>
-    </div>
+          {/* Register link */}
+          <p className="mt-4 text-center text-sm text-text-secondary">
+            まだアカウントをお持ちでない方{' '}
+            <a href="/auth/register" className={`${LINK_CLASS} font-medium`}>
+              会員登録
+            </a>
+          </p>
+        </form>
+      </Card>
+    </AuthShell>
   );
 }

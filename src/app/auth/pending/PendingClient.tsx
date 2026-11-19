@@ -11,6 +11,10 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { Clock, Loader2, Mail, MailWarning, XCircle } from 'lucide-react';
+import { AuthStatusCard, AuthNotice, AUTH_TEXT_LINK } from '@/components/auth/AuthShell';
+import { buttonVariants } from '@/components/ui';
+import { cn } from '@/lib/utils';
 import { GoogleAdsConversion } from '@/components/analytics/GoogleAdsConversion';
 
 // Initialize Supabase client for browser
@@ -164,232 +168,108 @@ export default function PendingClient({
   // メッセージがあればデコード
   const displayMessage = message ? decodeURIComponent(message) : null;
 
+  const loginLink = (extra?: string) => (
+    <Link
+      href="/auth/signin"
+      className={cn(buttonVariants({ variant: 'primary', size: 'lg', fullWidth: true }), extra)}
+    >
+      ログインページへ
+    </Link>
+  );
+
+  // 登録メールアドレスの表示（状態色の面の中の、白い小さな箱）
+  const emailBox = userEmail ? (
+    <div className="rounded-inner border border-border-medium bg-bg-primary p-3 text-text-primary">
+      <p className="mb-1 text-xs text-text-secondary">登録メールアドレス:</p>
+      <p className="break-all font-mono text-sm">{userEmail}</p>
+    </div>
+  ) : null;
+
   // Loading state
   if (status === 'loading') {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full">
-          <div className="bg-white dark:bg-bg-secondary rounded-lg shadow-lg p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <h1 className="text-xl font-bold text-text-primary mb-2">
-              読み込み中...
-            </h1>
-          </div>
-        </div>
-      </main>
-    );
+    return <AuthStatusCard tone="neutral" icon={Loader2} spin title="読み込み中..." />;
   }
 
   // Error state
   if (status === 'error') {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full">
-          <div className="bg-white dark:bg-bg-secondary rounded-lg shadow-lg p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-6 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-text-primary mb-2">
-              エラー
-            </h1>
-            <p className="text-text-muted mb-6">{errorMessage}</p>
-            <Link
-              href="/auth/signin"
-              className="inline-block w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors"
-            >
-              ログインページへ
-            </Link>
-          </div>
-        </div>
-      </main>
+      <AuthStatusCard tone="error" icon={XCircle} title="エラー">
+        <p className="mb-6 text-text-secondary">{errorMessage}</p>
+        {loginLink()}
+      </AuthStatusCard>
     );
   }
 
   // No session - email verification needed
   if (status === 'no_session') {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full">
-          <div className="bg-white dark:bg-bg-secondary rounded-lg shadow-lg p-8 text-center">
-            {/* アイコン */}
-            <div className="w-16 h-16 mx-auto mb-6 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-blue-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0l7.08-5.26a2 2 0 002.22 0l7.89-5.26M3 16l7.89-5.26a2 2 0 002.22 0l7.08-5.26M3 8l7.89 5.26a2 2 0 002.22 0l7.08-5.26M3 16l7.89-5.26a2 2 0 002.22 0l7.08-5.26"
-                />
-              </svg>
-            </div>
+      <AuthStatusCard tone="info" icon={Mail} title="メール認証が必要です">
+        {/* 説明 */}
+        <AuthNotice tone="info">
+          <p className="mb-2">
+            入力されたメールアドレスに確認メールを送信しました。
+          </p>
+          <p className={cn('text-sm', userEmail && 'mb-3')}>
+            メール内のリンクをクリックして、メール認証を完了してください。
+          </p>
+          {emailBox}
+        </AuthNotice>
 
-            {/* タイトル */}
-            <h1 className="text-2xl font-bold text-text-primary mb-2">
-              メール認証が必要です
-            </h1>
+        {/* ログインページリンク */}
+        {loginLink('mb-3')}
 
-            {/* 説明 */}
-            <div className="text-left bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg mb-6">
-              <p className="text-text-primary mb-2">
-                入力されたメールアドレスに確認メールを送信しました。
-              </p>
-              <p className="text-text-muted text-sm mb-3">
-                メール内のリンクをクリックして、メール認証を完了してください。
-              </p>
-              {userEmail && (
-                <div className="bg-white dark:bg-bg-secondary p-3 rounded border border-blue-200 dark:border-blue-800">
-                  <p className="text-xs text-text-muted mb-1">登録メールアドレス:</p>
-                  <p className="text-sm font-mono break-all">{userEmail}</p>
-                </div>
-              )}
-            </div>
-
-            {/* ログインページリンク */}
-            <Link
-              href="/auth/signin"
-              className="inline-block w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors mb-3"
-            >
-              ログインページへ
-            </Link>
-
-            {/* ホームへリンク */}
-            <Link
-              href="/"
-              className="block text-sm text-text-muted hover:text-brixa-500"
-            >
-              ホームへ戻る
-            </Link>
-          </div>
-        </div>
-      </main>
+        {/* ホームへリンク */}
+        <Link href="/" className={AUTH_TEXT_LINK}>
+          ホームへ戻る
+        </Link>
+      </AuthStatusCard>
     );
   }
 
   // Email not verified
   if (status === 'email_not_verified') {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full">
-          <div className="bg-white dark:bg-bg-secondary rounded-lg shadow-lg p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-6 bg-amber-100 dark:bg-amber-900/20 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-amber-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0l7.08-5.26a2 2 0 002.22 0l7.89-5.26M3 16l7.89-5.26a2 2 0 002.22 0l7.08-5.26M3 8l7.89 5.26a2 2 0 002.22 0l7.08-5.26M3 16l7.89-5.26a2 2 0 002.22 0l7.08-5.26"
-                />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-text-primary mb-2">
-              メール認証が必要です
-            </h1>
-            <div className="text-left bg-amber-50 dark:bg-amber-900/10 p-4 rounded-lg mb-6">
-              <p className="text-primary mb-2">
-                メールアドレスの認証がまだ完了していません。
-              </p>
-              <p className="text-text-muted text-sm">
-                入力されたメールアドレスに確認メールを送信しました。メール内のリンクをクリックして認証を完了してください。
-              </p>
-            </div>
-            <Link
-              href="/auth/signin"
-              className="inline-block w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors"
-            >
-              ログインページへ
-            </Link>
-          </div>
-        </div>
-      </main>
+      <AuthStatusCard tone="warning" icon={MailWarning} title="メール認証が必要です">
+        <AuthNotice tone="warning">
+          <p className="mb-2">
+            メールアドレスの認証がまだ完了していません。
+          </p>
+          <p className="text-sm">
+            入力されたメールアドレスに確認メールを送信しました。メール内のリンクをクリックして認証を完了してください。
+          </p>
+        </AuthNotice>
+        {loginLink()}
+      </AuthStatusCard>
     );
   }
 
   // Pending approval
   return (
-    <main className="min-h-screen bg-gradient-to-br from-bg-secondary via-bg-primary to-bg-accent flex items-center justify-center px-4 py-12">
+    <>
       <GoogleAdsConversion />
-      <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-bg-secondary rounded-lg shadow-lg p-8 text-center">
-          {/* アイコン */}
-          <div className="w-16 h-16 mx-auto mb-6 bg-warning-100 dark:bg-warning-900/20 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-warning-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
+      <AuthStatusCard tone="warning" icon={Clock} title="承認待ち">
+        {/* 説明 */}
+        <AuthNotice tone="warning">
+          <p className="mb-2">
+            {displayMessage || `${userName}様、会員登録が完了しました！`}
+          </p>
+          <p className="mb-3 text-sm">
+            現在、管理者による承認審査中です。承認完了次第、ログイン可能になります。
+          </p>
+          {emailBox}
+          <p className="mt-3 text-xs">
+            通常、1〜2営業日以内に承認処理が完了します。
+          </p>
+        </AuthNotice>
 
-          {/* タイトル */}
-          <h1 className="text-2xl font-bold text-text-primary mb-2">
-            承認待ち
-          </h1>
+        {/* ログインページリンク */}
+        {loginLink('mb-3')}
 
-          {/* 説明 */}
-          <div className="text-left bg-amber-50 dark:bg-amber-900/10 p-4 rounded-lg mb-6">
-            <p className="text-text-primary mb-2">
-              {displayMessage || `${userName}様、会員登録が完了しました！`}
-            </p>
-            <p className="text-text-muted text-sm mb-3">
-              現在、管理者による承認審査中です。承認完了次第、ログイン可能になります。
-            </p>
-            {userEmail && (
-              <div className="bg-white dark:bg-bg-secondary p-3 rounded border border-amber-200 dark:border-amber-800">
-                <p className="text-xs text-text-muted mb-1">登録メールアドレス:</p>
-                <p className="text-sm font-mono break-all">{userEmail}</p>
-              </div>
-            )}
-            <p className="text-xs text-text-muted mt-3">
-              通常、1〜2営業日以内に承認処理が完了します。
-            </p>
-          </div>
-
-          {/* ログインページリンク */}
-          <Link
-            href="/auth/signin"
-            className="inline-block w-full px-4 py-2 bg-brixa-500 hover:bg-brixa-600 text-white font-medium rounded-md transition-colors mb-3"
-          >
-            ログインページへ
-          </Link>
-
-          {/* ホームへリンク */}
-          <Link
-            href="/"
-            className="block text-sm text-text-muted hover:text-brixa-500"
-          >
-            ホームへ
-          </Link>
-        </div>
-      </div>
-    </main>
+        {/* ホームへリンク */}
+        <Link href="/" className={AUTH_TEXT_LINK}>
+          ホームへ
+        </Link>
+      </AuthStatusCard>
+    </>
   );
 }

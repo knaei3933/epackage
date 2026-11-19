@@ -52,8 +52,8 @@ export function ProtectedRoute({
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-sm text-muted-foreground">読み込み中...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand" />
+          <p className="mt-4 text-sm text-text-secondary">読み込み中...</p>
         </div>
       </div>
     )
@@ -69,8 +69,8 @@ export function ProtectedRoute({
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold">アクセス権限がありません</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <h2 className="text-xl font-bold text-text-primary">アクセス権限がありません</h2>
+          <p className="mt-2 text-sm text-text-secondary">
             このページにアクセスするには管理者権限が必要です。
           </p>
         </div>

@@ -126,21 +126,21 @@ export function InactivityWarningModal() {
         aria-describedby="inactivity-description"
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className="relative bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl z-10"
+        className="relative z-10 mx-4 max-w-md rounded-container border border-border-medium bg-bg-primary p-6 shadow-high"
       >
         <h2
           id="inactivity-title"
-          className="text-xl font-bold text-gray-900 mb-2"
+          className="mb-2 text-xl font-bold text-text-primary"
         >
           セッションの有効期限が近づいています
         </h2>
         <p
           id="inactivity-description"
-          className="text-gray-600 mb-4"
+          className="mb-4 text-text-secondary"
         >
           長時間操作がないため、セッションは{' '}
           <span
-            className="font-bold text-red-600"
+            className="font-bold text-error"
             role="timer"
             aria-live="polite"
             aria-atomic="true"
@@ -149,20 +149,20 @@ export function InactivityWarningModal() {
           </span>{' '}
           後に期限切れになります。
         </p>
-        <p className="text-gray-500 text-sm mb-6">
+        <p className="mb-6 text-sm text-text-secondary">
           「続ける」をクリックしてログインを維持するか、自動的にログアウトされます。
         </p>
         <div className="flex gap-3">
           <button
             onClick={dismissInactivityWarning}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="h-10 flex-1 rounded-md bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:h-11"
             autoFocus
           >
             続ける
           </button>
           <button
             onClick={handleLogoutNow}
-            className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className="h-10 flex-1 rounded-md border border-border-strong bg-bg-primary px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 max-sm:h-11"
           >
             今すぐログアウト
           </button>

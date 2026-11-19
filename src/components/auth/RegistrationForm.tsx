@@ -14,10 +14,12 @@ import React, { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import {
   Input,
   Button,
   Card,
+  Alert,
 } from '@/components/ui';
 import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput';
 import {
@@ -37,6 +39,26 @@ import { PRODUCT_CATEGORY_OPTIONS } from '@/types/enums';
 // =====================================================
 // Props
 // =====================================================
+
+// 素の <select> は、共通の Input と同じ見た目になるクラスにそろえる（register と onChange の処理は変えない）
+const SELECT_CLASS =
+  'h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11';
+const GROUP_HEADING_CLASS =
+  'mb-4 border-b border-border-medium pb-2 text-lg font-bold text-text-primary [word-break:keep-all] [overflow-wrap:anywhere] md:text-xl';
+const EYE_BUTTON_CLASS =
+  'flex h-10 w-10 items-center justify-center rounded-md text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11';
+const CHOICE_INPUT_CLASS =
+  'h-5 w-5 flex-shrink-0 border-border-strong accent-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2';
+
+/** フィールドの下のエラー文: アイコン + 言葉（色だけで伝えない） */
+function FieldError({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <p className={`flex items-start gap-1.5 text-sm text-error ${className ?? ''}`} role="alert">
+      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </p>
+  );
+}
 
 export interface RegistrationFormProps {
   /** 送信成功時コールバック */
@@ -301,22 +323,20 @@ export default function RegistrationForm({
       >
         {/* サーバーエラーメッセージ */}
         {serverError && (
-          <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
-            <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
-          </div>
+          <Alert variant="destructive" className="mb-6">{serverError}</Alert>
         )}
 
         {/* =====================================================
             SECTION 1: 認証情報
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             認証情報
           </h2>
 
           {/* メールアドレス */}
           <Input
-            label="メールアドレス *"
+            label="メールアドレス"
             type="email"
             placeholder="example@company.com"
             error={errors.email?.message}
@@ -328,7 +348,7 @@ export default function RegistrationForm({
           {/* パスワード */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <Input
-              label="パスワード *"
+              label="パスワード"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               error={errors.password?.message}
@@ -338,15 +358,16 @@ export default function RegistrationForm({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-text-muted hover:text-text-primary"
+                  className={EYE_BUTTON_CLASS}
+                  aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示'}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
                 </button>
               }
               {...register('password')}
             />
             <Input
-              label="パスワード確認 *"
+              label="パスワード確認"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="••••••••"
               error={errors.passwordConfirm?.message}
@@ -355,9 +376,10 @@ export default function RegistrationForm({
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-text-muted hover:text-text-primary"
+                  className={EYE_BUTTON_CLASS}
+                  aria-label={showConfirmPassword ? 'パスワードを隠す' : 'パスワードを表示'}
                 >
-                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
                 </button>
               }
               {...register('passwordConfirm')}
@@ -369,7 +391,7 @@ export default function RegistrationForm({
             SECTION 2: 氏名
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             氏名
           </h2>
 
@@ -394,7 +416,7 @@ export default function RegistrationForm({
             SECTION 3: 連絡先
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             連絡先
           </h2>
 
@@ -421,7 +443,7 @@ export default function RegistrationForm({
               {...register('fax')}
             />
           </div>
-          <p className="mt-2 text-sm text-text-muted">
+          <p className="mt-2 text-sm text-text-secondary">
             会社電話番号または携帯電話のいずれかを入力してください。
           </p>
         </div>
@@ -430,46 +452,36 @@ export default function RegistrationForm({
             SECTION 4: 事業形態
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             事業形態
           </h2>
 
           <div className="flex gap-6">
-            <label className="flex items-center space-x-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  {...register('businessType')}
-                  type="radio"
-                  value={BusinessType.INDIVIDUAL}
-                  className="peer sr-only"
-                />
-                <div className="w-5 h-5 border-2 border-gray-300 rounded-full bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 peer-checked:ring-4 peer-checked:ring-brixa-100 flex items-center justify-center group-hover:border-brixa-400">
-                  <div className="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
-                </div>
-              </div>
+            <label className="flex min-h-11 cursor-pointer items-center space-x-3">
+              <input
+                {...register('businessType')}
+                type="radio"
+                value={BusinessType.INDIVIDUAL}
+                className={CHOICE_INPUT_CLASS}
+              />
               <span className="text-base text-text-primary">
                 個人
               </span>
             </label>
-            <label className="flex items-center space-x-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  {...register('businessType')}
-                  type="radio"
-                  value={BusinessType.CORPORATION}
-                  className="peer sr-only"
-                />
-                <div className="w-5 h-5 border-2 border-gray-300 rounded-full bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 peer-checked:ring-4 peer-checked:ring-brixa-100 flex items-center justify-center group-hover:border-brixa-400">
-                  <div className="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
-                </div>
-              </div>
+            <label className="flex min-h-11 cursor-pointer items-center space-x-3">
+              <input
+                {...register('businessType')}
+                type="radio"
+                value={BusinessType.CORPORATION}
+                className={CHOICE_INPUT_CLASS}
+              />
               <span className="text-base text-text-primary">
                 法人
               </span>
             </label>
           </div>
           {errors.businessType && (
-            <p className="mt-2 text-base text-error-500">{errors.businessType.message}</p>
+            <FieldError className="mt-2">{errors.businessType.message}</FieldError>
           )}
         </div>
 
@@ -478,7 +490,7 @@ export default function RegistrationForm({
             ===================================================== */}
         {businessType === BusinessType.CORPORATION && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">
+            <h2 className={GROUP_HEADING_CLASS}>
               会社情報
             </h2>
 
@@ -503,7 +515,7 @@ export default function RegistrationForm({
                   </Button>
                 </div>
                 {corporateSearchError && (
-                  <p className="mt-2 text-sm text-warning-600">{corporateSearchError}</p>
+                  <p className="mt-2 flex items-start gap-1.5 text-sm text-warning"><AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" /><span>{corporateSearchError}</span></p>
                 )}
                 {searchResults.length > 1 && (
                   <div className="mt-3">
@@ -511,7 +523,7 @@ export default function RegistrationForm({
                       検索結果が{searchResults.length}件見つかりました。選択してください：
                     </label>
                     <select
-                      className="w-full px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
+                      className={SELECT_CLASS}
                       value={selectedSearchIndex}
                       onChange={(e) => handleSelectSearchResult(parseInt(e.target.value))}
                     >
@@ -526,8 +538,8 @@ export default function RegistrationForm({
                   </div>
                 )}
                 {searchResults.length === 1 && (
-                  <p className="mt-2 text-sm text-success-600">
-                    ✓ 検索結果が1件見かりました。自動入力されました。
+                  <p className="mt-2 text-sm text-success">
+                    ✓ 検索結果が1件見つかりました。自動入力されました。
                   </p>
                 )}
               </div>
@@ -571,7 +583,7 @@ export default function RegistrationForm({
             SECTION 6: 住所
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             住所
           </h2>
 
@@ -595,10 +607,10 @@ export default function RegistrationForm({
                 })}
               />
               {postalSearchError && (
-                <p className="mt-2 text-sm text-warning-600">{postalSearchError}</p>
+                <p className="mt-2 flex items-start gap-1.5 text-sm text-warning"><AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" /><span>{postalSearchError}</span></p>
               )}
               {isSearchingPostal && (
-                <p className="mt-2 text-sm text-text-muted">住所を検索しています...</p>
+                <p className="mt-2 text-sm text-text-secondary">住所を検索しています...</p>
               )}
             </div>
 
@@ -609,7 +621,7 @@ export default function RegistrationForm({
                 </label>
                 <select
                   {...register('prefecture')}
-                  className="w-full h-10 px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
+                  className={SELECT_CLASS}
                 >
                   <option value="">選択</option>
                   {JAPANESE_PREFECTURES.map((pref) => (
@@ -619,7 +631,7 @@ export default function RegistrationForm({
                   ))}
                 </select>
                 {errors.prefecture && (
-                  <p className="mt-1 text-sm text-error-500">{errors.prefecture.message}</p>
+                  <FieldError className="mt-1">{errors.prefecture.message}</FieldError>
                 )}
               </div>
 
@@ -647,13 +659,13 @@ export default function RegistrationForm({
             SECTION 7: 商品種別
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             商品種別
           </h2>
 
           <select
             {...register('productCategory')}
-            className="w-full px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
+            className={SELECT_CLASS}
           >
             {PRODUCT_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -662,7 +674,7 @@ export default function RegistrationForm({
             ))}
           </select>
           {errors.productCategory && (
-            <p className="mt-2 text-sm text-error-500">{errors.productCategory.message}</p>
+            <FieldError className="mt-2">{errors.productCategory.message}</FieldError>
           )}
         </div>
 
@@ -670,13 +682,13 @@ export default function RegistrationForm({
             SECTION 9: 知ったきっかけ
             ===================================================== */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">
+          <h2 className={GROUP_HEADING_CLASS}>
             知ったきっかけ
           </h2>
 
           <select
             {...register('acquisitionChannel')}
-            className="w-full px-3 py-2 bg-bg-primary border border-border-medium rounded-md focus:outline-none focus:ring-2 focus:ring-brixa-500 text-text-primary dark:bg-bg-secondary dark:border-border-dark dark:text-text-primary"
+            className={SELECT_CLASS}
           >
             <option value="">選択</option>
             {ACQUISITION_CHANNEL_OPTIONS.map((option) => (
@@ -691,26 +703,19 @@ export default function RegistrationForm({
             SECTION 10: プライバシーポリシー同意
             ===================================================== */}
         <div className="mb-8">
-          <label className="flex items-start space-x-3 cursor-pointer group">
-            <div className="relative">
-              <input
-                {...register('privacyConsent')}
-                type="checkbox"
-                className="peer sr-only"
-              />
-              <div className="w-5 h-5 mt-0.5 border-2 border-gray-300 rounded bg-white transition-all duration-200 peer-checked:bg-brixa-500 peer-checked:border-brixa-500 flex items-center justify-center group-hover:border-brixa-400">
-                <svg className="w-3 h-3 text-white hidden peer-checked:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
+          <label className="flex min-h-11 cursor-pointer items-start space-x-3">
+            <input
+              {...register('privacyConsent')}
+              type="checkbox"
+              className={`mt-0.5 rounded-inner ${CHOICE_INPUT_CLASS}`}
+            />
             <span className="text-base text-text-primary">
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brixa-500 hover:underline">
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-4 hover:text-brand-pressed">
                 プライバシーポリシー
               </a>
               に同意します。
               {errors.privacyConsent && (
-                <span className="text-error-500 ml-1">{errors.privacyConsent.message}</span>
+                <span className="ml-1 text-error">{errors.privacyConsent.message}</span>
               )}
             </span>
           </label>
@@ -725,7 +730,7 @@ export default function RegistrationForm({
             variant="primary"
             size="lg"
             disabled={isSubmitting}
-            className="flex-1"
+            className="sm:flex-1"
           >
             {isSubmitting ? '処理中...' : '会員登録'}
           </Button>

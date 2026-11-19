@@ -11,10 +11,11 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Input, Button, Card } from '@/components/ui';
+import { Input, Button, Card, Alert } from '@/components/ui';
 import { loginSchema, type LoginFormData } from '@/types/auth';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -111,9 +112,7 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
       <form onSubmit={handleSubmit(onSubmit)} className={className}>
         {/* サーバーエラーメッセージ */}
         {serverError && (
-          <div className="mb-6 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
-            <p className="text-sm text-error-600 dark:text-error-400">{serverError}</p>
-          </div>
+          <Alert variant="destructive" className="mb-6">{serverError}</Alert>
         )}
 
         {/* =====================================================
@@ -142,9 +141,10 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-text-muted hover:text-text-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-md text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand max-sm:h-11 max-sm:w-11"
+              aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示'}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           }
           {...register('password')}
@@ -155,11 +155,11 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
             ログイン維持 & パスワード再設定
             ===================================================== */}
         <div className="flex items-center justify-between mb-6">
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label className="flex min-h-11 cursor-pointer items-center space-x-2">
             <input
               {...register('remember')}
               type="checkbox"
-              className="w-4 h-4 text-brixa-500"
+              className="h-4 w-4 rounded-inner border-border-strong accent-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             />
             <span className="text-sm text-text-primary">
               ログイン状態を保持
@@ -168,7 +168,7 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
 
           <a
             href="/auth/forgot-password"
-            className="text-sm text-brixa-500 hover:text-brixa-600"
+            className="inline-flex min-h-11 items-center rounded-inner text-sm text-brand underline underline-offset-4 hover:text-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             パスワードを忘れた方
           </a>
@@ -191,11 +191,11 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
             会員登録リンク
             ===================================================== */}
         <div className="text-center">
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-secondary">
             まだアカウントをお持ちでない方{' '}
             <a
               href="/auth/register"
-              className="text-brixa-500 hover:text-brixa-600 font-medium"
+              className="inline-flex min-h-11 items-center rounded-inner font-medium text-brand underline underline-offset-4 hover:text-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             >
               会員登録
             </a>
@@ -209,7 +209,7 @@ function LoginFormContent({ onSuccess, onError, className }: LoginFormProps) {
 // Export with Suspense boundary for useSearchParams()
 export default function LoginForm(props: LoginFormProps) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="text-text-secondary">Loading...</div>}>
       <LoginFormContent {...props} />
     </Suspense>
   );
