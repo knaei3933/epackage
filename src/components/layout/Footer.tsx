@@ -113,7 +113,7 @@ export function Footer() {
             <div>
               <Link
                 href="/"
-                className={cn('inline-flex items-center gap-3 rounded-md', focusRing)}
+                className={cn('inline-flex min-h-11 items-center gap-3 rounded-md', focusRing)}
                 aria-label="Epackage Lab - ホームへ戻る"
               >
                 <span className="relative block h-8 w-8">

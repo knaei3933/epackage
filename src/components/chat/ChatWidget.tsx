@@ -686,7 +686,7 @@ export function ChatWidget() {
               {messages.length > 0 && (
                 <button
                   onClick={handleClearConversation}
-                  className="p-1 hover:bg-bg-primary/10 rounded transition-colors"
+                  className="p-1 hover:bg-brand-hover rounded transition-colors"
                   aria-label="会話を削除"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -694,14 +694,14 @@ export function ChatWidget() {
               )}
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1 hover:bg-bg-primary/10 rounded transition-colors"
+                className="p-1 hover:bg-brand-hover rounded transition-colors"
                 aria-label={isMinimized ? '展開' : '最小化'}
               >
                 <Minimize2 className="w-4 h-4" />
               </button>
               <button
                 onClick={handleClose}
-                className="p-1 hover:bg-bg-primary/10 rounded transition-colors"
+                className="p-1 hover:bg-brand-hover rounded transition-colors"
                 aria-label="閉じる"
               >
                 <X className="w-4 h-4" />

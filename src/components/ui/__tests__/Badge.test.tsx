@@ -1,3 +1,4 @@
+/* global describe, it, expect */
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Badge, CurrencyBadge, TagBadge } from '../Badge';
