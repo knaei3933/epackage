@@ -10,7 +10,8 @@ import {
   Check,
   BarChart3
 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button, buttonVariants } from '@/components/ui/Button'
+import { PageHeader } from '@/components/layout'
 import { Container } from '@/components/ui/Container'
 import { Card } from '@/components/ui/Card'
 import { Grid } from '@/components/ui/Grid'
@@ -268,102 +269,73 @@ export function CatalogClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg-primary">
       {/* Header */}
-      <section className="bg-gradient-to-r from-brixa-500 via-brixa-600 to-navy-700 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.4%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
-        </div>
-
-        <Container size="6xl" className="py-20 relative">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
-            >
-              <div className="space-y-4">
-                <div className="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium mb-4">
-                  <Package className="w-4 h-4 mr-2" />
-                  6種類の高品質パウチ
-                </div>
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                  <span className="block text-white/95">パウチ製品</span>
-                  <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 font-medium text-white">
-                    カタログ
-                  </span>
-                </h1>
-              </div>
-
-              <p className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed">
-                最適な包装ソリューションを見つけましょう。<br className="hidden md:block" />
-                あらゆるニーズに対応する6種類のパウチ製品を取り揃えました。
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <div className="bg-white/30 backdrop-blur-sm rounded-lg px-6 py-3 text-lg font-semibold text-white">
-                  全 {products.length} 種類の製品
-                </div>
-                <Link href="/samples">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="bg-white/90 text-brixa-600 hover:bg-white hover:text-brixa-700 border-2 border-white/90 font-medium shadow-lg min-w-[120px] sm:min-w-[160px] flex-col py-3 sm:py-4 h-auto min-h-[70px] sm:min-h-[80px]"
-                  >
-                    <Package className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
-                    <span className="text-xs sm:text-sm">サンプルご依頼</span>
-                  </Button>
-                </Link>
-                <Link href="/quote-simulator">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="bg-white/10 text-white border-2 border-white/80 hover:bg-white hover:text-brixa-600 font-medium min-w-[120px] sm:min-w-[160px] backdrop-blur-sm transition-all duration-300 flex-col py-3 sm:py-4 h-auto min-h-[70px] sm:min-h-[80px]"
-                  >
-                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mb-1" />
-                    <span className="text-xs sm:text-sm">見積もり</span>
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </Container>
-      </section>
+      <PageHeader
+        title="パウチ製品カタログ"
+        lead={
+          <>
+            最適な包装ソリューションを見つけましょう。<br className="hidden md:block" />
+            あらゆるニーズに対応する6種類のパウチ製品を取り揃えました。
+          </>
+        }
+        actions={
+          <>
+            <Link href="/samples" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+              <Package className="h-5 w-5 shrink-0" aria-hidden="true" />
+              サンプルご依頼
+            </Link>
+            <Link href="/quote-simulator" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+              <BarChart3 className="h-5 w-5 shrink-0" aria-hidden="true" />
+              見積もり
+            </Link>
+          </>
+        }
+      />
 
       <Container size="6xl" className="py-8">
         {/* Main Content */}
         <main className="w-full">
             {/* Sort and View Controls */}
             <div className="flex justify-between items-center mb-6">
-              <p className="text-lg font-medium text-gray-900">
-                {isLoading ? '読み込み中...' : `${filteredProducts.length}件の製品`}
-              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-lg font-medium text-text-primary">
+                  {isLoading ? '読み込み中...' : `${filteredProducts.length}件の製品`}
+                </p>
+                <Badge>全 {products.length} 種類の製品</Badge>
+              </div>
 
               {/* View and Sort Controls */}
               <div className="flex items-center gap-3">
                 {/* View Toggle */}
-                <div className="flex bg-gray-100 rounded-lg p-1 shadow-sm">
-                  <button
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    aria-label="グリッド表示"
+                    aria-pressed={filterState.viewMode === 'grid'}
                     onClick={() => handleFilterChange({ viewMode: 'grid' })}
-                    className={`p-2 rounded-md transition-all duration-200 ${filterState.viewMode === 'grid' ? 'bg-white shadow-sm text-brixa-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`w-10 max-sm:w-11 ${filterState.viewMode === 'grid' ? 'border-brand bg-brand-subtle' : ''}`}
                   >
                     <GridIcon className="w-4 h-4" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    aria-label="リスト表示"
+                    aria-pressed={filterState.viewMode === 'list'}
                     onClick={() => handleFilterChange({ viewMode: 'list' })}
-                    className={`p-2 rounded-md transition-all duration-200 ${filterState.viewMode === 'list' ? 'bg-white shadow-sm text-brixa-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`w-10 max-sm:w-11 ${filterState.viewMode === 'list' ? 'border-brand bg-brand-subtle' : ''}`}
                   >
                     <List className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Sort */}
                 <select
                   value={filterState.sortBy}
                   onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent text-sm font-medium bg-white shadow-sm"
+                  className="h-10 rounded-md border border-border-strong bg-bg-primary px-3 text-sm font-medium text-text-primary focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                 >
                   <option value="name">名前順</option>
                   <option value="leadTime">納期順</option>
@@ -379,11 +351,11 @@ export function CatalogClient() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {[...Array(6)].map((_, index) => (
                     <Card key={index} className="animate-pulse">
-                      <div className="aspect-square bg-gray-200"></div>
+                      <div className="aspect-square bg-bg-muted"></div>
                       <div className="p-6 space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-full"></div>
-                        <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                        <div className="h-4 bg-bg-muted rounded w-3/4"></div>
+                        <div className="h-3 bg-bg-muted rounded w-full"></div>
+                        <div className="h-3 bg-bg-muted rounded w-5/6"></div>
                       </div>
                     </Card>
                   ))}
@@ -418,11 +390,11 @@ export function CatalogClient() {
             {/* No Results */}
             {!isLoading && (!filteredProducts || filteredProducts.length === 0) && (
               <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <Package className="w-16 h-16 text-text-muted mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-text-primary mb-2">
                   製品が見つかりませんでした
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-text-secondary">
                   現在利用可能な製品がありません
                 </p>
               </div>
@@ -444,7 +416,7 @@ export function CatalogClient() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-bg-primary rounded-container max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <ProductDetailModal
@@ -470,15 +442,15 @@ function ProductCard({ product, index, onSelect }: {
 
   return (
     <MotionWrapper delay={index * 0.1}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={onSelect}>
+      <Card className="group overflow-hidden hover:shadow-low cursor-pointer" onClick={onSelect}>
         <div className="relative">
           {/* Product Image */}
-          <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+          <div className="aspect-square bg-bg-secondary flex items-center justify-center overflow-hidden">
             {product.image ? (
               <img
                 src={product.image}
                 alt={product.name_ja}
-                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-300"
                 onError={(e) => {
                   // Fallback to placeholder on error
                   e.currentTarget.style.display = 'none'
@@ -486,12 +458,12 @@ function ProductCard({ product, index, onSelect }: {
                 }}
               />
             ) : null}
-            <Package className={`w-16 h-16 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+            <Package className={`w-16 h-16 text-text-muted ${product.image ? 'hidden' : ''}`} />
           </div>
 
           {/* Category Badge */}
           <div className="absolute top-4 left-4">
-            <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
+            <Badge variant="secondary" className="bg-bg-primary">
               {category?.name_ja || 'その他'}
             </Badge>
           </div>
@@ -499,10 +471,10 @@ function ProductCard({ product, index, onSelect }: {
 
         <div className="p-6">
           <div className="mb-3">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-brixa-600 transition-colors">
+            <h3 className="text-lg font-semibold text-text-primary mb-1 group-hover:text-brand transition-colors">
               {product.name_ja}
             </h3>
-            <p className="text-sm text-gray-600 line-clamp-2">
+            <p className="text-sm text-text-secondary line-clamp-2">
               {product.description_ja}
             </p>
           </div>
@@ -517,7 +489,7 @@ function ProductCard({ product, index, onSelect }: {
           </div>
 
           {/* Specs */}
-          <div className="text-sm text-gray-600 mb-4 space-y-1">
+          <div className="text-sm text-text-secondary mb-4 space-y-1">
             <div className="flex justify-between">
               <span>最小注文数:</span>
               <span className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</span>
@@ -579,20 +551,20 @@ function ProductDetailModal({ product, onClose }: {
       {/* Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center z-10"
+        aria-label="閉じる" className="absolute top-4 right-4 h-9 w-9 max-sm:h-11 max-sm:w-11 border border-border-strong bg-bg-primary hover:bg-bg-secondary rounded-full flex items-center justify-center z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <X className="w-4 h-4" />
       </button>
 
       {/* Product Header */}
-      <div className="bg-gradient-to-r from-brixa-50 to-navy-50 p-6 border-b">
+      <div className="bg-bg-secondary p-6 border-b border-border-medium">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <h2 className="text-2xl font-bold text-gray-900">{product.name_ja}</h2>
+              <h2 className="text-2xl font-bold text-text-primary">{product.name_ja}</h2>
               <Badge variant="secondary">{category?.name_ja}</Badge>
             </div>
-            <p className="text-gray-600">{product.description_ja}</p>
+            <p className="text-text-secondary">{product.description_ja}</p>
           </div>
         </div>
       </div>
@@ -612,8 +584,8 @@ function ProductDetailModal({ product, onClose }: {
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-3 font-medium whitespace-nowrap border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-brixa-600 text-brixa-700'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-text-secondary hover:text-text-primary'
             }`}
           >
             {tab.label}
@@ -630,7 +602,7 @@ function ProductDetailModal({ product, onClose }: {
               {/* Left Column - Image and Basic Info */}
               <div className="space-y-4">
                 {/* Product Image */}
-                <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="aspect-square bg-bg-secondary rounded-inner flex items-center justify-center overflow-hidden">
                   {product.image ? (
                     <img
                       src={product.image}
@@ -642,19 +614,19 @@ function ProductDetailModal({ product, onClose }: {
                       }}
                     />
                   ) : null}
-                  <Package className={`w-24 h-24 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+                  <Package className={`w-24 h-24 text-text-muted ${product.image ? 'hidden' : ''}`} />
                 </div>
 
                 {/* Quick Specs */}
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">基本仕様</h3>
+                  <h3 className="font-semibold text-text-primary mb-3">基本仕様</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">最小注文数:</span>
+                      <span className="text-text-secondary">最小注文数:</span>
                       <span className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">納期:</span>
+                      <span className="text-text-secondary">納期:</span>
                       <span className="font-medium">{product.lead_time_days}日</span>
                     </div>
                   </div>
@@ -662,7 +634,7 @@ function ProductDetailModal({ product, onClose }: {
 
                 {/* Materials */}
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">素材</h3>
+                  <h3 className="font-semibold text-text-primary mb-3">素材</h3>
                   <div className="flex flex-wrap gap-2">
                     {product.materials.map((material, idx) => (
                       <Badge key={idx} variant="outline">{material}</Badge>
@@ -675,11 +647,11 @@ function ProductDetailModal({ product, onClose }: {
               <div className="space-y-4">
                 {/* Features */}
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">特徴</h3>
+                  <h3 className="font-semibold text-text-primary mb-3">特徴</h3>
                   <ul className="space-y-2">
                     {extendedProduct?.features?.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <Check className="w-4 h-4 text-brand mt-0.5 flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -688,7 +660,7 @@ function ProductDetailModal({ product, onClose }: {
 
                 {/* Applications */}
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">用途</h3>
+                  <h3 className="font-semibold text-text-primary mb-3">用途</h3>
                   <div className="flex flex-wrap gap-2">
                     {extendedProduct?.applications?.map((app, idx) => (
                       <Badge key={idx} variant="secondary">{app}</Badge>
@@ -698,7 +670,7 @@ function ProductDetailModal({ product, onClose }: {
 
                 {/* Tags */}
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">タグ</h3>
+                  <h3 className="font-semibold text-text-primary mb-3">タグ</h3>
                   <div className="flex flex-wrap gap-2">
                     {extendedProduct?.tags?.map((tag, idx) => (
                       <Badge key={idx} variant="outline">{tag}</Badge>
@@ -713,7 +685,7 @@ function ProductDetailModal({ product, onClose }: {
         {/* Specifications Tab */}
         {activeTab === 'specifications' && (
           <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">技術仕様</h3>
+            <h3 className="font-semibold text-text-primary mb-3">技術仕様</h3>
             <div className="space-y-2 text-sm">
               {Object.entries(product.specifications as any).map(([key, value]) => {
                 const keyMap: Record<string, string> = {
@@ -737,14 +709,14 @@ function ProductDetailModal({ product, onClose }: {
 
                 return (
                   <div key={key} className="flex justify-between border-b pb-2">
-                    <span className="text-gray-600">{displayKey}:</span>
+                    <span className="text-text-secondary">{displayKey}:</span>
                     <span className="font-medium">{displayValue}</span>
                   </div>
                 )
               })}
               {/* Additional materials row */}
               <div className="flex justify-between border-b pb-2">
-                <span className="text-gray-600">対応素材:</span>
+                <span className="text-text-secondary">対応素材:</span>
                 <span className="font-medium">PET, AL, NY, VMPET, CPP, 透明蒸着PET</span>
               </div>
             </div>
@@ -756,8 +728,8 @@ function ProductDetailModal({ product, onClose }: {
           <div className="space-y-3">
             {extendedProduct.faq.map((faq, idx) => (
               <Card key={idx} className="p-4">
-                <h4 className="font-medium text-gray-900 mb-2">{faq.question_ja}</h4>
-                <p className="text-sm text-gray-700">{faq.answer_ja}</p>
+                <h4 className="font-medium text-text-primary mb-2">{faq.question_ja}</h4>
+                <p className="text-sm text-text-secondary">{faq.answer_ja}</p>
               </Card>
             ))}
           </div>
@@ -767,17 +739,14 @@ function ProductDetailModal({ product, onClose }: {
         {activeTab === 'downloads' && (
           <Card className="p-6 text-center">
             <div className="space-y-4">
-              <div className="w-16 h-16 bg-brixa-100 rounded-full flex items-center justify-center mx-auto">
-                <BarChart3 className="w-8 h-8 text-brixa-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">見積シミュレーター</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <BarChart3 className="mx-auto h-8 w-8 text-brand" />
+              <h3 className="text-lg font-semibold text-text-primary">見積シミュレーター</h3>
+              <p className="text-sm text-text-secondary mb-4">
                 製品の仕様を入力して、お見積もりを算出できます。<br />
                 希望するサイズ、数量、印刷などの詳細をご入力ください。
               </p>
               <Link href="/quote-simulator" className="inline-block">
-                <Button variant="primary" size="lg">
-                  <BarChart3 className="w-4 h-4 mr-2" />
+                <Button variant="primary" size="lg" icon={<BarChart3 className="w-4 h-4" aria-hidden="true" />}>
                   見積シミュレーターへ
                 </Button>
               </Link>
@@ -789,18 +758,15 @@ function ProductDetailModal({ product, onClose }: {
         {activeTab === 'cases' && (
           <Card className="p-6 text-center">
             <div className="space-y-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <Package className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">導入事例アーカイブ</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <Package className="mx-auto h-8 w-8 text-brand" />
+              <h3 className="text-lg font-semibold text-text-primary">導入事例アーカイブ</h3>
+              <p className="text-sm text-text-secondary mb-4">
                 実際の導入事例をご覧いただけます。<br />
                 業界別の活用事例、効果、お客様の声を確認できます。
               </p>
               {/* 一時的に無効化（ページが存在しないため404エラー） */}
               {/* <Link href="/archives" className="inline-block">
-                <Button variant="primary" size="lg">
-                  <Package className="w-4 h-4 mr-2" />
+                <Button variant="primary" size="lg" icon={<Package className="w-4 h-4" aria-hidden="true" />}>
                   アーカイブページへ
                 </Button>
               </Link> */}
@@ -814,13 +780,13 @@ function ProductDetailModal({ product, onClose }: {
             {extendedProduct.certifications.map((cert, idx) => (
               <Card key={idx} className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Check className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-brand-muted rounded-inner">
+                    <Check className="w-5 h-5 text-brand" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{cert.name}</p>
-                    <p className="text-sm text-gray-600">{cert.issuer}</p>
-                    {cert.description && <p className="text-xs text-gray-500 mt-1">{cert.description}</p>}
+                    <p className="font-medium text-text-primary">{cert.name}</p>
+                    <p className="text-sm text-text-secondary">{cert.issuer}</p>
+                    {cert.description && <p className="text-xs text-text-muted mt-1">{cert.description}</p>}
                   </div>
                 </div>
               </Card>

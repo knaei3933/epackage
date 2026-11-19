@@ -130,12 +130,12 @@ export function AdvancedFilters({
   }
 
   return (
-    <div className={`${isMobile ? 'fixed inset-0 z-50 bg-white' : 'bg-white rounded-lg border'} ${isMobile ? 'flex flex-col' : ''}`}>
+    <div className={`${isMobile ? 'fixed inset-0 z-50 bg-bg-primary' : 'bg-bg-primary rounded-container border'} ${isMobile ? 'flex flex-col' : ''}`}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-border-medium flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-          <h2 className="font-semibold text-gray-900">フィルター</h2>
+          <SlidersHorizontal className="w-5 h-5 text-text-secondary" />
+          <h2 className="font-semibold text-text-primary">フィルター</h2>
           {activeFilterCount > 0 && (
             <Badge variant="default" className="text-xs">
               {activeFilterCount}
@@ -148,7 +148,7 @@ export function AdvancedFilters({
               variant="ghost"
               size="sm"
               onClick={onClearAll}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-text-secondary hover:text-text-primary"
             >
               <RotateCcw className="w-4 h-4 mr-1" />
               クリア
@@ -165,24 +165,24 @@ export function AdvancedFilters({
       {/* Scrollable Content */}
       <div className={`${isMobile ? 'flex-1 overflow-y-auto' : ''}`}>
         {/* Search */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-border-medium">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted w-4 h-4" />
             <input
               type="text"
               placeholder="製品名、特徴、用途で検索..."
               value={filterState.searchQuery}
               onChange={(e) => onFilterChange({ searchQuery: e.target.value })}
-              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent text-sm"
+              className="h-10 w-full rounded-md border border-border-strong bg-bg-primary pl-9 pr-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             />
           </div>
         </div>
 
         {/* Categories */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-border-medium">
           <div className="flex items-center gap-2 mb-3">
-            <Package className="w-4 h-4 text-gray-500" />
-            <span className="font-medium text-gray-900">カテゴリー</span>
+            <Package className="w-4 h-4 text-text-muted" />
+            <span className="font-medium text-text-primary">カテゴリー</span>
             {filterState.selectedCategory !== 'all' && (
               <Badge variant="secondary" className="text-xs">1</Badge>
             )}
@@ -190,14 +190,14 @@ export function AdvancedFilters({
           <div className="space-y-2">
             <button
               onClick={() => onFilterChange({ selectedCategory: 'all' })}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${filterState.selectedCategory === 'all'
-                  ? 'bg-brixa-50 border border-brixa-600 text-brixa-600'
-                  : 'hover:bg-gray-50 border border-transparent'
+              className={`w-full text-left px-3 py-2 rounded-container text-sm transition-colors ${filterState.selectedCategory === 'all'
+                  ? 'bg-brand-muted border border-brand text-brand'
+                  : 'hover:bg-bg-secondary border border-transparent'
                 }`}
             >
               <div className="flex items-center justify-between">
                 <span>すべてのカテゴリー</span>
-                <span className="text-xs text-gray-500">{products.length}</span>
+                <span className="text-xs text-text-muted">{products.length}</span>
               </div>
             </button>
             {Object.entries(PRODUCT_CATEGORIES).map(([key, category]) => {
@@ -208,17 +208,17 @@ export function AdvancedFilters({
                 <button
                   key={key}
                   onClick={() => onFilterChange({ selectedCategory: key })}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${filterState.selectedCategory === key
-                      ? 'bg-brixa-50 border border-brixa-600 text-brixa-600'
-                      : 'hover:bg-gray-50 border border-transparent'
+                  className={`w-full text-left px-3 py-2 rounded-container text-sm transition-colors ${filterState.selectedCategory === key
+                      ? 'bg-brand-muted border border-brand text-brand'
+                      : 'hover:bg-bg-secondary border border-transparent'
                     }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-brixa-500" />
+                      <div className="w-3 h-3 rounded-full bg-brand" />
                       <span>{category.name_ja}</span>
                     </div>
-                    <span className="text-xs text-gray-500">{count}</span>
+                    <span className="text-xs text-text-muted">{count}</span>
                   </div>
                 </button>
               )
@@ -227,10 +227,10 @@ export function AdvancedFilters({
         </div>
 
         {/* Advanced Filters Toggle */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-border-medium">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between text-sm font-medium text-gray-700 hover:text-gray-900"
+            className="w-full flex items-center justify-between text-sm font-medium text-text-secondary hover:text-text-primary"
           >
             <span>詳細フィルター</span>
             {activeFilterCount > 0 && (
@@ -248,7 +248,7 @@ export function AdvancedFilters({
             {availableMaterials.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="font-medium text-gray-900 text-sm">素材</span>
+                  <span className="font-medium text-text-primary text-sm">素材</span>
                   {filterState.materials && filterState.materials.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {filterState.materials.length}
@@ -257,14 +257,14 @@ export function AdvancedFilters({
                 </div>
                 <div className="space-y-2">
                   {availableMaterials.map(material => (
-                    <label key={material} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                    <label key={material} className="flex items-center gap-2 cursor-pointer hover:bg-bg-secondary px-2 py-1 rounded">
                       <input
                         type="checkbox"
                         checked={filterState.materials?.includes(material) || false}
                         onChange={() => handleMaterialToggle(material)}
-                        className="w-4 h-4 text-brixa-600 rounded focus:ring-brixa-500"
+                        className="w-4 h-4 text-brand rounded focus:ring-brand"
                       />
-                      <span className="text-sm text-gray-700">{material}</span>
+                      <span className="text-sm text-text-secondary">{material}</span>
                     </label>
                   ))}
                 </div>
@@ -275,7 +275,7 @@ export function AdvancedFilters({
             {availableFeatures.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="font-medium text-gray-900 text-sm">特徴</span>
+                  <span className="font-medium text-text-primary text-sm">特徴</span>
                   {filterState.features && filterState.features.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {filterState.features.length}
@@ -284,14 +284,14 @@ export function AdvancedFilters({
                 </div>
                 <div className="space-y-2">
                   {availableFeatures.slice(0, 5).map(feature => (
-                    <label key={feature} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                    <label key={feature} className="flex items-center gap-2 cursor-pointer hover:bg-bg-secondary px-2 py-1 rounded">
                       <input
                         type="checkbox"
                         checked={filterState.features?.includes(feature) || false}
                         onChange={() => handleFeatureToggle(feature)}
-                        className="w-4 h-4 text-brixa-600 rounded focus:ring-brixa-500"
+                        className="w-4 h-4 text-brand rounded focus:ring-brand"
                       />
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <span className="text-sm text-text-secondary">{feature}</span>
                     </label>
                   ))}
                 </div>
@@ -302,7 +302,7 @@ export function AdvancedFilters({
             {availableApplications.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="font-medium text-gray-900 text-sm">用途</span>
+                  <span className="font-medium text-text-primary text-sm">用途</span>
                   {filterState.applications && filterState.applications.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {filterState.applications.length}
@@ -311,14 +311,14 @@ export function AdvancedFilters({
                 </div>
                 <div className="space-y-2">
                   {availableApplications.slice(0, 5).map(application => (
-                    <label key={application} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                    <label key={application} className="flex items-center gap-2 cursor-pointer hover:bg-bg-secondary px-2 py-1 rounded">
                       <input
                         type="checkbox"
                         checked={filterState.applications?.includes(application) || false}
                         onChange={() => handleApplicationToggle(application)}
-                        className="w-4 h-4 text-brixa-600 rounded focus:ring-brixa-500"
+                        className="w-4 h-4 text-brand rounded focus:ring-brand"
                       />
-                      <span className="text-sm text-gray-700">{application}</span>
+                      <span className="text-sm text-text-secondary">{application}</span>
                     </label>
                   ))}
                 </div>
@@ -328,7 +328,7 @@ export function AdvancedFilters({
             {/* Price Range Filter */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="font-medium text-gray-900 text-sm">価格範囲</span>
+                <span className="font-medium text-text-primary text-sm">価格範囲</span>
                 {filterState.priceRange && (
                   <Badge variant="secondary" className="text-xs">1</Badge>
                 )}
@@ -344,9 +344,9 @@ export function AdvancedFilters({
                       const maxPrice = filterState.priceRange?.[1] || 100000
                       onFilterChange({ priceRange: [minPrice, maxPrice] })
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                    className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   />
-                  <span className="text-gray-500">-</span>
+                  <span className="text-text-muted">-</span>
                   <input
                     type="number"
                     placeholder="最大"
@@ -356,17 +356,17 @@ export function AdvancedFilters({
                       const maxPrice = parseInt(e.target.value) || 100000
                       onFilterChange({ priceRange: [minPrice, maxPrice] })
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                    className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   />
                 </div>
-                <p className="text-xs text-gray-500">¥ (円)</p>
+                <p className="text-xs text-text-muted">¥ (円)</p>
               </div>
             </div>
 
             {/* Lead Time Filter */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="font-medium text-gray-900 text-sm">最大納期</span>
+                <span className="font-medium text-text-primary text-sm">最大納期</span>
                 {filterState.maxLeadTime && (
                   <Badge variant="secondary" className="text-xs">1</Badge>
                 )}
@@ -380,9 +380,9 @@ export function AdvancedFilters({
                     const maxLeadTime = parseInt(e.target.value) || undefined
                     onFilterChange({ maxLeadTime })
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                 />
-                <p className="text-xs text-gray-500 mt-1">最大納期を日数で入力してください</p>
+                <p className="text-xs text-text-muted mt-1">最大納期を日数で入力してください</p>
               </div>
             </div>
           </div>
@@ -391,7 +391,7 @@ export function AdvancedFilters({
 
       {/* Footer - Desktop with Apply Button */}
       {!isMobile && useDBFiltering && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-border-medium">
           <Button
             variant="primary"
             className="w-full"
@@ -412,9 +412,9 @@ export function AdvancedFilters({
 
       {/* Footer - Mobile Only */}
       {isMobile && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-border-medium">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-text-secondary">
               {filteredProductsCount}件の製品が見つかりました
             </span>
             <Button variant="ghost" size="sm" onClick={onClearAll}>

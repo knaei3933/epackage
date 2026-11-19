@@ -14,21 +14,21 @@ export interface MessageSectionProps {
 
 function MessageSection({ register, errors }: MessageSectionProps) {
   return (
-    <div className="bg-purple-50 rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-        <MessageSquare className="w-5 h-5 mr-2 text-purple-600" />
+    <div className="bg-brand-muted rounded-container p-6">
+      <h2 className="text-xl font-semibold text-text-primary mb-4 flex items-center">
+        <MessageSquare className="w-5 h-5 mr-2 text-brand" />
         お問い合わせ内容
       </h2>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">
-          メッセージ <span className="text-red-500">*</span>
+        <label className="text-sm font-medium text-text-secondary">
+          メッセージ <span className="text-error">*</span>
         </label>
         <textarea
           {...register('message')}
           data-testid="sample-message"
           rows={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+          className="w-full resize-none rounded-md border border-border-strong bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
           placeholder={`ご要望やご質問がございましたらご記入ください
 例：
 ・パウチのサイズについて
@@ -37,9 +37,9 @@ function MessageSection({ register, errors }: MessageSectionProps) {
         />
         <div className="flex justify-between items-center">
           {errors.message && (
-            <p className="text-red-600 text-sm">{errors.message.message}</p>
+            <p className="text-error text-sm">{errors.message.message}</p>
           )}
-          <p className="text-xs text-gray-500 ml-auto">
+          <p className="text-xs text-text-muted ml-auto">
             10文字以上500文字以内で入力してください
           </p>
         </div>

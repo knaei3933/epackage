@@ -175,11 +175,11 @@ export function CatalogFilters() {
 
       {/* Expanded Filters */}
       {isExpanded && (
-        <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+        <div className="p-4 bg-bg-secondary rounded-container space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Material Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 {tn('catalog', 'category.material')}
               </label>
               <Select
@@ -195,7 +195,7 @@ export function CatalogFilters() {
 
             {/* Size Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 {tn('catalog', 'category.size')}
               </label>
               <Select
@@ -211,7 +211,7 @@ export function CatalogFilters() {
 
             {/* Industry Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 {tn('catalog', 'category.industry')}
               </label>
               <Select
@@ -227,7 +227,7 @@ export function CatalogFilters() {
 
             {/* Price Range */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-secondary">
                 {tn('catalog', 'category.type')} {tn('catalog', 'details.price')}
               </label>
               <Flex className="gap-2">
@@ -238,7 +238,7 @@ export function CatalogFilters() {
                   onChange={(e) => handlePriceChange('min', e.target.value)}
                   size="sm"
                 />
-                <span className="self-center text-gray-500">-</span>
+                <span className="self-center text-text-muted">-</span>
                 <Input
                   type="number"
                   placeholder="最大"
@@ -252,7 +252,7 @@ export function CatalogFilters() {
 
           {/* Active Filters Display */}
           {activeFilterCount > 0 && (
-            <div className="pt-2 border-t border-gray-200">
+            <div className="pt-2 border-t border-border-medium">
               <div className="flex flex-wrap gap-2">
                 {filters.search && (
                   <Badge variant="secondary" size="sm">

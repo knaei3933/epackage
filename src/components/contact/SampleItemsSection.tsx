@@ -19,10 +19,10 @@ export function SampleItemsSection({ control, errors }: SampleItemsSectionProps)
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-text-primary mb-2">
           サンプルご依頼
         </h2>
-        <p className="text-gray-600 mb-4">
+        <p className="text-text-secondary mb-4">
           無料でサンプルをお送りいたします。必要事項をご入力ください。
         </p>
       </div>

@@ -52,33 +52,33 @@ export function ProductCertifications({
     const type = getCertType(name)
     const styles: Record<string, { bg: string; border: string; text: string; icon: any }> = {
       iso: {
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        text: 'text-blue-700',
+        bg: 'bg-brand-muted',
+        border: 'border-brand-soft',
+        text: 'text-brand',
         icon: Shield,
       },
       fda: {
-        bg: 'bg-green-50',
-        border: 'border-green-200',
-        text: 'text-green-700',
+        bg: 'bg-success-muted',
+        border: 'border-brand-soft',
+        text: 'text-brand',
         icon: CheckCircle,
       },
       food: {
-        bg: 'bg-orange-50',
-        border: 'border-orange-200',
-        text: 'text-orange-700',
+        bg: 'bg-brand-muted',
+        border: 'border-brand-soft',
+        text: 'text-brand',
         icon: Award,
       },
       fssc: {
-        bg: 'bg-purple-50',
-        border: 'border-purple-200',
-        text: 'text-purple-700',
+        bg: 'bg-brand-muted',
+        border: 'border-brand-soft',
+        text: 'text-brand',
         icon: Shield,
       },
       general: {
-        bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        text: 'text-gray-700',
+        bg: 'bg-bg-secondary',
+        border: 'border-border-medium',
+        text: 'text-text-secondary',
         icon: Award,
       },
     }
@@ -101,8 +101,8 @@ export function ProductCertifications({
       <div className="space-y-6">
         {/* ヘッダー */}
         <div className="flex items-center">
-          <Shield className="w-6 h-6 mr-2 text-brixa-600" />
-          <h3 className="text-xl font-bold text-gray-900">
+          <Shield className="w-6 h-6 mr-2 text-brand" />
+          <h3 className="text-xl font-bold text-text-primary">
             {locale === 'ja' ? '認証・規格' : 'Certifications & Standards'}
           </h3>
         </div>
@@ -120,7 +120,7 @@ export function ProductCertifications({
                 <div
                   onMouseEnter={() => setHoveredCert(cert.name)}
                   onMouseLeave={() => setHoveredCert(null)}
-                  className={`${style.bg} ${style.border} border rounded-lg p-4 hover:shadow-md transition-all`}
+                  className={`${style.bg} ${style.border} border rounded-container p-4 hover:shadow-low transition-colors`}
                 >
                   {/* 認証名とアイコン */}
                   <div className="flex items-start justify-between">
@@ -130,7 +130,7 @@ export function ProductCertifications({
                         <p className={`font-semibold ${style.text}`}>
                           {cert.name}
                         </p>
-                        <p className="text-xs text-gray-500">{cert.issuer}</p>
+                        <p className="text-xs text-text-muted">{cert.issuer}</p>
                       </div>
                     </div>
 
@@ -138,7 +138,7 @@ export function ProductCertifications({
                     {cert.description && (
                       <button
                         onClick={() => toggleExpand(cert.name)}
-                        className={`p-1 hover:bg-white/50 rounded transition-colors ${style.text}`}
+                        className={`p-1 hover:bg-bg-primary rounded transition-colors ${style.text}`}
                       >
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4" />
@@ -152,7 +152,7 @@ export function ProductCertifications({
                   {/* 説明（ホバーまたは展開時） */}
                   {cert.description && (isExpanded || isHovered) && (
                     <div className="mt-3 pt-3 border-t border-current/10">
-                      <p className="text-sm text-gray-700 leading-relaxed">
+                      <p className="text-sm text-text-secondary leading-relaxed">
                         {cert.description}
                       </p>
                     </div>
@@ -175,10 +175,10 @@ export function ProductCertifications({
         </div>
 
         {/* 認証に関する注意書き */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="p-4 bg-brand-muted border border-brand-soft rounded-container">
           <div className="flex items-start space-x-2">
-            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900">
+            <Info className="w-5 h-5 text-brand flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-brand">
               <p className="font-medium mb-1">
                 {locale === 'ja' ? '認証について' : 'About Certifications'}
               </p>

@@ -21,8 +21,8 @@ export function CatalogGrid() {
     return (
       <Container className="py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('common').loading}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
+          <p className="mt-4 text-text-secondary">{t('common').loading}</p>
         </div>
       </Container>
     )
@@ -46,7 +46,7 @@ export function CatalogGrid() {
   return (
     <Container className="py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-text-primary">
           {filteredProducts.length} {t('common').results}
         </h2>
       </div>

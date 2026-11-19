@@ -26,10 +26,10 @@ export function ProductListItem({
 
   return (
     <MotionWrapper delay={index * 0.05}>
-      <Card className="p-6 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={onSelect}>
+      <Card className="p-6 hover:shadow-low transition-colors cursor-pointer" onClick={onSelect}>
         <div className="flex gap-6">
           {/* Image */}
-          <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <div className="w-32 h-32 bg-bg-secondary rounded-inner flex items-center justify-center flex-shrink-0 overflow-hidden">
             {product.image ? (
               <img
                 src={product.image}
@@ -41,7 +41,7 @@ export function ProductListItem({
                 }}
               />
             ) : null}
-            <Package className={`w-12 h-12 text-gray-400 ${product.image ? 'hidden' : ''}`} />
+            <Package className={`w-12 h-12 text-text-muted ${product.image ? 'hidden' : ''}`} />
           </div>
 
           {/* Content */}
@@ -49,11 +49,11 @@ export function ProductListItem({
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{product.name_ja}</h3>
+                  <h3 className="text-lg font-semibold text-text-primary">{product.name_ja}</h3>
                   <Badge variant="secondary">{category?.name_ja}</Badge>
                 </div>
-                <p className="text-gray-600 mb-2">{product.description_ja}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <p className="text-text-secondary mb-2">{product.description_ja}</p>
+                <div className="flex items-center gap-4 text-sm text-text-secondary">
                   <div className="flex items-center gap-1">
                     <Truck className="w-4 h-4" />
                     <span>{product.lead_time_days}日</span>

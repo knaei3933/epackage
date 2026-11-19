@@ -180,25 +180,25 @@ export default function PouchSampleRequestForm() {
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl font-bold text-text-primary mb-2">
           サンプル申し込みフォーム
         </h1>
-        <p className="text-gray-600">
+        <p className="text-text-secondary">
           必要事項をご入力ください
         </p>
 
         {/* Draft Restoration Notice */}
         {hasDraft && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="mt-4 p-3 bg-warning-muted border border-warning rounded-container">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-amber-600" />
+                <RotateCcw className="w-4 h-4 text-warning" />
                 <div className="text-left">
-                  <p className="text-sm font-medium text-amber-800">
+                  <p className="text-sm font-medium text-on-warning-muted">
                     保存された下書きがあります
                   </p>
                   {lastSaved && (
-                    <p className="text-xs text-amber-600">
+                    <p className="text-xs text-warning">
                       保存時刻: {lastSaved.toLocaleString('ja-JP')}
                     </p>
                   )}
@@ -208,14 +208,14 @@ export default function PouchSampleRequestForm() {
                 <button
                   type="button"
                   onClick={handleRestoreDraft}
-                  className="px-3 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                  className="px-3 py-1 text-sm bg-brand text-white rounded hover:bg-brand-hover transition-colors"
                 >
                   復元
                 </button>
                 <button
                   type="button"
                   onClick={handleClearDraft}
-                  className="px-3 py-1 text-sm border border-amber-600 text-amber-700 rounded hover:bg-amber-50 transition-colors"
+                  className="px-3 py-1 text-sm border border-warning text-warning rounded hover:bg-warning-muted transition-colors"
                 >
                   クリア
                 </button>
@@ -225,11 +225,11 @@ export default function PouchSampleRequestForm() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-bg-primary rounded-container p-8">
         {/* Error Alert */}
         {submitStatus === 'error' && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">
+          <div className="mb-6 p-4 bg-error-muted border border-error rounded-container">
+            <p className="text-on-error-muted">
               送信エラーが発生しました: {errorMessage}
             </p>
           </div>
@@ -275,7 +275,7 @@ export default function PouchSampleRequestForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-8 py-4 bg-brixa-600 text-white font-semibold rounded-lg hover:bg-brixa-700 focus:ring-4 focus:ring-brixa-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[200px]"
+              className="px-8 py-4 bg-brand text-on-brand font-semibold rounded-container hover:bg-brand-hover focus:ring-2 focus:ring-brand disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[200px]"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
@@ -295,8 +295,8 @@ export default function PouchSampleRequestForm() {
           </div>
 
           {/* Form Footer Notice */}
-          <div className="text-center pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500">
+          <div className="text-center pt-4 border-t border-border-medium">
+            <p className="text-xs text-text-muted">
               ※ 2営業日以内にご連絡いたします
             </p>
           </div>

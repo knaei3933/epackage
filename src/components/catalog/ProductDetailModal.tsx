@@ -93,9 +93,9 @@ export function ProductDetailModal() {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-bg-primary rounded-container max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-border-medium">
           <h2 className="text-xl font-semibold">{getName()}</h2>
           <Button
             variant="ghost"
@@ -115,7 +115,7 @@ export function ProductDetailModal() {
               <GridItem>
                 <div className="space-y-4">
                   {/* Main Image */}
-                  <div className="relative aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="relative aspect-[4/3] bg-bg-secondary rounded-container overflow-hidden">
                     {currentImage && (
                       <Image
                         src={currentImage.url}
@@ -133,7 +133,7 @@ export function ProductDetailModal() {
                           variant="secondary"
                           size="sm"
                           onClick={handlePreviousImage}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-bg-primary hover:bg-bg-secondary"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
@@ -141,7 +141,7 @@ export function ProductDetailModal() {
                           variant="secondary"
                           size="sm"
                           onClick={handleNextImage}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-bg-primary hover:bg-bg-secondary"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </Button>
@@ -165,8 +165,8 @@ export function ProductDetailModal() {
                           onClick={() => handleThumbnailClick(index)}
                           className={`flex-shrink-0 relative aspect-[4/3] w-20 rounded overflow-hidden border-2 transition-colors ${
                             index === currentImageIndex
-                              ? 'border-navy-600'
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-brand'
+                              : 'border-border-medium hover:border-border-strong'
                           }`}
                         >
                           <Image
@@ -189,7 +189,7 @@ export function ProductDetailModal() {
                   {/* Basic Info */}
                   <div>
                     <h3 className="text-2xl font-bold mb-2">{getName()}</h3>
-                    <p className="text-gray-600 leading-relaxed">{getDescription()}</p>
+                    <p className="text-text-secondary leading-relaxed">{getDescription()}</p>
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -204,10 +204,10 @@ export function ProductDetailModal() {
                     <CardContent className="p-4">
                       <Flex className="items-center justify-between">
                         <div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-bold text-text-primary">
                             {getPriceDisplay()}
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="text-sm text-text-muted mt-1">
                             <div>最小注文数: {selectedProduct.minOrder.quantity} {selectedProduct.minOrder.unit}</div>
                             <div>納期: {selectedProduct.leadTime.min}-{selectedProduct.leadTime.max} {selectedProduct.leadTime.unit}</div>
                           </div>
@@ -229,20 +229,20 @@ export function ProductDetailModal() {
                     <CardContent className="space-y-3">
                       <div>
                         <strong>寸法:</strong>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-text-secondary">
                           {selectedProduct.specs.dimensions.length} × {selectedProduct.specs.dimensions.width} × {selectedProduct.specs.dimensions.height} {selectedProduct.specs.dimensions.unit}
                         </div>
                       </div>
                       <div>
                         <strong>重量:</strong>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-text-secondary">
                           {selectedProduct.specs.weight.min} - {selectedProduct.specs.weight.max} {selectedProduct.specs.weight.unit}
                         </div>
                       </div>
                       {selectedProduct.specs.capacity.volume > 0 && (
                         <div>
                           <strong>容量:</strong>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-text-secondary">
                             {selectedProduct.specs.capacity.volume} {selectedProduct.specs.capacity.unit}
                           </div>
                         </div>
@@ -291,9 +291,9 @@ export function ProductDetailModal() {
                     <CardContent className="space-y-3">
                       {selectedProduct.applications.map((app, index) => (
                         <div key={index}>
-                          <h4 className="font-medium text-gray-900">{app.industry}</h4>
-                          <p className="text-sm text-gray-600">{app.useCase}</p>
-                          <div className="text-sm text-gray-500">
+                          <h4 className="font-medium text-text-primary">{app.industry}</h4>
+                          <p className="text-sm text-text-secondary">{app.useCase}</p>
+                          <div className="text-sm text-text-muted">
                             例: {app.productExamples.join(', ')}
                           </div>
                         </div>

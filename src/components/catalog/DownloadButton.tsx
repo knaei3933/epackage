@@ -156,7 +156,7 @@ export function DownloadButton({
         size={size}
         disabled
         className={cn(
-          "border-gray-200 text-gray-400 cursor-not-allowed flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2",
+          "border-border-medium text-text-muted cursor-not-allowed flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2",
           className
         )}
       >
@@ -175,7 +175,7 @@ export function DownloadButton({
         variant="outline"
         size={size}
         className={cn(
-          "border-gray-300 text-gray-700 hover:border-green-600 hover:text-green-700 hover:bg-green-50 flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2 relative",
+          "border-border-strong text-text-secondary hover:border-brand hover:text-brand hover:bg-success-muted flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2 relative",
           className
         )}
         onClick={() => handleDownload(template)}
@@ -184,7 +184,7 @@ export function DownloadButton({
         {downloadState.loading ? (
           <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mb-1 animate-spin" />
         ) : downloadState.success ? (
-          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mb-1 text-green-600" />
+          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mb-1 text-brand" />
         ) : (
           getFileIcon(template.fileType)
         )}
@@ -199,9 +199,9 @@ export function DownloadButton({
 
         {/* Progress indicator */}
         {downloadState.loading && (
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200 overflow-hidden">
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-bg-muted overflow-hidden">
             <div
-              className="h-full bg-green-600 transition-all duration-300"
+              className="h-full bg-brand transition-colors"
               style={{ width: `${downloadState.progress}%` }}
             />
           </div>
@@ -217,7 +217,7 @@ export function DownloadButton({
         variant="outline"
         size={size}
         className={cn(
-          "border-gray-300 text-gray-700 hover:border-green-600 hover:text-green-700 hover:bg-green-50 flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2 relative",
+          "border-border-strong text-text-secondary hover:border-brand hover:text-brand hover:bg-success-muted flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2 relative",
           className
         )}
         onClick={() => setShowTemplateList(!showTemplateList)}
@@ -226,7 +226,7 @@ export function DownloadButton({
         {downloadState.loading ? (
           <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mb-1 animate-spin" />
         ) : downloadState.success ? (
-          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mb-1 text-green-600" />
+          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mb-1 text-brand" />
         ) : (
           <Download className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
         )}
@@ -241,9 +241,9 @@ export function DownloadButton({
 
         {/* Progress indicator */}
         {downloadState.loading && (
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200 overflow-hidden">
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-bg-muted overflow-hidden">
             <div
-              className="h-full bg-green-600 transition-all duration-300"
+              className="h-full bg-brand transition-colors"
               style={{ width: `${downloadState.progress}%` }}
             />
           </div>
@@ -252,14 +252,14 @@ export function DownloadButton({
 
       {/* Template dropdown */}
       {showTemplateList && (
-        <div className="absolute bottom-full mb-2 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 min-w-[200px]">
-          <div className="text-xs font-medium text-gray-700 px-2 py-1 border-b border-gray-100 mb-1">
+        <div className="absolute bottom-full mb-2 left-0 z-50 bg-bg-primary border border-border-medium rounded-container p-2 min-w-[200px]">
+          <div className="text-xs font-medium text-text-secondary px-2 py-1 border-b border-border-medium mb-1">
             デザインテンプレート
           </div>
           {templates.map((template) => (
             <button
               key={template.filename}
-              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-green-50 rounded transition-colors"
+              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-text-secondary hover:bg-success-muted rounded transition-colors"
               onClick={(e) => {
                 e.stopPropagation()
                 handleDownload(template)
@@ -270,7 +270,7 @@ export function DownloadButton({
               {getFileIcon(template.fileType)}
               <div className="flex-1 text-left">
                 <div className="font-medium">{template.displayName}</div>
-                <div className="text-gray-500">{template.fileType} ファイル</div>
+                <div className="text-text-muted">{template.fileType} ファイル</div>
               </div>
             </button>
           ))}

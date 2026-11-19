@@ -56,30 +56,30 @@ export function SampleRequestModal({ isOpen, onClose, product }: SampleRequestMo
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-2xl">
+      <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-bg-primary rounded-container">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-gray-200 bg-white">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-border-medium bg-bg-primary">
           <div className="flex items-center gap-3">
             {product && (
               <>
-                <div className="w-10 h-10 bg-brixa-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-brand rounded-container flex items-center justify-center">
                   <span className="text-white font-bold text-lg">SR</span>
                 </div>
                 <div>
                   <h2
                     id="sample-request-modal-title"
-                    className="text-xl font-semibold text-gray-900"
+                    className="text-xl font-semibold text-text-primary"
                   >
                     サンプルリクエスト
                   </h2>
                   {product && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-text-muted">
                       {product.name}
                     </p>
                   )}
@@ -89,7 +89,7 @@ export function SampleRequestModal({ isOpen, onClose, product }: SampleRequestMo
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-text-muted hover:text-text-secondary hover:bg-brand-subtle rounded-container transition-colors"
             aria-label="モーダルを閉じる"
           >
             <X className="w-5 h-5" />

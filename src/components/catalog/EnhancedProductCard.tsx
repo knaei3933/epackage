@@ -53,27 +53,24 @@ export function EnhancedProductCard({
       icon: Clock,
       text: `${product.lead_time_days}日`,
       label: '納期',
-      color: 'blue'
     },
     {
       icon: Package,
       text: `${product.min_order_quantity.toLocaleString()}${product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}`,
       label: '最小注文数',
-      color: 'green'
     },
     {
       icon: Zap,
       text: '優れた密封性',
       label: '特徴',
-      color: 'purple'
     }
   ]
 
   // Trust indicators
   const trustIndicators = [
-    { icon: Check, text: '品質保証', color: 'blue' },
-    { icon: BarChart3, text: '実績500社', color: 'orange' },
-    { icon: Star, text: '高品質', color: 'yellow' }
+    { icon: Check, text: '品質保証' },
+    { icon: BarChart3, text: '実績500社' },
+    { icon: Star, text: '高品質' }
   ]
 
   return (
@@ -87,7 +84,7 @@ export function EnhancedProductCard({
         stiffness: 100
       }}
       className={cn(
-        "group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden",
+        "group relative overflow-hidden rounded-container border border-border-medium bg-bg-primary transition-colors hover:border-border-dark hover:shadow-low",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -95,7 +92,7 @@ export function EnhancedProductCard({
     >
   
       {/* Enhanced Image Section */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-bg-secondary">
         {/* Main Product Image */}
         <div className="relative w-full h-full flex items-center justify-center p-0">
           {product.image ? (
@@ -103,40 +100,28 @@ export function EnhancedProductCard({
               <img
                 src={product.image}
                 alt={product.name_ja}
-                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-500"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                   e.currentTarget.nextElementSibling?.classList.remove('hidden')
                 }}
               />
               {/* Fallback placeholder */}
-              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hidden">
-                <Package className="w-16 h-16 text-gray-400" />
+              <div className="w-full h-full bg-bg-secondary flex items-center justify-center hidden">
+                <Package className="w-16 h-16 text-text-muted" />
               </div>
             </>
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-              <Package className="w-16 h-16 text-gray-400" />
+            <div className="w-full h-full bg-bg-secondary flex items-center justify-center">
+              <Package className="w-16 h-16 text-text-muted" />
             </div>
           )}
-
-          {/* Hover Overlay with Quick Actions */}
-          <AnimatePresence>
-            {isHovered && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"
-              />
-            )}
-          </AnimatePresence>
 
           {/* Category Badge */}
           <div className="absolute top-4 left-4">
             <Badge
               variant="secondary"
-              className="bg-white/95 backdrop-blur-sm border border-gray-200 px-3 py-1 text-xs font-medium"
+              className="border border-border-medium bg-bg-primary px-3 py-1 text-xs font-medium"
             >
               {category?.name_ja || 'その他'}
             </Badge>
@@ -156,21 +141,21 @@ export function EnhancedProductCard({
                     e.stopPropagation()
                     setShowQuickView(true)
                   }}
-                  className="w-10 h-10 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
+                  className="w-10 h-10 border border-border-strong bg-bg-primary rounded-full flex items-center justify-center hover:bg-bg-secondary transition-colors"
                 >
-                  <Info className="w-4 h-4 text-gray-700" />
+                  <Info className="w-4 h-4 text-text-secondary" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setIsFavorited(!isFavorited)
                   }}
-                  className="w-10 h-10 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
+                  className="w-10 h-10 border border-border-strong bg-bg-primary rounded-full flex items-center justify-center hover:bg-bg-secondary transition-colors"
                 >
                   <Heart
                     className={cn(
                       "w-4 h-4 transition-colors",
-                      isFavorited ? "text-red-500 fill-current" : "text-gray-700"
+                      isFavorited ? "text-error fill-current" : "text-text-secondary"
                     )}
                   />
                 </button>
@@ -185,10 +170,7 @@ export function EnhancedProductCard({
             <div
               key={idx}
               className={cn(
-                "w-6 h-6 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md",
-                indicator.color === 'emerald' && "text-emerald-600",
-                indicator.color === 'blue' && "text-blue-600",
-                indicator.color === 'orange' && "text-orange-600"
+                "w-6 h-6 border border-border-medium bg-bg-primary rounded-full flex items-center justify-center text-brand"
               )}
             >
               <indicator.icon className="w-3 h-3" />
@@ -201,10 +183,10 @@ export function EnhancedProductCard({
       <div className="p-6 space-y-4 text-center">
         {/* Product Title and Description */}
         <div className="space-y-2">
-          <h3 className="text-lg font-bold text-gray-900 group-hover:text-brixa-700 transition-colors line-clamp-2">
+          <h3 className="text-lg font-bold text-text-primary group-hover:text-brand transition-colors line-clamp-2">
             {product.name_ja}
           </h3>
-          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="text-sm text-text-secondary line-clamp-2 leading-relaxed">
             {product.description_ja}
           </p>
         </div>
@@ -217,22 +199,14 @@ export function EnhancedProductCard({
               <div
                 key={idx}
                 className={cn(
-                  "flex flex-col items-center p-2 rounded-lg border",
-                  feature.color === 'blue' && "border-blue-100 bg-blue-50",
-                  feature.color === 'green' && "border-green-100 bg-green-50",
-                  feature.color === 'purple' && "border-purple-100 bg-purple-50"
+                  "flex flex-col items-center p-2 rounded-inner border border-border-medium bg-bg-secondary"
                 )}
               >
-                <Icon className={cn(
-                  "w-4 h-4 mb-1",
-                  feature.color === 'blue' && "text-blue-600",
-                  feature.color === 'green' && "text-green-600",
-                  feature.color === 'purple' && "text-purple-600"
-                )} />
-                <span className={cn("text-xs font-medium text-gray-900")}>
+                <Icon className="w-4 h-4 mb-1 text-brand" aria-hidden="true" />
+                <span className={cn("text-xs font-medium text-text-primary")}>
                   {feature.text}
                 </span>
-                <span className={cn("text-xs text-gray-500")}>
+                <span className={cn("text-xs text-text-muted")}>
                   {feature.label}
                 </span>
               </div>
@@ -246,24 +220,24 @@ export function EnhancedProductCard({
             <Badge
               key={idx}
               variant="outline"
-              className="text-xs border-gray-300 text-gray-600"
+              className="text-xs border-border-strong text-text-secondary"
             >
               {material}
             </Badge>
           ))}
           {product.materials.length > 3 && (
-            <Badge variant="outline" className="text-xs border-gray-300 text-gray-500">
+            <Badge variant="outline" className="text-xs border-border-strong text-text-muted">
               +{product.materials.length - 3}
             </Badge>
           )}
         </div>
 
         {/* Enhanced Action Buttons */}
-        <div className="grid grid-cols-4 gap-1 sm:gap-2 pt-3 border-t border-gray-100">
+        <div className="grid grid-cols-4 gap-1 sm:gap-2 pt-3 border-t border-border-medium">
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
-            className="border-gray-300 text-gray-700 hover:border-brixa-600 hover:text-brixa-700 flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
+            className="flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
             onClick={(e) => {
               e.stopPropagation()
               onSelect(product)
@@ -274,9 +248,9 @@ export function EnhancedProductCard({
           </Button>
           <Link href="/samples" className="col-span-1">
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
-              className="w-full bg-brixa-600 text-white hover:bg-brixa-700 border-brixa-600 flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
+              className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
             >
               <Package className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
               <span className="text-[10px] sm:text-xs">サンプル</span>
@@ -286,7 +260,7 @@ export function EnhancedProductCard({
             <Button
               variant="primary"
               size="sm"
-              className="w-full bg-brixa-600 hover:bg-brixa-700 flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
+              className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
             >
               <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
               <span className="text-[10px] sm:text-xs">見積</span>
@@ -315,33 +289,33 @@ export function EnhancedProductCard({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl max-w-md w-full p-6 max-h-[80vh] overflow-y-auto"
+              className="bg-bg-primary rounded-container max-w-md w-full p-6 max-h-[80vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-bold text-gray-900">{product.name_ja}</h3>
+                <h3 className="text-lg font-bold text-text-primary">{product.name_ja}</h3>
                 <button
                   onClick={() => setShowQuickView(false)}
-                  className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center"
+                  aria-label="閉じる" className="h-9 w-9 max-sm:h-11 max-sm:w-11 bg-bg-muted hover:bg-brand-subtle rounded-full flex items-center justify-center"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="space-y-3 text-sm">
-                <p className="text-gray-600">{product.description_ja}</p>
+                <p className="text-text-secondary">{product.description_ja}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-gray-500">最小注文数:</span>
+                    <span className="text-text-muted">最小注文数:</span>
                     <p className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">納期:</span>
+                    <span className="text-text-muted">納期:</span>
                     <p className="font-medium">{product.lead_time_days}日</p>
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-500">素材:</span>
+                  <span className="text-text-muted">素材:</span>
                   <p className="font-medium">{product.materials.join(', ')}</p>
                 </div>
               </div>

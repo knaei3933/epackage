@@ -40,19 +40,19 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
         icon: BookOpen,
         label: '製品カタログ',
         labelEn: 'Product Catalog',
-        color: 'bg-blue-50 text-blue-700 border-blue-200',
+        color: 'bg-brand-muted text-brand border-brand-soft',
       },
       spec_sheet: {
         icon: FileText,
         label: '技術仕様書',
         labelEn: 'Technical Specs',
-        color: 'bg-green-50 text-green-700 border-green-200',
+        color: 'bg-success-muted text-brand border-brand-soft',
       },
       technical_guide: {
         icon: Settings,
         label: '技術ガイド',
         labelEn: 'Technical Guide',
-        color: 'bg-purple-50 text-purple-700 border-purple-200',
+        color: 'bg-brand-muted text-brand border-brand-soft',
       },
     }
     return info[type] || info.catalog
@@ -63,8 +63,8 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
       <div className="space-y-8">
         {/* ヘッダー */}
         <div className="flex items-center">
-          <Download className="w-6 h-6 mr-2 text-brixa-600" />
-          <h3 className="text-xl font-bold text-gray-900">
+          <Download className="w-6 h-6 mr-2 text-brand" />
+          <h3 className="text-xl font-bold text-text-primary">
             {locale === 'ja' ? 'ダウンロード資料' : 'Downloads'}
           </h3>
         </div>
@@ -79,8 +79,8 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
           return (
             <div key={type} className="space-y-4">
               <div className="flex items-center space-x-2">
-                <Icon className="w-5 h-5 text-gray-600" />
-                <h4 className="font-semibold text-gray-900">
+                <Icon className="w-5 h-5 text-text-secondary" />
+                <h4 className="font-semibold text-text-primary">
                   {locale === 'ja' ? typeInfo.label : typeInfo.labelEn}
                 </h4>
               </div>
@@ -94,14 +94,14 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
                       rel="noopener noreferrer"
                       className="group block"
                     >
-                      <div className="border border-gray-200 rounded-lg p-4 hover:border-brixa-600 hover:shadow-md transition-all">
+                      <div className="border border-border-medium rounded-container p-4 hover:border-brand hover:shadow-low transition-colors">
                         {/* アイコンとタイトル */}
                         <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg ${typeInfo.color}`}>
+                          <div className={`p-2 rounded-container ${typeInfo.color}`}>
                             <Download className="w-5 h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 group-hover:text-brixa-700 transition-colors line-clamp-2">
+                            <p className="font-medium text-text-primary group-hover:text-brand transition-colors line-clamp-2">
                               {locale === 'ja' ? download.title_ja : download.title_en}
                             </p>
                           </div>
@@ -110,7 +110,7 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
                         {/* ファイルサイズとタイプバッジ */}
                         <div className="flex items-center justify-between mt-3">
                           {download.size && (
-                            <span className="text-xs text-gray-500">{download.size}</span>
+                            <span className="text-xs text-text-muted">{download.size}</span>
                           )}
                           <Badge variant="outline" className="text-xs">
                             {getTypeLabel(download.type, locale)}
@@ -127,7 +127,7 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
 
         {/* ダウンロードがない場合 */}
         {downloads.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-text-muted">
             {locale === 'ja'
               ? '現在ダウンロード可能な資料はありません。'
               : 'No downloads available.'}
@@ -135,8 +135,8 @@ export function ProductDownloads({ downloads, locale = 'ja' }: ProductDownloadsP
         )}
 
         {/* 注意書き */}
-        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-sm text-gray-600">
+        <div className="p-4 bg-bg-secondary border border-border-medium rounded-container">
+          <p className="text-sm text-text-secondary">
             {locale === 'ja'
               ? '※PDFファイルをご覧になるには、Adobe Acrobat Readerが必要です。'
               : '※Adobe Acrobat Reader is required to view PDF files.'}

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Phone, User, Package, MessageSquare, Send, CheckCircle } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
 
 // お問い合わせフォームバリデーションスキーマ
@@ -145,26 +146,24 @@ export default function ContactForm() {
   if (submitStatus === 'success') {
     return (
       <div className="max-w-3xl mx-auto p-8">
-        <div className="bg-green-50 border border-green-200 rounded-xl p-12 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-3xl font-bold text-green-800 mb-4">
+        <div className="rounded-container border border-success bg-success-muted p-12 text-center">
+          <CheckCircle className="mx-auto mb-6 h-10 w-10 text-success" aria-hidden="true" />
+          <h2 className="text-2xl font-medium text-on-success-muted mb-4">
             パウチお問い合わせありがとうございます
           </h2>
-          <p className="text-green-700 mb-6 text-lg">
+          <p className="text-on-success-muted mb-6 text-lg">
             専門スタッフが迅速にご対応させていただきます。
             ご登録いただいたメールアドレスにてご連絡いたします。
           </p>
-          <div className="bg-white rounded-lg p-6 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">次のステップ</h3>
-            <ul className="text-left text-gray-600 space-y-2">
+          <div className="rounded-container bg-bg-primary p-6 mb-6">
+            <h3 className="font-semibold text-text-primary mb-3">次のステップ</h3>
+            <ul className="text-left text-text-secondary space-y-2">
               <li>• 24時間以内にご返信いたします</li>
               <li>• 必要に応じて詳細なヒアリングをお願いします</li>
               <li>• 無料サンプルのご提案も可能です</li>
             </ul>
           </div>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-on-success-muted">
             まもなくリダイレクトします...
           </p>
         </div>
@@ -175,28 +174,26 @@ export default function ContactForm() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* ヘッダー */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-brixa-600 rounded-full mb-4">
-          <Package className="w-8 h-8 text-brixa-700" />
-        </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+      <div className="mb-10">
+        <Package className="mb-4 h-8 w-8 text-brand" aria-hidden="true" />
+        <h2 className="mb-4 text-2xl font-medium leading-[1.4] text-text-primary md:text-[2rem] [word-break:keep-all] [overflow-wrap:anywhere]">
           お問い合わせ
-        </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-2">
+        </h2>
+        <p className="mb-2 max-w-[40em] text-lg text-text-secondary">
           パウチ製品に関するお問い合わせ、専門スタッフが詳しくご対応いたします。
         </p>
-        <p className="text-gray-500">
+        <p className="text-text-muted">
           24時間以内のご回答、無料サンプル対応可能
         </p>
       </div>
 
       {/* 問い合わせ内容ガイド */}
-      <div className="bg-brixa-50 border border-brixa-600 rounded-xl p-6 mb-8">
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-          <CheckCircle className="w-5 h-5 mr-2 text-brixa-700" />
+      <div className="rounded-container border border-brand-soft bg-brand-muted p-6 mb-8">
+        <h3 className="font-semibold text-on-brand-muted mb-3 flex items-center">
+          <CheckCircle className="w-5 h-5 mr-2 text-brand" aria-hidden="true" />
           より良いご対応のため
         </h3>
-        <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+        <div className="grid md:grid-cols-3 gap-4 text-sm text-text-secondary">
           <div>
             <span className="font-medium">製品用途:</span> 何を包装するか
           </div>
@@ -209,10 +206,10 @@ export default function ContactForm() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="rounded-container border border-border-medium bg-bg-primary p-6 md:p-8">
         {submitStatus === 'error' && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">
+          <div className="mb-6 p-4 rounded-container border border-error bg-error-muted">
+            <p className="text-on-error-muted">
               送信エラーが発生しました: {errorMessage}
             </p>
           </div>
@@ -220,9 +217,9 @@ export default function ContactForm() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* 基本情報 */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <User className="w-5 h-5 mr-2 text-gray-600" />
+          <div className="rounded-container bg-bg-secondary p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2 text-brand" />
               お客様情報
             </h3>
 
@@ -247,42 +244,42 @@ export default function ContactForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 会社名 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-text-primary">
                   会社名
                 </label>
                 <input
                   type="text"
                   {...register('company')}
                   data-testid="contact-company-name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="株式会社サンプル"
                 />
                 {errors.company && (
-                  <p className="text-red-600 text-sm">{errors.company.message}</p>
+                  <p className="text-error text-sm">{errors.company.message}</p>
                 )}
               </div>
 
               {/* 電話番号 */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
+                <label className="flex items-center text-sm font-medium text-text-primary">
                   <Phone className="w-4 h-4 mr-2" />
-                  電話番号 <span className="text-red-500 ml-1">*</span>
+                  電話番号 <span className="text-error ml-1">*</span>
                 </label>
                 <input
                   type="tel"
                   {...register('phone')}
                   data-testid="contact-phone-number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="03-1234-5678"
                 />
                 {errors.phone && (
-                  <p className="text-red-600 text-sm">{errors.phone.message}</p>
+                  <p className="text-error text-sm">{errors.phone.message}</p>
                 )}
               </div>
 
               {/* FAX番号 */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
+                <label className="flex items-center text-sm font-medium text-text-primary">
                   <Phone className="w-4 h-4 mr-2" />
                   FAX番号
                 </label>
@@ -290,73 +287,73 @@ export default function ContactForm() {
                   type="tel"
                   {...register('fax')}
                   data-testid="contact-fax-number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="03-1234-5678"
                 />
                 {errors.fax && (
-                  <p className="text-red-600 text-sm">{errors.fax.message}</p>
+                  <p className="text-error text-sm">{errors.fax.message}</p>
                 )}
               </div>
 
               {/* メールアドレス */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
+                <label className="flex items-center text-sm font-medium text-text-primary">
                   <Mail className="w-4 h-4 mr-2" />
-                  メールアドレス <span className="text-red-500 ml-1">*</span>
+                  メールアドレス <span className="text-error ml-1">*</span>
                 </label>
                 <input
                   type="email"
                   {...register('email')}
                   data-testid="contact-email-address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="example@company.com"
                 />
                 {errors.email && (
-                  <p className="text-red-600 text-sm">{errors.email.message}</p>
+                  <p className="text-error text-sm">{errors.email.message}</p>
                 )}
               </div>
 
               {/* 郵便番号 */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
+                <label className="flex items-center text-sm font-medium text-text-primary">
                   〒 郵便番号
                 </label>
                 <input
                   type="text"
                   {...register('postalCode')}
                   data-testid="contact-postal-code"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="100-0001"
                 />
                 {errors.postalCode && (
-                  <p className="text-red-600 text-sm">{errors.postalCode.message}</p>
+                  <p className="text-error text-sm">{errors.postalCode.message}</p>
                 )}
               </div>
 
               {/* 住所 - Full width */}
               <div className="space-y-2 md:col-span-2">
-                <label className="flex items-center text-sm font-medium text-gray-700">
+                <label className="flex items-center text-sm font-medium text-text-primary">
                   住所
                 </label>
                 <input
                   type="text"
                   {...register('address')}
                   data-testid="contact-address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+                  className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
                   placeholder="東京都〇〇区〇〇1-2-3"
                 />
                 {errors.address && (
-                  <p className="text-red-600 text-sm">{errors.address.message}</p>
+                  <p className="text-error text-sm">{errors.address.message}</p>
                 )}
               </div>
             </div>
           </div>
 
           {/* お問い合わせ種別選択 */}
-          <div className="bg-brixa-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Package className="w-5 h-5 mr-2 text-brixa-700" />
-              お問い合わせ種別 <span className="text-red-500 ml-2">*</span>
+          <div className="rounded-container bg-bg-secondary p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+              <Package className="w-5 h-5 mr-2 text-brand" />
+              お問い合わせ種別 <span className="text-error ml-2">*</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -371,57 +368,58 @@ export default function ContactForm() {
                   />
                   <label
                     htmlFor={type.value}
-                    className="block p-4 border-2 rounded-lg cursor-pointer transition-all peer-checked:border-brixa-600 peer-checked:bg-brixa-600 hover:border-brixa-400 border-gray-200 bg-white"
+                    className="block p-4 border-2 rounded-container cursor-pointer transition-colors border-border-medium bg-bg-primary hover:border-brand-soft peer-checked:border-brand peer-checked:bg-brand-subtle peer-focus-visible:ring-2 peer-focus-visible:ring-brand peer-focus-visible:ring-offset-2"
                   >
-                    <div className="font-medium text-gray-900">{type.label}</div>
-                    <div className="text-sm text-gray-600">{type.description}</div>
+                    <div className="font-medium text-text-primary">{type.label}</div>
+                    <div className="text-sm text-text-secondary">{type.description}</div>
                   </label>
                 </div>
               ))}
             </div>
             {errors.inquiryType && (
-              <p className="text-red-600 text-sm mt-2">{errors.inquiryType.message}</p>
+              <p className="text-error text-sm mt-2">{errors.inquiryType.message}</p>
             )}
           </div>
 
           {/* お問い合わせ内容 */}
           <div className="space-y-4">
-            <label className="flex items-center text-lg font-medium text-gray-900">
+            <label className="flex items-center text-lg font-medium text-text-primary">
               <MessageSquare className="w-5 h-5 mr-2" />
-              お問い合わせ内容 <span className="text-red-500 ml-2">*</span>
+              お問い合わせ内容 <span className="text-error ml-2">*</span>
             </label>
             <textarea
               {...register('message')}
               data-testid="contact-message"
               rows={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent resize-none text-base"
+              className="w-full resize-none rounded-md border border-border-strong bg-bg-primary px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
               placeholder="お客様のパウチ包装に関するご要望やご質問をお聞かせください。&#10;&#10;例：&#10;・包装する製品の種類&#10;・月産数量やロットサイズ&#10;・希望の仕様や機能&#10;・予算や納期についてなど"
             />
-            <div className="flex justify-between text-sm text-gray-500">
+            <div className="flex justify-between text-sm text-text-muted">
               <span>10文字以上800文字以内</span>
               <span>{watch('message')?.length || 0}/800</span>
             </div>
             {errors.message && (
-              <p className="text-red-600 text-sm">{errors.message.message}</p>
+              <p className="text-error text-sm">{errors.message.message}</p>
             )}
           </div>
 
           {/* 送信ボタン */}
           <div className="flex justify-center pt-6">
-            <button
+            <Button
               type="submit"
+              size="lg"
               disabled={isSubmitting}
-              className="flex items-center px-12 py-4 bg-brixa-700 text-white text-lg font-semibold rounded-xl hover:bg-brixa-600 focus:outline-none focus:ring-2 focus:ring-brixa-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+              icon={<Send className="h-5 w-5" aria-hidden="true" />}
+              className="px-12"
             >
-              <Send className="w-5 h-5 mr-3" />
               {isSubmitting ? '送信中...' : '送信する'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
 
       {/* 補足情報 */}
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-8 text-center text-sm text-text-muted">
         <p>受付時間: 平日 9:00-18:00 | メール: 24時間対応</p>
         <p className="mt-2">専門スタッフによる無料相談・無料サンプル対応中</p>
       </div>

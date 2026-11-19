@@ -70,23 +70,20 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
   return (
     <Card
-      className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden"
+      className="group cursor-pointer hover:shadow-low transition-colors overflow-hidden"
       onClick={handleCardClick}
     >
       {/* Product Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50">
+      <div className="relative aspect-[4/3] overflow-hidden bg-bg-secondary">
         {primaryImage && (
           <Image
             src={primaryImage.url}
             alt={primaryImage.alt}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         )}
-
-        {/* Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         {/* Status Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -108,7 +105,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             variant="secondary"
             size="sm"
             onClick={handleQuickView}
-            className="bg-white/95 hover:bg-white text-brixa-700 border border-brixa-600 shadow-lg min-w-[80px] font-medium"
+            className="bg-bg-primary hover:bg-bg-secondary text-brand border border-brand min-w-[80px] font-medium"
           >
             詳細
           </Button>
@@ -119,12 +116,12 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
       <CardContent className="p-4">
         <div className="space-y-2">
           {/* Product Name */}
-          <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">
+          <h3 className="font-semibold text-lg text-text-primary line-clamp-1">
             {getName()}
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-gray-600 line-clamp-2">
+          <p className="text-sm text-text-secondary line-clamp-2">
             {getDescription()}
           </p>
 
@@ -136,7 +133,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
               </TagBadge>
             ))}
             {product.tags && product.tags.length > 3 && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-text-muted">
                 +{product.tags.length - 3}
               </span>
             )}
@@ -163,7 +160,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           {/* Price and Action Row */}
           <div className="flex items-center justify-between w-full">
             {/* Price */}
-            <div className="text-xl font-bold text-gray-900">
+            <div className="text-xl font-bold text-text-primary">
               {getPriceDisplay()}
             </div>
 
@@ -174,7 +171,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleSampleRequest}
-                  className="border-brixa-400 text-brixa-700 hover:bg-brixa-50 hover:border-brixa-500 font-medium min-w-[80px]"
+                  className="border-brand-soft text-brand hover:bg-brand-muted hover:border-brand font-medium min-w-[80px]"
                 >
                   サンプル依頼
                 </Button>
@@ -193,8 +190,8 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           </div>
 
             {/* Additional Info */}
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="mt-3 pt-3 border-t border-border-medium">
+            <div className="flex items-center justify-between text-xs text-text-muted">
               <span>最小注文数: {product.minOrder.quantity} {product.minOrder.unit}</span>
               <span>納期: {product.leadTime.min}-{product.leadTime.max} {product.leadTime.unit}</span>
             </div>

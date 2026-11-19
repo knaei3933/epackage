@@ -87,13 +87,13 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
       <div className="space-y-6">
         {/* ヘッダー */}
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center">
-            <HelpCircle className="w-6 h-6 mr-2 text-brixa-600" />
+          <h3 className="text-xl font-bold text-text-primary flex items-center">
+            <HelpCircle className="w-6 h-6 mr-2 text-brand" />
             {locale === 'ja' ? 'よくある質問' : 'Frequently Asked Questions'}
           </h3>
           <button
             onClick={toggleAll}
-            className="text-sm text-brixa-600 hover:text-brixa-700 font-medium transition-colors"
+            className="text-sm text-brand hover:text-brand font-medium transition-colors"
           >
             {openItems.size === filteredFAQs.length
               ? (locale === 'ja' ? 'すべて閉じる' : 'Close All')
@@ -103,13 +103,13 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
 
         {/* 検索バー */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={locale === 'ja' ? 'キーワードで検索...' : 'Search by keyword...'}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-brixa-600"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary pl-10 pr-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
           />
         </div>
 
@@ -118,10 +118,10 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 selectedCategory === null
-                  ? 'bg-brixa-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-brand text-on-brand'
+                  : 'bg-bg-muted text-text-secondary hover:bg-brand-subtle'
               }`}
             >
               {locale === 'ja' ? 'すべて' : 'All'}
@@ -130,10 +130,10 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedCategory === category
-                    ? 'bg-brixa-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-brand text-on-brand'
+                    : 'bg-bg-muted text-text-secondary hover:bg-brand-subtle'
                 }`}
               >
                 {getCategoryLabel(category, locale)}
@@ -145,7 +145,7 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
         {/* FAQリスト */}
         <div className="space-y-3">
           {filteredFAQs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-text-muted">
               {locale === 'ja'
                 ? '該当する質問が見つかりませんでした。'
                 : 'No questions found.'}
@@ -153,22 +153,22 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
           ) : (
             filteredFAQs.map((faq, index) => (
               <MotionWrapper key={index} delay={index * 0.05}>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-border-medium rounded-container overflow-hidden">
                   <button
                     onClick={() => toggleItem(index.toString())}
-                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-bg-secondary transition-colors"
                   >
-                    <span className="font-medium text-gray-900 pr-4">
+                    <span className="font-medium text-text-primary pr-4">
                       {locale === 'ja' ? faq.question_ja : faq.question_en}
                     </span>
                     {isOpen(index.toString()) ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronUp className="w-5 h-5 text-text-muted flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronDown className="w-5 h-5 text-text-muted flex-shrink-0" />
                     )}
                   </button>
                   {isOpen(index.toString()) && (
-                    <div className="px-6 pb-4 pt-2 text-gray-700 border-t border-gray-100">
+                    <div className="px-6 pb-4 pt-2 text-text-secondary border-t border-border-medium">
                       <p className="leading-relaxed">
                         {locale === 'ja' ? faq.answer_ja : faq.answer_en}
                       </p>
@@ -182,7 +182,7 @@ export function ProductFAQ({ faqs, locale = 'ja' }: ProductFAQProps) {
 
         {/* 結果数表示 */}
         {searchQuery || selectedCategory ? (
-          <div className="text-sm text-gray-500 text-center">
+          <div className="text-sm text-text-muted text-center">
             {locale === 'ja' ? `${filteredFAQs.length}件の質問` : `${filteredFAQs.length} questions`}
           </div>
         ) : null}

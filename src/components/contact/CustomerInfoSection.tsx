@@ -18,9 +18,9 @@ export interface CustomerInfoSectionProps {
 
 function CustomerInfoSection({ control, register, setValue, trigger, errors }: CustomerInfoSectionProps) {
   return (
-    <div className="bg-gray-50 rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-        <User className="w-5 h-5 mr-2 text-gray-600" />
+    <div className="bg-bg-secondary rounded-container p-6">
+      <h2 className="text-xl font-semibold text-text-primary mb-6 flex items-center">
+        <User className="w-5 h-5 mr-2 text-text-secondary" />
         お客様情報
       </h2>
 
@@ -45,106 +45,106 @@ function CustomerInfoSection({ control, register, setValue, trigger, errors }: C
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 会社名 */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center">
-            <Building2 className="w-4 h-4 mr-1 text-gray-400" />
+          <label className="text-sm font-medium text-text-secondary flex items-center">
+            <Building2 className="w-4 h-4 mr-1 text-text-muted" />
             会社名
           </label>
           <input
             type="text"
             {...register('company')}
             data-testid="customer-company-name"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             placeholder="株式会社サンプル"
           />
           {errors.company && (
-            <p className="text-red-600 text-sm">{errors.company.message}</p>
+            <p className="text-error text-sm">{errors.company.message}</p>
           )}
         </div>
 
         {/* 電話番号 */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center">
-            <Phone className="w-4 h-4 mr-1 text-gray-400" />
-            電話番号 <span className="text-red-500">*</span>
+          <label className="text-sm font-medium text-text-secondary flex items-center">
+            <Phone className="w-4 h-4 mr-1 text-text-muted" />
+            電話番号 <span className="text-error">*</span>
           </label>
           <input
             type="tel"
             {...register('phone')}
             data-testid="customer-phone-number"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             placeholder="03-1234-5678"
           />
           {errors.phone && (
-            <p className="text-red-600 text-sm">{errors.phone.message}</p>
+            <p className="text-error text-sm">{errors.phone.message}</p>
           )}
         </div>
 
         {/* FAX */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-text-secondary">
             FAX
           </label>
           <input
             type="tel"
             {...register('fax')}
             data-testid="customer-fax-number"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             placeholder="03-1234-5678"
           />
           {errors.fax && (
-            <p className="text-red-600 text-sm">{errors.fax.message}</p>
+            <p className="text-error text-sm">{errors.fax.message}</p>
           )}
         </div>
 
         {/* メールアドレス */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center">
-            <Mail className="w-4 h-4 mr-1 text-gray-400" />
-            メールアドレス <span className="text-red-500">*</span>
+          <label className="text-sm font-medium text-text-secondary flex items-center">
+            <Mail className="w-4 h-4 mr-1 text-text-muted" />
+            メールアドレス <span className="text-error">*</span>
           </label>
           <input
             type="email"
             {...register('email')}
             data-testid="customer-email-address"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             placeholder="example@company.com"
           />
           {errors.email && (
-            <p className="text-red-600 text-sm">{errors.email.message}</p>
+            <p className="text-error text-sm">{errors.email.message}</p>
           )}
         </div>
 
         {/* 郵便番号 */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-text-secondary">
             郵便番号
           </label>
           <input
             type="text"
             {...register('postalCode')}
             data-testid="customer-postal-code"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             placeholder="100-0001"
           />
           {errors.postalCode && (
-            <p className="text-red-600 text-sm">{errors.postalCode.message}</p>
+            <p className="text-error text-sm">{errors.postalCode.message}</p>
           )}
         </div>
 
         {/* 住所 */}
         <div className="space-y-2 md:col-span-2">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-text-secondary">
             住所
           </label>
           <input
             type="text"
             {...register('address')}
             data-testid="customer-address"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-600 focus:border-transparent"
+            className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
             placeholder="東京都〇〇区〇〇1-2-3"
           />
           {errors.address && (
-            <p className="text-red-600 text-sm">{errors.address.message}</p>
+            <p className="text-error text-sm">{errors.address.message}</p>
           )}
         </div>
       </div>
