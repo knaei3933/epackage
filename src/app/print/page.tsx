@@ -2,7 +2,8 @@ import { Metadata } from 'next'
 import { Layout } from '@/components/layout/Layout'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import { PageHeader } from '@/components/layout'
 import { Card } from '@/components/ui/Card'
 import {
   ArrowRight,
@@ -52,48 +53,45 @@ function FacilityCard({
   specs?: string[]
 }) {
   return (
-    <MotionWrapper delay={delay}>
-      <Card className="overflow-hidden group hover:shadow-2xl transition-all duration-300 bg-white border-t-4 border-t-navy-600">
-        <div className="p-8">
+    <MotionWrapper delay={delay} className="h-full">
+      <Card className="h-full overflow-hidden">
+        <div className="p-6 md:p-8">
           {/* Icon */}
-          <div className="w-20 h-20 bg-gradient-to-br from-navy-600 to-navy-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-            <Icon className="w-10 h-10 text-navy-700" />
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-md bg-brand-muted text-brand">
+            <Icon className="h-7 w-7" aria-hidden="true" />
           </div>
 
           {/* Content */}
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <h3 className="mb-4 text-xl font-bold text-text-primary">
             {title}
           </h3>
 
-          <p className="text-gray-600 mb-6 leading-relaxed text-lg">
+          <p className="mb-6 leading-[1.8] text-text-secondary">
             {description}
           </p>
 
           {/* Features */}
-          <div className="space-y-3 mb-6">
+          <ul className="mb-6 space-y-3">
             {features.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                <span className="text-gray-700">{feature}</span>
-              </div>
+              <li key={index} className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                <span className="text-text-primary">{feature}</span>
+              </li>
             ))}
-          </div>
+          </ul>
 
           {/* Specifications */}
           {specs && specs.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <h4 className="font-semibold text-gray-900 mb-2">主要仕様</h4>
+            <div className="space-y-2 rounded-inner bg-bg-secondary p-4">
+              <h4 className="mb-2 font-bold text-text-primary">主要仕様</h4>
               {specs.map((spec, index) => (
-                <div key={index} className="text-sm text-gray-600">
+                <div key={index} className="text-sm text-text-secondary">
                   • {spec}
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        {/* Hover Effect */}
-        <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-navy-600 to-navy-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
       </Card>
     </MotionWrapper>
   )
@@ -115,13 +113,13 @@ function TechHighlight({
 }) {
   return (
     <MotionWrapper delay={delay}>
-      <div className="text-center p-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-brixa-600 to-brixa-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon className="w-8 h-8 text-brixa-700" />
+      <div className="border-t border-brand-soft pt-4">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+          <Icon className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h3 className="text-3xl font-bold text-gray-900 mb-2">{value}</h3>
-        <p className="text-lg font-semibold text-gray-800 mb-2">{title}</p>
-        <p className="text-gray-600">{description}</p>
+        <h3 className="mb-2 font-heading text-2xl text-text-primary">{value}</h3>
+        <p className="mb-2 text-base font-bold text-text-primary">{title}</p>
+        <p className="text-sm leading-[1.8] text-text-secondary">{description}</p>
       </div>
     </MotionWrapper>
   )
@@ -247,70 +245,51 @@ export default function PrintPage() {
   return (
     <Layout>
       <BreadcrumbJsonLd pathname="/print" />
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-navy-50 via-white to-brixa-50">
-        <Container size="6xl">
-          <div className="text-center max-w-4xl mx-auto space-y-8">
-            <MotionWrapper delay={0.1}>
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
-                <span className="block text-navy-700">最先端の生産設備と</span>
-                <span className="block text-brixa-700">技術力で信頼を築きます</span>
-              </h1>
-            </MotionWrapper>
-
-            <MotionWrapper delay={0.2}>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                EPACKAGE社の最新設備と熟練した技術力により
-                <br />
-                世界最高水準の包装材を生産します
-              </p>
-            </MotionWrapper>
-
-            <MotionWrapper delay={0.3}>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="justify-center px-8 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Factory className="mr-2 h-5 w-5" />
-                    生産施設見学
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-
-                <Link href="/catalog">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="justify-center px-8 py-4 text-lg font-medium border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-300"
-                  >
-                    <Package className="mr-2 h-5 w-5" />
-                    製品一覧を見る
-                  </Button>
-                </Link>
-              </div>
-            </MotionWrapper>
-          </div>
-        </Container>
-      </section>
+      <PageHeader
+        title={
+          <>
+            最先端の生産設備と
+            <wbr />
+            技術力で信頼を築きます
+          </>
+        }
+        lead={
+          <>
+            EPACKAGE社の最新設備と熟練した技術力により
+            <br />
+            世界最高水準の包装材を生産します
+          </>
+        }
+        actions={
+          <>
+            <Link href="/contact" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+              <Factory className="mr-2 h-5 w-5" aria-hidden="true" />
+              生産施設見学
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+            </Link>
+            <Link href="/catalog" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+              <Package className="mr-2 h-5 w-5" aria-hidden="true" />
+              製品一覧を見る
+            </Link>
+          </>
+        }
+      />
 
       {/* Tech Highlights */}
-      <section className="py-20 bg-white">
+      <section className="bg-bg-primary py-16 md:py-24">
         <Container size="6xl">
           <MotionWrapper delay={0.2}>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <div className="mb-12">
+              <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 EPACKAGE社の技術力
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
                 数字で証明する生産能力と技術資産
               </p>
             </div>
           </MotionWrapper>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="mb-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {techHighlights.map((highlight, index) => (
               <TechHighlight
                 key={index}
@@ -325,23 +304,23 @@ export default function PrintPage() {
 
           {/* Quote Section */}
           <MotionWrapper delay={0.7}>
-            <div className="bg-gradient-to-r from-navy-700 to-navy-600 rounded-2xl p-12 text-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            <div className="rounded-container border border-border-medium bg-bg-secondary p-8 md:p-12">
+              <h3 className="mb-4 font-heading text-xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-2xl">
                 30年のノウハウが詰まった生産技術
               </h3>
-              <p className="text-white text-lg mb-8 max-w-3xl mx-auto">
+              <p className="mb-8 max-w-[40em] leading-[1.8] text-text-secondary">
                 継続的な技術開発と設備投資により、お客様の期待を超える
                 最高の包装材を作り続けています
               </p>
-              <div className="flex justify-center space-x-6">
-                <div className="flex items-center space-x-2 text-yellow-400">
-                  <Star className="w-6 h-6 fill-current" />
-                  <Star className="w-6 h-6 fill-current" />
-                  <Star className="w-6 h-6 fill-current" />
-                  <Star className="w-6 h-6 fill-current" />
-                  <Star className="w-6 h-6 fill-current" />
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <div className="flex items-center gap-1 text-brand" aria-hidden="true">
+                  <Star className="h-6 w-6 fill-current" />
+                  <Star className="h-6 w-6 fill-current" />
+                  <Star className="h-6 w-6 fill-current" />
+                  <Star className="h-6 w-6 fill-current" />
+                  <Star className="h-6 w-6 fill-current" />
                 </div>
-                <span className="text-white font-medium">顧客満足度 98%</span>
+                <span className="font-medium text-text-primary">顧客満足度 98%</span>
               </div>
             </div>
           </MotionWrapper>
@@ -349,20 +328,20 @@ export default function PrintPage() {
       </section>
 
       {/* Facilities Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="bg-bg-secondary py-16 md:py-24">
         <Container size="6xl">
           <MotionWrapper delay={0.4}>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <div className="mb-12">
+              <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 最先端の生産設備
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
                 最新技術と自動化システムによる高品質包装材の生産
               </p>
             </div>
           </MotionWrapper>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid gap-6 md:grid-cols-2">
             {facilities.map((facility, index) => (
               <FacilityCard
                 key={index}
@@ -379,30 +358,30 @@ export default function PrintPage() {
       </section>
 
       {/* Certifications Section */}
-      <section className="py-20 bg-white">
+      <section className="bg-bg-primary py-16 md:py-24">
         <Container size="6xl">
           <MotionWrapper delay={0.9}>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <div className="mb-12">
+              <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 国際品質認証
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
                 グローバル基準に適合した品質と安全を保証します
               </p>
             </div>
           </MotionWrapper>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             {certifications.map((cert, index) => (
-              <MotionWrapper key={index} delay={1.0 + index * 0.1}>
-                <Card className="text-center p-6 hover:shadow-xl transition-all duration-300">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <cert.icon className="w-8 h-8 text-green-600" />
+              <MotionWrapper key={index} delay={1.0 + index * 0.1} className="h-full">
+                <Card className="h-full p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                    <cert.icon className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="mb-2 text-lg font-bold text-text-primary">
                     {cert.name}
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-sm leading-[1.8] text-text-secondary">
                     {cert.description}
                   </p>
                 </Card>
@@ -413,38 +392,28 @@ export default function PrintPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-navy-700 to-brixa-700">
-        <Container size="4xl" className="text-center">
+      <section className="bg-bg-primary pb-16 md:pb-24">
+        <Container size="6xl">
           <MotionWrapper delay={1.4}>
-            <div className="space-y-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
+            <div className="rounded-container bg-bg-inverted p-6 text-text-inverse sm:p-8 md:p-12">
+              <h2 className="font-heading text-2xl leading-[1.4] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 生産施設を直接ご確認ください
               </h2>
-              <p className="text-lg text-white/90 max-w-2xl mx-auto">
+              <p className="mt-4 max-w-[40em] leading-[1.8]">
                 最先端設備と生産工程を直接見学し
                 <br />
                 高品質包装材製造の全工程をご確認ください
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="justify-center bg-white text-navy-700 hover:bg-gray-50 font-medium"
-                  >
-                    <Truck className="mr-2 h-5 w-5" />
-                    施設見学お申し込み
-                  </Button>
+              <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-x-8">
+                <Link href="/contact" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+                  <Truck className="mr-2 h-5 w-5" aria-hidden="true" />
+                  施設見学お申し込み
                 </Link>
-                <Link href="/samples">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="justify-center border-white text-white hover:bg-white hover:text-navy-700 font-medium"
-                  >
-                    <Package className="mr-2 h-5 w-5" />
-                    サンプル請求
-                  </Button>
+                <Link
+                  href="/samples"
+                  className="inline-flex min-h-11 items-center text-base underline underline-offset-4 hover:text-brand-soft"
+                >
+                  サンプル請求
                 </Link>
               </div>
             </div>

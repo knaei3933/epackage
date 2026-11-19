@@ -2,12 +2,12 @@ import { Metadata } from 'next'
 import { Layout } from '@/components/layout/Layout'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import { PageHeader } from '@/components/layout'
 import { Card } from '@/components/ui/Card'
 import {
   ArrowLeft,
   Download,
-  FileText,
   Settings,
   Upload,
   Phone,
@@ -36,149 +36,102 @@ export default function DataTemplatesPage() {
     <Layout>
       <BreadcrumbJsonLd pathname="/data-templates" />
       <div className="min-h-screen">
-        {/* Breadcrumb */}
-        <section className="py-8 bg-white border-b">
-          <Container size="6xl">
-            <MotionWrapper delay={0.1}>
-              <nav className="flex items-center space-x-2 text-sm text-gray-600">
-                <Link href="/" className="hover:text-brixa-600 transition-colors">
-                  ホーム
-                </Link>
-                <span>/</span>
-                <Link href="/quote-simulator" className="hover:text-brixa-600 transition-colors">
-                  お見積り
-                </Link>
-                <span>/</span>
-                <span className="text-gray-900 font-medium">デザインテンプレート</span>
-              </nav>
-            </MotionWrapper>
-          </Container>
-        </section>
-
-        {/* Hero Section */}
-        <section className="py-16 bg-gradient-to-br from-brixa-50 to-white">
-          <Container size="6xl">
-            <MotionWrapper delay={0.1}>
-              <div className="text-center max-w-4xl mx-auto">
-                <div className="inline-flex items-center space-x-2 bg-brixa-100 text-brixa-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                  <FileText className="w-4 h-4" />
-                  <span>プロ仕様テンプレート</span>
-                </div>
-
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                  包装材の
-                  <span className="text-brixa-600"> デザインテンプレート</span>
-                </h1>
-
-                <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                  Adobe Illustrator形式のプロ仕様テンプレートで、
-                  <br />
-                  正確な製品仕様と最高品質の印刷を実現します
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/quote-simulator">
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="justify-center px-8 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      <Settings className="mr-2 h-5 w-5" />
-                      お見積りを開始
-                    </Button>
-                  </Link>
-
-                  <Link href="/contact">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="justify-center px-8 py-4 text-lg font-medium border-2 border-brixa-600 text-brixa-600 hover:bg-brixa-50 transition-all duration-300"
-                    >
-                      <HelpCircle className="mr-2 h-5 w-5" />
-                      デザインサポート
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </MotionWrapper>
-          </Container>
-        </section>
+        <PageHeader
+          title={<>包装材の<wbr />デザインテンプレート</>}
+          lead={
+            <>
+              Adobe Illustrator形式のプロ仕様テンプレートで、
+              <br />
+              正確な製品仕様と最高品質の印刷を実現します
+            </>
+          }
+          actions={
+            <>
+              <Link href="/quote-simulator" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+                <Settings className="mr-2 h-5 w-5" aria-hidden="true" />
+                お見積りを開始
+              </Link>
+              <Link href="/contact" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+                <HelpCircle className="mr-2 h-5 w-5" aria-hidden="true" />
+                デザインサポート
+              </Link>
+            </>
+          }
+        />
 
         {/* Template Guide */}
-        <section className="py-16 bg-white">
+        <section className="bg-bg-primary py-16 md:py-24">
           <Container size="6xl">
             <DataTemplateGuide language="ja" />
           </Container>
         </section>
 
         {/* Support Section */}
-        <section className="py-16 bg-gray-50">
+        <section className="bg-bg-secondary py-16 md:py-24">
           <Container size="6xl">
             <MotionWrapper delay={0.5}>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <div className="mb-12">
+                <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                   デザインサポートをご利用ください
                 </h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
                   テンプレートの使用方法からデザインの完成まで、
                   専門スタッフが丁寧にサポートいたします
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone className="w-8 h-8 text-green-600" />
+              <div className="grid gap-6 md:grid-cols-3">
+                <Card className="p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                    <Phone className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="mb-2 text-lg font-bold text-text-primary">
                     電話でご相談
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="mb-4 leading-[1.8] text-text-secondary">
                     テンプレートの使用方法や
                     デザインに関するご質問
                   </p>
                   <a
                     href="tel:03-1234-5678"
-                    className="text-brixa-600 font-medium hover:text-brixa-700"
+                    className="inline-flex min-h-11 items-center font-medium text-brand underline underline-offset-4 hover:text-brand-pressed"
                   >
                     03-1234-5678
                   </a>
                 </Card>
 
-                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300">
-                  <div className="w-16 h-16 bg-navy-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-navy-600" />
+                <Card className="p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                    <Mail className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="mb-2 text-lg font-bold text-text-primary">
                     メールでご相談
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="mb-4 leading-[1.8] text-text-secondary">
                     デザインデータの確認や
                     技術的なご質問にお答えします
                   </p>
                   <a
                     href="mailto:design@epackage-lab.com"
-                    className="text-brixa-600 font-medium hover:text-brixa-700"
+                    className="inline-flex min-h-11 items-center break-all font-medium text-brand underline underline-offset-4 hover:text-brand-pressed"
                   >
                     design@epackage-lab.com
                   </a>
                 </Card>
 
-                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Upload className="w-8 h-8 text-purple-600" />
+                <Card className="p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                    <Upload className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="mb-2 text-lg font-bold text-text-primary">
                     デザインサービス
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="mb-4 leading-[1.8] text-text-secondary">
                     プロのデザイナーが
                     完成したデザインデータを作成します
                   </p>
-                  <Link href="/contact">
-                    <Button variant="outline" size="sm">
-                      詳細を見る
-                    </Button>
+                  <Link href="/contact" className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' max-sm:h-11'}>
+                    詳細を見る
                   </Link>
                 </Card>
               </div>
@@ -187,14 +140,14 @@ export default function DataTemplatesPage() {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-16 bg-white">
+        <section className="bg-bg-primary py-16 md:py-24">
           <Container size="4xl">
             <MotionWrapper delay={0.6}>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <div className="mb-12">
+                <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                   よくあるご質問
                 </h2>
-                <p className="text-gray-600">
+                <p className="mt-4 leading-[1.8] text-text-secondary">
                   テンプレート使用に関するよくある質問にお答えします
                 </p>
               </div>
@@ -219,10 +172,10 @@ export default function DataTemplatesPage() {
                   }
                 ].map((faq, index) => (
                   <Card key={index} className="p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3">
+                    <h3 className="mb-3 font-bold text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance">
                       Q. {faq.q}
                     </h3>
-                    <p className="text-gray-700">
+                    <p className="leading-[1.8] text-text-primary">
                       A. {faq.a}
                     </p>
                   </Card>

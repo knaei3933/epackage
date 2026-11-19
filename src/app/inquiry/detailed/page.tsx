@@ -1,7 +1,9 @@
 import React from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MessageSquare, TrendingUp, Clock, Shield } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { MessageSquare, TrendingUp, Clock, Shield } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { PageHeader } from '@/components/layout'
 import { Container } from '@/components/ui/Container'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import DetailedInquiryForm from '@/components/inquiry/DetailedInquiryForm'
@@ -21,85 +23,61 @@ export const metadata = {
 
 export default function DetailedInquiryPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-brixa-50">
+    <div className="min-h-screen bg-bg-primary">
       <BreadcrumbJsonLd pathname="/inquiry/detailed" />
-      {/* Header */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/30 via-transparent to-purple-100/30"></div>
-
-        <Container size="6xl" className="relative z-10 py-16">
-          <MotionWrapper delay={0.1}>
-            {/* Breadcrumb */}
-            <nav className="mb-8">
-              <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                ホームに戻る
-              </Link>
-            </nav>
-
-            {/* Page Header */}
-            <div className="text-center mb-12">
-              <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <MessageSquare className="w-10 h-10 text-white" />
-                </div>
-              </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                <span className="block text-indigo-600">詳細</span>
-                <span className="block text-gray-900">お問い合わせ</span>
-              </h1>
-
-              <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                5ステップであなたの最適なパウチソリューションをご提案します。<br />
-                リードスコアに基づき、高品質リードには優先的なご対応をいたします。
-              </p>
-            </div>
-          </MotionWrapper>
-        </Container>
-      </section>
+      <PageHeader
+        title={
+          <>
+            詳細
+            <span className="block">お問い合わせ</span>
+          </>
+        }
+        lead={
+          <>
+            5ステップであなたの最適なパウチソリューションをご提案します。
+            リードスコアに基づき、高品質リードには優先的なご対応をいたします。
+          </>
+        }
+      />
 
       {/* Features Section */}
-      <section className="py-12">
+      <section className="bg-bg-primary py-16 md:py-24">
         <Container size="6xl">
           <MotionWrapper delay={0.2}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-8 h-8 text-indigo-600" />
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
+              <div>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                  <TrendingUp className="h-6 w-6" aria-hidden="true" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">リードスコア</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="mb-2 text-lg font-bold text-text-primary">リードスコア</h3>
+                <p className="text-sm leading-[1.8] text-text-secondary">
                   お客様の重要度を自動評価し、優先対応
                 </p>
               </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-8 h-8 text-purple-600" />
+              <div>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                  <Clock className="h-6 w-6" aria-hidden="true" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">スピード対応</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="mb-2 text-lg font-bold text-text-primary">スピード対応</h3>
+                <p className="text-sm leading-[1.8] text-text-secondary">
                   高品質リードは4時間以内にご連絡
                 </p>
               </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-navy-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-8 h-8 text-navy-600" />
+              <div>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                  <MessageSquare className="h-6 w-6" aria-hidden="true" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">詳細ヒアリング</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="mb-2 text-lg font-bold text-text-primary">詳細ヒアリング</h3>
+                <p className="text-sm leading-[1.8] text-text-secondary">
                   5ステップで要件を網羅的に把握
                 </p>
               </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-green-600" />
+              <div>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-brand">
+                  <Shield className="h-6 w-6" aria-hidden="true" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">品質保証</h3>
-                <p className="text-gray-600 text-sm">
+                <h3 className="mb-2 text-lg font-bold text-text-primary">品質保証</h3>
+                <p className="text-sm leading-[1.8] text-text-secondary">
                   専門家による確実なご提案とサポート
                 </p>
               </div>
@@ -109,7 +87,7 @@ export default function DetailedInquiryPage() {
       </section>
 
       {/* Form Section */}
-      <section className="pb-16">
+      <section className="bg-bg-secondary py-16 md:py-24">
         <Container size="6xl">
           <MotionWrapper delay={0.3}>
             <DetailedInquiryForm />
@@ -118,140 +96,120 @@ export default function DetailedInquiryPage() {
       </section>
 
       {/* Process Section */}
-      <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-600">
+      <section className="bg-bg-primary py-16 md:py-24">
         <Container size="6xl">
           <MotionWrapper delay={0.4}>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <div className="mb-12">
+              <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 お問い合わせ後の流れ
               </h2>
-              <p className="text-xl text-indigo-100">
+              <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
                 お客様のリードスコアに応じて、最適な対応プランをご用意
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="text-white text-xl font-bold">1</div>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">自動スコアリング</h3>
-                <p className="text-indigo-100">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <Card className="p-6">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-xl font-bold text-on-brand-muted">1</div>
+                <h3 className="mb-2 text-xl font-bold text-text-primary">自動スコアリング</h3>
+                <p className="leading-[1.8] text-text-secondary">
                   お客様の情報を基にリードスコアを自動算出
                 </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="text-white text-xl font-bold">2</div>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">優先対応</h3>
-                <p className="text-indigo-100">
+              </Card>
+              <Card className="p-6">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-xl font-bold text-on-brand-muted">2</div>
+                <h3 className="mb-2 text-xl font-bold text-text-primary">優先対応</h3>
+                <p className="leading-[1.8] text-text-secondary">
                   高品質リードは4時間以内、通常は24時間以内にご連絡
                 </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="text-white text-xl font-bold">3</div>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">最適提案</h3>
-                <p className="text-indigo-100">
+              </Card>
+              <Card className="p-6">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-xl font-bold text-on-brand-muted">3</div>
+                <h3 className="mb-2 text-xl font-bold text-text-primary">最適提案</h3>
+                <p className="leading-[1.8] text-text-secondary">
                   リードスコアに応じた最適なソリューションをご提案
                 </p>
-              </div>
+              </Card>
             </div>
           </MotionWrapper>
         </Container>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16">
+      <section className="bg-bg-secondary py-16 md:py-24">
         <Container size="4xl">
           <MotionWrapper delay={0.5}>
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <div className="mb-12">
+              <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 よくあるご質問
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="mt-4 leading-[1.8] text-text-secondary">
                 詳細お問い合わせフォームに関するよくある質問
               </p>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              <Card className="p-6">
+                <h3 className="mb-3 text-lg font-bold text-text-primary">
                   Q. リードスコアとは何ですか？
                 </h3>
-                <p className="text-gray-600">
+                <p className="leading-[1.8] text-text-secondary">
                   A. お客様の会社規模、予算、要望などから算出される重要度スコアです。
                   高得点ほど高品質なリードとして評価し、優先的なご対応をいたします。
                 </p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              </Card>
+              <Card className="p-6">
+                <h3 className="mb-3 text-lg font-bold text-text-primary">
                   Q. どのくらいでご連絡がもらえますか？
                 </h3>
-                <p className="text-gray-600">
+                <p className="leading-[1.8] text-text-secondary">
                   A. リードスコア70点以上のお客様は4時間以内、それ以外のお客様は24時間以内に
                   専門担当者よりご連絡いたします。
                 </p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              </Card>
+              <Card className="p-6">
+                <h3 className="mb-3 text-lg font-bold text-text-primary">
                   Q. 5ステップすべて入力する必要がありますか？
                 </h3>
-                <p className="text-gray-600">
+                <p className="leading-[1.8] text-text-secondary">
                   A. はい、最適なご提案のため、すべてのステップでの入力をお願いしております。
                   所要時間は約3分です。
                 </p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              </Card>
+              <Card className="p-6">
+                <h3 className="mb-3 text-lg font-bold text-text-primary">
                   Q. 個人情報はどのように使用されますか？
                 </h3>
-                <p className="text-gray-600">
+                <p className="leading-[1.8] text-text-secondary">
                   A. ご提供いただいた情報は、お問い合わせへの回答と弊社サービスのご案内のみに使用し、
                   第三者に提供することはありません。
                 </p>
-              </div>
+              </Card>
             </div>
           </MotionWrapper>
         </Container>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-brixa-600 to-amber-600">
-        <Container size="4xl">
+      <section className="bg-bg-primary py-16 md:py-24">
+        <Container size="6xl">
           <MotionWrapper delay={0.6}>
-            <div className="text-center text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <div className="rounded-container bg-bg-inverted p-6 text-text-inverse sm:p-8 md:p-12">
+              <h2 className="font-heading text-2xl leading-[1.4] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
                 まずは簡単なお問い合わせから
               </h2>
-              <p className="text-xl mb-8 text-brixa-600">
+              <p className="mt-4 max-w-[40em] leading-[1.8]">
                 詳細な入力が難しい場合は、通常のお問い合わせフォームもご利用いただけます
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="bg-white text-brixa-600 hover:bg-gray-100 px-8 py-4"
-                  >
-                    通常お問い合わせ
-                  </Button>
+              <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-x-8">
+                <Link href="/contact" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
+                  通常お問い合わせ
                 </Link>
-                <Link href="/premium-content">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-white text-white hover:bg-white hover:text-brixa-600 px-8 py-4"
-                  >
-                    資料ダウンロード
-                  </Button>
+                <Link
+                  href="/premium-content"
+                  className="inline-flex min-h-11 items-center text-base underline underline-offset-4 hover:text-brand-soft"
+                >
+                  資料ダウンロード
                 </Link>
               </div>
             </div>

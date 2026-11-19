@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Button } from '@/components/ui/Button'
 import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
 
 // サンプルリクエストフォームバリデーションスキーマ
@@ -118,116 +119,112 @@ export default function SampleRequestFormWrapper() {
 
       {/* 会社名 */}
       <div>
-        <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="company" className="block text-sm font-medium text-text-primary mb-1">
           会社名
         </label>
         <input
           type="text"
           id="company"
           {...register('company')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+          className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
           placeholder="株式会社〇〇"
         />
         {errors.company && (
-          <p className="text-red-600 text-sm mt-1">{errors.company.message}</p>
+          <p className="text-error text-sm mt-1">{errors.company.message}</p>
         )}
       </div>
 
       {/* メールアドレス */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          メールアドレス <span className="text-red-600">*</span>
+        <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
+          メールアドレス <span className="text-error">*</span>
         </label>
         <input
           type="email"
           id="email"
           {...register('email')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+          className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
           placeholder="example@company.com"
         />
         {errors.email && (
-          <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+          <p className="text-error text-sm mt-1">{errors.email.message}</p>
         )}
       </div>
 
       {/* 電話番号 */}
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-          電話番号 <span className="text-red-600">*</span>
+        <label htmlFor="phone" className="block text-sm font-medium text-text-primary mb-1">
+          電話番号 <span className="text-error">*</span>
         </label>
         <input
           type="tel"
           id="phone"
           {...register('phone')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+          className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
           placeholder="03-1234-5678"
         />
         {errors.phone && (
-          <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>
+          <p className="text-error text-sm mt-1">{errors.phone.message}</p>
         )}
       </div>
 
       {/* 郵便番号 */}
       <div>
-        <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
-          郵便番号 <span className="text-red-600">*</span>
+        <label htmlFor="postalCode" className="block text-sm font-medium text-text-primary mb-1">
+          郵便番号 <span className="text-error">*</span>
         </label>
         <input
           type="text"
           id="postalCode"
           {...register('postalCode')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+          className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
           placeholder="100-0001"
         />
         {errors.postalCode && (
-          <p className="text-red-600 text-sm mt-1">{errors.postalCode.message}</p>
+          <p className="text-error text-sm mt-1">{errors.postalCode.message}</p>
         )}
       </div>
 
       {/* 住所 */}
       <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-          住所 <span className="text-red-600">*</span>
+        <label htmlFor="address" className="block text-sm font-medium text-text-primary mb-1">
+          住所 <span className="text-error">*</span>
         </label>
         <textarea
           id="address"
           {...register('address')}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+          className="w-full rounded-md border border-border-strong bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
           placeholder="東京都〇〇区〇〇1-2-3"
         />
         {errors.address && (
-          <p className="text-red-600 text-sm mt-1">{errors.address.message}</p>
+          <p className="text-error text-sm mt-1">{errors.address.message}</p>
         )}
       </div>
 
       {/* ご要望・ご質問 */}
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="message" className="block text-sm font-medium text-text-primary mb-1">
           ご要望・ご質問
         </label>
         <textarea
           id="message"
           {...register('message')}
           rows={4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brixa-500 focus:border-transparent"
+          className="w-full rounded-md border border-border-strong bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
           placeholder="ご要望やご質問がございましたらご記入ください"
         />
         {errors.message && (
-          <p className="text-red-600 text-sm mt-1">{errors.message.message}</p>
+          <p className="text-error text-sm mt-1">{errors.message.message}</p>
         )}
       </div>
 
       {/* 送信ボタン */}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full py-4 bg-brixa-600 text-white font-semibold rounded-lg hover:bg-brixa-700 focus:ring-4 focus:ring-brixa-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <Button type="submit" variant="primary" size="lg" disabled={isSubmitting} className="w-full">
         {isSubmitting ? '送信中...' : 'サンプルを依頼する'}
-      </button>
+      </Button>
 
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-[13px] text-text-muted text-center">
         ※ 2営業日以内にご連絡いたします
       </p>
     </form>

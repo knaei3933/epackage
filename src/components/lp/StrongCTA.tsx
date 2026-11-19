@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Phone, Mail, ArrowRight, Clock } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/Button'
 import { trackPhoneClick } from '@/lib/analytics'
 
 interface StrongCTAProps {
@@ -37,27 +38,24 @@ export function StrongCTA({
     trackPhoneClick(phoneNumber, 'cta')
   }
 
+  const phoneLinkBase =
+    'inline-flex min-h-11 items-center gap-2 font-semibold text-text-inverse hover:text-brand-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-soft'
+
   if (variant === 'compact') {
     return (
-      <div className={`bg-gradient-to-r from-brixa-600 to-brixa-700 rounded-xl p-6 text-white ${className}`}>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <h3 className="text-xl font-bold mb-1">{title}</h3>
+      <div className={`rounded-container bg-bg-inverted p-6 text-text-inverse ${className}`}>
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="mb-1 text-xl font-bold">{title}</h3>
             {showPhone && (
-              <a
-                href={`tel:${phoneNumber}`}
-                onClick={handlePhoneClick}
-                className="flex items-center justify-center sm:justify-start space-x-2 text-brixa-100 hover:text-white transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                <span className="text-lg font-semibold">{phoneNumber}</span>
+              <a href={`tel:${phoneNumber}`} onClick={handlePhoneClick} className={phoneLinkBase}>
+                <Phone className="h-4 w-4" aria-hidden="true" />
+                <span className="text-lg">{phoneNumber}</span>
               </a>
             )}
           </div>
-          <Link href={primaryHref} className="inline-flex w-full sm:w-auto shrink-0">
-            <button className="w-full sm:w-auto px-6 py-3 bg-white text-brixa-700 font-semibold rounded-lg hover:bg-brixa-50 transition-colors shadow-lg">
-              {primaryText}
-            </button>
+          <Link href={primaryHref} className={`${buttonVariants({ variant: 'primary', size: 'lg' })} w-full shrink-0 sm:w-auto`}>
+            {primaryText}
           </Link>
         </div>
       </div>
@@ -66,52 +64,43 @@ export function StrongCTA({
 
   if (variant === 'centered') {
     return (
-      <div className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-8 md:p-12 text-center ${className}`}>
+      <div className={`rounded-container bg-bg-inverted p-8 text-center text-text-inverse md:p-12 ${className}`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-3xl mx-auto"
+          className="mx-auto max-w-3xl"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="mb-4 font-heading text-2xl leading-[1.4] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
             {title}
           </h2>
-          <p className="text-lg text-gray-300 mb-8">
-            {description}
-          </p>
+          <p className="mx-auto mb-8 max-w-[40em] leading-[1.8]">{description}</p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <Link href={primaryHref} className="inline-flex w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brixa-500 to-brixa-600 text-white text-lg font-semibold rounded-xl hover:from-brixa-600 hover:to-brixa-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                <span className="flex items-center justify-center">
-                  {primaryText}
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </span>
-              </button>
+          <div className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-x-8">
+            <Link href={primaryHref} className={`${buttonVariants({ variant: 'primary', size: 'lg' })} w-full sm:w-auto`}>
+              {primaryText}
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Link>
             {secondaryHref && (
-              <Link href={secondaryHref} className="inline-flex w-full sm:w-auto">
-                <button className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm text-white text-lg font-semibold rounded-xl hover:bg-white/20 transition-all border border-white/20">
-                  {secondaryText}
-                </button>
+              <Link
+                href={secondaryHref}
+                className="inline-flex min-h-11 items-center text-base underline underline-offset-4 hover:text-brand-soft"
+              >
+                {secondaryText}
               </Link>
             )}
           </div>
 
           {showPhone && (
-            <a
-              href={`tel:${phoneNumber}`}
-              onClick={handlePhoneClick}
-              className="inline-flex items-center space-x-2 text-brixa-400 hover:text-brixa-300 transition-colors font-semibold"
-            >
-              <Phone className="w-5 h-5" />
+            <a href={`tel:${phoneNumber}`} onClick={handlePhoneClick} className={phoneLinkBase}>
+              <Phone className="h-5 w-5" aria-hidden="true" />
               <span className="text-xl">{phoneNumber}</span>
             </a>
           )}
 
           {showHours && (
-            <div className="mt-6 flex items-center justify-center space-x-2 text-gray-400 text-sm">
-              <Clock className="w-4 h-4" />
+            <div className="mt-6 flex items-center justify-center gap-2 text-sm">
+              <Clock className="h-4 w-4" aria-hidden="true" />
               <span>受付時間: 平日 9:00-18:00</span>
             </div>
           )}
@@ -121,49 +110,40 @@ export function StrongCTA({
   }
 
   return (
-    <div className={`bg-gradient-to-br from-brixa-50 via-white to-blue-50 border border-brixa-200 rounded-xl p-6 md:p-8 ${className}`}>
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-        <div className="flex-1 text-center lg:text-left">
-          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+    <div className={`rounded-container bg-bg-inverted p-6 text-text-inverse md:p-8 ${className}`}>
+      <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
+        <div className="flex-1">
+          <h3 className="mb-2 font-heading text-2xl leading-[1.4] [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-3xl">
             {title}
           </h3>
-          <p className="text-gray-600 mb-4">
-            {description}
-          </p>
+          <p className="mb-4 max-w-[40em] leading-[1.8]">{description}</p>
           {showPhone && (
-            <a
-              href={`tel:${phoneNumber}`}
-              onClick={handlePhoneClick}
-              className="inline-flex items-center space-x-2 text-brixa-700 hover:text-brixa-800 transition-colors font-semibold text-lg"
-            >
-              <Phone className="w-5 h-5" />
-              <span>{phoneNumber}</span>
+            <a href={`tel:${phoneNumber}`} onClick={handlePhoneClick} className={phoneLinkBase}>
+              <Phone className="h-5 w-5" aria-hidden="true" />
+              <span className="text-lg">{phoneNumber}</span>
             </a>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-          <Link href={primaryHref} className="inline-flex w-full sm:w-auto">
-            <button className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brixa-600 to-brixa-700 text-white font-semibold rounded-xl hover:from-brixa-700 hover:to-brixa-800 transition-all shadow-lg hover:shadow-xl">
-              <span className="flex items-center justify-center">
-                {primaryText}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </span>
-            </button>
+        <div className="flex w-full flex-col items-start gap-4 sm:w-auto sm:flex-row sm:items-center sm:gap-x-8">
+          <Link href={primaryHref} className={`${buttonVariants({ variant: 'primary', size: 'lg' })} w-full sm:w-auto`}>
+            {primaryText}
+            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
           </Link>
           {secondaryHref && (
-            <Link href={secondaryHref} className="inline-flex w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-6 py-4 border-2 border-brixa-300 text-brixa-700 font-semibold rounded-xl hover:bg-brixa-50 transition-colors">
-                {secondaryText}
-              </button>
+            <Link
+              href={secondaryHref}
+              className="inline-flex min-h-11 items-center text-base underline underline-offset-4 hover:text-brand-soft"
+            >
+              {secondaryText}
             </Link>
           )}
         </div>
       </div>
 
       {showHours && (
-        <div className="mt-4 pt-4 border-t border-brixa-200 flex items-center justify-center lg:justify-start space-x-2 text-gray-500 text-sm">
-          <Clock className="w-4 h-4" />
+        <div className="mt-4 flex items-center gap-2 border-t border-border-strong pt-4 text-sm">
+          <Clock className="h-4 w-4" aria-hidden="true" />
           <span>受付時間: 平日 9:00-18:00 | 24時間メール受付</span>
         </div>
       )}

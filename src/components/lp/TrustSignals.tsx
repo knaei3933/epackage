@@ -76,9 +76,9 @@ export function TrustSignals({
         {trustSignalsData.map((signal, index) => (
           <div
             key={index}
-            className="flex items-center space-x-2 text-sm text-gray-600"
+            className="flex items-center space-x-2 text-sm text-text-secondary"
           >
-            <span className="text-brixa-600">{signal.icon}</span>
+            <span className="text-brand">{signal.icon}</span>
             <span className="font-semibold">{signal.value}</span>
           </div>
         ))}
@@ -91,8 +91,8 @@ export function TrustSignals({
       <div className={`flex items-center justify-center space-x-8 ${className}`}>
         {trustSignalsData.slice(0, 3).map((signal, index) => (
           <div key={index} className="text-center">
-            <div className="text-lg font-bold text-brixa-700">{signal.value}</div>
-            <div className="text-xs text-gray-500">{signal.label}</div>
+            <div className="text-lg font-bold text-text-primary">{signal.value}</div>
+            <div className="text-xs text-text-muted">{signal.label}</div>
           </div>
         ))}
       </div>
@@ -100,7 +100,7 @@ export function TrustSignals({
   }
 
   return (
-    <div className={`py-12 bg-gradient-to-br from-gray-50 via-white to-brixa-50 ${className}`}>
+    <div className={`bg-bg-secondary py-12 ${className}`}>
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           variants={containerVariants}
@@ -113,19 +113,19 @@ export function TrustSignals({
             <motion.div
               key={index}
               variants={itemVariants}
-              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              className="rounded-container border border-border-medium bg-bg-primary p-6 transition-colors hover:border-border-dark hover:shadow-low"
             >
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-brixa-500 to-brixa-600 rounded-lg flex items-center justify-center text-white">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-brand text-on-brand">
                   {signal.icon}
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{signal.value}</div>
-                  <div className="text-sm font-medium text-gray-600">{signal.label}</div>
+                  <div className="text-2xl font-bold text-text-primary">{signal.value}</div>
+                  <div className="text-sm font-medium text-text-secondary">{signal.label}</div>
                 </div>
               </div>
               {signal.description && (
-                <p className="text-xs text-gray-500">{signal.description}</p>
+                <p className="text-sm text-text-muted">{signal.description}</p>
               )}
             </motion.div>
           ))}

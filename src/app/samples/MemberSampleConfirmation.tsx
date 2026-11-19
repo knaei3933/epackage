@@ -15,6 +15,7 @@ import {
   isCompletePostalCode,
   normalizePostalCodeInput,
 } from '@/lib/address/postal-code';
+import { buttonVariants } from '@/components/ui/Button';
 import { usePostalCodeLookup } from '@/hooks/usePostalCodeLookup';
 
 export interface MemberSampleConfirmationValue {
@@ -35,9 +36,9 @@ export interface MemberSampleConfirmationProps {
 type ConfirmationField = keyof MemberSampleConfirmationValue;
 
 const inputClassName =
-  'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-brixa-300 focus:outline-none focus:ring-4 focus:ring-brixa-100';
+  'h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11';
 
-const labelClassName = 'mb-2 block text-sm font-semibold text-gray-900';
+const labelClassName = 'mb-2 block text-sm font-medium text-text-primary';
 
 function FieldLabel({
   htmlFor,
@@ -51,7 +52,7 @@ function FieldLabel({
   return (
     <label htmlFor={htmlFor} className={labelClassName}>
       {children}
-      {!optional && <span className="ml-1 text-red-500">*</span>}
+      {!optional && <span className="ml-1 text-error">*</span>}
     </label>
   );
 }
@@ -67,12 +68,12 @@ function SectionTitle({
 }) {
   return (
     <div className="mb-5 flex items-start gap-3">
-      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-brixa-50 text-brixa-600">
+      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-md bg-brand-muted text-brand">
         {icon}
       </span>
       <div>
-        <h3 className="text-base font-bold text-gray-900">{title}</h3>
-        <p className="mt-1 text-sm text-gray-600">{description}</p>
+        <h3 className="text-base font-bold text-text-primary">{title}</h3>
+        <p className="mt-1 text-sm text-text-secondary">{description}</p>
       </div>
     </div>
   );
@@ -222,7 +223,7 @@ export default function MemberSampleConfirmation({
         </div>
       </section>
 
-      <div className="border-t border-dashed border-gray-200" />
+      <div className="border-t border-border-medium" />
 
       {/* Shipping address */}
       <section aria-labelledby="member-sample-address-heading">
@@ -252,7 +253,7 @@ export default function MemberSampleConfirmation({
               <p
                 role="status"
                 data-testid="member-sample-postal-loading"
-                className="mt-2 flex items-center gap-2 text-sm text-gray-600"
+                className="mt-2 flex items-center gap-2 text-sm text-text-secondary"
               >
                 <Loader2 className="size-4 animate-spin" />
                 住所を検索しています...
@@ -262,7 +263,7 @@ export default function MemberSampleConfirmation({
               <p
                 role="alert"
                 data-testid="member-sample-postal-error"
-                className="mt-2 rounded-lg bg-warning-50 px-3 py-2 text-sm text-warning-700"
+                className="mt-2 rounded-md bg-warning-muted px-3 py-2 text-sm text-on-warning-muted"
               >
                 {postalSearchError}
               </p>
@@ -341,18 +342,18 @@ export default function MemberSampleConfirmation({
         <p
           role="alert"
           data-testid="member-sample-error"
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+          className="rounded-container border border-error bg-error-muted px-4 py-3 text-sm font-medium text-on-error-muted"
         >
           {errorMessage}
         </p>
       ) : null}
 
-      <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-5">
+      <div className="rounded-container border border-border-medium bg-bg-secondary p-5">
         <button
           type="submit"
           disabled={isSubmitting}
           data-testid="member-sample-submit"
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brixa-600 to-brixa-700 px-6 py-4 text-base font-bold text-white shadow-lg shadow-brixa-600/20 transition-all hover:from-brixa-700 hover:to-brixa-800 hover:shadow-brixa-700/25 focus:outline-none focus:ring-4 focus:ring-brixa-200 disabled:cursor-not-allowed disabled:opacity-60"
+          className={`${buttonVariants({ variant: 'primary', size: 'lg' })} w-full`}
         >
           {isSubmitting ? (
             <>
@@ -367,17 +368,17 @@ export default function MemberSampleConfirmation({
           )}
         </button>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-600">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-text-secondary">
           <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="size-4 text-green-600" />
+            <ShieldCheck className="size-4 text-brand" />
             送料無料安心配送
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <Truck className="size-4 text-brixa-600" />
+            <Truck className="size-4 text-brand" />
             2-3営業日で発送準備
           </span>
         </div>
-        <p className="mt-3 text-center text-xs text-gray-500">
+        <p className="mt-3 text-center text-[13px] text-text-muted">
           ※ 2営業日以内にご連絡いたします
         </p>
       </div>

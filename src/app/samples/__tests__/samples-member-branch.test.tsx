@@ -10,6 +10,12 @@ jest.mock('next/navigation', () => ({
   },
 }));
 
+// next/font/google は jest では関数として存在しない（PageHeader が読み込む）。代わりのものを渡す。
+jest.mock('next/font/google', () => ({
+  Shippori_Mincho_B1: () => ({ variable: 'font-heading-var', className: '', style: {} }),
+  Noto_Sans_JP: () => ({ variable: 'font-body-var', className: '', style: {} }),
+}));
+
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(),
 }));

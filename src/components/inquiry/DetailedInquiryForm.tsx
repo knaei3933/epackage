@@ -135,28 +135,28 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
   if (submitStatus === 'success') {
     return (
       <div className="max-w-4xl mx-auto p-8">
-        <Card className="p-12 text-center bg-green-50 border-green-200">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
-            <CheckCircle className="w-12 h-12 text-green-600" />
+        <Card variant="success" className="p-12 text-center">
+          <div className="w-24 h-24 bg-bg-primary rounded-full flex items-center justify-center mx-auto mb-8">
+            <CheckCircle className="w-12 h-12 text-success" />
           </div>
-          <h2 className="text-4xl font-bold text-green-800 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-on-success-muted mb-6">
             詳細お問い合わせありがとうございます
           </h2>
           <div className="max-w-2xl mx-auto mb-8">
-            <div className="bg-white rounded-lg p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">📊 リードスコア</h3>
-              <div className="text-3xl font-bold text-navy-700 mb-2">{leadScore}/100点</div>
-              <p className="text-gray-600">
+            <div className="bg-bg-primary rounded-container p-6 mb-6 border border-border-medium">
+              <h3 className="text-xl font-bold text-text-primary mb-4">リードスコア</h3>
+              <div className="text-3xl font-bold text-brand mb-2">{leadScore}/100点</div>
+              <p className="text-text-secondary">
                 {leadScore >= 70 ? '高品質リード' : leadScore >= 40 ? '標準リード' : '低品質リード'}
               </p>
             </div>
-            <p className="text-green-700 text-lg mb-6">
+            <p className="text-on-success-muted text-lg mb-6">
               専門スタッフが24時間以内にご連絡いたします。<br />
               詳細なヒアリングと最適なソリューションをご提案します。
             </p>
-            <div className="text-left bg-white rounded-lg p-6">
-              <h4 className="font-semibold text-gray-900 mb-3">次のステップ</h4>
-              <ul className="text-gray-600 space-y-2">
+            <div className="text-left bg-bg-primary rounded-container p-6 border border-border-medium">
+              <h4 className="font-bold text-text-primary mb-3">次のステップ</h4>
+              <ul className="text-text-secondary space-y-2">
                 <li>✓ 24時間以内に専門担当者よりご連絡</li>
                 <li>✓ 詳細なヒアリングと要件確認</li>
                 <li>✓ 無料サンプルのご提案</li>
@@ -164,7 +164,7 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
               </ul>
             </div>
           </div>
-          <p className="text-green-600">
+          <p className="text-on-success-muted">
             まもなくリダイレクトします...
           </p>
         </Card>
@@ -176,18 +176,18 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
     <div className="max-w-4xl mx-auto p-6">
       {/* Progress Header */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">
+        <h2 className="font-heading text-2xl md:text-[2rem] leading-[1.4] text-text-primary mb-4 text-center [word-break:keep-all] [overflow-wrap:anywhere]">
           詳細お問い合わせフォーム
-        </h1>
-        <p className="text-xl text-gray-600 text-center mb-8">
+        </h2>
+        <p className="text-text-secondary text-center mb-8">
           5ステップで最適なパウチソリューションをご提案します
         </p>
 
         {/* Step Progress */}
         <div className="relative">
-          <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+          <div className="absolute top-5 left-0 right-0 h-1 bg-bg-subtle -z-10">
             <div
-              className="h-full bg-navy-700 transition-all duration-300"
+              className="h-full bg-brand transition-all duration-300"
               style={{ width: `${((currentStep + 1) / formSteps.length) * 100}%` }}
             />
           </div>
@@ -200,12 +200,12 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
                 <div key={step.id} className="flex flex-col items-center">
                   <button
                     onClick={() => setCurrentStep(index)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    className={`w-10 h-10 max-sm:w-11 max-sm:h-11 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                       status === 'active'
-                        ? 'bg-navy-700 text-white ring-4 ring-navy-600'
+                        ? 'bg-brand text-on-brand ring-2 ring-brand ring-offset-2'
                         : status === 'completed' || isComplete
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                        ? 'bg-brand text-on-brand'
+                        : 'bg-bg-subtle text-text-secondary hover:bg-bg-muted border border-border-strong'
                     }`}
                   >
                     {status === 'completed' || isComplete ? (
@@ -215,8 +215,8 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
                     )}
                   </button>
                   <div className="mt-2 text-center">
-                    <div className="text-sm font-medium text-gray-900">{step.title}</div>
-                    <div className="text-xs text-gray-500">ステップ {index + 1}</div>
+                    <div className="text-sm font-medium text-text-primary">{step.title}</div>
+                    <div className="text-[13px] text-text-muted">ステップ {index + 1}</div>
                   </div>
                 </div>
               )
@@ -227,20 +227,20 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
 
       {/* Lead Score Indicator */}
       <div className="mb-6">
-        <Card className="p-4 bg-navy-50 border-navy-600">
+        <Card variant="brixa" className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <TrendingUp className="w-5 h-5 text-navy-700 mr-2" />
-              <span className="font-semibold text-navy-600">リードスコア</span>
+              <TrendingUp className="w-5 h-5 text-brand mr-2" />
+              <span className="font-semibold text-text-primary">リードスコア</span>
             </div>
             <div className="flex items-center">
-              <span className="text-2xl font-bold text-navy-700 mr-2">{leadScore}</span>
-              <span className="text-navy-600">/100点</span>
+              <span className="text-2xl font-bold text-brand mr-2">{leadScore}</span>
+              <span className="text-text-secondary">/100点</span>
             </div>
           </div>
           {leadScore >= 70 && (
-            <div className="mt-2 text-sm text-navy-600">
-              🎯 高品質リードです！優先的なご対応を予定しております。
+            <div className="mt-2 text-sm text-text-primary">
+              高品質リードです！優先的なご対応を予定しております。
             </div>
           )}
         </Card>
@@ -252,30 +252,30 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
           <Card className="p-8">
             {/* Error Message */}
             {submitStatus === 'error' && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-6 p-4 bg-error-muted border border-error rounded-container">
                 <div className="flex items-center">
-                  <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-                  <p className="text-red-800">送信エラーが発生しました: {errorMessage}</p>
+                  <AlertCircle className="w-5 h-5 text-error mr-2" />
+                  <p className="text-on-error-muted">送信エラーが発生しました: {errorMessage}</p>
                 </div>
               </div>
             )}
 
             {/* Current Step */}
             <div className="mb-8">
-              <div className="flex items-center mb-4">
+              <div className="flex items-center mb-4 text-brand">
                 {getStepIcon(currentStep)}
-                <h2 className="text-2xl font-bold text-gray-900 ml-3">
+                <h2 className="text-xl md:text-2xl font-bold text-text-primary ml-3">
                   {formSteps[currentStep].title}
                 </h2>
               </div>
-              <p className="text-gray-600">
+              <p className="text-text-secondary">
                 {formSteps[currentStep].description}
               </p>
               {currentStep === 0 && (
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mt-4 p-4 bg-warning-muted border border-warning rounded-container">
                   <div className="flex items-start">
-                    <Info className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
-                    <div className="text-sm text-yellow-800">
+                    <Info className="w-5 h-5 text-warning mr-2 mt-0.5" />
+                    <div className="text-sm text-on-warning-muted">
                       <strong>所要時間:</strong> 約3分 |
                       <strong> 必須項目:</strong> 姓、メール、電話番号
                     </div>
@@ -294,7 +294,7 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center pt-8 border-t border-gray-200">
+            <div className="flex justify-between items-center pt-8 border-t border-border-medium">
               <Button
                 type="button"
                 onClick={handlePrevious}
@@ -306,7 +306,7 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
                 戻る
               </Button>
 
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-text-muted">
                 ステップ {currentStep + 1} / {formSteps.length}
               </div>
 
@@ -336,7 +336,7 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
       </FormProvider>
 
       {/* Form Help */}
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-8 text-center text-sm text-text-muted">
         <p>ご不明な点がございましたら、お気軽にご連絡ください。</p>
         <p className="mt-1">電話: 050-3613-9673 | メール: info@package-lab.com</p>
       </div>
