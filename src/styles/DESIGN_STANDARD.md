@@ -173,7 +173,7 @@
 - 影、グラデーション、光る動き、拡大は付けない。
 - 高さ: `sm` 36px / `md` 40px（スマホは 44px）/ `lg` 48px。`xs` は管理画面の密な表だけ（32px）。文字は 14px（`lg` は 16px）。
 - 角: `rounded-element`。
-- `metallic` と `brixa-gradient` は廃止。`primary` として表示される（呼び出しも `primary` に置き換えずみ）。
+- `metallic` と `brixa-gradient` は廃止。型には残してあり、`primary` と同じ見た目で表示される。`Badge` / `Card` / `Input` の `metallic` も同じ扱い（`Badge` の呼び出しは `default` に置き換えずみ）。
 - 無効は不透明度 50%。読み込み中は、大きさを変えずにスピナーを出す。
 
 ### 入力欄（Input / Select / Textarea）
@@ -236,6 +236,8 @@
 | 形 | `rounded-element` / `rounded-container` / `rounded-inner` |
 | 影 | `shadow-low` / `shadow-med` / `shadow-high` |
 | 見出しの明朝 | `font-heading` |
+| 紺の帯（ページ末尾の CTA だけ） | `bg-bg-inverted text-text-inverse` |
+| 無効状態の文字 | `text-text-disabled` |
 | 状態色 | `bg-success text-on-success` / `bg-success-muted text-on-success-muted`（warning・error・info も同じ） |
 
 `bg-brand/10` のような透明度の指定はできない（値が CSS 変数のため）。淡い色は `-muted` / `-subtle` を使う。
@@ -274,10 +276,10 @@
 | 範囲 | 状態 |
 |---|---|
 | トークン、Tailwind のクラス、この基準書 | 完了 |
-| 共通部品（Button、Badge、Card、Input、Select、Textarea、Alert） | 作業中 |
-| ヘッダー、フッター、チャット部品、お知らせの帯 | 作業中 |
-| トップページ（トークンへの置き換え、ボタンの色） | 作業中 |
-| `/design-system` ページ（この基準の見本） | 作業中 |
+| 共通部品（Button、Badge、Card、Input、Select、Textarea、Alert ほか `ui/`） | 完了 |
+| ヘッダー、フッター、チャット部品、お知らせの帯 | 完了（`Layout.tsx` `Navigation.tsx` `LoadingSkeleton.tsx` の古い指定は次の段階） |
+| トップページ（トークンへの置き換え、ボタンの色） | 完了 |
+| `/design-system` ページ（この基準の見本） | 完了 |
 | 公開ページ 60 本（ヒーロー、色、飾りの整理） | 未着手 |
 | 会員・管理画面 | 共通部品と値の更新で自動的にそろう。個別の整理は未着手 |
 
