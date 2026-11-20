@@ -32,7 +32,11 @@ async function SamplesPageContent() {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.getUser()
 
-    if (error) {
+    if (error?.name === 'AuthSessionMissingError') {
+      // ログインしていない人にも、Supabase は「セッションなし」のエラーを返す。
+      // 障害ではないので、ゲストとしてフォームを出す。
+      authentication = { status: 'no_session' }
+    } else if (error) {
       authentication = { status: 'lookup_failed' }
     } else if (data.user?.id) {
       authentication = { status: 'authenticated', userId: data.user.id }

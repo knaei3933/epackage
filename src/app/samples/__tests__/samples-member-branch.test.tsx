@@ -100,6 +100,14 @@ describe('/samples server auth branch (G006)', () => {
     expect(mockedLoadSamplePrefill).not.toHaveBeenCalled();
   });
 
+  it('J01b: logged-out visitor (Supabase returns AuthSessionMissingError) still gets the guest form', async () => {
+    mockAuthentication(null, { name: 'AuthSessionMissingError', message: 'Auth session missing!' });
+    await renderPage();
+
+    expect(screen.getByRole('button', { name: 'サンプルを依頼する' })).toBeInTheDocument();
+    expect(mockedLoadSamplePrefill).not.toHaveBeenCalled();
+  });
+
   it('K02: renders a complete ACTIVE member confirmation from server prefill', async () => {
     mockAuthentication({ id: 'member-1', email: 'm@example.com' });
     mockedLoadSamplePrefill.mockResolvedValueOnce(loadedPrefill as never);
