@@ -47,8 +47,6 @@ const contactSchema = z.object({
     .max(200, '住所は200文字以内で入力してください')
     .optional(),
   inquiryType: z.enum(['product', 'quotation', 'sample', 'order', 'other'], {
-    required_error: 'お問い合わせ種別を選択してください',
-    invalid_type_error: 'お問い合わせ種別を選択してください',
     errorMap: () => ({ message: 'お問い合わせ種別を選択してください' }),
   }),
   message: z.string({ required_error: 'お問い合わせ内容を入力してください' })
