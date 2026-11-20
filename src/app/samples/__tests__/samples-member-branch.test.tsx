@@ -119,7 +119,7 @@ describe('/samples server auth branch (G006)', () => {
     expect(screen.getByTestId('member-sample-phone')).toHaveValue('03-1234-5678');
   });
 
-  it('K03: redirects an incomplete ACTIVE member to profile completion with return path', async () => {
+  it('K03: an incomplete ACTIVE member still gets the guest form (no redirect)', async () => {
     mockAuthentication({ id: 'member-1', email: 'm@example.com' });
     mockedLoadSamplePrefill.mockResolvedValueOnce({
       ...loadedPrefill,
@@ -127,12 +127,28 @@ describe('/samples server auth branch (G006)', () => {
       missingFields: ['phone'],
     });
 
-    await expect(SamplesPage()).rejects.toThrow(
-      'REDIRECT:/member/profile?complete=1&returnTo=%2Fsamples',
-    );
+    await renderPage();
+
+    expect(screen.getByRole('button', { name: 'サンプルを依頼する' })).toBeInTheDocument();
+    expect(screen.queryByTestId('member-sample-confirmation')).not.toBeInTheDocument();
   });
 
-  it.each(['PENDING', 'SUSPENDED', 'DELETED'])(
+  it('K09b: a DELETED member still gets the guest form (no login wall)', async () => {
+    mockAuthentication({ id: 'member-DELETED', email: 'm@example.com' });
+    mockedLoadSamplePrefill.mockResolvedValueOnce({
+      status: 'profile_not_active',
+      profileStatus: 'DELETED',
+      data: null,
+      complete: false,
+      missingFields: [],
+      validationErrors: [],
+    } as never);
+    await renderPage();
+
+    expect(screen.getByRole('button', { name: 'サンプルを依頼する' })).toBeInTheDocument();
+  });
+
+  it.each(['PENDING', 'SUSPENDED'])(
     'K09: routes a %s member to the existing status page instead of completion',
     async (status) => {
       mockAuthentication({
@@ -151,9 +167,7 @@ describe('/samples server auth branch (G006)', () => {
       const expectedPath =
         status === 'PENDING'
           ? '/auth/pending'
-          : status === 'SUSPENDED'
-            ? '/auth/suspended'
-            : '/auth/signin?redirect=%2Fsamples';
+          : '/auth/suspended';
 
       await expect(SamplesPage()).rejects.toThrow(`REDIRECT:${expectedPath}`);
       expect(mockedCreateClient).toHaveBeenCalledTimes(2);
@@ -185,7 +199,7 @@ describe('/samples server auth branch (G006)', () => {
     },
   );
 
-  it('K11: keeps profile_not_found off the completion path', async () => {
+  it('K11: a logged-in user without a profile still gets the guest form', async () => {
     mockAuthentication({
       id: 'member-missing',
       email: 'm@example.com',
@@ -198,9 +212,9 @@ describe('/samples server auth branch (G006)', () => {
       validationErrors: [],
     } as never);
 
-    await expect(SamplesPage()).rejects.toThrow(
-      'REDIRECT:/auth/signin?redirect=%2Fsamples',
-    );
+    await renderPage();
+
+    expect(screen.getByRole('button', { name: 'サンプルを依頼する' })).toBeInTheDocument();
   });
 
   it('fails closed on authenticated-user lookup failure without rendering the guest form', async () => {

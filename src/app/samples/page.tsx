@@ -21,6 +21,66 @@ export const metadata: Metadata = {
   },
 }
 
+function GuestSampleRequest() {
+  return (
+    <div className="min-h-screen bg-bg-primary">
+      <BreadcrumbJsonLd pathname="/samples" />
+      <PageHeader
+        title="パウチサンプルご依頼"
+        lead="無料でパウチセットサンプルをお送りいたします"
+      >
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="default">完全無料</Badge>
+          <Badge variant="default">全国送料無料</Badge>
+        </div>
+      </PageHeader>
+
+      {/* Sample Info */}
+      <section className="bg-bg-primary py-16 md:py-24">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+          <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
+            パウチセットサンプルについて
+          </h2>
+          <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
+            当社のパウチ製品セットを無料でお送りします。<br />
+            実際の品質や素材をお手元でご確認いただけます。
+          </p>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            <Card className="p-6">
+              <Package className="mb-3 size-8 text-brand" aria-hidden="true" />
+              <p className="font-bold text-text-primary">セットサンプル</p>
+              <p className="text-sm text-text-secondary">複数種類のパウチ</p>
+            </Card>
+            <Card className="p-6">
+              <Gift className="mb-3 size-8 text-brand" aria-hidden="true" />
+              <p className="font-bold text-text-primary">完全無料</p>
+              <p className="text-sm text-text-secondary">料金は一切かかりません</p>
+            </Card>
+            <Card className="p-6">
+              <Truck className="mb-3 size-8 text-brand" aria-hidden="true" />
+              <p className="font-bold text-text-primary">全国発送</p>
+              <p className="text-sm text-text-secondary">2〜3営業日でお届け</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Simple Form */}
+      <section className="bg-bg-secondary py-16 md:py-24">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6">
+          <Card className="p-6 md:p-8">
+            <h2 className="mb-6 text-xl font-bold text-text-primary md:text-2xl">
+              お申し込みフォーム
+            </h2>
+
+            <SampleRequestFormWrapper />
+          </Card>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 async function SamplesPageContent() {
   type SamplesAuthentication =
     | { status: 'authenticated'; userId: string }
@@ -65,11 +125,13 @@ async function SamplesPageContent() {
       if (prefill.profileStatus === 'SUSPENDED') {
         redirect('/auth/suspended');
       }
-      redirect('/auth/signin?redirect=%2Fsamples');
+      // 保留・停止以外（削除ずみなど）の会員も、ゲストとして依頼できる。
+      return GuestSampleRequest();
     }
 
     if (prefill.status === 'profile_not_found') {
-      redirect('/auth/signin?redirect=%2Fsamples');
+      // ログインはできているが会員情報がない人も、ゲストとして依頼できる。
+      return GuestSampleRequest();
     }
 
     // loadSamplePrefill logs query infrastructure failures with non-PII status
@@ -80,7 +142,8 @@ async function SamplesPageContent() {
     }
 
     if (!prefill.complete) {
-      redirect('/member/profile?complete=1&returnTo=%2Fsamples');
+      // 登録情報が足りない会員も、ゲスト用のフォームで依頼できる。
+      return GuestSampleRequest();
     }
 
     return (
@@ -170,63 +233,7 @@ async function SamplesPageContent() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-bg-primary">
-      <BreadcrumbJsonLd pathname="/samples" />
-      <PageHeader
-        title="パウチサンプルご依頼"
-        lead="無料でパウチセットサンプルをお送りいたします"
-      >
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="default">完全無料</Badge>
-          <Badge variant="default">全国送料無料</Badge>
-        </div>
-      </PageHeader>
-
-      {/* Sample Info */}
-      <section className="bg-bg-primary py-16 md:py-24">
-        <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
-          <h2 className="font-heading text-2xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-[2rem]">
-            パウチセットサンプルについて
-          </h2>
-          <p className="mt-4 max-w-[40em] leading-[1.8] text-text-secondary">
-            当社のパウチ製品セットを無料でお送りします。<br />
-            実際の品質や素材をお手元でご確認いただけます。
-          </p>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <Card className="p-6">
-              <Package className="mb-3 size-8 text-brand" aria-hidden="true" />
-              <p className="font-bold text-text-primary">セットサンプル</p>
-              <p className="text-sm text-text-secondary">複数種類のパウチ</p>
-            </Card>
-            <Card className="p-6">
-              <Gift className="mb-3 size-8 text-brand" aria-hidden="true" />
-              <p className="font-bold text-text-primary">完全無料</p>
-              <p className="text-sm text-text-secondary">料金は一切かかりません</p>
-            </Card>
-            <Card className="p-6">
-              <Truck className="mb-3 size-8 text-brand" aria-hidden="true" />
-              <p className="font-bold text-text-primary">全国発送</p>
-              <p className="text-sm text-text-secondary">2〜3営業日でお届け</p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Simple Form */}
-      <section className="bg-bg-secondary py-16 md:py-24">
-        <div className="mx-auto max-w-2xl px-4 sm:px-6">
-          <Card className="p-6 md:p-8">
-            <h2 className="mb-6 text-xl font-bold text-text-primary md:text-2xl">
-              お申し込みフォーム
-            </h2>
-
-            <SampleRequestFormWrapper />
-          </Card>
-        </div>
-      </section>
-    </div>
-  )
+  return GuestSampleRequest()
 }
 
 export default async function SamplesPage() {
