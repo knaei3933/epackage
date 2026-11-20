@@ -10,11 +10,21 @@ interface ChatDrawerAppShellProps {
 export function ChatDrawerAppShell({ children }: ChatDrawerAppShellProps) {
   const { isOpen } = useChatDrawer();
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isWide, setIsWide] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
     setIsDesktop(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // 1536px 以上のときだけ本文を押す。それより狭いときはチャットを重ねて出す
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1536px)');
+    setIsWide(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsWide(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
@@ -29,7 +39,7 @@ export function ChatDrawerAppShell({ children }: ChatDrawerAppShellProps) {
     };
   }, [isOpen, isDesktop]);
 
-  const shouldPush = isOpen && isDesktop;
+  const shouldPush = isOpen && isWide;
 
   return (
     <div

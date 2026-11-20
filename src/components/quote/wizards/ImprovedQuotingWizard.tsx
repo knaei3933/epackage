@@ -691,25 +691,28 @@ export function ImprovedQuotingWizard() {
           </div>
         </div>
 
-        {/* Content spacer for mobile bottom bar */}
-        <div className="h-32 lg:hidden" aria-hidden="true" />
-
-        {/* Bottom Action Boxes - Fixed Position */}
-        <div className="fixed bottom-0 left-0 right-0 bg-bg-primary border-t border-border-medium z-40" role="contentinfo">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-
-            {/* Mobile Price Display */}
-            {result && (
-              <div className="lg:hidden mb-3 p-3 bg-brand-muted rounded-container border border-brand-soft">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-on-brand-muted">見積もり価格</span>
-                  <span className="text-xl font-bold text-on-brand-muted">
-                    ¥{result.totalPrice.toLocaleString()}
-                    <span className="text-xs text-on-brand-muted ml-1">税込</span>
-                  </span>
-                </div>
+        {/* モバイル: 価格だけの細いバー（1行）。sticky なので、ページの最後（フッター）はおおわない。印刷では隠す */}
+        {result && (
+          <>
+            <div
+              className="lg:hidden print:hidden sticky bottom-0 z-40 bg-brand-muted border-t border-brand-soft"
+              role="status"
+              aria-label="見積もり価格"
+            >
+              <div className="flex items-center justify-between px-4 h-11">
+                <span className="text-sm font-medium text-on-brand-muted">見積もり価格</span>
+                <span className="text-lg font-bold text-on-brand-muted">
+                  ¥{result.totalPrice.toLocaleString()}
+                  <span className="text-xs text-on-brand-muted ml-1">税込</span>
+                </span>
               </div>
-            )}
+            </div>
+          </>
+        )}
+
+        {/* 下部のご案内: 固定をやめてページの流れの中に置く。印刷では隠す */}
+        <div className="bg-bg-primary border-t border-border-medium print:hidden" role="contentinfo">
+          <div className="max-w-7xl mx-auto px-4 py-4">
 
             {/* Mobile Optimized Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
@@ -797,9 +800,6 @@ export function ImprovedQuotingWizard() {
             </div>
           </div>
         </div>
-
-        {/* Spacer for fixed bottom bar */}
-        <div className="h-48" />
 
       </div>
 
