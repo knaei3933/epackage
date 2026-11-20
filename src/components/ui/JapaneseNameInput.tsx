@@ -107,6 +107,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
     },
     ref
   ) => {
+    const baseId = React.useId();
     // 内部状態管理
     const [kanjiLastNameInput, setKanjiLastNameInput] = useState(kanjiLastName);
     const [kanjiFirstNameInput, setKanjiFirstNameInput] = useState(kanjiFirstName);
@@ -169,7 +170,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
               {label}
             </label>
             {required && (
-              <span className="text-error-500 text-sm" aria-label="required">
+              <span className="text-error-500 text-sm" aria-label="必須">
                 *
               </span>
             )}
@@ -185,10 +186,11 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 姓 */}
             <div className="space-y-1">
-              <label className="text-base text-text-primary block">
+              <label htmlFor={`${baseId}-name-kanji-last`} className="text-base text-text-primary block">
                 姓
               </label>
               <Input
+                id={`${baseId}-name-kanji-last`}
                 value={kanjiLastNameInput}
                 onChange={handleKanjiLastNameChange}
                 placeholder={kanjiLastNamePlaceholder}
@@ -197,24 +199,18 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 disabled={kanjiLastNameDisabled}
                 size={size}
                 maxLength={50}
-                pattern="^[\u4E00-\u9FFF\s]*$"
                 helperTextClassName="text-sm"
-                helperText="漢字で入力してください"
-                onInvalid={(e) => {
-                  e.currentTarget.setCustomValidity('漢字のみ入力可能です。');
-                }}
-                onInput={(e) => {
-                  e.currentTarget.setCustomValidity('');
-                }}
+                helperText="漢字で入力してください（外国のお名前は英字でもかまいません）"
               />
             </div>
 
             {/* 名 */}
             <div className="space-y-1">
-              <label className="text-base text-text-primary block">
+              <label htmlFor={`${baseId}-name-kanji-first`} className="text-base text-text-primary block">
                 名
               </label>
               <Input
+                id={`${baseId}-name-kanji-first`}
                 value={kanjiFirstNameInput}
                 onChange={handleKanjiFirstNameChange}
                 placeholder={kanjiFirstNamePlaceholder}
@@ -223,15 +219,8 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 disabled={kanjiFirstNameDisabled}
                 size={size}
                 maxLength={50}
-                pattern="^[\u4E00-\u9FFF\s]*$"
                 helperTextClassName="text-sm"
-                helperText="漢字で入力してください"
-                onInvalid={(e) => {
-                  e.currentTarget.setCustomValidity('漢字のみ入力可能です。');
-                }}
-                onInput={(e) => {
-                  e.currentTarget.setCustomValidity('');
-                }}
+                helperText="漢字で入力してください（外国のお名前は英字でもかまいません）"
               />
             </div>
           </div>
@@ -246,10 +235,11 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 姓（カタカナ） */}
             <div className="space-y-1">
-              <label className="text-base text-text-primary block">
+              <label htmlFor={`${baseId}-name-kana-last`} className="text-base text-text-primary block">
                 姓
               </label>
               <Input
+                id={`${baseId}-name-kana-last`}
                 value={kanaLastNameInput}
                 onChange={handleKanaLastNameChange}
                 placeholder={kanaLastNamePlaceholder}
@@ -259,16 +249,17 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 helperTextClassName="text-sm"
-                helperText="カタカナで入力してください（読み仮名）"
+                helperText="カタカナまたはひらがなで入力してください（読み仮名）"
               />
             </div>
 
             {/* 名（カタカナ） */}
             <div className="space-y-1">
-              <label className="text-base text-text-primary block">
+              <label htmlFor={`${baseId}-name-kana-first`} className="text-base text-text-primary block">
                 名
               </label>
               <Input
+                id={`${baseId}-name-kana-first`}
                 value={kanaFirstNameInput}
                 onChange={handleKanaFirstNameChange}
                 placeholder={kanaFirstNamePlaceholder}
@@ -278,7 +269,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
                 size={size}
                 maxLength={50}
                 helperTextClassName="text-sm"
-                helperText="カタカナで入力してください（読み仮名）"
+                helperText="カタカナまたはひらがなで入力してください（読み仮名）"
               />
             </div>
           </div>
@@ -527,7 +518,7 @@ export function LegacyJapaneseNameInputController<TFieldValues extends FieldValu
               {label}
             </label>
             {required && (
-              <span className="text-error-500 text-sm" aria-label="required">
+              <span className="text-error-500 text-sm" aria-label="必須">
                 *
               </span>
             )}

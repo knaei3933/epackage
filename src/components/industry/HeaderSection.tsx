@@ -1,7 +1,8 @@
 import { Fragment } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowRight, Check, Star } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import Link from 'next/link'
+import { buttonVariants } from '@/components/ui/Button'
 import { PageHeader, FactList } from '@/components/layout'
 
 /**
@@ -43,12 +44,13 @@ export function HeaderSection({ title, subtitle, icon: Icon, features, stats }: 
       lead={subtitle}
       actions={
         <>
-          <Button size="lg" variant="primary" icon={<ArrowRight className="h-5 w-5" aria-hidden="true" />} iconPosition="right">
+          <Link href="/catalog" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
             導入資料ダウンロード
-          </Button>
-          <Button size="lg" variant="outline">
+            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          </Link>
+          <Link href="/contact" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
             無料相談を予約
-          </Button>
+          </Link>
         </>
       }
     >

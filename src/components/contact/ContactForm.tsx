@@ -10,26 +10,26 @@ import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
 
 // お問い合わせフォームバリデーションスキーマ
 const contactSchema = z.object({
-  kanjiLastName: z.string()
+  kanjiLastName: z.string({ required_error: '姓（漢字）を入力してください' })
     .min(1, '姓（漢字）を入力してください')
     .min(1, '姓（漢字）は1文字以上で入力してください')
     .max(50, '姓（漢字）は50文字以内で入力してください'),
-  kanjiFirstName: z.string()
+  kanjiFirstName: z.string({ required_error: '名（漢字）を入力してください' })
     .min(1, '名（漢字）を入力してください')
     .min(1, '名（漢字）は1文字以上で入力してください')
     .max(50, '名（漢字）は50文字以内で入力してください'),
-  kanaLastName: z.string()
-    .min(1, '姓（ひらがな）を入力してください')
-    .regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]+$/, 'ひらがなで入力してください')
-    .max(50, '姓（ひらがな）は50文字以内で入力してください'),
-  kanaFirstName: z.string()
-    .min(1, '名（ひらがな）を入力してください')
-    .regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]+$/, 'ひらがなで入力してください')
-    .max(50, '名（ひらがな）は50文字以内で入力してください'),
+  kanaLastName: z.string({ required_error: '姓（読み仮名）を入力してください' })
+    .min(1, '姓（読み仮名）を入力してください')
+    .regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]+$/, 'ひらがなまたはカタカナで入力してください')
+    .max(50, '姓（読み仮名）は50文字以内で入力してください'),
+  kanaFirstName: z.string({ required_error: '名（読み仮名）を入力してください' })
+    .min(1, '名（読み仮名）を入力してください')
+    .regex(/^[\u3040-\u309F\u30A0-\u30FF\u30FC\s]+$/, 'ひらがなまたはカタカナで入力してください')
+    .max(50, '名（読み仮名）は50文字以内で入力してください'),
   company: z.string()
     .max(100, '会社名は100文字以内で入力してください')
     .optional(),
-  phone: z.string()
+  phone: z.string({ required_error: '電話番号を入力してください' })
     .min(1, '電話番号を入力してください')
     .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/,
       '有効な電話番号を入力してください（例: 03-1234-5678）'),
@@ -37,7 +37,7 @@ const contactSchema = z.object({
     .optional()
     .refine(val => !val || /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/.test(val),
       '有効なFAX番号を入力してください（例: 03-1234-5678）'),
-  email: z.string()
+  email: z.string({ required_error: 'メールアドレスを入力してください' })
     .min(1, 'メールアドレスを入力してください')
     .email('有効なメールアドレスを入力してください'),
   postalCode: z.string()
@@ -47,9 +47,11 @@ const contactSchema = z.object({
     .max(200, '住所は200文字以内で入力してください')
     .optional(),
   inquiryType: z.enum(['product', 'quotation', 'sample', 'order', 'other'], {
-    required_error: 'お問い合わせ種別を選択してください'
+    required_error: 'お問い合わせ種別を選択してください',
+    invalid_type_error: 'お問い合わせ種別を選択してください',
+    errorMap: () => ({ message: 'お問い合わせ種別を選択してください' }),
   }),
-  message: z.string()
+  message: z.string({ required_error: 'お問い合わせ内容を入力してください' })
     .min(1, 'お問い合わせ内容を入力してください')
     .min(10, 'お問い合わせ内容は10文字以上で入力してください')
     .max(800, 'お問い合わせ内容は800文字以内で入力してください'),
@@ -244,10 +246,11 @@ export default function ContactForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 会社名 */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary">
+                <label htmlFor="contact-company" className="text-sm font-medium text-text-primary">
                   会社名
                 </label>
                 <input
+                  id="contact-company"
                   type="text"
                   {...register('company')}
                   data-testid="contact-company-name"
@@ -261,11 +264,13 @@ export default function ContactForm() {
 
               {/* 電話番号 */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-text-primary">
-                  <Phone className="w-4 h-4 mr-2" />
-                  電話番号 <span className="text-error ml-1">*</span>
+                <label htmlFor="contact-phone" className="flex items-center text-sm font-medium text-text-primary">
+                  <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
+                  電話番号 <span className="text-error ml-1" aria-hidden="true">*</span><span className="sr-only">（必須）</span>
                 </label>
                 <input
+                  id="contact-phone"
+                  aria-required="true"
                   type="tel"
                   {...register('phone')}
                   data-testid="contact-phone-number"
@@ -279,11 +284,12 @@ export default function ContactForm() {
 
               {/* FAX番号 */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-text-primary">
-                  <Phone className="w-4 h-4 mr-2" />
+                <label htmlFor="contact-fax" className="flex items-center text-sm font-medium text-text-primary">
+                  <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
                   FAX番号
                 </label>
                 <input
+                  id="contact-fax"
                   type="tel"
                   {...register('fax')}
                   data-testid="contact-fax-number"
@@ -297,11 +303,13 @@ export default function ContactForm() {
 
               {/* メールアドレス */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-text-primary">
-                  <Mail className="w-4 h-4 mr-2" />
-                  メールアドレス <span className="text-error ml-1">*</span>
+                <label htmlFor="contact-email" className="flex items-center text-sm font-medium text-text-primary">
+                  <Mail className="w-4 h-4 mr-2" aria-hidden="true" />
+                  メールアドレス <span className="text-error ml-1" aria-hidden="true">*</span><span className="sr-only">（必須）</span>
                 </label>
                 <input
+                  id="contact-email"
+                  aria-required="true"
                   type="email"
                   {...register('email')}
                   data-testid="contact-email-address"
@@ -315,10 +323,11 @@ export default function ContactForm() {
 
               {/* 郵便番号 */}
               <div className="space-y-2">
-                <label className="flex items-center text-sm font-medium text-text-primary">
+                <label htmlFor="contact-postal" className="flex items-center text-sm font-medium text-text-primary">
                   〒 郵便番号
                 </label>
                 <input
+                  id="contact-postal"
                   type="text"
                   {...register('postalCode')}
                   data-testid="contact-postal-code"
@@ -332,10 +341,11 @@ export default function ContactForm() {
 
               {/* 住所 - Full width */}
               <div className="space-y-2 md:col-span-2">
-                <label className="flex items-center text-sm font-medium text-text-primary">
+                <label htmlFor="contact-address-field" className="flex items-center text-sm font-medium text-text-primary">
                   住所
                 </label>
                 <input
+                  id="contact-address-field"
                   type="text"
                   {...register('address')}
                   data-testid="contact-address"
@@ -353,7 +363,7 @@ export default function ContactForm() {
           <div className="rounded-container bg-bg-secondary p-6">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
               <Package className="w-5 h-5 mr-2 text-brand" />
-              お問い合わせ種別 <span className="text-error ml-2">*</span>
+              お問い合わせ種別 <span className="text-error ml-2" aria-hidden="true">*</span><span className="sr-only">（必須）</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -383,11 +393,13 @@ export default function ContactForm() {
 
           {/* お問い合わせ内容 */}
           <div className="space-y-4">
-            <label className="flex items-center text-lg font-medium text-text-primary">
-              <MessageSquare className="w-5 h-5 mr-2" />
-              お問い合わせ内容 <span className="text-error ml-2">*</span>
+            <label htmlFor="contact-message-field" className="flex items-center text-lg font-medium text-text-primary">
+              <MessageSquare className="w-5 h-5 mr-2" aria-hidden="true" />
+              お問い合わせ内容 <span className="text-error ml-2" aria-hidden="true">*</span><span className="sr-only">（必須）</span>
             </label>
             <textarea
+              id="contact-message-field"
+              aria-required="true"
               {...register('message')}
               data-testid="contact-message"
               rows={6}

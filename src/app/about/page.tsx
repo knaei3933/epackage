@@ -108,7 +108,7 @@ export default function AboutPage() {
               <p className="leading-[1.8] text-text-secondary">
                 包装の可能性を広げ、持続可能な未来を創造する。
                 お客様のニーズに合わせた最適な包装ソリューションを提供し、
-                业界のリーディングカンパニーとして、
+                業界のリーディングカンパニーとして、
                 社会に貢献します。
               </p>
             </Card>

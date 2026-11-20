@@ -135,7 +135,12 @@ export function Footer() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
-                  <span>050-3613-9673</span>
+                  <a
+                    href="tel:+815036139673"
+                    className={cn('inline-flex min-h-11 items-center rounded-md', focusRing)}
+                  >
+                    050-3613-9673
+                  </a>
                 </li>
                 <li className="flex items-start gap-2">
                   <MapPin className="mt-[0.45rem] h-4 w-4 shrink-0 text-brand" aria-hidden="true" />

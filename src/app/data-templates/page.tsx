@@ -93,10 +93,10 @@ export default function DataTemplatesPage() {
                     デザインに関するご質問
                   </p>
                   <a
-                    href="tel:03-1234-5678"
+                    href="tel:+815036139673"
                     className="inline-flex min-h-11 items-center font-medium text-brand underline underline-offset-4 hover:text-brand-pressed"
                   >
-                    03-1234-5678
+                    050-3613-9673
                   </a>
                 </Card>
 
@@ -112,10 +112,10 @@ export default function DataTemplatesPage() {
                     技術的なご質問にお答えします
                   </p>
                   <a
-                    href="mailto:design@epackage-lab.com"
+                    href="mailto:info@package-lab.com"
                     className="inline-flex min-h-11 items-center break-all font-medium text-brand underline underline-offset-4 hover:text-brand-pressed"
                   >
-                    design@epackage-lab.com
+                    info@package-lab.com
                   </a>
                 </Card>
 
