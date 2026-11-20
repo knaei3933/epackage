@@ -132,30 +132,15 @@ export function Header() {
           className="flex items-center space-x-3 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-md"
           aria-label="Epackage Lab - ホーム"
         >
-          <div className="relative h-8 w-8 md:h-10 md:w-10">
-            <Image
-              src="/logo.svg"
-              alt="Epackage Lab Logo"
-              fill
-              sizes="100vw"
-              className="object-contain"
-              priority
-              style={{
-                position: 'absolute',
-                height: '100%',
-                width: '100%',
-                left: 0,
-                top: 0,
-                right: 0,
-                bottom: 0,
-                objectFit: 'contain'
-              }}
-              suppressHydrationWarning={true}
-            />
-          </div>
-          <span className="hidden sm:block text-lg md:text-xl font-bold text-text-primary font-sans tracking-tight">
-            Epackage Lab
-          </span>
+          <Image
+            src="/logo-epackage-lab.png"
+            alt="Epackage Lab by kanei-trade"
+            width={1000}
+            height={166}
+            sizes="(min-width: 768px) 248px, 198px"
+            className="h-8 w-auto md:h-10"
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation */}

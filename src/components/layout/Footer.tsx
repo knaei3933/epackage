@@ -116,16 +116,14 @@ export function Footer() {
                 className={cn('inline-flex min-h-11 items-center gap-3 rounded-md', focusRing)}
                 aria-label="Epackage Lab - ホームへ戻る"
               >
-                <span className="relative block h-8 w-8">
-                  <Image
-                    src="/logo.svg"
-                    alt="Epackage Lab Logo"
-                    fill
-                    sizes="32px"
-                    className="object-contain"
-                  />
-                </span>
-                <span className="text-lg font-medium">Epackage Lab</span>
+                <Image
+                  src="/logo-epackage-lab.png"
+                  alt="Epackage Lab by kanei-trade"
+                  width={1000}
+                  height={166}
+                  sizes="198px"
+                  className="h-8 w-auto"
+                />
               </Link>
               <p className="mt-3 max-w-sm text-[15px] leading-[1.8]">
                 先進技術と卓越した品質で、お客様の製品価値を最大化し、ブランドイメージを構築します。
