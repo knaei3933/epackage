@@ -269,7 +269,7 @@ export function PostProcessingItemReplacement({
                   <div className="flex items-center space-x-3">
                     <div className="text-center">
                       <div className="flex items-center space-x-1">
-                        <DollarSign className="w-4 h-4 text-gray-400" />
+                        <DollarSign className="w-4 h-4 text-text-secondary" />
                         {getImpactIcon(replacement.impact.priceDifference, replacement.impact.priceDifference < 0)}
                         <span className={`text-sm font-medium ${
                           replacement.impact.priceDifference < 0 ? 'text-green-600' :
@@ -282,7 +282,7 @@ export function PostProcessingItemReplacement({
 
                     <div className="text-center">
                       <div className="flex items-center space-x-1">
-                        <Zap className="w-4 h-4 text-gray-400" />
+                        <Zap className="w-4 h-4 text-text-secondary" />
                         {getImpactIcon(replacement.impact.featureDifference, true)}
                         <span className={`text-sm font-medium ${
                           replacement.impact.featureDifference > 0 ? 'text-green-600' :

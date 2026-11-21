@@ -383,7 +383,7 @@ ${language === 'ja' ? '詳細データは添付ファイルをご確認くださ
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <FileText className="w-12 h-12 text-text-secondary mx-auto mb-3" />
           <p className="text-gray-600">
             {language === 'ja'
               ? 'エクスポートするために後加工オプションを選択してください'

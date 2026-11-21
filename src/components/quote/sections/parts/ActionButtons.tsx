@@ -2,14 +2,16 @@
  * Action buttons section for ResultStep.
  */
 
-import { motion } from 'framer-motion';
-import { RefreshCw, Download, List, ShoppingCart } from 'lucide-react';
+import { RefreshCw, Download, List, ShoppingCart, Printer, Pencil } from 'lucide-react';
 import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/Button';
 
 interface ActionButtonsProps {
   userId?: string | null;
   quotationId: string | null;
   onReset: () => void;
+  /** 入力に戻って、条件を変えて計算し直す（入力は消さない） */
+  onEdit?: () => void;
   handleDownloadPdf: () => void;
   isGeneratingPdf: boolean;
   pdfStatus: 'idle' | 'success' | 'error';
@@ -25,6 +27,7 @@ export function ActionButtons({
   userId,
   quotationId,
   onReset,
+  onEdit,
   handleDownloadPdf,
   isGeneratingPdf,
   pdfStatus,
@@ -34,117 +37,89 @@ export function ActionButtons({
   isOrdering = false,
 }: ActionButtonsProps) {
   return (
-    <div className="flex flex-wrap justify-center gap-3">
+    <div className="flex flex-wrap justify-center gap-3 print:hidden">
       {/* 注文ボタン（会員限定） */}
       {/* Phase C0: 直接 fetch を廃止。親 ResultStep 所有の OrderConsentModal を開く。 */}
       {userId && quotationId && (
-        <button
-          onClick={onRequestOrder}
-          disabled={isOrdering}
-          className="px-6 py-3 bg-brixa-600 text-white rounded-lg font-medium hover:bg-brixa-700 transition-colors flex items-center disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
+        <Button size="lg" onClick={onRequestOrder} disabled={isOrdering}>
+          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           {isOrdering ? '処理中...' : 'この内容で注文'}
-        </button>
+        </Button>
       )}
 
-      <motion.button
+      {onEdit && (
+        <Button size="lg" variant="secondary" onClick={onEdit}>
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+          条件を変えて再計算
+        </Button>
+      )}
+
+      <Button size="lg" variant="secondary" onClick={() => window.print()}>
+        <Printer className="h-4 w-4" aria-hidden="true" />
+        印刷
+      </Button>
+
+      <Button
+        size="lg"
+        variant="secondary"
         onClick={() => {
           if (window.confirm('新しい見積もりを作成します。現在の入力内容はリセットされます。よろしいですか？')) {
             onReset();
           }
         }}
-        className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
-        <RefreshCw className="w-4 h-4 inline mr-2" />
+        <RefreshCw className="h-4 w-4" aria-hidden="true" />
         新しい見積もり
-      </motion.button>
+      </Button>
 
       {/* 見積一覧リンク（認証済みのみ） */}
       {userId && (
-        <Link
-          href="/member/quotations"
-          className="px-6 py-3 border border-navy-300 text-navy-700 rounded-lg font-medium hover:bg-navy-50 transition-colors flex items-center"
-        >
-          <List className="w-4 h-4 mr-2" />
+        <Link href="/member/quotations" className={buttonVariants({ size: 'lg', variant: 'secondary' })}>
+          <List className="h-4 w-4" aria-hidden="true" />
           見積一覧
         </Link>
       )}
 
-      <button
-        onClick={handleDownloadPdf}
-        disabled={isGeneratingPdf}
-        className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center ${
-          isGeneratingPdf
-            ? 'bg-gray-400 cursor-not-allowed'
-            : pdfStatus === 'success'
-            ? 'bg-info-600 hover:bg-info-700 text-white'
-            : pdfStatus === 'error'
-            ? 'bg-error-600 hover:bg-error-700 text-white'
-            : 'bg-navy-700 hover:bg-navy-600 text-white'
-        }`}
-      >
+      <Button size="lg" variant="outline" onClick={handleDownloadPdf} disabled={isGeneratingPdf}>
         {isGeneratingPdf ? (
           <>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             PDF生成中...
           </>
         ) : pdfStatus === 'success' ? (
           <>
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            ダウンロード完了 (自動保存済み)
+            <Download className="h-4 w-4" aria-hidden="true" />
+            ダウンロード完了（自動保存済み）
           </>
         ) : pdfStatus === 'error' ? (
           <>
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            失敗
+            <Download className="h-4 w-4" aria-hidden="true" />
+            失敗しました。もう一度押してください
           </>
         ) : (
           <>
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="h-4 w-4" aria-hidden="true" />
             {showPatternComparison && multiQuantityQuotesLength > 0
-              ? `全パターンPDFダウンロード (${multiQuantityQuotesLength}パターン・自動保存)`
-              : 'PDFダウンロード (自動保存)'}
+              ? `全パターンPDFダウンロード（${multiQuantityQuotesLength}パターン・自動保存）`
+              : 'PDFダウンロード（自動保存）'}
           </>
         )}
-      </button>
+      </Button>
 
       {/* 未認証ユーザー向け会員登録促進メッセージ */}
       {!userId && (
-        <div className="w-full mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-amber-900">この見積を保存するには会員登録</p>
-              <p className="text-sm text-amber-700 mt-1">
-                会員登録（無料）すると、見積履歴の保存・管理や、専任担当者からのご連絡が可能になります。
-              </p>
-              <div className="flex gap-2 mt-3">
-                <Link
-                  href="/auth/register?redirect=/quote-simulator"
-                  className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
-                >
-                  今すぐ会員登録
-                </Link>
-                <Link
-                  href="/auth/signin?redirect=/quote-simulator"
-                  className="px-4 py-2 border border-amber-600 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-50 transition-colors"
-                >
-                  ログイン
-                </Link>
-              </div>
-            </div>
+        <div className="mt-6 w-full rounded-container border border-border-medium bg-warning-muted p-4">
+          <p className="font-semibold text-on-warning-muted">この見積もりを保存するには、会員登録が必要です</p>
+          <p className="mt-1 text-sm text-on-warning-muted">
+            会員登録（無料）をすると、見積もりの履歴を保存・管理できます。専任の担当者から、ご連絡することもできます。
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href="/auth/register?redirect=/quote-simulator" className={buttonVariants({ variant: 'primary' })}>
+              今すぐ会員登録
+            </Link>
+            <Link href="/auth/signin?redirect=/quote-simulator" className={buttonVariants({ variant: 'secondary' })}>
+              ログイン
+            </Link>
           </div>
         </div>
       )}

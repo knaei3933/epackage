@@ -125,7 +125,7 @@ export function PriceComparisonSection({
                               {row.method === 'gravure' ? 'グラビア' : 'デジタル'}
                             </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-text-secondary">-</span>
                           )}
                         </td>
                       </tr>

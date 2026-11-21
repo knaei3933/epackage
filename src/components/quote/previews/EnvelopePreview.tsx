@@ -192,7 +192,7 @@ const EnvelopePreview: React.FC<EnvelopePreviewProps> = ({
                       fallback.innerHTML = DOMPurify.sanitize(`
                         <div class="text-center">
                           <div class="text-sm text-gray-500">${config.name}</div>
-                          <div class="text-xs text-gray-400 mt-1">イメージ読み込みエラー</div>
+                          <div class="text-xs text-text-secondary mt-1">イメージ読み込みエラー</div>
                         </div>
                       `);
                       parent.appendChild(fallback);

@@ -120,7 +120,7 @@ function OptionCard({ option, currentUnitCost, onSelect, isRecommended }: Option
               {isRecommended ? (
                 <CheckCircle2 className="w-6 h-6 text-yellow-500 flex-shrink-0" />
               ) : (
-                <Circle className="w-6 h-6 text-gray-400 flex-shrink-0" />
+                <Circle className="w-6 h-6 text-text-secondary flex-shrink-0" />
               )}
               <div>
                 <div className="flex items-center space-x-2">

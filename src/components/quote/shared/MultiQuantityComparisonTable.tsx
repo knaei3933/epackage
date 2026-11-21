@@ -129,7 +129,7 @@ export default function MultiQuantityComparisonTable({
       return <TrendingUp className="w-4 h-4 text-red-600" />;
     }
 
-    return <Minus className="w-4 h-4 text-gray-400" />;
+    return <Minus className="w-4 h-4 text-text-secondary" />;
   };
 
   const getDiscountBadgeColor = (discountRate: number) => {
@@ -154,7 +154,7 @@ export default function MultiQuantityComparisonTable({
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         <div className="text-center py-12">
-          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <BarChart3 className="w-12 h-12 text-text-secondary mx-auto mb-4" />
           <p className="text-gray-600">比較データがありません</p>
           <p className="text-sm text-gray-500 mt-2">数量を選択して比較を開始してください</p>
         </div>

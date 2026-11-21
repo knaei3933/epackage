@@ -325,7 +325,7 @@ export function QuantityPatternManager({
                           e.stopPropagation();
                           handleDeletePattern(pattern.id);
                         }}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        className="p-1 text-text-secondary hover:text-red-500 transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -340,7 +340,7 @@ export function QuantityPatternManager({
                   {/* Quantities Display */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 text-sm">
-                      <Hash className="w-4 h-4 text-gray-400" />
+                      <Hash className="w-4 h-4 text-text-secondary" />
                       <span className="font-medium text-gray-700">
                         {formatQuantities(pattern.quantities)}
                       </span>

@@ -106,7 +106,7 @@ export function ResponsiveStepIndicators({
             >
               <button
                 data-testid={isActive ? `step-${index + 1}-active` : `step-${index + 1}`}
-                className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 font-semibold text-sm ${
+                className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 font-semibold text-sm ${
                   isActive
                     ? 'bg-brand text-on-brand ring-2 ring-brand ring-offset-2'
                     : isCompleted

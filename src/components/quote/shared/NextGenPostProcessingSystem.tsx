@@ -483,7 +483,7 @@ export function NextGenPostProcessingSystem({
                                 {config.options.length} options • {new Date(config.timestamp).toLocaleDateString()}
                               </p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <ChevronRight className="w-4 h-4 text-text-secondary" />
                           </div>
                         ))}
                       </div>

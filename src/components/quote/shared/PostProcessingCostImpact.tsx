@@ -147,14 +147,14 @@ export function PostProcessingCostImpact({
   const getTrendIcon = (value: number) => {
     if (value > 0) return <ArrowUp className="w-4 h-4 text-green-600" />
     if (value < 0) return <ArrowDown className="w-4 h-4 text-red-600" />
-    return <Minus className="w-4 h-4 text-gray-400" />
+    return <Minus className="w-4 h-4 text-text-secondary" />
   }
 
   if (selectedOptions.length === 0) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <Calculator className="w-12 h-12 text-text-secondary mx-auto mb-3" />
           <p className="text-gray-600">
             {language === 'ja'
               ? 'コスト影響を分析するために後加工オプションを選択してください'

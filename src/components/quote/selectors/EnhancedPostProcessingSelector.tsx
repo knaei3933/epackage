@@ -416,7 +416,7 @@ export function EnhancedPostProcessingSelector({
 
                 {/* Search Bar */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
                   <input
                     type="text"
                     placeholder={language === 'ja' ? 'オプションを検索...' : 'Search options...'}
@@ -502,7 +502,7 @@ export function EnhancedPostProcessingSelector({
                             <CheckCircle2 className="w-5 h-5 text-blue-500 flex-shrink-0" />
                           )}
                           {!isSelected && !canSelect && (
-                            <XCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                            <XCircle className="w-5 h-5 text-text-secondary flex-shrink-0" />
                           )}
                         </div>
 
@@ -518,7 +518,7 @@ export function EnhancedPostProcessingSelector({
                             <span className="text-green-600 font-medium">
                               +{((option.priceMultiplier - 1) * 100).toFixed(1)}%
                             </span>
-                            <Clock className="w-3 h-3 text-gray-400" />
+                            <Clock className="w-3 h-3 text-text-secondary" />
                             <span className="text-gray-600">
                               {language === 'ja' ? option.processingTimeJa : option.processingTime}
                             </span>
@@ -546,7 +546,7 @@ export function EnhancedPostProcessingSelector({
           {filteredOptions.length === 0 && (
             <Card>
               <CardContent className="p-6 text-center">
-                <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <Package className="w-12 h-12 text-text-secondary mx-auto mb-3" />
                 <p className="text-gray-600">
                   {language === 'ja'
                     ? '該当するオプションが見つかりませんでした'

@@ -74,12 +74,14 @@ interface ResultStepProps {
   // C2: MultiQuantityResult（旧型）→ PatternMultiQuantityResult（C2新型）に変更
   multiQuantityResult: PatternMultiQuantityResult;
   onReset: () => void;
+  /** 入力に戻って、条件を変えて計算し直す（入力は消さない） */
+  onEdit?: () => void;
 }
 
 /**
  * Component for displaying quote results with actions
  */
-export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepProps) {
+export function ResultStep({ result, multiQuantityResult, onReset, onEdit }: ResultStepProps) {
   const router = useRouter();
   const state = useQuoteState();
   const { setSelectedQuantity } = useQuote();
@@ -805,11 +807,15 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
       />
 
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-text-primary mb-2">
           見積もり完了
         </h2>
-        <p className="text-gray-600">
+        <p className="text-text-secondary">
           以下の内容でお見積もりいたしました
+        </p>
+        {/* 税の表記と有効期限は、ここ 1 か所にそろえる。エンジンは消費税を足していないので、金額はすべて税別 */}
+        <p className="mt-2 text-sm text-text-primary" data-testid="quote-tax-validity">
+          金額はすべて<strong className="font-bold">税別</strong>です。見積もりの有効期限は、見積日から30日間です。
         </p>
       </div>
 
@@ -896,6 +902,7 @@ export function ResultStep({ result, multiQuantityResult, onReset }: ResultStepP
         userId={user?.id}
         quotationId={quotationId}
         onReset={onReset}
+        onEdit={onEdit}
         handleDownloadPdf={handleDownloadPdf}
         isGeneratingPdf={isGeneratingPdf}
         pdfStatus={pdfStatus}

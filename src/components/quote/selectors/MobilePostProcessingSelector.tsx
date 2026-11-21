@@ -404,7 +404,7 @@ export function MobilePostProcessingSelector({
                           {isSelected ? (
                             <CheckCircle2 className="w-5 h-5 text-blue-500" />
                           ) : !canSelect ? (
-                            <XCircle className="w-5 h-5 text-gray-400" />
+                            <XCircle className="w-5 h-5 text-text-secondary" />
                           ) : (
                             <Plus className="w-5 h-5 text-green-500" />
                           )}

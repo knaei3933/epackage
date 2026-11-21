@@ -252,7 +252,7 @@ export function OrderSummarySection({ state, result, onEditQuantity, initialQuan
                   {onEditQuantity && (
                     <button
                       onClick={onEditQuantity}
-                      className="text-gray-400 hover:text-navy-600 transition-colors"
+                      className="text-text-secondary hover:text-navy-600 transition-colors"
                       title="数量を変更"
                     >
                       <Edit2 className="w-4 h-4" />

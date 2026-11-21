@@ -4,6 +4,14 @@ import { motion } from 'framer-motion';
 import { Settings, Check } from 'lucide-react';
 import { useQuote, useQuoteState, checkStepComplete, createStepSummary, getPostProcessingLimitStatusForState } from '@/contexts/QuoteContext';
 import { getAvailableSealWidths, isGussetedBag } from '@/lib/sealing-data';
+import { TermHelp, type QuoteTermKey } from '../shared/TermHelp';
+
+// 後加工のグループと、専門語の説明の対応（説明をつけるものだけ）
+const GROUP_TERM_HELP: Record<string, QuoteTermKey> = {
+  notch: 'vNotch',
+  corner: 'roundCorner',
+  valve: 'valve',
+};
 
 const SEALING_WIDTH_OPTIONS = [
   { id: '5mm', name: 'シール幅 5mm', value: '5mm', priceMultiplier: 1.0, previewImage: '/images/post-processing/seal_5.jpg' },
@@ -248,8 +256,9 @@ export function PostProcessingStep() {
         {state.bagTypeId !== 'roll_film' && (
           <div className="mb-6 bg-gray-50 rounded-xl p-4 border-2 border-gray-200 relative">
             {/* Category Header */}
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0 mb-3">
               <h3 className="text-base font-bold text-gray-900">シール幅</h3>
+              <TermHelp term="sealWidth" />
               {isGusseted && !state.sealWidth && (
                 <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">必須</span>
               )}
@@ -269,7 +278,7 @@ export function PostProcessingStep() {
                       onClick={() => setSealWidth(option.value)}
                       onMouseEnter={(e) => setHoveredOption({ option, element: e.currentTarget })}
                       onMouseLeave={() => setHoveredOption(null)}
-                      className={`px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
+                      className={`min-h-11 px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
                         isSelected
                           ? 'border-green-500 bg-green-500 text-white'
                           : 'border-gray-300 bg-white text-gray-900 hover:border-navy-300'
@@ -291,8 +300,9 @@ export function PostProcessingStep() {
           return (
             <div key={group.id} className="mb-6 bg-gray-50 rounded-xl p-4 border-2 border-gray-200 relative">
               {/* Category Header */}
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0 mb-3">
                 <h3 className="text-base font-bold text-gray-900">{group.name}</h3>
+                {GROUP_TERM_HELP[group.id] && <TermHelp term={GROUP_TERM_HELP[group.id]} />}
                 {group.required && (
                   <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">必須</span>
                 )}
@@ -313,7 +323,7 @@ export function PostProcessingStep() {
                         onClick={() => handleToggleOption(option.id, option.multiplier)}
                         onMouseEnter={(e) => setHoveredOption({ option, element: e.currentTarget })}
                         onMouseLeave={() => setHoveredOption(null)}
-                        className={`px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
+                        className={`min-h-11 px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
                           isSelected
                             ? 'border-green-500 bg-green-500 text-white'
                             : 'border-gray-300 bg-white text-gray-900 hover:border-navy-300'
@@ -332,7 +342,7 @@ export function PostProcessingStep() {
         {/* Zipper position selector (conditional) - Pattern A */}
         {showZipperPosition && (
           <div className="mb-6 bg-blue-50 rounded-xl p-4 border-2 border-blue-200 relative">
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0 mb-3">
               <h3 className="text-base font-bold text-gray-900">ジッパー位置</h3>
             </div>
 
@@ -344,7 +354,7 @@ export function PostProcessingStep() {
                     <button
                       type="button"
                       onClick={() => handleToggleOption(position.id, position.multiplier)}
-                      className={`px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
+                      className={`min-h-11 px-4 py-2 rounded-lg border-2 text-sm font-medium whitespace-nowrap transition-all ${
                         isSelected
                           ? 'border-blue-500 bg-blue-500 text-white'
                           : 'border-gray-300 bg-white text-gray-900 hover:border-blue-300'

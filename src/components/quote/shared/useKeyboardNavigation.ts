@@ -12,6 +12,19 @@ export interface KeyboardNavigationOptions {
   canGoBack?: boolean;
 }
 
+/**
+ * Enter / スペースで自分の動きをするもの（ボタン、リンク、select、role=button など）か。
+ * 「?」ボタンの Enter が「次へ」に変わらないよう、ここからのキーは奪わない。
+ */
+export function isInteractiveTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return (
+    target.closest(
+      'button, a[href], select, summary, [role="button"], [role="switch"], [role="checkbox"], [role="menuitem"], [role="tab"], [role="link"]'
+    ) !== null
+  );
+}
+
 export function useKeyboardNavigation({
   onNext,
   onPrevious,
@@ -79,6 +92,10 @@ export function useKeyboardNavigation({
         break;
 
       case 'Enter':
+        // ボタンなどにフォーカスがあるときの Enter は、そのボタンの動きにまかせる（Ctrl/⌘+Enter は除く）
+        if (!(event.ctrlKey || event.metaKey) && isInteractiveTarget(event.target)) {
+          break;
+        }
         if (event.ctrlKey || event.metaKey) {
           if (handlersRef.current.onConfirm && canProceed) {
             event.preventDefault();

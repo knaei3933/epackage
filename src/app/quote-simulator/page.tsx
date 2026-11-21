@@ -81,12 +81,14 @@ export default function QuoteSimulatorPage() {
       <Layout showFooter={false}>
       <div className="min-h-screen">
         {/* Page Title Section */}
+        <div className="print:hidden">
         <QuoteSimulatorHeader
-          title="統合見積もりシステム"
-          description="AI-poweredでお客様のニーズに合わせた最適な包装ソリューションをご提案します"
-          currentPageName="統合見積もりシステム"
+          title="見積もりシミュレーター"
+          description="形・素材・サイズ・数量を入力すると、その場で価格の目安がわかります。条件に合う包装をご提案します"
+          currentPageName="見積もりシミュレーター"
           trustIndicators={trustIndicators}
         />
+        </div>
 
         {/* Improved Quote System */}
         <div className="min-h-screen bg-bg-secondary">
@@ -98,13 +100,13 @@ export default function QuoteSimulatorPage() {
         </div>
 
         {/* Quick Actions - Moved to bottom */}
-        <QuickActionsSection />
+        <div className="print:hidden"><QuickActionsSection /></div>
 
         {/* Trust Signals Section */}
-        <TrustSignals variant="default" showCertifications={true} />
+        <div className="print:hidden"><TrustSignals variant="default" showCertifications={true} /></div>
 
         {/* Strong CTA Section */}
-        <section className="py-12 bg-bg-primary">
+        <section className="py-12 bg-bg-primary print:hidden">
           <Container size="6xl">
             <StrongCTA
               title="ご不明点がございましたらお気軽にご相談ください"

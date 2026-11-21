@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
+import { TermHelp } from '../shared/TermHelp';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Layers,
@@ -762,37 +763,42 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
             <div className="space-y-3">
               {/* 複数パターン入力の説明（デフォルト2パターン・追加ボタンで3〜5パターンに拡張） */}
               <div className="bg-info-50 p-3 rounded-lg border border-info-200">
-                <h4 className="font-medium text-gray-900 flex items-center gap-2 text-sm">
+                <h4 className="font-medium text-gray-900 flex flex-wrap items-center gap-x-2 text-sm">
                   <Layers className="w-4 h-4" />
                   数量パターン比較入力
+                  <TermHelp term="pattern" />
                 </h4>
-                <p className="text-xs text-gray-600 mt-1">
-                  デフォルト2パターン。表の「+ 追加」ボタンで最大5パターンまで拡張できます（最低1パターン必須・各セル最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}）。未入力のパターンは計算時にスキップされます。
+                <p className="text-sm text-text-secondary mt-1">
+                  はじめは 2 パターンです。表の見出しにある「追加」で、最大 5 パターンまで増やせます。SKU の行は、表の下の「SKU行を追加」で増やせます。各欄の最小は{minQtyPerCell}{isRollFilm ? 'm' : '個'}です。未入力のパターンは、計算に入れません。
                 </p>
               </div>
 
               {/* SKU行 × パターン列 の表形式（AC-2・デフォルト2列・追加ボタンで拡張） */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+              <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="数量の表（横にスクロールできます）">
+                <table className="w-full min-w-[520px] border-collapse">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 border border-gray-200 sticky left-0 bg-gray-50">
-                        SKU
+                      <th className="px-3 py-2 text-left text-sm font-semibold text-gray-700 border border-gray-200 sticky left-0 z-10 bg-gray-50 min-w-[112px] whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1">
+                          SKU
+                          <TermHelp term="sku" />
+                        </span>
                       </th>
                       {Array.from({ length: patternColumnCount }).map((_, p) => (
-                        <th key={p} className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 border border-gray-200 min-w-[80px] max-w-[110px] relative">
+                        <th key={p} className="px-2 py-1.5 text-center text-sm font-semibold text-gray-700 border border-gray-200 min-w-[104px] align-top">
                           パターン {p + 1}
-                          <div className="text-[10px] font-normal text-gray-500 mt-0.5">
+                          <div className="text-xs font-normal text-text-secondary mt-0.5">
                             合計: {normalizedPatternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0).toLocaleString()}{isRollFilm ? 'm' : '個'}
                           </div>
                           {p === patternColumnCount - 1 && patternColumnCount > 2 && (
                             <button
                               type="button"
                               onClick={handleRemovePatternColumn}
-                              className="absolute top-1 right-1 text-gray-300 hover:text-red-500 transition-colors"
+                              className="mx-auto mt-1 flex min-h-11 min-w-11 items-center justify-center text-text-secondary hover:text-error transition-colors"
                               title="最後のパターン列を削除"
+                              aria-label="最後のパターン列を削除"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </th>
@@ -802,8 +808,9 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                           <button
                             type="button"
                             onClick={handleAddPatternColumn}
-                            className="text-info-600 hover:text-info-700 text-xs flex items-center gap-1 font-medium justify-center"
+                            className="text-info-600 hover:text-info-700 text-sm flex min-h-11 min-w-11 items-center gap-1 font-medium justify-center whitespace-nowrap"
                             title="パターン列を追加（最大5）"
+                            aria-label="パターン列を追加（最大5）"
                           >
                             <Plus className="w-3.5 h-3.5" />追加
                           </button>
@@ -814,27 +821,29 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                   <tbody>
                     {normalizedPatternQuantities.map((row, skuIndex) => (
                       <tr key={skuIndex} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-sm font-medium text-gray-900 border border-gray-200 bg-white sticky left-0">
-                          <div className="flex items-center gap-1">
-                            <span>SKU {skuIndex + 1}</span>
+                        <td className="px-2 py-1 text-sm font-medium text-gray-900 border border-gray-200 bg-white sticky left-0 z-10 min-w-[112px]">
+                          <div className="flex flex-wrap items-center gap-x-1">
+                            <span className="whitespace-nowrap">SKU {skuIndex + 1}</span>
                             {normalizedPatternQuantities.length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => handleCopyPatternRow(skuIndex)}
-                                className="text-info-500 hover:text-info-700 transition-colors"
+                                className="flex min-h-11 min-w-11 items-center justify-center text-info-600 hover:text-info-700 transition-colors"
                                 title="この行の数量を他の全SKUにコピー"
+                                aria-label={`SKU ${skuIndex + 1}の数量を、他のすべてのSKUにコピー`}
                               >
-                                <Copy className="w-3.5 h-3.5" />
+                                <Copy className="w-4 h-4" />
                               </button>
                             )}
                             {normalizedPatternQuantities.length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => handleRemovePatternSKU(skuIndex)}
-                                className="text-gray-300 hover:text-red-500 transition-colors"
+                                className="flex min-h-11 min-w-11 items-center justify-center text-text-secondary hover:text-error transition-colors"
                                 title="このSKU行を削除"
+                                aria-label={`SKU ${skuIndex + 1}の行を削除`}
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             )}
                           </div>
@@ -843,7 +852,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                           // AC-4: 最小数量ルール（L385側: roll_film=500m / pouch=100個）
                           const belowMin = cellValue !== 0 && cellValue < minQtyPerCell;
                           return (
-                            <td key={patternIndex} className="px-1 py-1 border border-gray-200 min-w-[80px] max-w-[110px]">
+                            <td key={patternIndex} className="px-1 py-1 border border-gray-200 min-w-[104px]">
                               <input
                                 type="number"
                                 data-chat-field="quantity"
@@ -852,7 +861,8 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                                 step={isRollFilm ? '0.1' : '1'}
                                 value={cellValue === 0 ? '' : cellValue}
                                 onChange={(e) => handlePatternCellChange(skuIndex, patternIndex, e.target.value)}
-                                className={`w-full px-1.5 py-1 text-xs border rounded text-center focus:ring-2 focus:ring-info-500 ${
+                                aria-label={`SKU ${skuIndex + 1}・パターン ${patternIndex + 1}の数量`}
+                                className={`w-full min-h-11 px-1.5 py-2 text-sm border rounded text-center focus:ring-2 focus:ring-info-500 ${
                                   belowMin
                                     ? 'border-red-400 bg-red-50 text-red-700'
                                     : 'border-gray-300 bg-white'
@@ -860,7 +870,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                                 placeholder={`最小${minQtyPerCell}${isRollFilm ? 'm' : '個'}`}
                               />
                               {belowMin && (
-                                <p className="text-[10px] text-red-600 mt-1 text-center">
+                                <p className="text-xs text-error mt-1 text-center">
                                   最小{minQtyPerCell}{isRollFilm ? 'm' : '個'}未満
                                 </p>
                               )}
@@ -877,7 +887,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                             type="button"
                             data-chat-field="sku-count"
                             onClick={() => handlePatternSKUCountChange(quoteState.skuCount + 1)}
-                            className="w-full py-2 m-1 text-sm text-gray-500 hover:text-info-600 hover:bg-info-50 flex items-center justify-center gap-1 transition-colors border-2 border-dashed border-gray-300 rounded-lg"
+                            className="w-full min-h-11 py-2 m-1 text-sm text-text-secondary hover:text-info-600 hover:bg-info-50 flex items-center justify-center gap-1 transition-colors border-2 border-dashed border-gray-300 rounded-lg"
                             title="SKU行を追加（最大10）"
                           >
                             <Plus className="w-4 h-4" />
@@ -951,7 +961,7 @@ const UnifiedSKUQuantityStep = forwardRef<UnifiedSKUQuantityStepRef, UnifiedSKUQ
                         step={isRollFilm ? "0.1" : "1"}
                         value={(tempQuantities[index] ?? quoteState.skuQuantities[index]) && (tempQuantities[index] ?? quoteState.skuQuantities[index]) !== 0 ? (tempQuantities[index] ?? quoteState.skuQuantities[index]) : ''}
                         onChange={(e) => handleSKUQuantityChange(index, e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 border-gray-300 focus:ring-info-500"
+                        className="w-full min-h-11 px-3 py-2 border rounded-lg focus:ring-2 border-gray-300 focus:ring-info-500"
                         placeholder={isRollFilm
                           ? `ロールの長さをメートルで入力（最小: ${quoteState.skuCount === 1 ? '500' : '300'}m）`
                           : "数量を入力（最小500個）"}

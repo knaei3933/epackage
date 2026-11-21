@@ -905,7 +905,7 @@ export function UserExperienceEnhancements({
                             <p className="text-xs text-gray-600">
                               {language === 'ja' ? notification.messageJa : notification.message}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs text-text-secondary mt-1">
                               {new Date(notification.timestamp).toLocaleTimeString()}
                             </p>
                           </div>

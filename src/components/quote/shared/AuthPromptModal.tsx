@@ -48,7 +48,7 @@ export function AuthPromptModal({ onClose, onSuccess, onRegister }: AuthPromptMo
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-text-secondary hover:text-gray-600 transition-colors"
             aria-label="閉じる"
           >
             <X className="w-5 h-5" />

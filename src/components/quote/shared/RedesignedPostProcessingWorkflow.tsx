@@ -407,7 +407,7 @@ export function RedesignedPostProcessingWorkflow({
                     </h3>
                     <p className="text-gray-600 capitalize">{selectedProductType}</p>
                   </div>
-                  <Package className="w-8 h-8 text-gray-400" />
+                  <Package className="w-8 h-8 text-text-secondary" />
                 </div>
               </CardContent>
             </Card>

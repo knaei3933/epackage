@@ -132,7 +132,7 @@ export function PostProcessingComparisonTable({
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <Package className="w-12 h-12 text-text-secondary mx-auto mb-3" />
           <p className="text-gray-600">
             {language === 'ja'
               ? '比較する後加工オプションが選択されていません'
@@ -365,7 +365,7 @@ export function PostProcessingComparisonTable({
                             </td>
                             <td className="p-3">
                               <div className="flex items-center space-x-2 text-sm">
-                                <Clock className="w-4 h-4 text-gray-400" />
+                                <Clock className="w-4 h-4 text-text-secondary" />
                                 <span>{language === 'ja' ? item.processingTimeJa : item.processingTime}</span>
                               </div>
                             </td>
@@ -515,7 +515,7 @@ export function PostProcessingComparisonTable({
                           {language === 'ja' ? '処理時間' : 'Processing Time'}
                         </span>
                         <div className="flex items-center space-x-1 text-sm">
-                          <Clock className="w-3 h-3 text-gray-400" />
+                          <Clock className="w-3 h-3 text-text-secondary" />
                           <span>{language === 'ja' ? item.processingTimeJa : item.processingTime}</span>
                         </div>
                       </div>

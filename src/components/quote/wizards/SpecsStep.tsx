@@ -16,6 +16,7 @@ import {
 } from '@/types/quote-wizard';
 
 import MultiQuantityStep from '../steps/MultiQuantityStep';
+import { TermHelp } from '../shared/TermHelp';
 
 export function SpecsStep() {
   const state = useQuoteState();
@@ -168,7 +169,7 @@ export function SpecsStep() {
                 data-testid="product-category-select"
                 value={selectedCategory}
                 onChange={(e) => updateField('productCategory', e.target.value as typeof selectedCategory)}
-                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
+                className="h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
               >
                 {PRODUCT_CATEGORIES.map(cat => (
                   <option
@@ -189,7 +190,7 @@ export function SpecsStep() {
                 data-chat-field="contents"
                 value={selectedType}
                 onChange={(e) => updateField('contentsType', e.target.value as typeof selectedType)}
-                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
+                className="h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
               >
                 {CONTENTS_TYPES.map(type => (
                   <option
@@ -209,7 +210,7 @@ export function SpecsStep() {
               <select
                 value={selectedIngredient}
                 onChange={(e) => updateField('mainIngredient', e.target.value as typeof selectedIngredient)}
-                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
+                className="h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
               >
                 {MAIN_INGREDIENTS.map(ing => (
                   <option
@@ -229,7 +230,7 @@ export function SpecsStep() {
               <select
                 value={selectedEnvironment}
                 onChange={(e) => updateField('distributionEnvironment', e.target.value as typeof selectedEnvironment)}
-                className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
+                className="h-11 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted"
               >
                 {DISTRIBUTION_ENVIRONMENTS.map(env => (
                   <option
@@ -286,7 +287,7 @@ export function SpecsStep() {
                           const parent = target.parentElement;
                           if (parent) {
                             parent.innerHTML = `
-                              <svg class="w-32 h-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg class="w-32 h-32 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                               </svg>
                             `;
@@ -305,7 +306,10 @@ export function SpecsStep() {
           {/* Spout Position Selector - Only show for spout_pouch */}
           {state.bagTypeId === 'spout_pouch' && (
             <div className="mb-6">
-              <label className="block text-lg font-semibold text-gray-900 mb-3">スパウト位置</label>
+              <div className="mb-3 flex flex-wrap items-center gap-1">
+                <label className="block text-lg font-semibold text-gray-900">スパウト位置</label>
+                <TermHelp term="spout" />
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {SPOUT_POSITION_OPTIONS.map((position) => (
                   <button
@@ -369,7 +373,7 @@ export function SpecsStep() {
                   data-testid="width-input"
                   value={state.width ?? ''}
                   onChange={(e) => updateBasicSpecs({ width: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                  className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
+                  className={`w-full min-h-11 px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
                     widthError
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:ring-navy-500'
@@ -381,7 +385,7 @@ export function SpecsStep() {
                     {widthError}
                   </p>
                 ) : validationHint.width ? (
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="mt-1 text-xs text-text-secondary">
                     {validationHint.width}
                   </p>
                 ) : null}
@@ -398,7 +402,7 @@ export function SpecsStep() {
                     data-testid="pitch-input"
                     value={state.pitch || ''}
                     onChange={(e) => updateBasicSpecs({ pitch: parseInt(e.target.value) || undefined })}
-                    className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
+                    className={`w-full min-h-11 px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
                       !state.pitch || (state.pitch < 50 || state.pitch > 1000)
                         ? 'border-gray-300 focus:ring-navy-500'
                         : 'border-green-500 focus:ring-green-500'
@@ -408,7 +412,7 @@ export function SpecsStep() {
                   {state.pitch && state.pitch >= 50 && state.pitch <= 1000 ? (
                     <p className="mt-1 text-xs text-green-600">✓ ピッチ入力完了</p>
                   ) : (
-                    <p className="mt-1 text-xs text-gray-400">※ 50mm以上1000mm以下で入力してください</p>
+                    <p className="mt-1 text-xs text-text-secondary">※ 50mm以上1000mm以下で入力してください</p>
                   )}
                 </div>
               ) : (
@@ -439,7 +443,7 @@ export function SpecsStep() {
                           setHeightError(error);
                         }
                       }}
-                      className={`w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
+                      className={`w-full min-h-11 px-3 py-2 text-base border rounded-lg focus:ring-2 focus:border-transparent ${
                         heightError
                           ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                           : 'border-gray-300 focus:ring-navy-500'
@@ -451,7 +455,7 @@ export function SpecsStep() {
                         {heightError}
                       </p>
                     ) : validationHint.height ? (
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-text-secondary">
                         {validationHint.height}
                       </p>
                     ) : null}
@@ -467,7 +471,7 @@ export function SpecsStep() {
                       data-testid="gusset-depth-input"
                       value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                       onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                      className="w-full min-h-11 px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                     >
                       {(state.width && availableGussetSizes.length > 0 ? availableGussetSizes : ALL_GUSSET_SIZE_OPTIONS).map((size) => (
                         <option key={size} value={size}>
@@ -476,12 +480,12 @@ export function SpecsStep() {
                       ))}
                     </select>
                     {state.width && availableGussetSizes.length > 0 && (
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-text-secondary">
                         幅{state.width}mmで選択可能なマチサイズ
                       </p>
                     )}
                     {!state.width && (
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-text-secondary">
                         まず幅を入力してください
                       </p>
                     )}
@@ -493,14 +497,17 @@ export function SpecsStep() {
                 <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Spout Size */}
                   <div>
-                    <label className="block text-base text-gray-700 mb-1">スパウトサイズ <span className="text-red-500">*</span></label>
+                    <div className="mb-1 flex flex-wrap items-center gap-1">
+                      <label className="block text-base text-gray-700">スパウトサイズ <span className="text-red-500">*</span></label>
+                      <TermHelp term="spout" />
+                    </div>
                     <select
                       value={state.spoutSize || ''}
                       onChange={(e) => {
                         const spoutSize = e.target.value;
                         updateField('spoutSize', spoutSize);
                       }}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                      className="w-full min-h-11 px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                       required
                     >
                       <option value="">選択してください</option>
@@ -510,7 +517,7 @@ export function SpecsStep() {
                       <option value="22">22パイ（φ22mm）- 大型</option>
                       <option value="28">28パイ（φ28mm）- 特大</option>
                     </select>
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="mt-1 text-xs text-text-secondary">
                       液体製品に最適な注ぎ口サイズを選択してください
                     </p>
                   </div>
@@ -528,12 +535,12 @@ export function SpecsStep() {
                           depth: hasGussetValue ? (state.depth ?? availableGussetSizes[0]) : 0
                         });
                       }}
-                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                      className="w-full min-h-11 px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                     >
                       <option value="no-gusset">マチなし（平袋準用）</option>
                       <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
                     </select>
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="mt-1 text-xs text-text-secondary">
                       {state.hasGusset
                         ? 'マチあり: 自立するスタンドパウチ向けの計算を適用します'
                         : 'マチなし: 平らな袋向けの計算を適用します'}
@@ -546,14 +553,14 @@ export function SpecsStep() {
                 <div>
                   <label className="block text-base text-gray-700 mb-1">
                     マチ（底の広がり）
-                    <span className="ml-1 text-xs text-gray-400 font-normal">袋の底を広げて自立させる部分</span>
+                    <span className="ml-1 text-xs text-text-secondary font-normal">袋の底を広げて自立させる部分</span>
                   </label>
                   <select
                     data-chat-field="depth-gusset"
                     data-testid="depth-input"
                     value={state.depth ?? (availableGussetSizes.length > 0 ? availableGussetSizes[0] : ALL_GUSSET_SIZE_OPTIONS[0])}
                     onChange={(e) => updateBasicSpecs({ depth: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
+                    className="w-full min-h-11 px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white"
                   >
                     {(state.width && availableGussetSizes.length > 0 ? availableGussetSizes : ALL_GUSSET_SIZE_OPTIONS).map((size) => (
                       <option key={size} value={size}>
@@ -562,12 +569,12 @@ export function SpecsStep() {
                     ))}
                   </select>
                   {state.width && availableGussetSizes.length > 0 && (
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="mt-1 text-xs text-text-secondary">
                       幅{state.width}mmで選択可能なマチサイズ
                     </p>
                   )}
                   {!state.width && (
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="mt-1 text-xs text-text-secondary">
                       まず幅を入力してください
                     </p>
                   )}
@@ -600,18 +607,21 @@ export function SpecsStep() {
               {/* 側面 (よこめん) - ガゼットパウチのみ */}
               {state.bagTypeId === 'box' && (
                 <div>
-                  <label className="block text-base text-gray-700 mb-1">側面</label>
+                  <div className="mb-1 flex flex-wrap items-center gap-1">
+                    <label className="block text-base text-gray-700">側面（ガゼット）</label>
+                    <TermHelp term="gusset" />
+                  </div>
                   <input
                     type="number"
                     data-chat-field="side"
                     min="0"
                     value={state.sideWidth ?? ''}
                     onChange={(e) => updateBasicSpecs({ sideWidth: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full min-h-11 px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     placeholder="例: 50"
                   />
-                  <p className="mt-1 text-xs text-gray-400">
-                    '※ 側面を入力してください（オプション）'
+                  <p className="mt-1 text-xs text-text-secondary">
+                    ※ 側面を入力してください（オプション）
                   </p>
                 </div>
               )}
@@ -807,19 +817,22 @@ export function SpecsStep() {
 	                data-testid={`color-btn-${num}`}
 	                data-chat-field="printing"
                 onClick={() => updateQuantityOptions({ printingColors: num })}
-                className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                aria-pressed={state.printingColors === num}
+                className={`min-h-11 min-w-11 px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
                   state.printingColors === num
-                    ? 'border-navy-500 bg-navy-50 text-navy-700 shadow-sm'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-brand bg-brand text-on-brand'
+                    : 'border-border-strong bg-bg-primary text-text-primary hover:bg-bg-secondary'
                 }`}
               >
                 {num}色
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            印刷する色数を選択してください。グラビア印刷の場合、色数に応じて銅版費用が加算されます。
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-1 text-sm text-text-secondary">
+            <span>印刷する色数を選んでください。グラビア印刷の場合、色数に応じて銅版費用が加算されます。</span>
+            <TermHelp term="gravure" />
+            <TermHelp term="copperPlate" />
+          </div>
         </div>
 
       </div>

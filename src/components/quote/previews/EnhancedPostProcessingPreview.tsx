@@ -185,7 +185,7 @@ export function EnhancedPostProcessingPreview({
     return (
       <Card className="p-6 bg-gray-50 border-gray-200">
         <CardContent className="text-center">
-          <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <Info className="w-12 h-12 text-text-secondary mx-auto mb-3" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             {language === 'ja' ? 'オプションが見つかりません' : 'No options found'}
           </h3>
@@ -290,7 +290,7 @@ export function EnhancedPostProcessingPreview({
                 {/* Search */}
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
                       type="text"
                       placeholder={language === 'ja' ? 'オプションを検索...' : 'Search options...'}

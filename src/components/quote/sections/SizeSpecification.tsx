@@ -569,7 +569,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
               ✓ {displayWidth}mmに調整しました（5mm単位）
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-text-secondary">
             {(() => {
               const constraints = getSizeConstraints();
               if (isRollFilm) {
@@ -612,7 +612,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
                 {pitchError}
               </p>
             )}
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-text-secondary">
               ※ ピッチ: 50mm以上1000mm以下で入力してください
             </p>
             <p className="mt-1 text-xs text-blue-600">
@@ -648,7 +648,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
                 ✓ 最小70mmに調整しました
               </p>
             )}
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-text-secondary">
               {(() => {
                 const constraints = getSizeConstraints();
                 if (state.bagTypeId === 'flat_3_side') {
@@ -704,7 +704,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
               const widthToCheck = localWidth ? parseInt(localWidth) : state.width;
               const hasValidGusset = widthToCheck && widthToCheck >= 70 && availableGussetSizes.length > 0;
               return hasValidGusset && (
-                <p className="mt-1 text-xs text-gray-400">
+                <p className="mt-1 text-xs text-text-secondary">
                   幅{widthToCheck}mmで選択可能なマチサイズ
                 </p>
               );
@@ -735,7 +735,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
             <option value="22">22パイ（φ22mm）- 大型</option>
             <option value="28">28パイ（φ28mm）- 特大</option>
           </select>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-text-secondary">
             液体製品に最適な注ぎ口サイズを選択してください
           </p>
         </div>
@@ -758,7 +758,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
             <option value="no-gusset">マチなし（平袋準用）</option>
             <option value="has-gusset">マチあり（スタンドパウチ準用）</option>
           </select>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-text-secondary">
             {state.hasGusset
               ? 'マチあり: スタンドパウチ計算式を適用 (H×2+G+35)'
               : 'マチなし: 平袋計算式を適用 (H×2+41)'}
@@ -792,7 +792,7 @@ export function SizeSpecification({ showDepth }: SizeSpecificationProps) {
                 {sideWidthError}
               </p>
             )}
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-text-secondary">
               {(() => {
                 const constraints = getSizeConstraints();
                 if (state.bagTypeId === 'lap_seal') {

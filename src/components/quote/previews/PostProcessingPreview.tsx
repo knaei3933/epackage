@@ -218,7 +218,7 @@ export function PostProcessingPreview({
     return (
       <Card className="p-6 bg-gray-50 border-gray-200">
         <CardContent className="text-center">
-          <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <Info className="w-12 h-12 text-text-secondary mx-auto mb-3" />
           <p className="text-gray-600">
             選択した製品タイプでは後加工オプションは利用できません
           </p>
@@ -289,7 +289,7 @@ export function PostProcessingPreview({
                   <div className="relative overflow-hidden rounded-lg">
                     {imageLoading[currentOption.id] !== false && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                        <Package className="w-8 h-8 text-gray-400" />
+                        <Package className="w-8 h-8 text-text-secondary" />
                       </div>
                     )}
                     <img
@@ -446,7 +446,7 @@ export function PostProcessingPreview({
                       <div className="flex items-center space-x-2">
                         {hasTooltip && (
                           <div className="relative">
-                            <AlertCircle className="w-4 h-4 text-gray-400 group-hover:text-brixa-600 transition-colors" />
+                            <AlertCircle className="w-4 h-4 text-text-secondary group-hover:text-brixa-600 transition-colors" />
                           </div>
                         )}
                         {isSelected && (

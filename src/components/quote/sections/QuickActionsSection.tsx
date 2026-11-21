@@ -42,7 +42,7 @@ export function QuickActionsSection() {
                   <Calculator className="h-7 w-7 shrink-0 text-brand" aria-hidden="true" />
                   <div className="min-w-0 flex-1">
                     <h3 className="mb-1 text-base font-bold text-text-primary sm:text-lg">
-                      統合見積もりツール
+                      見積もりシミュレーター
                     </h3>
                     <p className="text-sm text-text-secondary">AI即時見積もり</p>
                   </div>

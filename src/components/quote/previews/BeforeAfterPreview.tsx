@@ -341,7 +341,7 @@ export function BeforeAfterPreview({
                       <>
                         {imageLoading.before && (
                           <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                            <Loader2 className="w-8 h-8 text-text-secondary animate-spin" />
                           </div>
                         )}
                         <img
@@ -356,7 +356,7 @@ export function BeforeAfterPreview({
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                         <div className="text-center">
-                          <ImageIcon className="w-16 h-16 text-gray-400 mx-auto mb-2" />
+                          <ImageIcon className="w-16 h-16 text-text-secondary mx-auto mb-2" />
                           <p className="text-gray-600">{language === 'ja' ? '元の画像' : 'Original Image'}</p>
                         </div>
                       </div>
@@ -379,7 +379,7 @@ export function BeforeAfterPreview({
                   >
                     {imageLoading.after && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-text-secondary animate-spin" />
                       </div>
                     )}
                     <img
@@ -428,7 +428,7 @@ export function BeforeAfterPreview({
                       <>
                         {imageLoading.before && (
                           <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                            <Loader2 className="w-8 h-8 text-text-secondary animate-spin" />
                           </div>
                         )}
                         <img
@@ -447,7 +447,7 @@ export function BeforeAfterPreview({
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                         <div className="text-center">
-                          <ImageIcon className="w-16 h-16 text-gray-400 mx-auto mb-2" />
+                          <ImageIcon className="w-16 h-16 text-text-secondary mx-auto mb-2" />
                           <p className="text-gray-600">{language === 'ja' ? '元の画像' : 'Original Image'}</p>
                         </div>
                       </div>
@@ -463,7 +463,7 @@ export function BeforeAfterPreview({
                   <div className="relative bg-white rounded-lg overflow-hidden shadow-lg">
                     {imageLoading.after && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-text-secondary animate-spin" />
                       </div>
                     )}
                     <img

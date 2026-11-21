@@ -65,7 +65,7 @@ function QuickPreview({ option, language, onOpenFullPreview }: QuickPreviewProps
         {/* Loading State */}
         {imageLoading && (
           <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+            <Loader2 className="w-6 h-6 text-text-secondary animate-spin" />
           </div>
         )}
 
@@ -190,7 +190,7 @@ export function ProcessingPreviewTrigger({
             <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
               {imageLoading && (
                 <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                  <Package className="w-4 h-4 text-gray-400" />
+                  <Package className="w-4 h-4 text-text-secondary" />
                 </div>
               )}
               <img
@@ -309,7 +309,7 @@ export function ProcessingPreviewTrigger({
                   x{option.priceMultiplier.toFixed(2)}
                 </Badge>
                 {interactive && (
-                  <Eye className="w-3 h-3 text-gray-400" />
+                  <Eye className="w-3 h-3 text-text-secondary" />
                 )}
               </div>
             </div>
@@ -323,7 +323,7 @@ export function ProcessingPreviewTrigger({
                 {isSelected ? (
                   <CheckCircle className="w-4 h-4 text-green-600" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                  <ChevronRight className="w-4 h-4 text-text-secondary" />
                 )}
               </Button>
             )}
@@ -375,7 +375,7 @@ export function ProcessingPreviewTrigger({
             <div className="relative h-40 bg-gray-100 overflow-hidden">
               {imageLoading && (
                 <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-text-secondary animate-spin" />
                 </div>
               )}
               <img

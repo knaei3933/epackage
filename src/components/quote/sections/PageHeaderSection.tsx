@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/layout'
 
 /**
  * ページヘッダーセクションコンポーネント
- * 統合見積もりシステムのタイトルと特長（PageHeader。パンくずは共通の BreadcrumbNav が出す）
+ * 見積もりシミュレーターのタイトルと特長（PageHeader。パンくずは共通の BreadcrumbNav が出す）
  */
 export function PageHeaderSection() {
   const items = [
@@ -16,8 +16,8 @@ export function PageHeaderSection() {
   ]
   return (
     <PageHeader
-      title="統合見積もりシステム"
-      lead="AI-poweredでお客様のニーズに合わせた最適な包装ソリューションをご提案します"
+      title="見積もりシミュレーター"
+      lead="形・素材・サイズ・数量を入力すると、その場で価格の目安がわかります。条件に合う包装をご提案します"
     >
       <ul className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-8">
         {items.map(({ icon: Icon, label }) => (

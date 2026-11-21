@@ -507,7 +507,7 @@ export function MobileOptimizedPreview({
             <div className="flex items-center space-x-2">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input
                   type="text"
                   placeholder={language === 'ja' ? '検索...' : 'Search...'}
@@ -750,7 +750,7 @@ export function MobileOptimizedPreview({
                               onClick={() => toggleFavorite(option.id)}
                               className="w-6 h-6"
                             >
-                              <Heart className={`w-3 h-3 ${isFavorite ? 'fill-current text-red-500' : 'text-gray-400'}`} />
+                              <Heart className={`w-3 h-3 ${isFavorite ? 'fill-current text-red-500' : 'text-text-secondary'}`} />
                             </Button>
                             <Button
                               variant="ghost"
@@ -758,7 +758,7 @@ export function MobileOptimizedPreview({
                               onClick={() => toggleBookmark(option.id)}
                               className="w-6 h-6"
                             >
-                              <Bookmark className={`w-3 h-3 ${isBookmarked ? 'fill-current text-blue-500' : 'text-gray-400'}`} />
+                              <Bookmark className={`w-3 h-3 ${isBookmarked ? 'fill-current text-blue-500' : 'text-text-secondary'}`} />
                             </Button>
                           </div>
                         </div>
@@ -823,7 +823,7 @@ export function MobileOptimizedPreview({
                                   onClick={() => toggleFavorite(option.id)}
                                   className="w-6 h-6"
                                 >
-                                  <Heart className={`w-3 h-3 ${isFavorite ? 'fill-current text-red-500' : 'text-gray-400'}`} />
+                                  <Heart className={`w-3 h-3 ${isFavorite ? 'fill-current text-red-500' : 'text-text-secondary'}`} />
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -831,7 +831,7 @@ export function MobileOptimizedPreview({
                                   onClick={() => toggleBookmark(option.id)}
                                   className="w-6 h-6"
                                 >
-                                  <Bookmark className={`w-3 h-3 ${isBookmarked ? 'fill-current text-blue-500' : 'text-gray-400'}`} />
+                                  <Bookmark className={`w-3 h-3 ${isBookmarked ? 'fill-current text-blue-500' : 'text-text-secondary'}`} />
                                 </Button>
                               </div>
                             </div>

@@ -238,7 +238,7 @@ export function ProductSelector({ products, onChange, onNext, errors, isLoading 
               className="text-center py-12"
             >
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Package className="w-8 h-8 text-gray-400" />
+                <Package className="w-8 h-8 text-text-secondary" />
               </div>
               <p className="text-gray-600">製品を追加してください</p>
             </motion.div>

@@ -59,6 +59,12 @@ import {
 import { SpecsStep } from './SpecsStep';
 import { PostProcessingStep } from './PostProcessingStep';
 import { RealTimePriceDisplay } from './RealTimePriceDisplay';
+import {
+  PERSISTED_QUOTE_FIELDS,
+  clearQuoteSession,
+  loadQuoteSession,
+  saveQuoteSession,
+} from './quoteSessionStorage';
 
 const STEPS = [
   { id: 'specs', title: '基本仕様', icon: Package, description: 'サイズ・素材・厚さ' },
@@ -95,6 +101,82 @@ export function ImprovedQuotingWizard() {
 
   const wizardRef = useRef<HTMLDivElement>(null);
 
+  // ---- 入力の保存と復元（sessionStorage）と、ブラウザの「戻る」への対応 ----
+  // 「次へ」の自動保存（DB への保存）とは別。DB には触れない。
+  // 計算結果の画面（最後のステップ）は、保存した入力から作り直せないので、復元では 1 つ前の画面までにとどめる。
+  const LAST_RESTORABLE_STEP = STEPS.length - 2;
+  const [isRestored, setIsRestored] = useState(false);
+  const resultRef = useRef<UnifiedQuoteResult | null>(null);
+  resultRef.current = result;
+
+  const readStepFromUrl = (): number | null => {
+    if (typeof window === 'undefined') return null;
+    const raw = new URLSearchParams(window.location.search).get('step');
+    const n = raw ? parseInt(raw, 10) : NaN;
+    return Number.isInteger(n) && n >= 1 && n <= STEPS.length ? n - 1 : null;
+  };
+
+  // 起動時に 1 回だけ、保存した入力を戻す
+  useEffect(() => {
+    const saved = loadQuoteSession();
+    if (saved) {
+      for (const field of PERSISTED_QUOTE_FIELDS) {
+        if (saved.fields[field] !== undefined) {
+          dispatch({ type: 'UPDATE_FIELD', payload: { field, value: saved.fields[field] } });
+        }
+      }
+      if (saved.patternQuantities.length > 0) {
+        setPatternQuantities(saved.patternQuantities);
+      }
+    }
+    const urlStep = readStepFromUrl();
+    const wanted = urlStep ?? saved?.step ?? 0;
+    // 保存がないのに URL だけ先の画面を指しているときは、最初の画面に戻す
+    const target = saved ? Math.min(Math.max(wanted, 0), LAST_RESTORABLE_STEP) : 0;
+    setCurrentStep(target);
+    setIsRestored(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 入力が変わるたびに保存（復元が終わるまでは、空の状態で上書きしない）
+  useEffect(() => {
+    if (!isRestored) return;
+    saveQuoteSession(state, Math.min(currentStep, LAST_RESTORABLE_STEP), patternQuantities);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRestored, state, currentStep, patternQuantities]);
+
+  // ステップ番号を、ブラウザの履歴（?step=）に入れる。「戻る」で、外のページに出ずにステップが戻る
+  useEffect(() => {
+    if (!isRestored || typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const wantedParam = String(currentStep + 1);
+    if (url.searchParams.get('step') === wantedParam) return;
+    const isFirstSync = url.searchParams.get('step') === null && currentStep === 0;
+    url.searchParams.set('step', wantedParam);
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    if (isFirstSync) {
+      window.history.replaceState(window.history.state, '', next);
+    } else {
+      window.history.pushState(window.history.state, '', next);
+    }
+  }, [isRestored, currentStep]);
+
+  // ブラウザの「戻る」「進む」で、?step= が変わったら、画面のステップを合わせる
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onPopState = () => {
+      const urlStep = readStepFromUrl();
+      if (urlStep === null) return;
+      // 結果がない（計算していない）のに、結果の画面には行けない
+      const clamped = resultRef.current ? urlStep : Math.min(urlStep, LAST_RESTORABLE_STEP);
+      if (clamped < STEPS.length - 1) setResult(null);
+      setCurrentStep(clamped);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 会員登録誘導モーダル
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   // ログイン成功後に見積もり計算を再開するためのフラグ
@@ -118,6 +200,11 @@ export function ImprovedQuotingWizard() {
     if (currentStep < STEPS.length - 1) {
       // Calculate quote when moving from sku-quantity or quantity step to result step
       if (currentStepId === 'sku-quantity' || currentStepId === 'quantity') {
+        // 数量が 0 や空のままでは計算しない（「計算中…」で止まるのを防ぐ）
+        if (!canProceedWithValidation) {
+          showError(nextBlockReason ?? '数量を入力してください。');
+          return;
+        }
         // 見積もり実行（結果表示）にはログインが必要。未ログインなら会員誘導モーダルを表示して中断。
         if (!isAuthLoading && !isAuthenticated) {
           setShowAuthPrompt(true);
@@ -473,10 +560,21 @@ export function ImprovedQuotingWizard() {
     }
   };
 
+  // 結果の画面から、入力（数量の画面）に戻る。入力は消さない
+  const handleEditConditions = () => {
+    setResult(null);
+    setCurrentStep(Math.max(STEPS.findIndex(step => step.id === 'sku-quantity'), 0));
+    setTimeout(() => {
+      wizardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
   const handleReset = () => {
     console.log('Reset button clicked - resetting quote');
     try {
       resetQuote();
+      clearQuoteSession();
+      setPatternQuantities([]);
       setCurrentStep(0);
       setResult(null);
       console.log('Quote reset completed');
@@ -498,7 +596,12 @@ export function ImprovedQuotingWizard() {
   // （パターン1・パターン2の両方の合計が最小数量500以上であることが必須）
   const canProceed = (() => {
     if (!currentStepId) return false;
-    if (currentStepId === 'sku-quantity' && isMultiPatternMode) {
+    // 数量の入力がまだ無い（patternQuantities が空）間も、複数パターンの判定に入れる。
+    // こうしないと初回描画の一瞬、「次へ」が有効に見える
+    if (
+      currentStepId === 'sku-quantity' &&
+      (isMultiPatternMode || (state.skuCount >= 1 && state.skuCount <= 10))
+    ) {
       const colCount = patternQuantities[0]?.length ?? 0;
       if (colCount < 2) return false;
       const minQty = 500; // 各パターンとも最低500個/m
@@ -520,6 +623,32 @@ export function ImprovedQuotingWizard() {
     }
     return true;
   }, [canProceed, currentStepId, state.skuQuantityValidationError]);
+
+  // 「次へ」が押せない理由（ボタンのすぐ近くに、日本語で出す）
+  const nextBlockReason = useMemo((): string | null => {
+    if (canProceedWithValidation || !currentStepId || currentStepId === 'result') return null;
+    if (currentStepId === 'specs') {
+      const first = getSpecsValidationMessages(state)[0];
+      return first ? `${first}` : '基本仕様の必須の項目を入力してください。';
+    }
+    if (currentStepId === 'post-processing') {
+      return '後加工は、各グループから 1 つずつ選んでください。';
+    }
+    if (currentStepId === 'sku-quantity') {
+      if (state.skuQuantityValidationError) return state.skuQuantityValidationError;
+      const unit = state.bagTypeId === 'roll_film' ? 'm' : '個';
+      if (isMultiPatternMode) {
+        const colCount = patternQuantities[0]?.length ?? 0;
+        if (colCount < 2) return '数量パターンを 2 つ以上入力してください。';
+        for (let p = 0; p < 2; p++) {
+          const total = patternQuantities.reduce((sum, row) => sum + (row[p] || 0), 0);
+          if (total < 500) return `パターン${p + 1}の合計数量は、500${unit}以上で入力してください。`;
+        }
+      }
+      return `数量は、500${unit}以上で入力してください（空のままや 0 では進めません）。`;
+    }
+    return '入力内容を確認してください。';
+  }, [canProceedWithValidation, currentStepId, state, isMultiPatternMode, patternQuantities]);
 
   // Get validation messages for specs step
   const specsValidationErrors = useMemo(() => {
@@ -569,18 +698,20 @@ export function ImprovedQuotingWizard() {
       >
 
         {/* Step Indicators - Responsive (横型ステッパー + 進捗バー) */}
-        <ResponsiveStepIndicators
-          steps={STEPS}
-          currentStep={currentStep}
-          onStepClick={(index) => { if (index < currentStep) setCurrentStep(index); }}
-          isStepCompleted={(index) => index < currentStep || (result && index === STEPS.length - 1)}
-        />
+        <div className="print:hidden">
+          <ResponsiveStepIndicators
+            steps={STEPS}
+            currentStep={currentStep}
+            onStepClick={(index) => { if (index < currentStep) setCurrentStep(index); }}
+            isStepCompleted={(index) => index < currentStep || (result && index === STEPS.length - 1)}
+          />
+        </div>
 
         {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 print:block">
 
           {/* Sidebar Navigation - Desktop */}
-          <div className="xl:col-span-1 lg:block">
+          <div className="xl:col-span-1 lg:block print:hidden">
             <div className="sticky top-6 space-y-4">
               {/* Envelope Preview */}
               <EnvelopePreview
@@ -607,15 +738,15 @@ export function ImprovedQuotingWizard() {
           </div>
 
           {/* Main Step Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-bg-primary rounded-container border border-border-medium p-6 lg:p-8 mb-8">
+          <div className="lg:col-span-3 print:col-span-4">
+            <div className="bg-bg-primary rounded-container border border-border-medium p-6 lg:p-8 mb-8 print:border-0 print:p-0">
               {/* Step Content */}
               {currentStepId === 'specs' && <SpecsStep />}
               {currentStepId === 'post-processing' && <PostProcessingStep />}
               {currentStepId === 'sku-quantity' && <UnifiedSKUQuantityStep patternQuantities={patternQuantities} onPatternQuantitiesChange={setPatternQuantities} />}
               {currentStepId === 'result' && result && (
                 <div data-chat-field="result">
-                  <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} />
+                  <ResultStep result={result} multiQuantityResult={multiQuantityResult} onReset={handleReset} onEdit={handleEditConditions} />
                 </div>
               )}
 
@@ -645,12 +776,13 @@ export function ImprovedQuotingWizard() {
 
               {/* Navigation Buttons */}
               {currentStepId !== 'result' && (
-                <div className="pt-8 flex flex-col sm:flex-row justify-between gap-4 border-t border-border-medium">
+                <div className="pt-8 border-t border-border-medium print:hidden">
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <Button
                     variant="secondary"
                     onClick={handleBack}
                     disabled={currentStep === 0}
-                    className="w-full sm:w-auto px-6"
+                    className="w-full sm:w-auto min-h-11 px-6"
                     aria-label="前のステップに戻る"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -660,8 +792,9 @@ export function ImprovedQuotingWizard() {
                   <Button
                     onClick={handleNext}
                     disabled={!canProceed || isCalculating || isAuthLoading}
-                    className="w-full sm:w-auto px-8"
+                    className="w-full sm:w-auto min-h-11 px-8"
                     aria-label={isLastStep ? "見積もりを完了する" : "次のステップに進む"}
+                    aria-describedby={nextBlockReason ? 'quote-next-reason' : undefined}
                   >
                     {isAuthLoading ? (
                       <>
@@ -686,6 +819,17 @@ export function ImprovedQuotingWizard() {
                     )}
                   </Button>
                 </div>
+                {nextBlockReason && (
+                  <p
+                    id="quote-next-reason"
+                    role="status"
+                    className="mt-3 flex items-start gap-2 text-sm text-text-primary sm:justify-end sm:text-right"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-error" aria-hidden="true" />
+                    <span>{nextBlockReason}</span>
+                  </p>
+                )}
+                </div>
               )}
             </div>
           </div>
@@ -703,7 +847,7 @@ export function ImprovedQuotingWizard() {
                 <span className="text-sm font-medium text-on-brand-muted">見積もり価格</span>
                 <span className="text-lg font-bold text-on-brand-muted">
                   ¥{result.totalPrice.toLocaleString()}
-                  <span className="text-xs text-on-brand-muted ml-1">税込</span>
+                  <span className="text-xs text-on-brand-muted ml-1">税別</span>
                 </span>
               </div>
             </div>
@@ -794,7 +938,7 @@ export function ImprovedQuotingWizard() {
                   </div>
                 </div>
                 <div className="text-xs text-text-muted text-center lg:text-right">
-                  © 2025 Epackage Lab. 全著作権所有.
+                  © {new Date().getFullYear()} Epackage Lab. 全著作権所有。
                 </div>
               </div>
             </div>

@@ -77,7 +77,7 @@ export default function DetailedOptionModal({
                   <div className="relative rounded-lg overflow-hidden bg-gray-50 border-2 border-gray-200">
                     <div className="aspect-[4/3] flex items-center justify-center">
                       <div className="text-center p-4">
-                        <Package className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                        <Package className="w-12 h-12 text-text-secondary mx-auto mb-2" />
                         <p className="text-sm font-medium text-gray-700">
                           {language === 'ja' ? '加工前' : 'Before'}
                         </p>
