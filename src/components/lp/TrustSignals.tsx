@@ -1,6 +1,6 @@
 'use client'
 
-import { CLIENT_COUNT_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
+import { CLIENT_COUNT_LABEL, PARTNER_FOUNDED_LABEL, PARTNER_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React from 'react'
 import { Building2, Users, Award, Shield, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -21,9 +21,9 @@ const trustSignalsData: TrustSignal[] = [
   },
   {
     icon: <Building2 className="w-6 h-6" />,
-    value: '30年以上',
-    label: '業界経験',
-    description: '長年の実績と信頼'
+    value: PARTNER_FOUNDED_LABEL,
+    label: '製造パートナー',
+    description: `${PARTNER_LABEL}と連携しています`
   },
   {
     icon: <Shield className="w-6 h-6" />,

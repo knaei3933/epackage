@@ -306,7 +306,7 @@ export default function PrintPage() {
           <MotionWrapper delay={0.7}>
             <div className="rounded-container border border-border-medium bg-bg-secondary p-8 md:p-12">
               <h3 className="mb-4 font-heading text-xl leading-[1.4] text-text-primary [word-break:keep-all] supports-[word-break:auto-phrase]:[word-break:auto-phrase] [overflow-wrap:anywhere] text-balance md:text-2xl">
-                30年のノウハウが詰まった生産技術
+                2009年設立の製造パートナーが支える生産技術
               </h3>
               <p className="mb-8 max-w-[40em] leading-[1.8] text-text-secondary">
                 継続的な技術開発と設備投資により、お客様の期待を超える

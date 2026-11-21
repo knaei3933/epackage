@@ -1,4 +1,4 @@
-import { CLIENT_COUNT_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
+import { CLIENT_COUNT_LABEL, PARTNER_FOUNDED_LABEL, PARTNER_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import { Building2, Users, Shield, CheckCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { FactList } from '@/components/layout'
@@ -9,7 +9,7 @@ import { FactList } from '@/components/layout'
  */
 const trustSignals = [
   { icon: Users, value: CLIENT_COUNT_LABEL, label: '導入実績', description: '多くの企業様にご愛用いただいています' },
-  { icon: Building2, value: '30年以上', label: '業界経験', description: '長年の実績と信頼' },
+  { icon: Building2, value: PARTNER_FOUNDED_LABEL, label: '製造パートナー', description: `${PARTNER_LABEL}と連携しています` },
   { icon: Shield, value: '厳格な品質管理', label: '品質保証', description: '全工程で品質を担保' },
   { icon: CheckCircle, value: '迅速対応', label: 'サポート体制', description: `${REPLY_TIME_LABEL}にご回答します` },
 ] as const
