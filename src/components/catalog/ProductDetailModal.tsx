@@ -208,7 +208,7 @@ export function ProductDetailModal() {
                             {getPriceDisplay()}
                           </div>
                           <div className="text-sm text-text-muted mt-1">
-                            <div>最小注文数: {selectedProduct.minOrder.quantity} {selectedProduct.minOrder.unit}</div>
+                            <div>最小注文数: {selectedProduct.minOrder.quantity.toLocaleString()}{selectedProduct.minOrder.unit === 'meters' ? 'm' : '個'}</div>
                             <div>納期: {selectedProduct.leadTime.min}-{selectedProduct.leadTime.max} {selectedProduct.leadTime.unit}</div>
                           </div>
                         </div>

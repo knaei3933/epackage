@@ -31,6 +31,7 @@ import { ProductDownloads } from '@/components/catalog/ProductDownloads'
 import { ProductRelatedCases } from '@/components/catalog/ProductRelatedCases'
 import { ProductCertifications } from '@/components/catalog/ProductCertifications'
 import type { ProductTabType } from '@/types/product-content'
+import { minOrderLabel, MIN_ORDER_BAG, MIN_ORDER_ROLL } from '@/lib/site-facts'
 
 interface ProductDetailClientProps {
   product: {
@@ -88,6 +89,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     }
     return materialNames[material] || material
   }
+
+  // ロールは長さ（m）、袋は個数で数量を選ぶ。最小は site-facts の値より小さくしない。
+  const isRollProduct = product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム'
+  const quantityUnit = isRollProduct ? 'm' : '個'
+  const minQuantity = isRollProduct ? MIN_ORDER_ROLL : MIN_ORDER_BAG
+  const quantityOptions = [500, 1000, 5000, 10000, 50000].filter((q) => q >= minQuantity)
+  const [sampleQuantity, setSampleQuantity] = useState<number>(
+    quantityOptions.includes(1000) ? 1000 : quantityOptions[0]
+  )
 
   const calculateSamplePrice = (quantity: number = 1000) => {
     const baseCost = product.pricing_formula.base_cost || 0
@@ -177,7 +187,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   <Card className="p-4 text-center">
                     <Users className="w-8 h-8 text-brand mx-auto mb-2" />
                     <p className="text-sm text-text-secondary">最小注文数</p>
-                    <p className="text-lg font-bold text-text-primary">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</p>
+                    <p className="text-lg font-bold text-text-primary">{minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム')}</p>
                   </Card>
                   <Card className="p-4 text-center">
                     <Clock className="w-8 h-8 text-brand mx-auto mb-2" />
@@ -378,7 +388,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                     <div className="text-center p-4 bg-bg-secondary rounded-inner">
                       <p className="text-sm text-text-secondary mb-2">最小注文数</p>
                       <p className="text-2xl font-bold text-brand">
-                        {product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}
+                        {minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム')}
                       </p>
                     </div>
                   </div>
@@ -392,23 +402,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                           <label className="block text-sm font-medium text-text-secondary mb-1">数量</label>
                           <select
                             className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                            onChange={(e) => {
-                              const quantity = parseInt(e.target.value)
-                              const total = calculateSamplePrice(quantity)
-                              document.getElementById('calculated-price')!.textContent = formatCurrency(total)
-                            }}
+                            value={sampleQuantity}
+                            onChange={(e) => setSampleQuantity(parseInt(e.target.value))}
                           >
-                            <option value="1000">1,000個</option>
-                            <option value="5000">5,000個</option>
-                            <option value="10000">10,000個</option>
-                            <option value="50000">50,000個</option>
+                            {quantityOptions.map((q) => (
+                              <option key={q} value={q}>{q.toLocaleString('en-US')}{quantityUnit}</option>
+                            ))}
                           </select>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-text-secondary mb-1">概算合計</label>
                           <div className="w-full px-3 py-2 bg-bg-primary border border-border-strong rounded-md">
                             <span id="calculated-price" className="font-bold text-brand">
-                              {formatCurrency(calculateSamplePrice(1000))}
+                              {formatCurrency(calculateSamplePrice(sampleQuantity))}
                             </span>
                           </div>
                         </div>
@@ -416,7 +422,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                           <label className="block text-sm font-medium text-text-secondary mb-1">単価</label>
                           <div className="w-full px-3 py-2 bg-bg-primary border border-border-strong rounded-md">
                             <span className="font-bold text-text-primary">
-                              {formatCurrency(Math.round(calculateSamplePrice(1000) / 1000))}/個
+                              {formatCurrency(Math.round(calculateSamplePrice(sampleQuantity) / sampleQuantity))}/{quantityUnit}
                             </span>
                           </div>
                         </div>

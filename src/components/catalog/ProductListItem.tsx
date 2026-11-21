@@ -11,6 +11,7 @@ import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import Link from 'next/link'
 import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import { Product } from '@/types/database'
+import { minOrderLabel } from '@/lib/site-facts'
 
 export interface ProductListItemProps {
   product: Product
@@ -61,7 +62,7 @@ export function ProductListItem({
                   </div>
                   <div className="flex items-center gap-1">
                     <Package className="w-4 h-4" />
-                    <span>最小注文数: {product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</span>
+                    <span>最小注文数: {minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム')}</span>
                   </div>
                 </div>
               </div>

@@ -150,7 +150,7 @@ const samplePouchNews: NewsArticle[] = [
     id: 'pouch-news-007',
     title: '特殊形状パウチの多品種小ロット生産ラインを増強',
     slug: 'special-shape-pouch-production-line',
-    excerpt: '顧客ニーズの多様化に対応するため、特殊形状パウチの柔性生産システムを導入。最小ロット500枚から対応可能に。',
+    excerpt: '顧客ニーズの多様化に対応するため、特殊形状パウチの柔性生産システムを導入。最小ロット500個から対応可能に。',
     content: '詳細なコンテンツ...',
     author: '藤本 雄一',
     authorRole: '製造部長',

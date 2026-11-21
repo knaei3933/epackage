@@ -10,7 +10,7 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'パウチお問い合わせ',
-  description: `パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチ、ガゼットパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。小ロット500枚から大ロット大量生産まで対応。${LEAD_TIME_LABEL}で納品。化粧品・食品・医薬品業界向け最適な包装ソリューションのご提案。${REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています。`,
+  description: `パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチ、ガゼットパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。小ロット500個から大ロット大量生産まで対応。${LEAD_TIME_LABEL}で納品。化粧品・食品・医薬品業界向け最適な包装ソリューションのご提案。${REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています。`,
   openGraph: {
     title: 'パウチお問い合わせ',
     description: `パウチ包装専門のEpackage Labへのお問い合わせフォーム。${REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています。`,

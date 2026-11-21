@@ -10,3 +10,18 @@ export const REPLY_TIME_LABEL = '2営業日以内'
 export const BUSINESS_HOURS_LABEL = '平日 9:00-18:00'
 export const PARTNER_FOUNDED_LABEL = '2009年設立'
 export const PARTNER_LABEL = '韓国の製造パートナー'
+
+/**
+ * 最小注文数量。見積もり画面（/quote-simulator）の入力欄の下限と同じ値。
+ * 袋は全種類 500個、ロールフィルムは 500m（SKUが複数のときの1欄は 300m）。
+ * 計算エンジン側の下限（unified-pricing-engine など）とは別。ここは「画面に出す数字」の正。
+ */
+export const MIN_ORDER_BAG = 500
+export const MIN_ORDER_BAG_LABEL = '500個'
+export const MIN_ORDER_ROLL = 500
+export const MIN_ORDER_ROLL_LABEL = '500m'
+
+/** 製品の最小注文数量を「500個」「500m」の形で返す。 */
+export function minOrderLabel(isRoll: boolean): string {
+  return isRoll ? MIN_ORDER_ROLL_LABEL : MIN_ORDER_BAG_LABEL
+}

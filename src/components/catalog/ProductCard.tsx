@@ -192,7 +192,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             {/* Additional Info */}
           <div className="mt-3 pt-3 border-t border-border-medium">
             <div className="flex items-center justify-between text-xs text-text-muted">
-              <span>最小注文数: {product.minOrder.quantity} {product.minOrder.unit}</span>
+              <span>最小注文数: {product.minOrder.quantity.toLocaleString()}{product.minOrder.unit === 'meters' ? 'm' : '個'}</span>
               <span>納期: {product.leadTime.min}-{product.leadTime.max} {product.leadTime.unit}</span>
             </div>
           </div>

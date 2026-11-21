@@ -126,7 +126,7 @@ export default async function OpengraphImage({
 
         {/* 下部: キャッチコピー */}
         <div style={{ display: 'flex', fontSize: 30, opacity: 0.92 }}>
-          小ロット500枚〜・{LEAD_TIME_LABEL}納品のパッケージ専門製造
+          小ロット500個〜・{LEAD_TIME_LABEL}納品のパッケージ専門製造
         </div>
       </div>
     ),

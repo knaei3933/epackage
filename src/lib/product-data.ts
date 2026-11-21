@@ -1,4 +1,4 @@
-import { LEAD_TIME_LABEL } from '@/lib/site-facts'
+import { LEAD_TIME_LABEL, MIN_ORDER_BAG, MIN_ORDER_BAG_LABEL, MIN_ORDER_ROLL, MIN_ORDER_ROLL_LABEL } from '@/lib/site-facts'
 
 export const PRODUCT_CATEGORIES = {
     flat_3_side: {
@@ -57,8 +57,8 @@ const commonFAQs = [
     {
         question_ja: '最低注文数量は?',
         question_en: 'What is the minimum order quantity?',
-        answer_ja: '500個〜1000個から承っております。小ロットにも対応可能です。',
-        answer_en: 'We accept orders from 500-1000 pieces. Small lot orders are also available.',
+        answer_ja: `袋は${MIN_ORDER_BAG_LABEL}から、ロールフィルムは${MIN_ORDER_ROLL_LABEL}から承ります。小ロットにも対応可能です。`,
+        answer_en: 'Pouches start at 500 pieces and roll film at 500 m. Small lot orders are also available.',
         category: 'ordering'
     },
     {
@@ -352,7 +352,7 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 per_unit_cost: 8,
                 min_quantity: 500
             },
-            min_order_quantity: 500,
+            min_order_quantity: MIN_ORDER_BAG,
             lead_time_days: 30,
             sort_order: 1,
             is_active: true,
@@ -395,12 +395,12 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 per_unit_cost: 12,
                 min_quantity: 500
             },
-            min_order_quantity: 500,
+            min_order_quantity: MIN_ORDER_BAG,
             lead_time_days: 30,
             sort_order: 2,
             is_active: true,
             tags: locale === 'ja'
-                ? ['人気No.1', 'デジタル印刷', '版代不要', '1枚から印刷']
+                ? ['人気No.1', 'デジタル印刷', '版代不要', '小ロット対応']
                 : ['Popular No.1', 'Digital Printing', 'No Plate Cost', 'Print from 1 piece'],
             applications: locale === 'ja'
                 ? ['食品包装', '健康食品', '化粧品', 'ペットフード']
@@ -455,9 +455,9 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             pricing_formula: {
                 base_cost: 28000,
                 per_unit_cost: 16,
-                min_quantity: 10000
+                min_quantity: 500
             },
-            min_order_quantity: 10000,
+            min_order_quantity: MIN_ORDER_BAG,
             lead_time_days: 30,
             sort_order: 3,
             is_active: true,
@@ -508,9 +508,9 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             pricing_formula: {
                 base_cost: 30000,
                 per_unit_cost: 18,
-                min_quantity: 5000
+                min_quantity: 500
             },
-            min_order_quantity: 5000,
+            min_order_quantity: MIN_ORDER_BAG,
             lead_time_days: 30,
             sort_order: 4,
             is_active: true,
@@ -569,10 +569,10 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
             pricing_formula: {
                 base_cost: 5000,
                 per_unit_cost: 5,
-                min_quantity: 500,
+                min_quantity: MIN_ORDER_ROLL,
                 unit_type: 'meter'
             },
-            min_order_quantity: 500,
+            min_order_quantity: MIN_ORDER_ROLL,
             lead_time_days: 30,
             sort_order: 5,
             is_active: true,
@@ -634,7 +634,7 @@ export function getAllProducts(categoryFilter?: string | null, locale: string = 
                 per_unit_cost: 10,
                 min_quantity: 500
             },
-            min_order_quantity: 500,
+            min_order_quantity: MIN_ORDER_BAG,
             lead_time_days: 30,
             sort_order: 6,
             is_active: true,

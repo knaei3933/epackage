@@ -1,4 +1,5 @@
 import type { PackageProduct } from '@/types/catalog'
+import { MIN_ORDER_BAG, MIN_ORDER_ROLL } from '@/lib/site-facts'
 
 // Product categories mapped to pouch types according to requirements
 // 1. Three-side seal pouch (三方シール袋)
@@ -89,7 +90,7 @@ export const catalogProducts: PackageProduct[] = [
       unit: 'days'
     },
     minOrder: {
-      quantity: 500,
+      quantity: MIN_ORDER_BAG,
       unit: 'pieces'
     },
     popularity: 95,
@@ -179,7 +180,7 @@ export const catalogProducts: PackageProduct[] = [
       unit: 'days'
     },
     minOrder: {
-      quantity: 500,
+      quantity: MIN_ORDER_BAG,
       unit: 'pieces'
     },
     popularity: 98,
@@ -269,7 +270,7 @@ export const catalogProducts: PackageProduct[] = [
       unit: 'days'
     },
     minOrder: {
-      quantity: 800,
+      quantity: MIN_ORDER_BAG,
       unit: 'pieces'
     },
     popularity: 88,
@@ -359,7 +360,7 @@ export const catalogProducts: PackageProduct[] = [
       unit: 'days'
     },
     minOrder: {
-      quantity: 1000,
+      quantity: MIN_ORDER_BAG,
       unit: 'pieces'
     },
     popularity: 82,
@@ -450,7 +451,7 @@ export const catalogProducts: PackageProduct[] = [
       unit: 'days'
     },
     minOrder: {
-      quantity: 1000,
+      quantity: MIN_ORDER_ROLL,
       unit: 'meters'
     },
     popularity: 75,

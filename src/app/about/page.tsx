@@ -19,7 +19,7 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 
 export const metadata: Metadata = {
   title: '会社概要',
-  description: `Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。小ロット500枚から大ロット大量生産まで対応するパッケージ製造のリーディングカンパニー。${LEAD_TIME_LABEL}納品。化粧品・食品・医薬品業界向け最適な包装資材をご提供。`,
+  description: `Epackage Labの会社情報、ビジョン、ミッションをご紹介します。革新的な包装ソリューションで、お客様のビジネスを次のステージへ。小ロット500個から大ロット大量生産まで対応するパッケージ製造のリーディングカンパニー。${LEAD_TIME_LABEL}納品。化粧品・食品・医薬品業界向け最適な包装資材をご提供。`,
   alternates: {
     canonical: 'https://www.package-lab.com/about',
   },

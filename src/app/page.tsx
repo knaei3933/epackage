@@ -1,4 +1,4 @@
-import { CLIENT_COUNT_LABEL, LEAD_TIME_LABEL } from '@/lib/site-facts'
+import { CLIENT_COUNT_LABEL, LEAD_TIME_LABEL, MIN_ORDER_BAG_LABEL, MIN_ORDER_ROLL_LABEL } from '@/lib/site-facts'
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { FAQSchema, ProductSchema } from '@/components/seo/StructuredData'
@@ -32,7 +32,7 @@ const faqData = [
   },
   {
     question: '最低注文数量（MOQ）はどのくらいですか？',
-    answer: '製品によって異なりますが、一般的に500個から1000個からの対応が可能です。小ロット試作にも柔軟に対応いたしますので、まずはお気軽にご相談ください。'
+    answer: `袋は${MIN_ORDER_BAG_LABEL}から、ロールフィルムは${MIN_ORDER_ROLL_LABEL}から対応できます。小ロット試作にも柔軟に対応いたしますので、まずはお気軽にご相談ください。`
   },
   {
     question: '納期はどのくらいかかりますか？',

@@ -6,8 +6,8 @@ import { sampleRecords } from "@/lib/archive-data";
 export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://example.com";
   const title = "パウチ導入実績・導入事例｜包装ソリューション";
-  const description = "化粧品、食品、健康食品など様々な業界のパウチ包装導入事例をご紹介。スタンドパウチ、スパウトパウチ、BOX型パウチなどの実績多数。";
-  const keywords = ["パウチ", "スタンドパウチ", "包装", "導入事例", "化粧品包装", "食品包装", "スパウトパウチ", "BOX型パウチ"];
+  const description = "化粧品、食品、健康食品など様々な業界のパウチ包装導入事例をご紹介。スタンドパウチ、スパウトパウチ、ガゼットパウチなどの実績多数。";
+  const keywords = ["パウチ", "スタンドパウチ", "包装", "導入事例", "化粧品包装", "食品包装", "スパウトパウチ", "ガゼットパウチ"];
 
   return {
     title,

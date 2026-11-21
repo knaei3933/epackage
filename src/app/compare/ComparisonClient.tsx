@@ -26,14 +26,15 @@ import { MotionWrapper } from '@/components/ui/MotionWrapper'
 import { Grid } from '@/components/ui/Grid'
 import { useComparison } from '@/contexts/ComparisonContext'
 import { compareProducts, getUniqueMaterials } from '@/contexts/ComparisonContext'
+import { minOrderLabel } from '@/lib/site-facts'
 
 // 商品カテゴリの日本語名（トップの商品カードと同じ呼び名）
 const CATEGORY_NAMES: Record<string, string> = {
   flat_3_side: '平袋',
   stand_up: 'スタンドパウチ',
   gusset: 'ギゼットパウチ',
-  box: 'BOXパウチ',
-  box_with_valve: 'バルブ付きBOXパウチ',
+  box: 'ガゼットパウチ',
+  box_with_valve: 'バルブ付きガゼットパウチ',
   flat_with_zip: 'ジッパー付き平袋',
   special: '特殊仕様パウチ',
   soft_pouch: 'ソフトパウチ',
@@ -309,7 +310,7 @@ export function ComparisonClient() {
                       <td className="p-4 font-medium text-text-primary">最低注文数量</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
-                          {product.min_order_quantity.toLocaleString()}個
+                          {minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム')}
                         </td>
                       ))}
                     </tr>
@@ -407,7 +408,7 @@ export function ComparisonClient() {
                       <div className="text-center p-3 bg-bg-secondary rounded-lg">
                         <p className="text-xs text-text-secondary mb-1">最低注文数</p>
                         <p className="font-bold text-text-primary">
-                          {product.min_order_quantity.toLocaleString()}個
+                          {minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム')}
                         </p>
                       </div>
                       <div className="text-center p-3 bg-bg-secondary rounded-lg">

@@ -30,6 +30,7 @@ import { Product } from '@/types/database'
 import { DownloadButton } from "./DownloadButton"
 import { PRODUCT_CATEGORIES } from '@/lib/product-data'
 import Link from 'next/link'
+import { minOrderLabel } from '@/lib/site-facts'
 
 interface EnhancedProductCardProps {
   product: Product
@@ -60,7 +61,7 @@ export function EnhancedProductCard({
     },
     {
       icon: Package,
-      text: `${product.min_order_quantity.toLocaleString()}${product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}`,
+      text: minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム'),
       label: '最小注文数',
     }
   ]
@@ -287,7 +288,7 @@ export function EnhancedProductCard({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="text-text-muted">最小注文数:</span>
-                    <p className="font-medium">{product.min_order_quantity.toLocaleString()}{product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}</p>
+                    <p className="font-medium">{minOrderLabel(product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム')}</p>
                   </div>
                   <div>
                     <span className="text-text-muted">納期:</span>
