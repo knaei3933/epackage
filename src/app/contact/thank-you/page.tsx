@@ -1,3 +1,4 @@
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, Clock } from 'lucide-react'
@@ -41,7 +42,7 @@ export default function ContactThankYouPage() {
                 <div>
                   <Clock className="mb-2 h-6 w-6 text-brand" aria-hidden="true" />
                   <p className="text-sm text-text-secondary">対応時間</p>
-                  <p className="font-semibold text-text-primary">24時間以内</p>
+                  <p className="font-semibold text-text-primary">{REPLY_TIME_LABEL}</p>
                 </div>
                 <div>
                   <Mail className="mb-2 h-6 w-6 text-brand" aria-hidden="true" />
@@ -102,7 +103,7 @@ export default function ContactThankYouPage() {
                     どのくらいで返信がありますか？
                   </summary>
                   <p className="mt-2 text-text-secondary">
-                    通常、24時間以内に担当者よりご連絡いたします。お急ぎの場合はお電話にてお問い合わせください。
+                    通常、{REPLY_TIME_LABEL}に担当者よりご連絡します。お急ぎの場合はお電話にてお問い合わせください。
                   </p>
                 </details>
                 <details className="rounded-container border border-border-medium bg-bg-primary p-4">

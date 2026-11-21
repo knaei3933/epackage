@@ -14,12 +14,6 @@ export const metadata: Metadata = {
 }
 
 export default function PrivacyPolicy() {
-  const currentDate = new Date().toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-
   return (
     <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
       <BreadcrumbJsonLd pathname="/privacy" />
@@ -360,9 +354,6 @@ export default function PrivacyPolicy() {
             {/* Update Information */}
             <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
               <div className="text-text-secondary">
-                <p className="mb-2">
-                  <strong>最終更新日：</strong>{currentDate}
-                </p>
                 <p className="text-sm">
                   本個人情報保護方針は、関連法規の改正や事業内容の変更に伴い、予告なく変更される場合があります。
                 </p>

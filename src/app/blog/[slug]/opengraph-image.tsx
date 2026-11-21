@@ -1,3 +1,4 @@
+import { LEAD_TIME_LABEL } from '@/lib/site-facts'
 import { ImageResponse } from 'next/og';
 import { getPublishedPostBySlug } from '@/lib/blog/queries';
 import { getCategoryLabel } from '@/lib/types/blog';
@@ -125,7 +126,7 @@ export default async function OpengraphImage({
 
         {/* 下部: キャッチコピー */}
         <div style={{ display: 'flex', fontSize: 30, opacity: 0.92 }}>
-          小ロット500枚〜・最短28日納品のパッケージ専門製造
+          小ロット500枚〜・{LEAD_TIME_LABEL}納品のパッケージ専門製造
         </div>
       </div>
     ),

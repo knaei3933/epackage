@@ -312,14 +312,14 @@ export function ProfileClient({
     }
     if (isEditable('kanaLastName') && completionForm.kanaLastName.trim()) {
       if (!kanaRe.test(completionForm.kanaLastName)) {
-        errors.kanaLastName = 'ひらがなで入力してください。';
+        errors.kanaLastName = 'ひらがなまたはカタカナで入力してください。';
       } else if (completionForm.kanaLastName.trim().length > 50) {
         errors.kanaLastName = '姓は50文字以内で入力してください。';
       }
     }
     if (isEditable('kanaFirstName') && completionForm.kanaFirstName.trim()) {
       if (!kanaRe.test(completionForm.kanaFirstName)) {
-        errors.kanaFirstName = 'ひらがなで入力してください。';
+        errors.kanaFirstName = 'ひらがなまたはカタカナで入力してください。';
       } else if (completionForm.kanaFirstName.trim().length > 50) {
         errors.kanaFirstName = '名は50文字以内で入力してください。';
       }
@@ -406,7 +406,7 @@ export function ProfileClient({
   };
 
   return (
-    <main className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         {completionMode ? (
@@ -516,7 +516,7 @@ export function ProfileClient({
                 )}
                 {!(userKanaLastName || '').trim() && (
                   <Input
-                    label="姓（ひらがな）"
+                    label="姓（読み仮名）"
                     data-testid="completion-kana-last-name"
                     required
                     value={completionForm.kanaLastName}
@@ -526,7 +526,7 @@ export function ProfileClient({
                 )}
                 {!(userKanaFirstName || '').trim() && (
                   <Input
-                    label="名（ひらがな）"
+                    label="名（読み仮名）"
                     data-testid="completion-kana-first-name"
                     required
                     value={completionForm.kanaFirstName}
@@ -672,12 +672,12 @@ export function ProfileClient({
                 disabled
               />
               <Input
-                label="姓（ひらがな）"
+                label="姓（読み仮名）"
                 value={userKanaLastName || ''}
                 disabled
               />
               <Input
-                label="名（ひらがな）"
+                label="名（読み仮名）"
                 value={userKanaFirstName || ''}
                 disabled
               />
@@ -900,6 +900,6 @@ export function ProfileClient({
         </Card>
         )}
       </div>
-    </main>
+    </div>
   );
 }

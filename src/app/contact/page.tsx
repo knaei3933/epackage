@@ -1,3 +1,4 @@
+import { LEAD_TIME_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import ContactForm from '@/components/contact/ContactForm'
 import { Metadata } from 'next'
 import { PageHeader } from '@/components/layout'
@@ -9,10 +10,10 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'パウチお問い合わせ',
-  description: 'パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチ、ガゼットパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。小ロット500枚から大ロット大量生産まで対応。最短28日納品。化粧品・食品・医薬品業界向け最適な包装ソリューションのご提案。24時間以内にご回答、無料サンプル対応可能。',
+  description: `パウチ包装に関する専門的なご相談を受け付けています。ソフトパウチ、スタンドパウチ、ガゼットパウチなど6種類のパウチ製品に関するお問い合わせをどうぞ。小ロット500枚から大ロット大量生産まで対応。${LEAD_TIME_LABEL}で納品。化粧品・食品・医薬品業界向け最適な包装ソリューションのご提案。${REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています。`,
   openGraph: {
     title: 'パウチお問い合わせ',
-    description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム。24時間以内にご回答、無料サンプル対応可能。',
+    description: `パウチ包装専門のEpackage Labへのお問い合わせフォーム。${REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています。`,
     type: 'website',
     url: 'https://www.package-lab.com/contact',
     images: [
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'パウチお問い合わせ',
-    description: 'パウチ包装専門のEpackage Labへのお問い合わせフォーム。24時間以内にご回答。',
+    description: `パウチ包装専門のEpackage Labへのお問い合わせフォーム。${REPLY_TIME_LABEL}にご回答します。`,
     images: ['https://www.package-lab.com/images/og-image.jpg'],
   },
   alternates: {
@@ -45,13 +46,13 @@ export default function ContactPage() {
           <>
             専門スタッフが最適な包装ソリューションをご提案します。
             <br />
-            24時間以内のご回答、無料サンプル対応可能
+            {REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています
           </>
         }
       >
         <div className="mb-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-text-primary">
           <Badge>完全無料相談</Badge>
-          <span>2営業日以内にご回答</span>
+          <span>{REPLY_TIME_LABEL}にご回答</span>
         </div>
         <ContactFacts />
       </PageHeader>

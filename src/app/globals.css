@@ -1222,6 +1222,15 @@
     display: none !important;
   }
 
+  /* 紙には出さない共通の部品: ヘッダー・フッター・パンくず・固定の丸ボタン（チャット）・固定表示の部品 */
+  :is(header, footer):not(main header, main footer, article header, article footer),
+  nav[aria-label="Breadcrumb"],
+  [aria-label="チャットを開く"],
+  [aria-label="カスタマーサポートのチャット"],
+  button.fixed {
+    display: none !important;
+  }
+
   * {
     -webkit-print-color-adjust: exact !important;
     color-adjust: exact !important;

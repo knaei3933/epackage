@@ -179,7 +179,7 @@ describe('POST /api/member/profile/complete (G003)', () => {
 
     expect(response.status).toBe(400);
     expect(body.error_code).toBe('VALIDATION_ERROR');
-    expect(body.details.kana_last_name).toEqual(['ひらがなで入力してください。']);
+    expect(body.details.kana_last_name).toEqual(['ひらがなまたはカタカナで入力してください。']);
   });
 
   it('rejects completion when a required phone is still missing', async () => {

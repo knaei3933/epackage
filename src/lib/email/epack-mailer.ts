@@ -7,6 +7,7 @@
  * @module lib/email/epack-mailer
  */
 
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import * as nodemailer from 'nodemailer'
 import { isEmailRelayConfigured, sendViaEmailRelay, toBase64Attachment } from './relay-send'
 import { epackEmailTemplates, type EpackEmailData, type EpackTemplateId } from './epack-templates'
@@ -870,7 +871,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<ContactEm
           </div>
 
           <p>担当者より折り返しごご連絡させていただきます。</p>
-          <p>通常、1-2営業日以内にご返信いたします。</p>
+          <p>通常、${REPLY_TIME_LABEL}にご返信します。</p>
         </div>
         <div class="footer">
           <p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
@@ -901,7 +902,7 @@ ${data.subject ? `件名: ${data.subject}` : ''}
 ${data.message}
 
 担当者より折り返しごご連絡させていただきます。
-通常、1-2営業日以内にご返信いたします。
+通常、${REPLY_TIME_LABEL}にご返信します。
 
 ====================================
 Epackage Lab (EPackage Lab)

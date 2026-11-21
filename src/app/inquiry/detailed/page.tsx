@@ -1,3 +1,4 @@
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React from 'react'
 import Link from 'next/link'
 import { MessageSquare, TrendingUp, Clock, Shield } from 'lucide-react'
@@ -60,7 +61,7 @@ export default function DetailedInquiryPage() {
                 </div>
                 <h3 className="mb-2 text-lg font-bold text-text-primary">スピード対応</h3>
                 <p className="text-sm leading-[1.8] text-text-secondary">
-                  高品質リードは4時間以内にご連絡
+                  {REPLY_TIME_LABEL}にご連絡します
                 </p>
               </div>
               <div>
@@ -120,7 +121,7 @@ export default function DetailedInquiryPage() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-brand-muted text-xl font-bold text-on-brand-muted">2</div>
                 <h3 className="mb-2 text-xl font-bold text-text-primary">優先対応</h3>
                 <p className="leading-[1.8] text-text-secondary">
-                  高品質リードは4時間以内、通常は24時間以内にご連絡
+                  {REPLY_TIME_LABEL}にご連絡します
                 </p>
               </Card>
               <Card className="p-6">
@@ -163,8 +164,7 @@ export default function DetailedInquiryPage() {
                   Q. どのくらいでご連絡がもらえますか？
                 </h3>
                 <p className="leading-[1.8] text-text-secondary">
-                  A. リードスコア70点以上のお客様は4時間以内、それ以外のお客様は24時間以内に
-                  専門担当者よりご連絡いたします。
+                  A. {REPLY_TIME_LABEL}に、専門の担当者からご連絡します。
                 </p>
               </Card>
               <Card className="p-6">

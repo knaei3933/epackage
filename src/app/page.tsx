@@ -1,3 +1,4 @@
+import { CLIENT_COUNT_LABEL, LEAD_TIME_LABEL } from '@/lib/site-facts'
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { FAQSchema, ProductSchema } from '@/components/seo/StructuredData'
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
 const faqData = [
   {
     question: '韓国の包装材の品質は本当に日本の基準に満たしていますか？',
-    answer: 'はい、当社の包装材は厳格な品質管理のもと製造されており、日本の品質基準を満たしています。実際に100社以上の日本企業様にご採用いただいております。'
+    answer: `はい、当社の包装材は厳格な品質管理のもと製造されており、日本の品質基準を満たしています。実際に${CLIENT_COUNT_LABEL}の日本企業様にご採用いただいております。`
   },
   {
     question: '最低注文数量（MOQ）はどのくらいですか？',
@@ -35,7 +36,7 @@ const faqData = [
   },
   {
     question: '納期はどのくらいかかりますか？',
-    answer: '標準的な製品で最短28日、通常28〜30日での納品が可能です。緊急のご要望には最優先で対応いたしますので、お気軽にご相談ください。'
+    answer: `標準的な製品でも${LEAD_TIME_LABEL}の納品が可能です。緊急のご要望には最優先で対応いたしますので、お気軽にご相談ください。`
   },
   {
     question: 'カスタマイズはどの程度可能ですか？',

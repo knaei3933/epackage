@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import Image from 'next/image'
 import { Container } from '@/components/ui/Container'
 import { Card } from '@/components/ui/Card'
@@ -232,7 +233,7 @@ export function JapanBusinessSupport({ className = '' }: JapanBusinessSupportPro
       type: '専門チーム',
       title: '技術サポートチーム',
       description: '専門的な技術的質問に対応',
-      responseTime: '2時間以内',
+      responseTime: REPLY_TIME_LABEL,
       availability: '営業日9:18時',
       icon: Lightbulb
     },

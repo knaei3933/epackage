@@ -63,7 +63,7 @@ export default function AdminLayout({
         <AdminNavigation />
 
         {/* Main Content */}
-        <main>{children}</main>
+        <div>{children}</div>
       </div>
     </ErrorBoundaryWrapper>
   )

@@ -333,7 +333,7 @@ export function SettingsClient({
 
   return (
     <PageLoadingState isLoading={isLoadingSettings} error={null} message="読み込み中...">
-      <main className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-bg-secondary py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-8">
@@ -787,7 +787,7 @@ export function SettingsClient({
               </a>
             </div>
           </div>
-        </main>
+        </div>
     </PageLoadingState>
   );
 }

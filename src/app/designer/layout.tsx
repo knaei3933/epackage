@@ -155,9 +155,9 @@ export default async function DesignerLayout({
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
-      </main>
+      </div>
 
       {/* Footer */}
       <footer className="mt-16 py-6 border-t border-border-medium bg-white">

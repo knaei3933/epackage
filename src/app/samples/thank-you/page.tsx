@@ -1,3 +1,4 @@
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, Package, Truck, Clock, Phone, Mail } from 'lucide-react'
@@ -162,7 +163,7 @@ export default function SamplesThankYouPage() {
               <ol className="space-y-2 text-on-brand-muted">
                 <li className="flex items-start">
                   <span className="mr-2 font-bold text-brand">1.</span>
-                  <span>担当者からのご連絡をお待ちください（24時間以内）</span>
+                  <span>担当者からのご連絡をお待ちください（{REPLY_TIME_LABEL}）</span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 font-bold text-brand">2.</span>

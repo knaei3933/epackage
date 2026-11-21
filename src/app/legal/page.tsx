@@ -1,14 +1,10 @@
+import { LEAD_TIME_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React from 'react'
 import { Building2, CreditCard, Package, Truck, Users, FileText, Clock, Phone, Mail, MapPin, AlertTriangle, CheckCircle } from 'lucide-react'
 import { PageHeader } from '@/components/layout'
 import { headingFont } from '@/components/home/fonts'
 
 export default function LegalPage() {
-  const currentDate = new Date().toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
 
   return (
     <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
@@ -218,7 +214,7 @@ export default function LegalPage() {
                       製品の引渡時期は、受注内容や生産状況により異なりますが、一般的には以下の通りです。
                     </p>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>標準製品：注文確定後14～21日</li>
+                      <li>標準製品：注文確定後 {LEAD_TIME_LABEL}</li>
                       <li>カスタム製品：見積確定後30～60日</li>
                       <li>急ぎの納品：ご相談により対応可能</li>
                     </ul>
@@ -372,7 +368,7 @@ export default function LegalPage() {
                           メール
                         </h3>
                         <p className="text-sm">info@package-lab.com</p>
-                        <p className="text-sm text-text-muted">24時間対応</p>
+                        <p className="text-sm text-text-muted">{REPLY_TIME_LABEL}にご返信します</p>
                       </div>
                       <div>
                         <h3 className="font-semibold text-text-primary mb-2">
@@ -451,9 +447,6 @@ export default function LegalPage() {
             {/* Update Information */}
             <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
               <div className="text-text-secondary">
-                <p className="mb-2">
-                  <strong>最終更新日：</strong>{currentDate}
-                </p>
                 <p className="text-sm">
                   本表示は、事業内容の変更等により適宜更新いたします。
                 </p>

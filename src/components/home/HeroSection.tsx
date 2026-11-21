@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL, LEAD_TIME_LABEL } from '@/lib/site-facts'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -14,13 +15,13 @@ function track(label: string) {
 
 const SPECS = [
   { value: '500種以上', label: '製造可能' },
-  { value: '28日', label: '平均納期（緊急対応可能）' },
-  { value: '100社以上', label: '実績' },
+  { value: LEAD_TIME_LABEL, label: '納期の目安' },
+  { value: CLIENT_COUNT_LABEL, label: '実績' },
 ]
 
 export function HeroSection() {
   return (
-    <motion.section className="bg-white py-16 md:py-24" variants={heroVariants} initial="hidden" animate="visible">
+    <motion.section className="bg-bg-primary py-16 md:py-24" variants={heroVariants} initial="hidden" animate="visible">
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <div className="grid gap-12 md:grid-cols-[1fr_1.15fr] md:items-center">
           <div>

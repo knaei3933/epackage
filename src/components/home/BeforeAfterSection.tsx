@@ -1,11 +1,12 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL, LEAD_TIME_LABEL } from '@/lib/site-facts'
 import { motion } from 'framer-motion'
 
 const beforeAfterData = [
   {
     before: '納期が読めず、在庫過多・不足に振り回される',
-    after: '28日定期納品で、安定供給を実現',
+    after: `${LEAD_TIME_LABEL}の納期で、安定して届きます`,
   },
   {
     before: '売れない在庫の廃棄コストで利益が圧迫される',
@@ -24,7 +25,7 @@ export function BeforeAfterSection() {
         <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] font-heading text-2xl sm:text-3xl leading-[1.4] text-text-primary md:text-4xl">
           導入前後の変化
         </h2>
-        <p className="mt-3 leading-[1.8] text-text-primary">100社以上の企業様が体験した変革</p>
+        <p className="mt-3 leading-[1.8] text-text-primary">{CLIENT_COUNT_LABEL}の企業様が体験した変革</p>
 
         <div className="mt-10 grid grid-cols-2 gap-x-0">
           <h3 className="pr-6 text-sm font-medium text-text-primary md:pr-12">導入前</h3>

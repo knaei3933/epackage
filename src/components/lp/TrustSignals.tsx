@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React from 'react'
 import { Building2, Users, Award, Shield, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -14,7 +15,7 @@ interface TrustSignal {
 const trustSignalsData: TrustSignal[] = [
   {
     icon: <Users className="w-6 h-6" />,
-    value: '500社以上',
+    value: CLIENT_COUNT_LABEL,
     label: '導入実績',
     description: '多くの企業様にご愛用いただいています'
   },
@@ -34,7 +35,7 @@ const trustSignalsData: TrustSignal[] = [
     icon: <CheckCircle className="w-6 h-6" />,
     value: '迅速対応',
     label: 'サポート体制',
-    description: '24時間対応・充実のサポート'
+    description: `${REPLY_TIME_LABEL}にご回答します`
   }
 ]
 

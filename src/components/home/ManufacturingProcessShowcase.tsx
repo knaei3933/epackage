@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL } from '@/lib/site-facts'
 import Image from 'next/image'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
 
@@ -38,7 +39,7 @@ const qualityStats = [
   { value: '99.8%', label: '品質合格率' },
   { value: '24時間', label: '生産リードタイム' },
   { value: '15年', label: '平均従業年数' },
-  { value: '100社以上', label: '導入実績' },
+  { value: CLIENT_COUNT_LABEL, label: '導入実績' },
 ]
 
 export function ManufacturingProcessShowcase() {

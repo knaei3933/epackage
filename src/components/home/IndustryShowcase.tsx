@@ -76,7 +76,7 @@ export function IndustryShowcase({
   }, [])
 
   return (
-    <section className="w-full bg-white py-16 md:py-24 overflow-hidden">
+    <section className="w-full bg-bg-primary py-16 md:py-24 overflow-hidden">
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}

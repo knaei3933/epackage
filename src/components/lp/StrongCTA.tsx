@@ -1,5 +1,6 @@
 'use client'
 
+import { BUSINESS_HOURS_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -144,7 +145,7 @@ export function StrongCTA({
       {showHours && (
         <div className="mt-4 flex items-center gap-2 border-t border-border-strong pt-4 text-sm">
           <Clock className="h-4 w-4" aria-hidden="true" />
-          <span>受付時間: 平日 9:00-18:00 | 24時間メール受付</span>
+          <span>受付時間: {BUSINESS_HOURS_LABEL} | メールは{REPLY_TIME_LABEL}にご返信</span>
         </div>
       )}
     </div>

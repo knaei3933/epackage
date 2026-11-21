@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/Button'
 import { MotionWrapper } from '@/components/ui/MotionWrapper'
@@ -50,7 +51,7 @@ export function CTASection() {
         </ul>
 
         <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-sm leading-[1.8] opacity-80">
-          {['24時間対応', '無料相談', '100社以上実績', '専門スタッフ'].map(t => (
+          {[`${REPLY_TIME_LABEL}に回答`, '無料相談', `${CLIENT_COUNT_LABEL}の実績`, '専門スタッフ'].map(t => (
             <li key={t}>{t}</li>
           ))}
         </ul>

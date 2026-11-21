@@ -1,3 +1,4 @@
+import { LEAD_TIME_LABEL } from '@/lib/site-facts'
 
 export const PRODUCT_CATEGORIES = {
     flat_3_side: {
@@ -63,8 +64,8 @@ const commonFAQs = [
     {
         question_ja: '納期はどのくらい?',
         question_en: 'What is the lead time?',
-        answer_ja: '通常10-30営業日です。緊急対応も可能です。',
-        answer_en: 'Usually 10-30 business days. Urgent orders are also possible.',
+        answer_ja: `${LEAD_TIME_LABEL}で納品できます。緊急のご相談もお受けします。`,
+        answer_en: 'Delivery takes 30 days at the shortest. Urgent requests are welcome.',
         category: 'ordering'
     },
     {

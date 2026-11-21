@@ -66,13 +66,13 @@ export function UserMenu() {
         aria-label="ユーザーメニュー"
         aria-expanded={isOpen}
       >
-        <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-on-brand text-sm font-medium">
+        <div aria-hidden="true" className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-on-brand text-sm font-medium">
           {displayName?.[0] || 'U'}
         </div>
         <span className="hidden md:block text-sm font-medium">
           {displayName}
         </span>
-        <ChevronDown className="h-4 w-4 text-text-muted" />
+        <ChevronDown className="h-4 w-4 text-text-muted" aria-hidden="true" />
       </button>
 
       {isOpen && (

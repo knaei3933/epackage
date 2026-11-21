@@ -74,9 +74,9 @@ export function MemberLayoutClient({
           {user && <DashboardHeader user={user} notifications={notifications} />}
 
           {/* ページコンテンツ - always render */}
-          <main className="p-4 md:p-6 lg:p-8">
+          <div className="p-4 md:p-6 lg:p-8">
             {children}
-          </main>
+          </div>
         </div>
       </div>
     </ErrorBoundaryWrapper>

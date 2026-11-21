@@ -21,11 +21,6 @@ export async function generateMetadata({ params }: { params: {} }): Promise<Meta
 }
 
 export default function TermsOfService() {
-  const currentDate = new Date().toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
 
   return (
     <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
@@ -426,9 +421,6 @@ export default function TermsOfService() {
             {/* Update Information */}
             <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
               <div className="text-text-secondary">
-                <p className="mb-2">
-                  <strong>最終更新日：</strong>{currentDate}
-                </p>
                 <p className="text-sm">
                   本利用規約は、法令改正、事業内容の変更等により変更される場合があります。
                 </p>

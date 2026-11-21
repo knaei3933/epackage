@@ -1,5 +1,6 @@
 'use client'
 
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React, { useState, useCallback } from 'react'
 import { useForm, FormProvider, useFormContext } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -151,13 +152,13 @@ export default function DetailedInquiryForm({ onSubmit }: DetailedInquiryFormPro
               </p>
             </div>
             <p className="text-on-success-muted text-lg mb-6">
-              専門スタッフが24時間以内にご連絡いたします。<br />
+              専門スタッフが{REPLY_TIME_LABEL}にご連絡します。<br />
               詳細なヒアリングと最適なソリューションをご提案します。
             </p>
             <div className="text-left bg-bg-primary rounded-container p-6 border border-border-medium">
               <h4 className="font-bold text-text-primary mb-3">次のステップ</h4>
               <ul className="text-text-secondary space-y-2">
-                <li>✓ 24時間以内に専門担当者よりご連絡</li>
+                <li>✓ {REPLY_TIME_LABEL}に専門の担当者からご連絡</li>
                 <li>✓ 詳細なヒアリングと要件確認</li>
                 <li>✓ 無料サンプルのご提案</li>
                 <li>✓ 詳細お見積もり作成</li>

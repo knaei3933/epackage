@@ -155,7 +155,7 @@ async function SamplesPageContent() {
           lead="登録情報を読み込みました。お届け先を確認して依頼を完了してください。"
         />
 
-        <main className="mx-auto max-w-[1120px] px-4 py-12 sm:px-6 md:py-16">
+        <div className="mx-auto max-w-[1120px] px-4 py-12 sm:px-6 md:py-16">
           <ol className="mb-8 grid gap-4 sm:grid-cols-2" aria-label="申込手順">
             <li className="flex items-center gap-3 rounded-container border border-brand bg-brand-subtle px-5 py-4">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand text-sm font-bold text-on-brand">1</span>
@@ -228,7 +228,7 @@ async function SamplesPageContent() {
               </Card>
             </aside>
           </div>
-        </main>
+        </div>
       </div>
     )
   }

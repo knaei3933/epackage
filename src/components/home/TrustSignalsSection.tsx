@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL, LEAD_TIME_LABEL } from '@/lib/site-facts'
 import { motion } from 'framer-motion'
 import { Award, Users, CheckCircle, Clock } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
@@ -7,7 +8,7 @@ import { Container } from '@/components/ui/Container'
 const stats = [
   { value: '100+', label: '導入企業数', icon: Users },
   { value: '100%', label: '全検査合格', icon: CheckCircle },
-  { value: '28日', label: '平均納期', icon: Clock },
+  { value: LEAD_TIME_LABEL, label: '納期の目安', icon: Clock },
   { value: '30%', label: 'コスト削減', icon: Award }
 ]
 
@@ -36,7 +37,7 @@ export function TrustSignalsSection() {
         {/* Client Logos Placeholder */}
         <div className="mt-12 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            100社以上の企業様にご利用いただいています
+            {CLIENT_COUNT_LABEL}の企業様にご利用いただいています
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-50">
             {/* Placeholder - 実際のロゴ画像に差し替え */}

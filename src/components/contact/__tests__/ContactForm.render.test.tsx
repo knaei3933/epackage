@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // next/font/google は jest では関数として存在しない。代わりのものを渡す。
 jest.mock('next/font/google', () => ({
@@ -6,7 +6,7 @@ jest.mock('next/font/google', () => ({
   Noto_Sans_JP: () => ({ variable: 'font-body-var', className: '', style: {} }),
 }));
 
-import ContactForm from '../ContactForm';
+import ContactForm, { normalizeHalfWidth } from '../ContactForm';
 
 describe('ContactForm', () => {
   // zod が実行時に投げるエラー（例: required_error と errorMap の同時指定）は、
@@ -24,5 +24,33 @@ describe('ContactForm', () => {
       .filter((el) => !(el as HTMLElement).dataset.testid?.endsWith('-hidden'));
     const unlabeled = boxes.filter((el) => !(el as HTMLInputElement).labels?.length);
     expect(unlabeled.map((el) => (el as HTMLInputElement).name)).toEqual([]);
+  });
+
+  it('個人情報保護方針への同意があり、ラベルと結ばれ、/privacy へのリンクがある', () => {
+    render(<ContactForm />);
+    const box = screen.getByRole('checkbox') as HTMLInputElement;
+    expect(box.labels?.length).toBe(1);
+    expect(box.checked).toBe(false);
+    expect(screen.getByRole('link', { name: '個人情報保護方針' }).getAttribute('href')).toBe('/privacy');
+  });
+
+  it('同意しないと送信できない（API を呼ばない）', async () => {
+    const fetchMock = jest.fn();
+    (global as any).fetch = fetchMock;
+    render(<ContactForm />);
+    fireEvent.click(screen.getByRole('button', { name: /送信する/ }));
+    expect(await screen.findByText('個人情報保護方針に同意してください')).toBeTruthy();
+    await waitFor(() => expect(fetchMock).not.toHaveBeenCalled());
+  });
+
+  it('「* は必須です」の説明がある', () => {
+    render(<ContactForm />);
+    expect(screen.getByText(/は必須です/)).toBeTruthy();
+  });
+
+  it('全角の数字・ハイフンを半角にそろえる', () => {
+    expect(normalizeHalfWidth('０３－１２３４－５６７８')).toBe('03-1234-5678');
+    expect(normalizeHalfWidth('１００ー０００１')).toBe('100-0001');
+    expect(normalizeHalfWidth('０１２０-１２３-４５６')).toBe('0120-123-456');
   });
 });

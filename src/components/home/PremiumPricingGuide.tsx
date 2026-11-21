@@ -1,5 +1,6 @@
 'use client'
 
+import { REPLY_TIME_LABEL } from '@/lib/site-facts'
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Container } from '@/components/ui/Container'
@@ -90,7 +91,7 @@ const investmentTiers = [
       '最小ロット：50,000枚',
       '独自金型開発対応',
       '最短納期：1週間',
-      '24時間365日対応',
+      `${REPLY_TIME_LABEL}にご回答`,
       '完全保証付き'
     ],
     badge: '要相談',

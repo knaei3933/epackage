@@ -18,11 +18,6 @@ import { PageHeader } from '@/components/layout'
 import { headingFont } from '@/components/home/fonts'
 
 export default function CorporateSocialResponsibility() {
-  const currentDate = new Date().toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
 
   return (
     <div className={`${headingFont.variable} min-h-screen bg-bg-primary`}>
@@ -410,9 +405,6 @@ export default function CorporateSocialResponsibility() {
             {/* Update Information */}
             <section className="rounded-container border border-border-medium bg-bg-secondary p-6">
               <div className="text-text-secondary">
-                <p className="mb-2">
-                  <strong>最終更新日：</strong>{currentDate}
-                </p>
                 <p className="text-sm">
                   本CSR活動報告は、事業活動の実績や社会のニーズの変化に応じて、年次で更新いたします。
                 </p>

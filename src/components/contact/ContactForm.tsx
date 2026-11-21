@@ -1,12 +1,29 @@
 'use client'
 
+import { BUSINESS_HOURS_LABEL, REPLY_TIME_LABEL } from '@/lib/site-facts'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Phone, User, Package, MessageSquare, Send, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { JapaneseNameInputController } from '@/components/ui/JapaneseNameInput'
+
+// 全角の数字・ハイフン・空白を半角にそろえる（電話・郵便番号の検証と送信に使う）
+export function normalizeHalfWidth(value: string): string {
+  return value
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+    .replace(/[－−‐‑–—―ーｰ]/g, '-')
+    .replace(/＋/g, '+')
+    .replace(/\u3000/g, ' ')
+    .trim()
+}
+
+// 通常の番号、フリーダイヤル（0120・0800）、+81 形式を通す
+const PHONE_PATTERN =
+  /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|0120-\d{3}-\d{3}|0120\d{6}|0800-\d{3}-\d{4}|0800\d{7}|\+81\d{1,4}-\d{1,4}-\d{4}|\+81-\d{1,4}-\d{1,4}-\d{4}|\+81\d{9,10})$/
+const isValidPhone = (val: string) => PHONE_PATTERN.test(normalizeHalfWidth(val))
 
 // お問い合わせフォームバリデーションスキーマ
 const contactSchema = z.object({
@@ -28,21 +45,21 @@ const contactSchema = z.object({
     .max(50, '名（読み仮名）は50文字以内で入力してください'),
   company: z.string()
     .max(100, '会社名は100文字以内で入力してください')
-    .optional(),
+    .optional()
+    .refine(val => !val || val.trim().length > 0, '会社名が空白だけです。入力するか、空にしてください'),
   phone: z.string({ required_error: '電話番号を入力してください' })
     .min(1, '電話番号を入力してください')
-    .regex(/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/,
-      '有効な電話番号を入力してください（例: 03-1234-5678）'),
+    .refine(isValidPhone, '有効な電話番号を入力してください（例: 03-1234-5678）'),
   fax: z.string()
     .optional()
-    .refine(val => !val || /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{9,10}|\+81\d{1,4}-\d{1,4}-\d{4})$/.test(val),
+    .refine(val => !val || isValidPhone(val),
       '有効なFAX番号を入力してください（例: 03-1234-5678）'),
   email: z.string({ required_error: 'メールアドレスを入力してください' })
     .min(1, 'メールアドレスを入力してください')
     .email('有効なメールアドレスを入力してください'),
   postalCode: z.string()
     .optional()
-    .refine(val => !val || /^\d{3}-\d{4}$/.test(val), '有効な郵便番号を入力してください（例: 100-0001）'),
+    .refine(val => !val || /^\d{3}-?\d{4}$/.test(normalizeHalfWidth(val)), '有効な郵便番号を入力してください（例: 100-0001）'),
   address: z.string()
     .max(200, '住所は200文字以内で入力してください')
     .optional(),
@@ -53,6 +70,8 @@ const contactSchema = z.object({
     .min(1, 'お問い合わせ内容を入力してください')
     .min(10, 'お問い合わせ内容は10文字以上で入力してください')
     .max(800, 'お問い合わせ内容は800文字以内で入力してください'),
+  // 同意は画面側の確認だけに使う（API には送らない）
+  privacyConsent: z.boolean().refine(val => val === true, '個人情報保護方針に同意してください'),
 })
 
 type ContactFormData = z.infer<typeof contactSchema>
@@ -73,6 +92,7 @@ export default function ContactForm() {
     trigger,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
+    defaultValues: { privacyConsent: false },
   })
 
   const inquiryTypes = [
@@ -108,6 +128,11 @@ export default function ContactForm() {
     setSubmitStatus('idle')
     setErrorMessage('')
 
+    // 同意は API に送らない。電話・郵便番号は半角にそろえて送る。
+    const { privacyConsent: _consent, ...payload } = data
+    void _consent
+    const postal = payload.postalCode ? normalizeHalfWidth(payload.postalCode) : payload.postalCode
+
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
@@ -115,7 +140,11 @@ export default function ContactForm() {
           'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify({
-          ...data,
+          ...payload,
+          phone: normalizeHalfWidth(payload.phone),
+          fax: payload.fax ? normalizeHalfWidth(payload.fax) : payload.fax,
+          postalCode: postal && /^\d{7}$/.test(postal) ? `${postal.slice(0, 3)}-${postal.slice(3)}` : postal,
+          company: payload.company?.trim() || undefined,
           inquiryType: data.inquiryType,
           subject: `お問い合わせ (${inquiryTypes.find(it => it.value === data.inquiryType)?.label})`
         }),
@@ -158,7 +187,7 @@ export default function ContactForm() {
           <div className="rounded-container bg-bg-primary p-6 mb-6">
             <h3 className="font-semibold text-text-primary mb-3">次のステップ</h3>
             <ul className="text-left text-text-secondary space-y-2">
-              <li>• 24時間以内にご返信いたします</li>
+              <li>• {REPLY_TIME_LABEL}にご返信します</li>
               <li>• 必要に応じて詳細なヒアリングをお願いします</li>
               <li>• 無料サンプルのご提案も可能です</li>
             </ul>
@@ -183,7 +212,7 @@ export default function ContactForm() {
           パウチ製品に関するお問い合わせ、専門スタッフが詳しくご対応いたします。
         </p>
         <p className="text-text-muted">
-          24時間以内のご回答、無料サンプル対応可能
+          {REPLY_TIME_LABEL}にご回答します。無料サンプルにも対応しています
         </p>
       </div>
 
@@ -216,6 +245,10 @@ export default function ContactForm() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <p className="text-sm text-text-secondary">
+            <span className="text-error" aria-hidden="true">*</span> は必須です
+          </p>
+
           {/* 基本情報 */}
           <div className="rounded-container bg-bg-secondary p-6">
             <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
@@ -253,7 +286,7 @@ export default function ContactForm() {
                   {...register('company')}
                   data-testid="contact-company-name"
                   className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                  placeholder="株式会社サンプル"
+                  placeholder="例：株式会社サンプル"
                 />
                 {errors.company && (
                   <p className="text-error text-sm">{errors.company.message}</p>
@@ -273,7 +306,7 @@ export default function ContactForm() {
                   {...register('phone')}
                   data-testid="contact-phone-number"
                   className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                  placeholder="03-1234-5678"
+                  placeholder="例：03-1234-5678"
                 />
                 {errors.phone && (
                   <p className="text-error text-sm">{errors.phone.message}</p>
@@ -292,7 +325,7 @@ export default function ContactForm() {
                   {...register('fax')}
                   data-testid="contact-fax-number"
                   className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                  placeholder="03-1234-5678"
+                  placeholder="例：03-1234-5678"
                 />
                 {errors.fax && (
                   <p className="text-error text-sm">{errors.fax.message}</p>
@@ -312,7 +345,7 @@ export default function ContactForm() {
                   {...register('email')}
                   data-testid="contact-email-address"
                   className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                  placeholder="example@company.com"
+                  placeholder="例：example@company.com"
                 />
                 {errors.email && (
                   <p className="text-error text-sm">{errors.email.message}</p>
@@ -330,7 +363,7 @@ export default function ContactForm() {
                   {...register('postalCode')}
                   data-testid="contact-postal-code"
                   className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                  placeholder="100-0001"
+                  placeholder="例：100-0001"
                 />
                 {errors.postalCode && (
                   <p className="text-error text-sm">{errors.postalCode.message}</p>
@@ -348,7 +381,7 @@ export default function ContactForm() {
                   {...register('address')}
                   data-testid="contact-address"
                   className="h-10 w-full rounded-md border border-border-strong bg-bg-primary px-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand disabled:bg-bg-muted max-sm:h-11"
-                  placeholder="東京都〇〇区〇〇1-2-3"
+                  placeholder="例：東京都〇〇区〇〇1-2-3"
                 />
                 {errors.address && (
                   <p className="text-error text-sm">{errors.address.message}</p>
@@ -413,6 +446,31 @@ export default function ContactForm() {
             )}
           </div>
 
+          {/* 個人情報の取り扱いへの同意 */}
+          <div className="space-y-2">
+            <div className="flex items-start gap-3">
+              <input
+                id="contact-privacy-consent"
+                type="checkbox"
+                aria-required="true"
+                aria-invalid={errors.privacyConsent ? 'true' : undefined}
+                aria-describedby={errors.privacyConsent ? 'contact-privacy-consent-error' : undefined}
+                {...register('privacyConsent')}
+                data-testid="contact-privacy-consent"
+                className="mt-1 h-5 w-5 shrink-0 rounded-md border border-border-strong accent-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              />
+              <label htmlFor="contact-privacy-consent" className="text-sm leading-[1.8] text-text-primary">
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-2">
+                  個人情報保護方針
+                </Link>
+                に同意する <span className="text-error" aria-hidden="true">*</span><span className="sr-only">（必須）</span>
+              </label>
+            </div>
+            {errors.privacyConsent && (
+              <p id="contact-privacy-consent-error" className="text-error text-sm">{errors.privacyConsent.message}</p>
+            )}
+          </div>
+
           {/* 送信ボタン */}
           <div className="flex justify-center pt-6">
             <Button
@@ -430,7 +488,7 @@ export default function ContactForm() {
 
       {/* 補足情報 */}
       <div className="mt-8 text-center text-sm text-text-muted">
-        <p>受付時間: 平日 9:00-18:00 | メール: 24時間対応</p>
+        <p>受付時間: {BUSINESS_HOURS_LABEL} | メールは{REPLY_TIME_LABEL}にご返信します</p>
         <p className="mt-2">専門スタッフによる無料相談・無料サンプル対応中</p>
       </div>
     </div>

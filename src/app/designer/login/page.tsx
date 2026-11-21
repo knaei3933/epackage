@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function DesignerLoginPage() {
   return (
-    <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-bg-secondary">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-bg-secondary">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -59,6 +59,6 @@ export default function DesignerLoginPage() {
           </Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

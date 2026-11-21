@@ -28,14 +28,14 @@ const completionRequestSchema = z
       .string()
       .trim()
       .min(1, '姓（カナ）を入力してください。')
-      .regex(kanaPattern, 'ひらがなで入力してください。')
+      .regex(kanaPattern, 'ひらがなまたはカタカナで入力してください。')
       .max(50, '姓は50文字以内で入力してください。')
       .optional(),
     kana_first_name: z
       .string()
       .trim()
       .min(1, '名（カナ）を入力してください。')
-      .regex(kanaPattern, 'ひらがなで入力してください。')
+      .regex(kanaPattern, 'ひらがなまたはカタカナで入力してください。')
       .max(50, '名は50文字以内で入力してください。')
       .optional(),
     corporate_phone: z
