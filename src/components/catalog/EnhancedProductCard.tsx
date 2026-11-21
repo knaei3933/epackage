@@ -1,5 +1,6 @@
 'use client'
 
+import { CLIENT_COUNT_LABEL } from '@/lib/site-facts'
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -19,7 +20,9 @@ import {
   BarChart3,
   Award
 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button, buttonVariants } from '@/components/ui/Button'
+import Image from 'next/image'
+import { CompareToggle } from '@/components/comparison'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
@@ -31,19 +34,20 @@ import Link from 'next/link'
 interface EnhancedProductCardProps {
   product: Product
   index: number
-  onSelect: (product: Product) => void
+  /** 省略可。詳細は製品ページ（/catalog/<id>）へのリンクで開く */
+  onSelect?: (product: Product) => void
   className?: string
 }
 
 export function EnhancedProductCard({
   product,
   index,
-  onSelect,
   className
 }: EnhancedProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
   const [showQuickView, setShowQuickView] = useState(false)
+  const [imageFailed, setImageFailed] = useState(false)
 
   const category = PRODUCT_CATEGORIES[product.category as keyof typeof PRODUCT_CATEGORIES]
 
@@ -58,18 +62,13 @@ export function EnhancedProductCard({
       icon: Package,
       text: `${product.min_order_quantity.toLocaleString()}${product.id === 'roll-film-001' || product.name_ja === 'ロールフィルム' ? 'M' : '枚'}`,
       label: '最小注文数',
-    },
-    {
-      icon: Zap,
-      text: '優れた密封性',
-      label: '特徴',
     }
   ]
 
   // Trust indicators
   const trustIndicators = [
     { icon: Check, text: '品質保証' },
-    { icon: BarChart3, text: '実績500社' },
+    { icon: BarChart3, text: `実績${CLIENT_COUNT_LABEL}` },
     { icon: Star, text: '高品質' }
   ]
 
@@ -95,22 +94,15 @@ export function EnhancedProductCard({
       <div className="relative aspect-[4/3] overflow-hidden bg-bg-secondary">
         {/* Main Product Image */}
         <div className="relative w-full h-full flex items-center justify-center p-0">
-          {product.image ? (
-            <>
-              <img
-                src={product.image}
-                alt={product.name_ja}
-                className="w-full h-full object-contain transition-transform duration-500"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                }}
-              />
-              {/* Fallback placeholder */}
-              <div className="w-full h-full bg-bg-secondary flex items-center justify-center hidden">
-                <Package className="w-16 h-16 text-text-muted" />
-              </div>
-            </>
+          {product.image && !imageFailed ? (
+            <Image
+              src={product.image}
+              alt={product.name_ja}
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className="object-contain"
+              onError={() => setImageFailed(true)}
+            />
           ) : (
             <div className="w-full h-full bg-bg-secondary flex items-center justify-center">
               <Package className="w-16 h-16 text-text-muted" />
@@ -192,7 +184,7 @@ export function EnhancedProductCard({
         </div>
 
         {/* Enhanced Features */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {enhancedFeatures.map((feature, idx) => {
             const Icon = feature.icon
             return (
@@ -232,47 +224,35 @@ export function EnhancedProductCard({
           )}
         </div>
 
-        {/* Enhanced Action Buttons */}
-        <div className="grid grid-cols-4 gap-1 sm:gap-2 pt-3 border-t border-border-medium">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
-            onClick={(e) => {
-              e.stopPropagation()
-              onSelect(product)
-            }}
-          >
-            <Info className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-            <span className="text-[10px] sm:text-xs">詳細</span>
-          </Button>
-          <Link href="/samples" className="col-span-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
+        {/* Action Buttons */}
+        <div className="space-y-2 border-t border-border-medium pt-3">
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href={`/catalog/${product.id}`}
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             >
-              <Package className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-              <span className="text-[10px] sm:text-xs">サンプル</span>
-            </Button>
-          </Link>
-          <Link href="/quote-simulator" className="col-span-1">
-            <Button
-              variant="primary"
-              size="sm"
-              className="w-full flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2"
-            >
-              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-              <span className="text-[10px] sm:text-xs">見積</span>
-            </Button>
-          </Link>
+              <Info className="h-4 w-4 shrink-0" aria-hidden="true" />
+              詳細
+            </Link>
+            <CompareToggle product={product} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/samples" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+              <Package className="h-4 w-4 shrink-0" aria-hidden="true" />
+              サンプル
+            </Link>
+            <Link href="/quote-simulator" className={buttonVariants({ variant: 'primary', size: 'sm' })}>
+              <BarChart3 className="h-4 w-4 shrink-0" aria-hidden="true" />
+              見積もり
+            </Link>
+          </div>
           <DownloadButton
             productCategory={product.category}
             size="sm"
             showText={true}
+            className="w-full"
           />
         </div>
-
               </div>
 
       {/* Quick View Modal */}

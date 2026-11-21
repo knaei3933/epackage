@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { Truck, Package } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import { CompareToggle } from '@/components/comparison'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Grid } from '@/components/ui/Grid'
@@ -14,19 +15,19 @@ import { Product } from '@/types/database'
 export interface ProductListItemProps {
   product: Product
   index: number
-  onSelect: () => void
+  /** 省略可。詳細は製品ページ（/catalog/<id>）へのリンクで開く */
+  onSelect?: () => void
 }
 
 export function ProductListItem({
   product,
-  index,
-  onSelect
+  index
 }: ProductListItemProps) {
   const category = PRODUCT_CATEGORIES[product.category as keyof typeof PRODUCT_CATEGORIES]
 
   return (
     <MotionWrapper delay={index * 0.05}>
-      <Card className="p-6 hover:shadow-low transition-colors cursor-pointer" onClick={onSelect}>
+      <Card className="p-6 hover:shadow-low transition-colors">
         <div className="flex gap-6">
           {/* Image */}
           <div className="w-32 h-32 bg-bg-secondary rounded-inner flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -76,14 +77,13 @@ export function ProductListItem({
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href={`/catalog/${product.id}`} className={buttonVariants({ variant: 'secondary', size: 'sm' })}>
                 詳細を見る
-              </Button>
-              <Link href="/quote-simulator">
-                <Button variant="primary" size="sm">
-                  見積もり
-                </Button>
+              </Link>
+              <CompareToggle product={product} className="w-auto" />
+              <Link href="/quote-simulator" className={buttonVariants({ variant: 'primary', size: 'sm' })}>
+                見積もり
               </Link>
             </div>
           </div>

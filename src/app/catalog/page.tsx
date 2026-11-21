@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { CatalogClient } from './CatalogClient'
 import { CartProvider } from '@/contexts/CartContext'
+import { ComparisonProvider } from '@/contexts/ComparisonContext'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // SEO Metadata
@@ -40,7 +41,9 @@ export default function CatalogPage() {
   return (
     <CartProvider>
       <BreadcrumbJsonLd pathname="/catalog" />
-      <CatalogClient />
+      <ComparisonProvider>
+        <CatalogClient />
+      </ComparisonProvider>
     </CartProvider>
   )
 }

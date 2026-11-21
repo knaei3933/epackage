@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import Link from 'next/link'
 import { CheckCircle, Award, Star, TrendingUp, Palette, Globe, Leaf, Sparkles } from 'lucide-react'
 
 export function CosmeticsContent() {
@@ -334,14 +335,14 @@ export function CosmeticsContent() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg">
-            <Sparkles className="w-5 h-5 mr-2" />
-            デザインサンプル見る
-          </Button>
-          <Button size="lg" variant="outline">
-            <TrendingUp className="w-5 h-5 mr-2" />
-            成功事例詳細
-          </Button>
+          <Link href="/samples" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
+            <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
+            サンプルを依頼する
+          </Link>
+          <Link href="/contact" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+            <TrendingUp className="w-5 h-5 mr-2" aria-hidden="true" />
+            専門家へ相談
+          </Link>
         </div>
       </div>
     </div>

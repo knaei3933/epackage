@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import Link from 'next/link'
 import { TrendingUp, Calculator, DollarSign, Target, Users, BarChart, Download } from 'lucide-react'
 
 interface ROISectionProps {
@@ -246,10 +247,6 @@ export function ROISection({ industry }: ROISectionProps) {
                   </div>
                 </div>
               </div>
-              <Button className="w-full bg-brand text-white hover:bg-brand-hover">
-                <Calculator className="w-4 h-4 mr-2" />
-                ROIを計算する
-              </Button>
             </div>
           </div>
         </CardContent>
@@ -262,14 +259,14 @@ export function ROISection({ industry }: ROISectionProps) {
           あなたのビジネスに最適なソリューションを提案します。
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-brand text-white hover:bg-brand-hover font-semibold px-8 py-4">
-            <Download className="w-5 h-5 mr-2" />
-            詳細ROIレポートダウンロード
-          </Button>
-          <Button size="lg" variant="outline" className="border-border-medium text-text-secondary hover:bg-bg-secondary font-semibold px-8 py-4">
-            <Users className="w-5 h-5 mr-2" />
-            導入相談を予約
-          </Button>
+          <Link href="/quote-simulator" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
+            <Calculator className="w-5 h-5 mr-2" aria-hidden="true" />
+            見積もりで費用を確かめる
+          </Link>
+          <Link href="/contact" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+            <Users className="w-5 h-5 mr-2" aria-hidden="true" />
+            専門家へ相談
+          </Link>
         </div>
       </div>
     </div>

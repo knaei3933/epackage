@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import type { FeaturedProduct } from '@/lib/products'
+import { LEAD_TIME_LABEL } from '@/lib/site-facts'
 
 interface HomePageProductCardProps {
   product: FeaturedProduct
@@ -65,7 +66,7 @@ export function HomePageProductCard({ product, delay = 0 }: HomePageProductCardP
       <div className="lg:contents">
         <div><span className="mr-2 text-sm lg:sr-only">素材</span>{materials || '—'}</div>
         <div><span className="mr-2 text-sm lg:sr-only">最小注文数</span>{product.min_order_quantity.toLocaleString()}{unit}</div>
-        <div><span className="mr-2 text-sm lg:sr-only">納期</span>{product.lead_time_days}日</div>
+        <div><span className="mr-2 text-sm lg:sr-only">納期</span>{LEAD_TIME_LABEL}</div>
       </div>
       <div className="mt-2 flex gap-6 whitespace-nowrap lg:mt-0">
         <Link href="/catalog" className={linkClass}>詳細をご確認</Link>

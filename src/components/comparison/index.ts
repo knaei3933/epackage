@@ -1,1 +1,1 @@
-export { CompareToggle } from './CompareToggle'
+export { CompareToggle, CompareLink } from './CompareToggle'

@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import Link from 'next/link'
 import { CheckCircle, Award, Shield, TrendingDown, Clock, Download, FileText, BarChart } from 'lucide-react'
 
 export function FoodManufacturingContent() {
@@ -320,14 +321,14 @@ export function FoodManufacturingContent() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg">
-            <Download className="w-5 h-5 mr-2" />
-            詳細資料ダウンロード
-          </Button>
-          <Button size="lg" variant="outline">
-            <BarChart className="w-5 h-5 mr-2" />
-            ROIシミュレーション
-          </Button>
+          <Link href="/catalog" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
+            <Download className="w-5 h-5 mr-2" aria-hidden="true" />
+            製品カタログを見る
+          </Link>
+          <Link href="/quote-simulator" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+            <BarChart className="w-5 h-5 mr-2" aria-hidden="true" />
+            見積もりを試す
+          </Link>
         </div>
       </div>
     </div>

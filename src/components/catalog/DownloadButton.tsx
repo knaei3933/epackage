@@ -156,12 +156,12 @@ export function DownloadButton({
         size={size}
         disabled
         className={cn(
-          "border-border-medium text-text-muted cursor-not-allowed flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2",
+          "border-border-medium text-text-muted cursor-not-allowed",
           className
         )}
       >
-        <Download className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
-        {showText && <span className="text-[10px] sm:text-xs">テンプレート</span>}
+        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+        {showText && <span className="text-sm">テンプレート</span>}
       </Button>
     )
   }
@@ -175,22 +175,22 @@ export function DownloadButton({
         variant="outline"
         size={size}
         className={cn(
-          "border-border-strong text-text-secondary hover:border-brand hover:text-brand hover:bg-success-muted flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2 relative",
+          "border-border-strong text-text-secondary hover:border-brand hover:text-brand hover:bg-success-muted relative",
           className
         )}
         onClick={() => handleDownload(template)}
         disabled={downloadState.loading}
       >
         {downloadState.loading ? (
-          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mb-1 animate-spin" />
+          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
         ) : downloadState.success ? (
-          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mb-1 text-brand" />
+          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-brand" />
         ) : (
           getFileIcon(template.fileType)
         )}
 
         {showText && (
-          <span className="text-[10px] sm:text-xs">
+          <span className="text-sm">
             {downloadState.loading ? 'ダウンロード中' :
              downloadState.success ? '完了' :
              template.fileType}
@@ -212,27 +212,27 @@ export function DownloadButton({
 
   // If multiple templates, show dropdown
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <Button
         variant="outline"
         size={size}
         className={cn(
-          "border-border-strong text-text-secondary hover:border-brand hover:text-brand hover:bg-success-muted flex-col py-2 sm:py-3 h-auto min-h-[50px] sm:min-h-[60px] px-1 sm:px-2 relative",
+          "border-border-strong text-text-secondary hover:border-brand hover:text-brand hover:bg-success-muted relative",
           className
         )}
         onClick={() => setShowTemplateList(!showTemplateList)}
         disabled={downloadState.loading}
       >
         {downloadState.loading ? (
-          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mb-1 animate-spin" />
+          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
         ) : downloadState.success ? (
-          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mb-1 text-brand" />
+          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-brand" />
         ) : (
-          <Download className="w-3 h-3 sm:w-4 sm:h-4 mb-1" />
+          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
         )}
 
         {showText && (
-          <span className="text-[10px] sm:text-xs">
+          <span className="text-sm">
             {downloadState.loading ? 'ダウンロード中' :
              downloadState.success ? '完了' :
              'テンプレート'}
@@ -252,8 +252,8 @@ export function DownloadButton({
 
       {/* Template dropdown */}
       {showTemplateList && (
-        <div className="absolute bottom-full mb-2 left-0 z-50 bg-bg-primary border border-border-medium rounded-container p-2 min-w-[200px]">
-          <div className="text-xs font-medium text-text-secondary px-2 py-1 border-b border-border-medium mb-1">
+        <div className="absolute bottom-full mb-2 right-0 z-50 bg-bg-primary border border-border-medium rounded-container p-2 min-w-[200px]">
+          <div className="text-xs font-medium text-text-secondary px-2 py-1 border-b border-border-medium">
             デザインテンプレート
           </div>
           {templates.map((template) => (

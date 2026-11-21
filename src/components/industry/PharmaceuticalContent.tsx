@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { buttonVariants } from '@/components/ui/Button'
+import Link from 'next/link'
 import { CheckCircle, Award, Shield, AlertTriangle, Heart, Users, FileCheck, Globe, ArrowRight, X, TrendingDown } from 'lucide-react'
 
 export function PharmaceuticalContent() {
@@ -410,14 +411,14 @@ export function PharmaceuticalContent() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-white text-brand hover:bg-bg-secondary font-semibold px-8 py-4">
-            <FileCheck className="w-5 h-5 mr-2" />
-            規格対応資料ダウンロード
-          </Button>
-          <Button size="lg" variant="outline">
-            <Users className="w-5 h-5 mr-2" />
-            専門家相談を予約
-          </Button>
+          <Link href="/guide" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
+            <FileCheck className="w-5 h-5 mr-2" aria-hidden="true" />
+            規格・仕様ガイドを見る
+          </Link>
+          <Link href="/contact" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+            <Users className="w-5 h-5 mr-2" aria-hidden="true" />
+            専門家へ相談
+          </Link>
         </div>
       </div>
     </div>

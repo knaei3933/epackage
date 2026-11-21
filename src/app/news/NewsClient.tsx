@@ -8,7 +8,6 @@ import {
   Tag,
   Search,
   Clock,
-  ArrowRight,
   BookOpen,
   TrendingUp,
   Package,
@@ -415,9 +414,6 @@ export function NewsClient() {
                             <span>{article.views.toLocaleString()}</span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" className="max-sm:h-11" icon={<ArrowRight className="h-4 w-4" />} iconPosition="right">
-                          続きを読む
-                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -522,9 +518,6 @@ export function NewsClient() {
                             <span>{article.readTime}分</span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" className="max-sm:h-11">
-                          続きを読む
-                        </Button>
                       </div>
                     </div>
                   </Card>

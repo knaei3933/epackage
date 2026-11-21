@@ -27,6 +27,21 @@ import { Grid } from '@/components/ui/Grid'
 import { useComparison } from '@/contexts/ComparisonContext'
 import { compareProducts, getUniqueMaterials } from '@/contexts/ComparisonContext'
 
+// 商品カテゴリの日本語名（トップの商品カードと同じ呼び名）
+const CATEGORY_NAMES: Record<string, string> = {
+  flat_3_side: '平袋',
+  stand_up: 'スタンドパウチ',
+  gusset: 'ギゼットパウチ',
+  box: 'BOXパウチ',
+  box_with_valve: 'バルブ付きBOXパウチ',
+  flat_with_zip: 'ジッパー付き平袋',
+  special: '特殊仕様パウチ',
+  soft_pouch: 'ソフトパウチ',
+  spout_pouch: 'スパウトパウチ',
+  pouch: 'パウチ',
+  roll_film: 'ロールフィルム',
+}
+
 export function ComparisonClient() {
   const { state, clearSelection, removeProduct } = useComparison()
   const [comparisonView, setComparisonView] = useState<'table' | 'cards'>('table')
@@ -34,7 +49,7 @@ export function ComparisonClient() {
 
   const formatCurrency = (amount: number) => `¥${amount.toLocaleString()}`
 
-  if (!state.compareMode || state.selectedProducts.length === 0) {
+  if (state.selectedProducts.length === 0) {
     return (
       <div className="min-h-screen bg-bg-primary">
         <PageHeader
@@ -54,13 +69,13 @@ export function ComparisonClient() {
                 <div className="text-center">
                   <Package className="w-12 h-12 text-warning mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-text-primary mb-2">
-                    比較する製品がありません
+                    比較する製品がまだありません
                   </h3>
                   <p className="text-text-secondary mb-6">
-                    カタログページで製品を選択して比較を開始してください
+                    カタログから製品を選んでください。各製品の「比較に追加」を押すと、ここに並びます。
                   </p>
                   <Link href="/catalog" className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}>
-                      製品カタログへ移動
+                      カタログで製品を選ぶ
                     </Link>
                 </div>
               </Card>
@@ -248,7 +263,7 @@ export function ComparisonClient() {
                           <div className="space-y-2">
                             <div>{product.name_ja}</div>
                             <Badge variant="outline" className="text-xs">
-                              {product.category.replace('_', ' ')}
+                              {CATEGORY_NAMES[product.category] ?? product.category}
                             </Badge>
                           </div>
                         </th>
@@ -312,7 +327,7 @@ export function ComparisonClient() {
                     </tr>
 
                     {/* Materials */}
-                    <tr className="border-b border-border-medium hover:bg-bg-secondary">
+                    <tr className="hover:bg-bg-secondary">
                       <td className="p-4 font-medium text-text-primary">対応素材</td>
                       {state.selectedProducts.map((product) => (
                         <td key={product.id} className="p-4">
@@ -321,23 +336,6 @@ export function ComparisonClient() {
                               <Badge key={material} variant="outline" className="text-xs">
                                 {material}
                               </Badge>
-                            ))}
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* Materials */}
-                    <tr className="hover:bg-bg-secondary">
-                      <td className="p-4 font-medium text-text-primary">素材</td>
-                      {state.selectedProducts.map((product) => (
-                        <td key={product.id} className="p-4">
-                          <div className="space-y-1">
-                            {product.materials.map((material, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <CheckCircle className="w-3 h-3 text-success" />
-                                <span className="text-sm text-text-secondary">{material}</span>
-                              </div>
                             ))}
                           </div>
                         </td>
@@ -429,24 +427,6 @@ export function ComparisonClient() {
                             {material}
                           </Badge>
                         ))}
-                      </div>
-                    </div>
-
-                    {/* Materials */}
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-text-primary mb-3">素材</h4>
-                      <div className="space-y-2">
-                        {product.materials?.slice(0, 3).map((material, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <CheckCircle className="w-4 h-4 text-success" />
-                            <span className="text-sm text-text-secondary">{material}</span>
-                          </div>
-                        )) || [
-                          <div key="default" className="flex items-center space-x-2">
-                            <CheckCircle className="w-4 h-4 text-success" />
-                            <span className="text-sm text-text-secondary">高品質素材</span>
-                          </div>
-                        ]}
                       </div>
                     </div>
 
