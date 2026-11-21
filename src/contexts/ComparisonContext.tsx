@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useCallback } from 'react'
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react'
 import type { Product } from '@/types/database'
 
 // Comparison state type
@@ -18,6 +18,7 @@ type ComparisonAction =
   | { type: 'REMOVE_PRODUCT'; payload: string }
   | { type: 'CLEAR_SELECTION' }
   | { type: 'SET_COMPARED'; payload: boolean }
+  | { type: 'HYDRATE'; payload: Product[] }
 
 // Initial state
 const initialState: ComparisonState = {
@@ -82,6 +83,12 @@ function comparisonReducer(state: ComparisonState, action: ComparisonAction): Co
         isCompared: action.payload
       }
 
+    case 'HYDRATE':
+      return {
+        ...state,
+        selectedProducts: action.payload.slice(0, state.maxSelection)
+      }
+
     default:
       return state
   }
@@ -100,9 +107,43 @@ const ComparisonContext = createContext<{
   getRemainingSlots: number
 } | null>(null)
 
+// 比較に入れた製品はブラウザに保存する（カタログと /compare の両方で同じ内容を使うため）
+export const COMPARISON_STORAGE_KEY = 'epackage-compare-products'
+
+function readStoredProducts(): Product[] {
+  try {
+    const raw = window.localStorage.getItem(COMPARISON_STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((p) => p && typeof p.id === 'string') as Product[]
+  } catch {
+    return []
+  }
+}
+
 // Provider component
 export function ComparisonProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(comparisonReducer, initialState)
+  const hydrated = useRef(false)
+
+  // 初回表示のあとで保存済みの内容を読む（サーバー表示との食い違いを避ける）
+  useEffect(() => {
+    const stored = readStoredProducts()
+    if (stored.length > 0) {
+      dispatch({ type: 'HYDRATE', payload: stored })
+    }
+    hydrated.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated.current) return
+    try {
+      window.localStorage.setItem(COMPARISON_STORAGE_KEY, JSON.stringify(state.selectedProducts))
+    } catch {
+      // 保存できない環境（プライベートモードなど）では、この画面の間だけ使う
+    }
+  }, [state.selectedProducts])
 
   const toggleCompareMode = useCallback(() => {
     dispatch({ type: 'TOGGLE_COMPARE_MODE' })

@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Menu, X, ChevronDown, Phone } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/Button'
+import { Button, buttonVariants } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { UserMenu, AuthModal } from '@/components/auth'
 import { trackPhoneClick } from '@/lib/analytics'
@@ -89,6 +89,20 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Esc でドロップダウンを閉じ、フォーカスをボタンに戻す
+  const dropdownButtonRef = useRef<HTMLButtonElement | null>(null)
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDropdownOpen(null)
+        dropdownButtonRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [dropdownOpen])
+
   // Handle dropdown interactions
   const handleDropdownToggle = (label: string) => {
     setDropdownOpen(dropdownOpen === label ? null : label)
@@ -129,7 +143,7 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center space-x-3 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-md"
+          className="flex min-h-11 items-center space-x-3 transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-md"
           aria-label="Epackage Lab - ホーム"
         >
           <Image
@@ -147,7 +161,7 @@ export function Header() {
         <nav
           className="hidden lg:flex items-center space-x-1"
           role="navigation"
-          aria-label="Main navigation"
+          aria-label="メインメニュー"
           suppressHydrationWarning={true}
         >
           {navigationItems.map((item, index) => (
@@ -155,9 +169,10 @@ export function Header() {
               {item.children ? (
                 // Dropdown menu
                 <button
+                  ref={dropdownButtonRef}
                   onClick={() => handleDropdownToggle(item.label)}
                   className={cn(
-                    "flex items-center space-x-1 px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary",
+                    "flex min-h-11 items-center space-x-1 px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary",
                     dropdownOpen === item.label && "text-brand bg-bg-secondary"
                   )}
                   aria-expanded={dropdownOpen === item.label}
@@ -177,7 +192,7 @@ export function Header() {
                   <button
                     onClick={handleQuoteClick}
                     className={cn(
-                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary"
+                      "inline-flex min-h-11 items-center px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary"
                     )}
                     title={item.description}
                     aria-label={item.label}
@@ -188,7 +203,7 @@ export function Header() {
                   <Link
                     href={item.href}
                     className={cn(
-                      "px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary"
+                      "inline-flex min-h-11 items-center px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:text-brand rounded-md hover:bg-bg-secondary"
                     )}
                     {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                     title={item.description}
@@ -235,7 +250,7 @@ export function Header() {
                         <Link
                           key={generateKey(child.href, child.label, childIndex, `${index}`)}
                           href={child.href}
-                          className="block px-4 py-2 text-sm text-text-secondary hover:text-brand hover:bg-bg-secondary transition-colors"
+                          className="block min-h-11 px-4 py-3 text-sm text-text-secondary hover:text-brand hover:bg-bg-secondary transition-colors"
                           onClick={() => setDropdownOpen(null)}
                         >
                           {child.label}
@@ -271,15 +286,15 @@ export function Header() {
                 <UserMenu />
               ) : (
                 <>
-                  <Link href="/auth/signin" className="inline-flex" aria-label="ログイン - 会員認証ページへ移動">
-                    <Button variant="ghost" size="sm">
-                      ログイン
-                    </Button>
+                  <Link
+                    href="/auth/signin"
+                    className={cn(buttonVariants({ variant: 'ghost', size: 'md' }), 'min-h-11')}
+                    aria-label="ログイン - 会員認証ページへ移動"
+                  >
+                    ログイン
                   </Link>
-                  <Link href="/auth/register" className="inline-flex">
-                    <Button variant="primary" size="sm">
-                      会員登録
-                    </Button>
+                  <Link href="/auth/register" className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'min-h-11')}>
+                    会員登録
                   </Link>
                 </>
               )}
@@ -288,14 +303,11 @@ export function Header() {
 
           {/* CTA Button - Desktop */}
           <div className="hidden md:block">
-            <Link href="/contact" className="inline-flex">
-              <Button
-                variant="primary"
-                size="sm"
-                className="font-medium"
-              >
-                今すぐ相談
-              </Button>
+            <Link
+              href="/contact"
+              className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'min-h-11 font-medium')}
+            >
+              今すぐ相談
             </Link>
           </div>
 
@@ -326,10 +338,10 @@ export function Header() {
           isMenuOpen ? "block" : "hidden"
         )}
         role="navigation"
-        aria-label="Mobile navigation"
+        aria-label="スマホ用メニュー"
       >
         <Container size="6xl" className="py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <nav className="space-y-1" suppressHydrationWarning={true}>
+          <nav className="space-y-1" aria-label="メニュー" suppressHydrationWarning={true}>
             {navigationItems.map((item, index) => (
               <div key={`${item.href}-${item.label}-${index}`} className="border-b border-border-medium last:border-0">
                 {item.children ? (
@@ -365,7 +377,7 @@ export function Header() {
                                   setDropdownOpen(nestedOpen ? null : `${item.label}-${child.label}`)
                                 }}
                                 className={cn(
-                                  "w-full px-3 py-2 text-left text-sm text-text-secondary rounded transition-colors hover:bg-bg-primary hover:text-brand focus:outline-none focus:bg-bg-primary focus:text-brand flex items-center justify-between",
+                                  "w-full min-h-11 px-3 py-2 text-left text-sm text-text-secondary rounded transition-colors hover:bg-bg-primary hover:text-brand focus:outline-none focus:bg-bg-primary focus:text-brand flex items-center justify-between",
                                   dropdownOpen === `${item.label}-${child.label}` && "text-brand"
                                 )}
                               >
@@ -387,7 +399,7 @@ export function Header() {
                                         setIsMenuOpen(false)
                                         setDropdownOpen(null)
                                       }}
-                                      className="block px-2 py-1 text-sm text-text-secondary hover:text-brand hover:bg-bg-primary rounded-md transition-colors"
+                                      className="flex min-h-11 items-center px-2 py-2 text-sm text-text-secondary hover:text-brand hover:bg-bg-primary rounded-md transition-colors"
                                     >
                                       {grandChild.label}
                                     </Link>
@@ -457,20 +469,16 @@ export function Header() {
                       <Link
                         href="/member/dashboard"
                         onClick={() => setIsMenuOpen(false)}
-                        className="inline-flex w-full"
+                        className={cn(buttonVariants({ variant: 'secondary', size: 'md', fullWidth: true }), 'min-h-11 '.trim())}
                       >
-                        <Button variant="secondary" fullWidth>
-                          マイページ
-                        </Button>
+                        マイページ
                       </Link>
                       <Link
                         href="/quote-simulator"
                         onClick={() => setIsMenuOpen(false)}
-                        className="inline-flex w-full"
+                        className={cn(buttonVariants({ variant: 'primary', size: 'md', fullWidth: true }), 'min-h-11 '.trim())}
                       >
-                        <Button variant="primary" fullWidth>
-                          お見積り
-                        </Button>
+                        お見積り
                       </Link>
                     </>
                   ) : (
@@ -478,21 +486,17 @@ export function Header() {
                       <Link
                         href="/auth/signin"
                         onClick={() => setIsMenuOpen(false)}
-                        className="inline-flex w-full"
+                        className={cn(buttonVariants({ variant: 'secondary', size: 'md', fullWidth: true }), 'min-h-11 '.trim())}
                         aria-label="ログイン - 会員認証ページへ移動"
                       >
-                        <Button variant="secondary" fullWidth>
-                          ログイン
-                        </Button>
+                        ログイン
                       </Link>
                       <Link
                         href="/auth/register"
                         onClick={() => setIsMenuOpen(false)}
-                        className="inline-flex w-full"
+                        className={cn(buttonVariants({ variant: 'primary', size: 'md', fullWidth: true }), 'min-h-11 '.trim())}
                       >
-                        <Button variant="primary" fullWidth>
-                          会員登録
-                        </Button>
+                        会員登録
                       </Link>
                     </>
                   )}
@@ -501,16 +505,9 @@ export function Header() {
               <Link
                 href="/contact"
                 onClick={() => setIsMenuOpen(false)}
-                className="inline-flex w-full"
+                className={cn(buttonVariants({ variant: 'secondary', size: 'md', fullWidth: true }), 'min-h-11 justify-center font-medium'.trim())}
               >
-                <Button
-                  variant="secondary"
-                  fullWidth
-                  className="justify-center font-medium"
-                  aria-label="お問い合わせ - mobile CTA"
-                >
-                  お問い合わせ
-                </Button>
+                お問い合わせ
               </Link>
             </div>
           </nav>

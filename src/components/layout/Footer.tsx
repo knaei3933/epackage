@@ -62,7 +62,7 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 
 const linkClass = cn(
-  'inline-flex min-h-11 items-center rounded-md text-[15px] leading-[1.8] text-brand hover:underline underline-offset-4 lg:min-h-0',
+  'inline-flex min-h-11 items-center rounded-md py-2 text-[15px] leading-[1.8] text-brand hover:underline underline-offset-4',
   focusRing
 )
 
@@ -92,7 +92,7 @@ export function Footer() {
         type="button"
         onClick={scrollToTop}
         className={cn(
-          'fixed bottom-24 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-md bg-brand text-on-brand hover:bg-brand-hover',
+          'fixed bottom-[calc(6rem+var(--cookie-banner-h,0px))] right-6 z-50 flex h-11 w-11 items-center justify-center rounded-md bg-brand text-on-brand hover:bg-brand-hover',
           focusRing,
           showBackToTop ? 'opacity-100' : 'invisible pointer-events-none opacity-0'
         )}
@@ -205,7 +205,7 @@ export function Footer() {
           </div>
 
           {/* 下段 */}
-          <div className="mt-8 flex flex-col gap-2 border-t border-brand-soft pb-20 pt-4 md:flex-row md:items-center md:justify-between lg:py-4 lg:pr-20">
+          <div className="mt-8 flex flex-col gap-2 border-t border-brand-soft pb-28 pt-4 md:flex-row md:items-center md:justify-between lg:pb-28 lg:pr-20">
             <p className="text-sm leading-[1.8]">© {currentYear} Epackage Lab. 全著作権所有.</p>
             <nav aria-label="フッターのリンク">
               <ul className="flex flex-wrap gap-x-6">

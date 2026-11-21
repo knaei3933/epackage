@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
+import type React from 'react';
 import { usePathname } from 'next/navigation';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
@@ -94,6 +95,10 @@ export function ChatWidget() {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking');
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
   const [renderedHtml, setRenderedHtml] = useState<Record<string, string>>({});
   const [suggestions, setSuggestions] = useState<readonly ChatSuggestionView[]>(
     PUBLIC_CHAT_FALLBACK_SUGGESTIONS,
@@ -599,6 +604,25 @@ export function ChatWidget() {
     setIsOpen(false);
   };
 
+  // 開いたら中へ、閉じたらボタンへフォーカスを移す
+  useEffect(() => {
+    if (isOpen) {
+      wasOpenRef.current = true;
+      const input = inputRef.current;
+      (input && !input.disabled ? input : panelRef.current)?.focus();
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      openButtonRef.current?.focus();
+    }
+  }, [isOpen]);
+
+  const handlePanelKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      handleClose();
+    }
+  };
+
   // 接続ステータスの色
   const getStatusColor = () => {
     switch (connectionStatus) {
@@ -623,7 +647,7 @@ export function ChatWidget() {
       case 'maintenance':
         return 'メンテナンス中';
       default:
-        return '確認中...';
+        return '接続中...';
     }
   };
 
@@ -648,14 +672,15 @@ export function ChatWidget() {
       {/* フローティングボタン（閉じている時） */}
       {!isOpen && (
         <button
+          ref={openButtonRef}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brand text-on-brand rounded-full shadow-med hover:bg-brand-hover transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          className="fixed bottom-[calc(1.5rem+var(--cookie-banner-h,0px))] right-6 z-50 w-14 h-14 bg-brand text-on-brand rounded-full shadow-med hover:bg-brand-hover transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           aria-label="チャットを開く"
         >
           <MessageCircle className="w-6 h-6" />
           <span
             className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${getStatusColor()} border-2 border-bg-primary`}
-            aria-label={getStatusText()}
+            aria-hidden="true"
           />
         </button>
       )}
@@ -663,7 +688,12 @@ export function ChatWidget() {
       {/* チャットドロアパネル */}
       {isOpen && (
         <div
-          className={`fixed z-50 bg-bg-primary shadow-high border-l border-border-medium flex flex-col transition-transform duration-300 ease-in-out
+          ref={panelRef}
+          role="dialog"
+          aria-label="カスタマーサポートのチャット"
+          tabIndex={-1}
+          onKeyDown={handlePanelKeyDown}
+          className={`fixed z-50 focus:outline-none bg-bg-primary shadow-high border-l border-border-medium flex flex-col transition-transform duration-300 ease-in-out
             lg:top-16 lg:bottom-0 lg:right-0 lg:w-[400px] lg:rounded-none lg:border-l
             max-lg:inset-0 max-lg:border-l-0
             ${isMinimized ? 'lg:h-14' : ''}`}
@@ -677,7 +707,7 @@ export function ChatWidget() {
               <div className="flex items-center gap-1 ml-2">
                 <span
                   className={`w-2 h-2 rounded-full ${getStatusColor()}`}
-                  aria-label={getStatusText()}
+                  aria-hidden="true"
                 />
                 <span className="text-xs" data-testid="connection-status">{getStatusText()}</span>
               </div>
@@ -718,6 +748,7 @@ export function ChatWidget() {
                 {messages.length === 0 && (
                   <div className="text-center text-text-muted py-8">
                     <p>こんにちは！Epackage Labです。</p>
+                    <p className="text-sm mt-1">この窓口は、AIによる自動応答です。</p>
                     <p className="text-sm mt-2">
                       包装材料や製品についてのお問い合わせをご相談ください。
                     </p>
@@ -952,6 +983,7 @@ export function ChatWidget() {
               >
                 <div className="flex gap-2">
                   <input
+                    ref={inputRef}
                     type="text"
                     data-testid="chat-input"
                     value={input}

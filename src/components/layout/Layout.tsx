@@ -35,15 +35,12 @@ export function Layout({
   containerSize = '6xl',
 }: LayoutProps) {
   const mainContent = (
-    <main
-      id="main-content"
+    <div
       className={cn(
         "flex-1 w-full",
         "min-h-[calc(100vh-4rem)]", // Minimum height accounting for header
         mainClassName
       )}
-      role="main"
-      tabIndex={-1}
     >
       {withLoadingState && isLoading ? (
         <LoadingSkeleton />
@@ -64,7 +61,7 @@ export function Layout({
           {children}
         </div>
       )}
-    </main>
+    </div>
   )
 
   const content = mainContent
@@ -79,8 +76,8 @@ export function Layout({
         href="#main-content"
         className={cn(
           "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4",
-          "bg-brixa-600 text-white px-4 py-2 rounded-md z-50",
-          "focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:ring-offset-2"
+          "bg-brand text-on-brand px-4 py-2 rounded-md z-50",
+          "focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
         )}
       >
         メインコンテンツにスキップ
@@ -113,19 +110,18 @@ export function SimpleLayout({
   isLoading = false,
 }: Omit<LayoutProps, 'showHeader' | 'showFooter' | 'headerClassName' | 'footerClassName' | 'containerSize'>) {
   const mainContent = (
-    <main
+    <div
       className={cn(
         "flex-1 w-full min-h-screen flex items-center justify-center",
         mainClassName
       )}
-      role="main"
     >
       {withLoadingState && isLoading ? (
         <LoadingSkeleton />
       ) : (
         children
       )}
-    </main>
+    </div>
   )
 
   const content = mainContent
@@ -140,8 +136,8 @@ export function SimpleLayout({
         href="#main-content"
         className={cn(
           "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4",
-          "bg-brixa-600 text-white px-4 py-2 rounded-md z-50",
-          "focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:ring-offset-2"
+          "bg-brand text-on-brand px-4 py-2 rounded-md z-50",
+          "focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
         )}
       >
         メインコンテンツにスキップ
@@ -165,12 +161,11 @@ export function CenteredLayout({
   containerSize = 'md',
 }: Omit<LayoutProps, 'showHeader' | 'showFooter' | 'headerClassName' | 'footerClassName'>) {
   const mainContent = (
-    <main
+    <div
       className={cn(
         "flex-1 w-full min-h-screen flex items-center justify-center p-4",
         mainClassName
       )}
-      role="main"
     >
       {withLoadingState && isLoading ? (
         <LoadingSkeleton />
@@ -192,7 +187,7 @@ export function CenteredLayout({
           {children}
         </div>
       )}
-    </main>
+    </div>
   )
 
   const content = mainContent
@@ -207,8 +202,8 @@ export function CenteredLayout({
         href="#main-content"
         className={cn(
           "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4",
-          "bg-brixa-600 text-white px-4 py-2 rounded-md z-50",
-          "focus:outline-none focus:ring-2 focus:ring-brixa-500 focus:ring-offset-2"
+          "bg-brand text-on-brand px-4 py-2 rounded-md z-50",
+          "focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
         )}
       >
         メインコンテンツにスキップ

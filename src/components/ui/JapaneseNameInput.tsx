@@ -187,7 +187,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
             {/* 姓 */}
             <div className="space-y-1">
               <label htmlFor={`${baseId}-name-kanji-last`} className="text-base text-text-primary block">
-                姓
+                姓（漢字）
               </label>
               <Input
                 id={`${baseId}-name-kanji-last`}
@@ -207,7 +207,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
             {/* 名 */}
             <div className="space-y-1">
               <label htmlFor={`${baseId}-name-kanji-first`} className="text-base text-text-primary block">
-                名
+                名（漢字）
               </label>
               <Input
                 id={`${baseId}-name-kanji-first`}
@@ -236,7 +236,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
             {/* 姓（カタカナ） */}
             <div className="space-y-1">
               <label htmlFor={`${baseId}-name-kana-last`} className="text-base text-text-primary block">
-                姓
+                姓（読み仮名）
               </label>
               <Input
                 id={`${baseId}-name-kana-last`}
@@ -256,7 +256,7 @@ const JapaneseNameInput = forwardRef<HTMLDivElement, JapaneseNameInputProps>(
             {/* 名（カタカナ） */}
             <div className="space-y-1">
               <label htmlFor={`${baseId}-name-kana-first`} className="text-base text-text-primary block">
-                名
+                名（読み仮名）
               </label>
               <Input
                 id={`${baseId}-name-kana-first`}

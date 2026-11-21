@@ -1,3 +1,4 @@
+import { LEAD_TIME_LABEL } from '@/lib/site-facts'
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
@@ -26,10 +27,10 @@ import { SITE_URL } from "@/lib/seo/canonical";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Epackage Lab - 小ロットから大ロットまで経済的 | 最小500枚・最短28日納品のパッケージ製造",
+    default: `Epackage Lab - 小ロットから大ロットまで経済的 | 最小500枚・${LEAD_TIME_LABEL}納品のパッケージ製造`,
     template: "%s | Epackage Lab"
   },
-  description: "小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。",
+  description: `小ロット500枚〜大ロット対応、${LEAD_TIME_LABEL}納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。`,
   authors: [{ name: "Epackage Lab" }],
   creator: "Epackage Lab",
   publisher: "Epackage Lab",
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: 'Epackage Lab',
     title: 'Epackage Lab | 小ロット500枚〜大ロット対応のパッケージ製造',
-    description: '小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。',
+    description: `小ロット500枚〜大ロット対応、${LEAD_TIME_LABEL}納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。`,
     images: [
       {
         url: '/images/og-image.jpg',
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Epackage Lab | 小ロット500枚〜大ロット対応のパッケージ製造',
-    description: '小ロット500枚〜大ロット対応、最短28日納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。',
+    description: `小ロット500枚〜大ロット対応、${LEAD_TIME_LABEL}納品のパッケージ専門製造。化粧品・食品・医薬品向け包装材を無料見積もりでご提案。`,
     images: ['/images/og-image.jpg'],
     creator: '@epackage_lab',
   },
@@ -169,12 +170,18 @@ export default function RootLayout({
                   <ModalWrapper />
                   <ChatDrawerProvider>
                     <ChatDrawerAppShell>
+                      <a
+                        href="#main-content"
+                        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-4 focus:py-3 focus:text-on-brand"
+                      >
+                        本文へ移動
+                      </a>
                       <HeaderWrapper />
                       <OrganizationSchema />
                       <LocalBusinessSchema />
                       <WebSiteSchema />
                       <BreadcrumbNav />
-                      <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main>{children}</main></ToastProvider></SWRConfig>
+                      <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 2000, shouldRetryOnError: true, errorRetryCount: 3 }}><ToastProvider><main id="main-content" tabIndex={-1} className="focus:outline-none">{children}</main></ToastProvider></SWRConfig>
                       <Footer />
                     </ChatDrawerAppShell>
                     <ChatWidget />
