@@ -30,8 +30,7 @@ export function FoodManufacturingContent() {
       description: '製品の鮮度と品質を長期間保持する革新的包装技術',
       icon: TrendingDown,
       benefits: [
-        '酸素透過率99%低減',
-        '鮮保持続期間2倍延長',
+        '酸素の透過を抑える設計',
         '温度変化への耐性強化',
         '風味・香り保持技術'
       ],
@@ -40,12 +39,12 @@ export function FoodManufacturingContent() {
     {
       id: 'cost',
       title: 'コスト削減',
-      description: '従来のコストを30%削減する効率的な包装ソリューション',
+      description: '包装まわりのコストを見直す、効率的な包装ソリューション',
       icon: TrendingDown,
       benefits: [
-        '材料費25%削減',
-        'ラベリングコスト15%削減',
-        '保管・輸送効率30%向上',
+        '材料費の見直し',
+        'ラベリングコストの見直し',
+        '保管・輸送の効率化',
         '廃棄物削減によるコスト低減'
       ],
       certifications: ['コスト削減認証', '効率化認証']
@@ -57,37 +56,19 @@ export function FoodManufacturingContent() {
       company: 'A食品株式会社',
       industry: '惣菜メーカー',
       challenge: '賞味期限の短縮と包装コストの高騰',
-      solution: '鮮度保持パッケージングシステム導入',
-      result: {
-        shelfLife: '14日 → 21日',
-        costReduction: '32%',
-        wasteReduction: '45%',
-        satisfaction: '98%'
-      }
+      solution: '鮮度保持パッケージングシステム導入'
     },
     {
       company: 'Bベーカリー',
       industry: 'パン製造',
       challenge: 'パンの硬化と輸送中の破損',
-      solution: '特殊ガス封止・衝撃吸収パッケージ',
-      result: {
-        shelfLife: '3日 → 7日',
-        damageRate: '8% → 0.5%',
-        costReduction: '28%',
-        satisfaction: '99%'
-      }
+      solution: '特殊ガス封止・衝撃吸収パッケージ'
     },
     {
       company: 'Cスイーツ',
       industry: 'デザート製造',
       challenge: 'デリケートな製品の保護とブランディング',
-      solution: '高級感包装デザイン・保護機能強化',
-      result: {
-        brandValue: '35%向上',
-        damageRate: '12% → 1%',
-        customerRetention: '25%増加',
-        satisfaction: '97%'
-      }
+      solution: '高級感包装デザイン・保護機能強化'
     }
   ]
 
@@ -121,8 +102,8 @@ export function FoodManufacturingContent() {
           <span className="text-brand">専門ソリューション</span>
         </h2>
         <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-          厳格な品質管理、鮮度保持技術、コスト削減を実現。
-          150社以上の食品メーカーが導入済みの実績あるパッケージングソリューション。
+          厳格な品質管理、鮮度保持技術、コスト削減を支える
+          パッケージングソリューション。
         </p>
       </div>
 
@@ -225,32 +206,6 @@ export function FoodManufacturingContent() {
                   <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
                   <p className="text-sm text-text-secondary">{caseStudy.solution}</p>
                 </div>
-
-                <div className="bg-brand-muted rounded-lg p-4">
-                  <h4 className="font-semibold text-text-primary mb-3">実績</h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="font-medium text-brand">賞味期限延長:</span>
-                      <br />
-                      <span className="text-text-primary font-semibold">{caseStudy.result.shelfLife}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-brand">コスト削減:</span>
-                      <br />
-                      <span className="text-text-primary font-semibold">{caseStudy.result.costReduction}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-brand">廃棄物削減:</span>
-                      <br />
-                      <span className="text-text-primary font-semibold">{caseStudy.result.wasteReduction}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-brand">満足度:</span>
-                      <br />
-                      <span className="text-text-primary font-semibold">{caseStudy.result.satisfaction}</span>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           ))}
@@ -304,22 +259,6 @@ export function FoodManufacturingContent() {
 
       {/* CTA Section */}
       <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
-        <h3 className="text-2xl font-bold mb-4">導入で得られる価値</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-bg-primary text-text-primary rounded-md p-6">
-            <div className="text-3xl font-bold mb-2">30%+</div>
-            <div>コスト削減</div>
-          </div>
-          <div className="bg-bg-primary text-text-primary rounded-md p-6">
-            <div className="text-3xl font-bold mb-2">2倍</div>
-            <div>鮮保持続期間</div>
-          </div>
-          <div className="bg-bg-primary text-text-primary rounded-md p-6">
-            <div className="text-3xl font-bold mb-2">150+</div>
-            <div>導入実績</div>
-          </div>
-        </div>
-
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/catalog" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
             <Download className="w-5 h-5 mr-2" aria-hidden="true" />

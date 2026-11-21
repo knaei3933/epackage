@@ -1,9 +1,9 @@
 import { Fragment } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { ArrowRight, Check, Star } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/Button'
-import { PageHeader, FactList } from '@/components/layout'
+import { PageHeader } from '@/components/layout'
 
 /**
  * 長いカタカナ語の前に、改行してよい位置（<wbr>）を置く。
@@ -24,15 +24,9 @@ interface HeaderSectionProps {
   subtitle: string
   icon: LucideIcon
   features: string[]
-  stats: {
-    satisfaction: string
-    roi: string
-    delivery: string
-    cases: string
-  }
 }
 
-export function HeaderSection({ title, subtitle, icon: Icon, features, stats }: HeaderSectionProps) {
+export function HeaderSection({ title, subtitle, icon: Icon, features }: HeaderSectionProps) {
   return (
     <PageHeader
       title={
@@ -65,23 +59,6 @@ export function HeaderSection({ title, subtitle, icon: Icon, features, stats }: 
               </li>
             ))}
           </ul>
-        </div>
-
-        <FactList
-          items={[
-            { value: stats.roi, label: 'ROI改善率' },
-            { value: stats.cases, label: '導入事例' },
-            { value: stats.satisfaction, label: '満足度' },
-            { value: stats.delivery, label: '最短納期' },
-          ]}
-        />
-
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-secondary">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 text-brand" aria-hidden="true" />
-            <span>4.9/5.0 ({stats.satisfaction} 満足度)</span>
-          </div>
-          <div>{stats.cases}社の導入実績</div>
         </div>
       </div>
     </PageHeader>

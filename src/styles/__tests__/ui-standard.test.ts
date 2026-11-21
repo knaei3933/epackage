@@ -172,7 +172,6 @@ const GOVERNED_PAGE_FILES: string[] = [
   'src/components/industry/PharmaceuticalContent.tsx',
   'src/components/industry/ROISection.tsx',
   'src/components/industry/TechnicalSpecsSection.tsx',
-  'src/components/industry/TestimonialsSection.tsx',
   // src/components/inquiry
   'src/components/inquiry/DetailedInquiryForm.tsx',
   'src/components/inquiry/steps/AdditionalInfoStep.tsx',

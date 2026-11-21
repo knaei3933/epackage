@@ -57,37 +57,19 @@ export function ElectronicsContent() {
       company: '半導体製造大手',
       product: 'ロジックLSI',
       challenge: '輸送中の静電気破損と輸送コストの高騰',
-      solution: 'ESD制御・効率化包装システム',
-      results: {
-        esdFailures: '0.5% → 0.01%',
-        shippingCost: '35%削減',
-        handlingTime: '40%短縮',
-        inventoryTurnover: '25%向上'
-      }
+      solution: 'ESD制御・効率化包装システム'
     },
     {
       company: 'スマートフォンメーカー',
       product: 'スマートフォン部品',
       challenge: '破損率の高さと納期遅延',
-      solution: '精密保護・自動化包装ライン',
-      results: {
-        damageRate: '12% → 0.3%',
-        onTimeDelivery: '85% → 98%',
-        productionEfficiency: '50%向上',
-        qualityScore: '9.5/10'
-      }
+      solution: '精密保護・自動化包装ライン'
     },
     {
       company: '自動車電子メーカー',
       product: '車載ECU',
       challenge: '厳しい環境条件での信頼性確保',
-      solution: '環境耐久性包装・温湿度管理',
-      results: {
-        reliability: '99.99%達成',
-        temperatureRange: '-40℃〜+85℃',
-        humidityControl: '5%〜95%RH',
-        lifespan: '15年延長'
-      }
+      solution: '環境耐久性包装・温湿度管理'
     }
   ]
 
@@ -139,33 +121,6 @@ export function ElectronicsContent() {
     ]
   }
 
-  const supplyChainBenefits = [
-    {
-      metric: '破損率低減',
-      improvement: '95%',
-      impact: '輸送コスト大幅削減',
-      roi: '280%'
-    },
-    {
-      metric: '納期遵守率',
-      improvement: '98%',
-      impact: '生産スケジュール安定化',
-      roi: '190%'
-    },
-    {
-      metric: '品質安定性',
-      improvement: '99.9%',
-      impact: '顧客満足度向上',
-      roi: '320%'
-    },
-    {
-      metric: '在庫回転率',
-      improvement: '40%向上',
-      impact: '資金効率改善',
-      roi: '150%'
-    }
-  ]
-
   return (
     <div className="space-y-12">
       {/* Hero Content */}
@@ -175,8 +130,8 @@ export function ElectronicsContent() {
           <span className="text-brand">先進的包装ソリューション</span>
         </h2>
         <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-          ESD防止、衝撃吸収、精密保護の3大機能で電子部品の品質と信頼性を徹底守る。
-          120社以上の電子企業が導入済みの実績あるソリューション。
+          ESD防止、衝撃吸収、精密保護の3つの機能で、
+          電子部品の品質と信頼性を守ります。
         </p>
       </div>
 
@@ -287,31 +242,6 @@ export function ElectronicsContent() {
                   <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
                   <p className="text-sm text-text-secondary">{case_.solution}</p>
                 </div>
-
-                <div className="bg-bg-secondary rounded-lg p-4">
-                  <h4 className="font-semibold text-text-primary mb-3">実績</h4>
-                  <div className="space-y-2 text-sm">
-                    {Object.entries(case_.results).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-brand">
-                          {key === 'esdFailures' && 'ESD不良率: '}
-                          {key === 'shippingCost' && '輸送コスト: '}
-                          {key === 'handlingTime' && '取り扱い時間: '}
-                          {key === 'inventoryTurnover' && '在庫回転率: '}
-                          {key === 'damageRate' && '破損率: '}
-                          {key === 'onTimeDelivery' && '納期遵守率: '}
-                          {key === 'productionEfficiency' && '生産効率: '}
-                          {key === 'qualityScore' && '品質評価: '}
-                          {key === 'reliability' && '信頼性: '}
-                          {key === 'temperatureRange' && '温度範囲: '}
-                          {key === 'humidityControl' && '湿度管理: '}
-                          {key === 'lifespan' && '寿命延長: '}
-                        </span>
-                        <span className="text-text-primary font-semibold">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           ))}
@@ -404,17 +334,6 @@ export function ElectronicsContent() {
 
       {/* Supply Chain Benefits */}
       <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
-        <h3 className="text-2xl font-bold mb-4">供給網安定化で実現価値</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {supplyChainBenefits.map((benefit, index) => (
-            <div key={index} className="bg-bg-primary text-text-primary rounded-md p-4">
-              <div className="text-2xl font-bold mb-1">{benefit.improvement}</div>
-              <div className="text-sm font-medium mb-2">{benefit.metric}</div>
-              <div className="text-xs opacity-90">{benefit.impact}</div>
-            </div>
-          ))}
-        </div>
-
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <NextLink href="/guide" className={buttonVariants({ size: 'lg', variant: 'primary' })}>
             <Link className="w-5 h-5 mr-2" aria-hidden="true" />

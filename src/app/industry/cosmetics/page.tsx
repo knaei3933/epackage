@@ -7,10 +7,10 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: '化粧品業界向け高級パッケージングソリューション',
-    description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上、欧州・日本認証対応、持続可能性を考慮した包装で実際の売上増を実現。今すぐ無料見積もりでラグジュアリー包装を体験。',
+    description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上、欧州・日本認証対応、持続可能性を考慮した包装。今すぐ無料見積もりでラグジュアリー包装を体験。',
     openGraph: {
       title: '化粧品業界向け高級パッケージングソリューション',
-      description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上と実際の売上増を実現。',
+      description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上を支える包装。',
       type: 'website',
       images: [
         {
@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: '化粧品業界向け高級パッケージングソリューション',
-      description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上と実際の売上増を実現。',
+      description: '化粧品業界向けのプレミアムパッケージングソリューション。ブランド価値向上を支える包装。',
       images: ['/images/industry/cosmetics-og.jpg']
     },
     alternates: {

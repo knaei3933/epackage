@@ -57,37 +57,19 @@ export function CosmeticsContent() {
       brand: 'LUXE BEAUTY',
       category: 'プレミアムスキンケア',
       challenge: 'コモディティ化した市場での差別化不足',
-      solution: '高級感包装とサステナビリティの融合',
-      results: {
-        brandValue: '85%向上',
-        salesIncrease: '42%',
-        customerLoyalty: '65%向上',
-        marketShare: '3倍'
-      }
+      solution: '高級感包装とサステナビリティの融合'
     },
     {
       brand: 'NATURE GLOW',
       category: 'ナチュラルコスメ',
       challenge: '自然志向との一致した包装の不在',
-      solution: 'バイオ素材使用・環境配慮デザイン',
-      results: {
-        ecoScore: 'A+評価',
-        customerAcquisition: '38%増',
-        mediaCoverage: '25件',
-        premiumPositioning: '成功'
-      }
+      solution: 'バイオ素材使用・環境配慮デザイン'
     },
     {
       brand: 'TECH BEAUTY',
       category: 'テクノロジーコスメ',
       challenge: 'イノベーティブなイメージの可視化困難',
-      solution: '未来感デザイン・機能的包装',
-      results: {
-        innovationScore: '9.2/10',
-        unboxingExperience: '95%満足',
-        socialMedia: '10万+',
-        brandRecognition: '70%向上'
-      }
+      solution: '未来感デザイン・機能的包装'
     }
   ]
 
@@ -108,7 +90,7 @@ export function CosmeticsContent() {
       trend: 'パーソナライゼーション',
       description: '一人ひとりのニーズに合わせたカスタム包装',
       technologies: ['オンデマンド印刷', 'データ連携', 'カスタム設計'],
-      benefits: ['ロイヤリティ', '顧客満足度', '差別化']
+      benefits: ['ロイヤリティ', '差別化']
     }
   ]
 
@@ -236,31 +218,6 @@ export function CosmeticsContent() {
                   <h4 className="font-semibold text-text-primary mb-2">ソリューション</h4>
                   <p className="text-sm text-text-secondary">{story.solution}</p>
                 </div>
-
-                <div className="bg-bg-secondary rounded-lg p-4">
-                  <h4 className="font-semibold text-text-primary mb-3">実績</h4>
-                  <div className="space-y-2 text-sm">
-                    {Object.entries(story.results).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-brand">
-                          {key === 'brandValue' && 'ブランド価値: '}
-                          {key === 'salesIncrease' && '売上増加: '}
-                          {key === 'customerLoyalty' && '顧客ロイヤルティ: '}
-                          {key === 'marketShare' && '市場シェア: '}
-                          {key === 'ecoScore' && '環境評価: '}
-                          {key === 'customerAcquisition' && '顧客獲得: '}
-                          {key === 'mediaCoverage' && 'メディア掲載: '}
-                          {key === 'premiumPositioning' && 'プレミアムポジショニング: '}
-                          {key === 'innovationScore' && 'イノベーション評価: '}
-                          {key === 'unboxingExperience' && '開梱体験: '}
-                          {key === 'socialMedia' && 'ソーシャルメディア: '}
-                          {key === 'brandRecognition' && 'ブランド認知度: '}
-                        </span>
-                        <span className="text-text-primary font-semibold">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           ))}
@@ -314,21 +271,6 @@ export function CosmeticsContent() {
       {/* Value Proposition */}
       <div className="bg-bg-secondary border border-border-medium rounded-container p-8 text-center text-text-primary">
         <h3 className="text-2xl font-bold mb-4">化粧品包装で実現できる価値</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-bg-primary text-text-primary rounded-md p-6">
-            <div className="text-3xl font-bold mb-2">35%+</div>
-            <div>売上向上</div>
-          </div>
-          <div className="bg-bg-primary text-text-primary rounded-md p-6">
-            <div className="text-3xl font-bold mb-2">85%</div>
-            <div>ブランド価値向上</div>
-          </div>
-          <div className="bg-bg-primary text-text-primary rounded-md p-6">
-            <div className="text-3xl font-bold mb-2">80+</div>
-            <div>導入実績</div>
-          </div>
-        </div>
-
         <p className="text-lg mb-6 max-w-2xl mx-auto">
           包装はただの容器ではありません。それは消費者との最初の出会いであり、
           ブランドの約束を形にする重要なタッチポイントです。

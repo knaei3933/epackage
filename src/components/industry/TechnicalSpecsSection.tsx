@@ -85,7 +85,7 @@ export function TechnicalSpecsSection({ industry }: TechnicalSpecsSectionProps) 
       features: [
         '小児安全キャップ',
         '防偽機能',
-        '遮光性（99%以上）',
+        '遮光性',
         '温湿度指示',
         'バーコード対応'
       ],
